@@ -33,6 +33,11 @@ export OPENAI_API_KEY="sk-your-key-here"
 gradle installDist && app/build/install/app/bin/app
 ```
 
+Or use the test script to verify everything works:
+```bash
+./test_game.sh
+```
+
 ### 3. Play!
 
 Available commands:
