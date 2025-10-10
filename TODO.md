@@ -33,12 +33,12 @@
 ## Later Implementation (MVP Features)
 
 ### 5. LLM Integration
-- [ ] Room description generation using traits
-- [ ] Prompt templates for different scenarios
-- [ ] Response generation and narration
+- [x] Room description generation using traits
+- [x] Prompt templates for different scenarios
+- [ ] Response generation and narration (partially done)
 
 ### 6. Game Mechanics
-- [ ] Movement between rooms
+- [x] Movement between rooms
 - [ ] Item pickup/drop
 - [ ] Basic interaction system
 
@@ -61,19 +61,24 @@
 - **Basic playable game loop with console interface**
 - **Input parser converting text to Intent objects**
 - **Movement, look, inventory, and help commands working**
+- **LLM-powered room description generation** ✨
+- **RoomDescriptionGenerator in reasoning module with tests**
+- **API key support via OPENAI_API_KEY env var or local.properties**
 
 ⚠️ **BLOCKED**
 - None currently
 
 🎯 **READY TO START**
-- LLM-powered room description generation (next priority)
-- Item pickup/drop mechanics
-- Interaction system
+- Item pickup/drop mechanics (next priority)
+- Enhanced interaction system (NPCs, objects)
+- Combat system
 
 ## Notes
 
-- **Game is now playable!** Run with: `gradle installDist && app/build/install/app/bin/app`
+- **Game is now playable with LLM-powered descriptions!** Run with: `gradle installDist && app/build/install/app/bin/app`
 - Or build and run: `gradle :app:build && app/build/install/app/bin/app`
+- **API Key Setup**: Set `openai.api.key=sk-...` in `local.properties` or use `OPENAI_API_KEY` env var
 - Sample dungeon ready: `SampleDungeon.createInitialWorldState()`
 - Follow KISS principle - start simple, add complexity gradually
-- Next step: Integrate LLM for dynamic room descriptions
+- **LLM descriptions use gpt-4o-mini for cost efficiency**
+- Next step: Implement item pickup/drop mechanics

@@ -4,16 +4,33 @@ import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.perception.Intent
+import com.jcraw.mud.reasoning.RoomDescriptionGenerator
+import com.jcraw.sophia.llm.OpenAIClient
+import kotlinx.coroutines.runBlocking
 
 /**
  * Main game application - console-based MUD interface
  */
 fun main() {
-    val game = MudGame()
+    // Get OpenAI API key from environment or system property (from local.properties)
+    val apiKey = System.getenv("OPENAI_API_KEY")
+        ?: System.getProperty("openai.api.key")
+
+    val game = if (apiKey.isNullOrBlank()) {
+        println("⚠️  OpenAI API key not found - using simple trait-based descriptions")
+        println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
+        MudGame(descriptionGenerator = null)
+    } else {
+        println("✅ Using LLM-powered room descriptions\n")
+        val llmClient = OpenAIClient(apiKey)
+        val descriptionGenerator = RoomDescriptionGenerator(llmClient)
+        MudGame(descriptionGenerator = descriptionGenerator)
+    }
+
     game.start()
 }
 
-class MudGame {
+class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null) {
     private var worldState: WorldState = SampleDungeon.createInitialWorldState()
     private var running = true
 
@@ -61,8 +78,15 @@ class MudGame {
     }
 
     private fun generateRoomDescription(room: com.jcraw.mud.core.Room): String {
-        // Simple trait-based description for now (LLM generation comes later)
-        return room.traits.joinToString(". ") + "."
+        return if (descriptionGenerator != null) {
+            // Use LLM-powered description generation
+            runBlocking {
+                descriptionGenerator.generateDescription(room)
+            }
+        } else {
+            // Fallback to simple trait concatenation
+            room.traits.joinToString(". ") + "."
+        }
     }
 
     private fun parseInput(input: String): Intent {

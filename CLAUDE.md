@@ -14,14 +14,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Intent sealed class hierarchy (Move, Look, Interact, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
-- **GAME IS PLAYABLE** - movement, looking, basic commands work
+- **RoomDescriptionGenerator - LLM-powered vivid room descriptions** ✨
+- **API key support via local.properties or OPENAI_API_KEY env var**
+- **GAME IS FULLY PLAYABLE** - movement, looking, LLM descriptions work
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **LLM-powered descriptions** - Generate room descriptions from traits using OpenAI
-2. **Item mechanics** - Pickup/drop items, manage inventory
-3. **Interaction system** - Use items, talk to NPCs, trigger events
-4. Later: Combat, skill checks, memory/RAG, advanced generation
+1. **Item mechanics** - Pickup/drop items, manage inventory
+2. **Interaction system** - Use items, talk to NPCs, trigger events
+3. Later: Combat, skill checks, memory/RAG, advanced generation
 
 ## Commands
 
@@ -98,20 +99,25 @@ Clean separation following the planned architecture:
 ✅ **Console-based game loop - PLAYABLE MVP**
 ✅ **Text parser converting input to Intent objects**
 ✅ **Movement, look, inventory, help commands functional**
+✅ **LLM-powered room description generation** ✨
+✅ **RoomDescriptionGenerator in reasoning module with tests**
+✅ **API key configuration via local.properties**
 
-### Current Status: Playable MVP Complete
+### Current Status: Enhanced MVP with LLM
 ✅ All modules building successfully
-✅ Game runs and responds to player commands
-✅ Sample dungeon fully navigable
+✅ Game runs with LLM-powered descriptions
+✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
+✅ Fallback to simple trait descriptions if no API key
 
 ### Next Priority
-🔄 LLM-powered room description generation
 🔄 Item pickup/drop mechanics
-🔄 NPC interaction system
+🔄 Enhanced NPC interaction system
+🔄 Combat mechanics
 
 ## Important Notes
 
-- **Main application**: `com.jcraw.app.AppKt` - fully implemented and working
+- **Main application**: `com.jcraw.app.AppKt` - fully implemented and working with LLM integration
+- **LLM Generator**: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
 - All modules integrated into build system and building successfully
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
@@ -122,10 +128,11 @@ Clean separation following the planned architecture:
 
 ## Getting Started (Next Developer)
 
-1. **Try the game**: `gradle installDist && app/build/install/app/bin/app`
-2. **Commands work**: `n` (north), `look`, `help`, `inventory`, `quit`
-3. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword) and NPCs (skeleton king)
-4. **Next logical step**: Integrate LLM for dynamic room descriptions instead of static trait lists
-5. **Architecture ready**: Perception→Reasoning→Action flow, just needs LLM hookup
+1. **Set up API key**: Add `openai.api.key=sk-...` to `local.properties` (or set OPENAI_API_KEY env var)
+2. **Run the game**: `gradle installDist && app/build/install/app/bin/app`
+3. **Commands work**: `n` (north), `look`, `help`, `inventory`, `quit`
+4. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword) and NPCs (skeleton king)
+5. **LLM descriptions**: Room descriptions are dynamically generated using gpt-4o-mini
+6. **Next logical step**: Implement item pickup/drop mechanics
 
-The MVP is complete and playable - focus on LLM integration for richer descriptions next.
+The enhanced MVP is complete with LLM-powered descriptions - focus on item mechanics next.
