@@ -57,6 +57,27 @@ sealed class Intent {
     data class Talk(val target: String) : Intent()
 
     /**
+     * Attack an NPC or continue attacking in combat
+     * @param target The name/identifier of the NPC to attack (optional if already in combat)
+     */
+    @Serializable
+    data class Attack(val target: String? = null) : Intent()
+
+    /**
+     * Equip a weapon or armor from inventory
+     * @param target The name/identifier of the item to equip
+     */
+    @Serializable
+    data class Equip(val target: String) : Intent()
+
+    /**
+     * Use a consumable item (potion, food, etc.)
+     * @param target The name/identifier of the item to use
+     */
+    @Serializable
+    data class Use(val target: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

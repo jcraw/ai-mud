@@ -2,6 +2,17 @@ package com.jcraw.mud.core
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Type of item for usage/equipping behavior
+ */
+@Serializable
+enum class ItemType {
+    WEAPON,      // Can be equipped for damage bonus
+    ARMOR,       // Can be equipped for defense (future)
+    CONSUMABLE,  // Can be used once (potions, food)
+    MISC         // Generic items
+}
+
 @Serializable
 sealed class Entity {
     abstract val id: String
@@ -15,7 +26,13 @@ sealed class Entity {
         override val description: String,
         val isPickupable: Boolean = true,
         val isUsable: Boolean = false,
-        val properties: Map<String, String> = emptyMap()
+        val itemType: ItemType = ItemType.MISC,
+        val properties: Map<String, String> = emptyMap(),
+        // Weapon properties
+        val damageBonus: Int = 0,
+        // Consumable properties
+        val healAmount: Int = 0,
+        val isConsumable: Boolean = false
     ) : Entity()
 
     @Serializable

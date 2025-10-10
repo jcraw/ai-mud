@@ -63,7 +63,17 @@ object SampleDungeon {
             Entity.Item(
                 id = "gold_pouch",
                 name = "Heavy Gold Pouch",
-                description = "A leather pouch heavy with gold coins"
+                description = "A leather pouch heavy with gold coins",
+                itemType = ItemType.MISC
+            ),
+            Entity.Item(
+                id = "health_potion",
+                name = "Red Health Potion",
+                description = "A glowing red potion that restores vitality",
+                isUsable = true,
+                itemType = ItemType.CONSUMABLE,
+                healAmount = 30,
+                isConsumable = true
             )
         )
     )
@@ -83,7 +93,18 @@ object SampleDungeon {
             Entity.Item(
                 id = "iron_sword",
                 name = "Rusty Iron Sword",
-                description = "An old iron sword, still sharp despite the rust"
+                description = "An old iron sword, still sharp despite the rust",
+                isUsable = true,
+                itemType = ItemType.WEAPON,
+                damageBonus = 5
+            ),
+            Entity.Item(
+                id = "steel_dagger",
+                name = "Sharp Steel Dagger",
+                description = "A well-balanced dagger with a keen edge",
+                isUsable = true,
+                itemType = ItemType.WEAPON,
+                damageBonus = 3
             )
         )
     )

@@ -3,9 +3,13 @@ package com.jcraw.app
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
+import com.jcraw.mud.reasoning.CombatResolver
+import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -20,13 +24,14 @@ fun main() {
     val game = if (apiKey.isNullOrBlank()) {
         println("⚠️  OpenAI API key not found - using simple fallback mode")
         println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
-        MudGame(descriptionGenerator = null, npcInteractionGenerator = null)
+        MudGame(descriptionGenerator = null, npcInteractionGenerator = null, combatNarrator = null)
     } else {
-        println("✅ Using LLM-powered descriptions and NPC dialogue\n")
+        println("✅ Using LLM-powered descriptions, NPC dialogue, and combat narration\n")
         val llmClient = OpenAIClient(apiKey)
         val descriptionGenerator = RoomDescriptionGenerator(llmClient)
         val npcInteractionGenerator = NPCInteractionGenerator(llmClient)
-        MudGame(descriptionGenerator = descriptionGenerator, npcInteractionGenerator = npcInteractionGenerator)
+        val combatNarrator = CombatNarrator(llmClient)
+        MudGame(descriptionGenerator = descriptionGenerator, npcInteractionGenerator = npcInteractionGenerator, combatNarrator = combatNarrator)
     }
 
     game.start()
@@ -34,10 +39,12 @@ fun main() {
 
 class MudGame(
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
-    private val npcInteractionGenerator: NPCInteractionGenerator? = null
+    private val npcInteractionGenerator: NPCInteractionGenerator? = null,
+    private val combatNarrator: CombatNarrator? = null
 ) {
     private var worldState: WorldState = SampleDungeon.createInitialWorldState()
     private var running = true
+    private val combatResolver = CombatResolver()
 
     fun start() {
         printWelcome()
@@ -66,6 +73,19 @@ class MudGame(
 
     private fun describeCurrentRoom() {
         val room = worldState.getCurrentRoom() ?: return
+
+        // Show combat status if in combat
+        if (worldState.isInCombat()) {
+            val combat = worldState.activeCombat!!
+            val npc = room.entities.filterIsInstance<Entity.NPC>()
+                .find { it.id == combat.combatantNpcId }
+            println("\n⚔️  IN COMBAT with ${npc?.name ?: "Unknown Enemy"}")
+            println("Your Health: ${combat.playerHealth}/${worldState.player.maxHealth}")
+            println("Enemy Health: ${combat.npcHealth}/${npc?.maxHealth ?: 100}")
+            println()
+            return
+        }
+
         println("\n${room.name}")
         println("-" * room.name.length)
         println(generateRoomDescription(room))
@@ -122,7 +142,7 @@ class MudGame(
             "look", "l" -> {
                 Intent.Look(args)
             }
-            "interact", "use" -> {
+            "interact" -> {
                 if (args.isNullOrBlank()) {
                     Intent.Invalid("Interact with what?")
                 } else {
@@ -150,6 +170,25 @@ class MudGame(
                     Intent.Talk(args)
                 }
             }
+            "attack", "kill", "fight", "hit" -> {
+                // In combat, target is optional (attack current combatant)
+                // Out of combat, target is required to initiate combat
+                Intent.Attack(args)
+            }
+            "equip", "wield", "wear" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Equip what?")
+                } else {
+                    Intent.Equip(args)
+                }
+            }
+            "use", "consume", "drink", "eat" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Use what?")
+                } else {
+                    Intent.Use(args)
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -166,6 +205,9 @@ class MudGame(
             is Intent.Take -> handleTake(intent.target)
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Talk -> handleTalk(intent.target)
+            is Intent.Attack -> handleAttack(intent.target)
+            is Intent.Equip -> handleEquip(intent.target)
+            is Intent.Use -> handleUse(intent.target)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -210,12 +252,27 @@ class MudGame(
     }
 
     private fun handleInventory() {
-        if (worldState.player.inventory.isEmpty()) {
-            println("Your inventory is empty.")
+        println("Inventory:")
+
+        // Show equipped items
+        if (worldState.player.equippedWeapon != null) {
+            println("  Equipped Weapon: ${worldState.player.equippedWeapon!!.name} (+${worldState.player.equippedWeapon!!.damageBonus} damage)")
         } else {
-            println("Inventory:")
+            println("  Equipped Weapon: (none)")
+        }
+
+        // Show inventory items
+        if (worldState.player.inventory.isEmpty()) {
+            println("  Carrying: (nothing)")
+        } else {
+            println("  Carrying:")
             worldState.player.inventory.forEach { item ->
-                println("  - ${item.name}")
+                val extra = when (item.itemType) {
+                    ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
+                    ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
+                    else -> ""
+                }
+                println("    - ${item.name}$extra")
             }
         }
     }
@@ -312,6 +369,177 @@ class MudGame(
         }
     }
 
+    private fun handleAttack(target: String?) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // If already in combat
+        if (worldState.isInCombat()) {
+            val result = combatResolver.executePlayerAttack(worldState)
+
+            // Generate narrative
+            val narrative = if (combatNarrator != null && !result.playerDied && !result.npcDied) {
+                val combat = worldState.activeCombat!!
+                val npc = room.entities.filterIsInstance<Entity.NPC>()
+                    .find { it.id == combat.combatantNpcId }
+
+                if (npc != null) {
+                    runBlocking {
+                        combatNarrator.narrateCombatRound(
+                            worldState, npc, result.playerDamage, result.npcDamage,
+                            result.npcDied, result.playerDied
+                        )
+                    }
+                } else {
+                    result.narrative
+                }
+            } else {
+                result.narrative
+            }
+
+            println("\n$narrative")
+
+            // Update world state
+            if (result.newCombatState != null) {
+                worldState = worldState.updateCombat(result.newCombatState)
+                describeCurrentRoom()  // Show updated combat status
+            } else {
+                // Combat ended - save combat info before ending
+                val endedCombat = worldState.activeCombat
+                worldState = worldState.endCombat()
+
+                when {
+                    result.npcDied -> {
+                        println("\nVictory! The enemy has been defeated!")
+                        // Remove NPC from room
+                        if (endedCombat != null) {
+                            worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
+                        }
+                    }
+                    result.playerDied -> {
+                        println("\nYou have been defeated! Game over.")
+                        running = false
+                    }
+                    result.playerFled -> {
+                        println("\nYou have fled from combat.")
+                    }
+                }
+            }
+            return
+        }
+
+        // Initiate combat with target
+        if (target.isNullOrBlank()) {
+            println("Attack whom?")
+            return
+        }
+
+        // Find the NPC
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (npc == null) {
+            println("You don't see anyone by that name to attack.")
+            return
+        }
+
+        // Start combat
+        val result = combatResolver.initiateCombat(worldState, npc.id)
+        if (result == null) {
+            println("You cannot initiate combat with that target.")
+            return
+        }
+
+        // Generate narrative for combat start
+        val narrative = if (combatNarrator != null) {
+            runBlocking {
+                combatNarrator.narrateCombatStart(worldState, npc)
+            }
+        } else {
+            result.narrative
+        }
+
+        println("\n$narrative")
+
+        if (result.newCombatState != null) {
+            worldState = worldState.updateCombat(result.newCombatState)
+            describeCurrentRoom()  // Show combat status
+        }
+    }
+
+    private fun handleEquip(target: String) {
+        // Find the item in inventory
+        val item = worldState.player.inventory.find { invItem ->
+            invItem.name.lowercase().contains(target.lowercase()) ||
+            invItem.id.lowercase().contains(target.lowercase())
+        }
+
+        if (item == null) {
+            println("You don't have that in your inventory.")
+            return
+        }
+
+        when (item.itemType) {
+            ItemType.WEAPON -> {
+                val oldWeapon = worldState.player.equippedWeapon
+                worldState = worldState.updatePlayer(worldState.player.equipWeapon(item))
+
+                if (oldWeapon != null) {
+                    println("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage).")
+                } else {
+                    println("You equip the ${item.name} (+${item.damageBonus} damage).")
+                }
+            }
+            ItemType.ARMOR -> {
+                println("Armor equipping not yet implemented.")
+            }
+            else -> {
+                println("You can't equip that.")
+            }
+        }
+    }
+
+    private fun handleUse(target: String) {
+        // Find the item in inventory
+        val item = worldState.player.inventory.find { invItem ->
+            invItem.name.lowercase().contains(target.lowercase()) ||
+            invItem.id.lowercase().contains(target.lowercase())
+        }
+
+        if (item == null) {
+            println("You don't have that in your inventory.")
+            return
+        }
+
+        if (!item.isUsable) {
+            println("You can't use that.")
+            return
+        }
+
+        when (item.itemType) {
+            ItemType.CONSUMABLE -> {
+                val oldHealth = worldState.player.health
+                worldState = worldState.updatePlayer(worldState.player.useConsumable(item))
+                val healedAmount = worldState.player.health - oldHealth
+
+                if (healedAmount > 0) {
+                    println("You consume the ${item.name} and restore $healedAmount HP.")
+                    println("Current health: ${worldState.player.health}/${worldState.player.maxHealth}")
+                } else {
+                    println("You consume the ${item.name}, but you're already at full health.")
+                }
+            }
+            ItemType.WEAPON -> {
+                println("Try 'equip ${item.name}' to equip this weapon.")
+            }
+            else -> {
+                println("You're not sure how to use that.")
+            }
+        }
+    }
+
     private fun handleHelp() {
         println("""
             |Available Commands:
@@ -319,16 +547,19 @@ class MudGame(
             |    go <direction>, n/s/e/w, north/south/east/west, etc.
             |
             |  Actions:
-            |    look [target]    - Examine room or specific object
-            |    take/get <item>  - Pick up an item
-            |    drop/put <item>  - Drop an item from inventory
-            |    talk/speak <npc> - Talk to an NPC
-            |    interact <item>  - Interact with an object (not yet implemented)
-            |    inventory, i     - View your inventory
+            |    look [target]        - Examine room or specific object
+            |    take/get <item>      - Pick up an item
+            |    drop/put <item>      - Drop an item from inventory
+            |    talk/speak <npc>     - Talk to an NPC
+            |    attack/fight <npc>   - Attack an NPC or continue combat
+            |    equip/wield <item>   - Equip a weapon from inventory
+            |    use/consume <item>   - Use a consumable item (potion, etc.)
+            |    interact <item>      - Interact with an object (not yet implemented)
+            |    inventory, i         - View your inventory and equipped items
             |
             |  Meta:
-            |    help, h, ?       - Show this help
-            |    quit, exit, q    - Quit game
+            |    help, h, ?           - Show this help
+            |    quit, exit, q        - Quit game
         """.trimMargin())
     }
 

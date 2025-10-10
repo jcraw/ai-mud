@@ -9,6 +9,8 @@ data class PlayerState(
     val health: Int = 100,
     val maxHealth: Int = 100,
     val inventory: List<Entity.Item> = emptyList(),
+    val equippedWeapon: Entity.Item? = null,
+    val equippedArmor: Entity.Item? = null,
     val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap()
 ) {
@@ -31,4 +33,43 @@ data class PlayerState(
     fun getSkillLevel(skillName: String): Int = skills[skillName] ?: 0
 
     fun setSkillLevel(skillName: String, level: Int): PlayerState = copy(skills = skills + (skillName to level))
+
+    fun equipWeapon(weapon: Entity.Item): PlayerState {
+        // Add old weapon back to inventory if present
+        val updatedInventory = if (equippedWeapon != null) {
+            inventory + equippedWeapon
+        } else {
+            inventory
+        }
+        // Remove new weapon from inventory and equip it
+        return copy(
+            equippedWeapon = weapon,
+            inventory = updatedInventory.filter { it.id != weapon.id }
+        )
+    }
+
+    fun unequipWeapon(): PlayerState {
+        return if (equippedWeapon != null) {
+            copy(
+                equippedWeapon = null,
+                inventory = inventory + equippedWeapon
+            )
+        } else {
+            this
+        }
+    }
+
+    fun getWeaponDamageBonus(): Int = equippedWeapon?.damageBonus ?: 0
+
+    fun useConsumable(item: Entity.Item): PlayerState {
+        return if (item.isConsumable) {
+            val newHealth = (health + item.healAmount).coerceAtMost(maxHealth)
+            copy(
+                health = newHealth,
+                inventory = inventory.filter { it.id != item.id }
+            )
+        } else {
+            this
+        }
+    }
 }

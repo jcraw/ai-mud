@@ -7,7 +7,8 @@ data class WorldState(
     val rooms: Map<RoomId, Room>,
     val player: PlayerState,
     val turnCount: Int = 0,
-    val gameProperties: Map<String, String> = emptyMap()
+    val gameProperties: Map<String, String> = emptyMap(),
+    val activeCombat: CombatState? = null
 ) {
     fun getCurrentRoom(): Room? = rooms[player.currentRoomId]
 
@@ -43,4 +44,20 @@ data class WorldState(
     }
 
     fun getAvailableExits(): List<Direction> = getCurrentRoom()?.getAvailableDirections() ?: emptyList()
+
+    fun isInCombat(): Boolean = activeCombat?.isActive() == true
+
+    fun startCombat(npcId: String, npcHealth: Int): WorldState = copy(
+        activeCombat = CombatState(
+            combatantNpcId = npcId,
+            playerHealth = player.health,
+            npcHealth = npcHealth,
+            isPlayerTurn = true,
+            turnCount = 0
+        )
+    )
+
+    fun updateCombat(newCombatState: CombatState?): WorldState = copy(activeCombat = newCombatState)
+
+    fun endCombat(): WorldState = copy(activeCombat = null)
 }
