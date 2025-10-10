@@ -90,4 +90,16 @@ sealed class Entity {
         val skillChallenge: SkillChallenge? = null,
         val isCompleted: Boolean = false  // Track if challenge has been overcome
     ) : Entity()
+
+    @Serializable
+    data class Player(
+        override val id: String,
+        override val name: String,
+        override val description: String,
+        val playerId: PlayerId,
+        val health: Int,
+        val maxHealth: Int,
+        val equippedWeapon: String? = null,
+        val equippedArmor: String? = null
+    ) : Entity()
 }

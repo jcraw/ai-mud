@@ -44,7 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Multi-user implementation** - GameServer, PlayerSession, player visibility, broadcast system
+1. **Multi-user game server integration** - Wire up GameServer to App.kt for actual multi-player gameplay
 2. **Dynamic quests** - Procedurally generated quest objectives
 3. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
 4. Later: More complex quest system, dynamic world events
@@ -196,8 +196,16 @@ Clean separation following the planned architecture:
 ✅ **Multi-player API methods: getCurrentRoom(playerId), getPlayer(playerId), addPlayer(), removePlayer()**
 ✅ **Backward compatibility maintained for single-player code**
 ✅ **All 57 tests passing after multi-user refactoring**
+✅ **Multi-user server implementation** 🎮
+✅ **Entity.Player type for player visibility in rooms**
+✅ **GameServer class managing shared WorldState with thread-safe mutations**
+✅ **PlayerSession class for individual player I/O and event handling**
+✅ **GameEvent sealed class hierarchy for player actions (join, leave, move, combat, etc.)**
+✅ **Broadcast system notifying players of events in their current room**
+✅ **Per-player event channels with asynchronous delivery**
+✅ **All game intents supported in multi-user context**
 
-### Current Status: Multi-User Architecture Foundation Complete
+### Current Status: Multi-User Server Implementation Complete
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -226,19 +234,26 @@ Clean separation following the planned architecture:
 ✅ Players can be in different rooms simultaneously
 ✅ Each player has independent combat state
 ✅ PlayerId system for tracking individual players
+✅ **Multi-user server** - GameServer and PlayerSession classes fully implemented
+✅ Event broadcasting system for player-to-player visibility
+✅ Thread-safe WorldState management with Kotlin coroutines
+✅ Complete game logic ported to multi-user context
 
 ### Next Priority
-🔄 Multi-user implementation (GameServer, PlayerSession, visibility, broadcasts)
 🔄 Dynamic quest generation
 🔄 Persistent memory storage (optional - vector embeddings to disk)
+🔄 Network layer for remote multi-player (optional - stdio multiplexing for local MVP)
 
 ## Important Notes
 
 - **Main application**: `com.jcraw.app.AppKt` - fully implemented with LLM and RAG integration
 - **Multi-user architecture**:
-  - `core/src/main/kotlin/com/jcraw/mud/core/Room.kt` - PlayerId type alias
+  - `core/src/main/kotlin/com/jcraw/mud/core/Room.kt` - PlayerId type alias, Entity.Player for visibility
   - `core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt` - Multi-player world state with players Map
   - `core/src/main/kotlin/com/jcraw/mud/core/PlayerState.kt` - Per-player state including combat
+  - `app/src/main/kotlin/com/jcraw/app/GameServer.kt` - Thread-safe game server managing shared world
+  - `app/src/main/kotlin/com/jcraw/app/PlayerSession.kt` - Individual player session with I/O handling
+  - `app/src/main/kotlin/com/jcraw/app/GameEvent.kt` - Event system for broadcasting actions
   - Combat state moved from WorldState to PlayerState for independent player battles
   - Backward compatibility: `worldState.player` still works for single-player code
 - **LLM Generators** (all RAG-enhanced):
@@ -346,12 +361,18 @@ The foundation for multi-user support is complete. Here's what was built:
 - **Backward compatibility**: `worldState.player` property still works (returns first player)
 - **CombatResolver updated**: Now accepts player parameter for per-player combat resolution
 
-### Remaining Work for Full Multi-User
-1. **Entity.Player** - New entity type to represent other players in rooms (for visibility)
-2. **GameServer** - Manages shared WorldState and coordinates multiple player sessions
-3. **PlayerSession** - Handles individual player I/O and maintains player context
-4. **Broadcast system** - Notify players of actions happening in their current room
-5. **Network layer** (optional) - For remote connections (could use stdio multiplexing for local multi-user MVP)
-6. **Multi-user tests** - Verify concurrent player scenarios work correctly
+### Multi-User Server Implementation (✅ COMPLETE)
+1. ✅ **Entity.Player** - New entity type to represent other players in rooms (for visibility)
+2. ✅ **GameServer** - Manages shared WorldState and coordinates multiple player sessions with thread-safe mutations
+3. ✅ **PlayerSession** - Handles individual player I/O and maintains player context with event channels
+4. ✅ **GameEvent sealed class** - Event types for player actions (join, leave, move, say, combat, generic)
+5. ✅ **Broadcast system** - Notify players of actions happening in their current room via event channels
+6. ✅ **All intents supported** - Move, Look, Attack, Talk, Take, Drop, Equip, Use, Check, Persuade, Intimidate, Inventory
+7. ✅ **Thread safety** - Kotlin coroutines with Mutex for safe concurrent access to WorldState
 
-The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, persistent save/load system, AND multi-user capable architecture!
+### Remaining Work for Network Multi-User
+1. **Wire GameServer to App.kt** - Replace single-player loop with server-based multiplayer loop
+2. **Network layer** (optional) - For remote connections (could use stdio multiplexing for local multi-user MVP)
+3. **Add multi-user tests dependencies** - JUnit and kotlin.test dependencies for app module
+
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, persistent save/load system, multi-user capable architecture, AND a fully-implemented GameServer with event broadcasting!

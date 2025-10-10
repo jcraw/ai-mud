@@ -1,0 +1,518 @@
+package com.jcraw.app
+
+import com.jcraw.mud.core.*
+import com.jcraw.mud.perception.Intent
+import com.jcraw.mud.reasoning.*
+import com.jcraw.mud.memory.MemoryManager
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+/**
+ * GameServer manages the shared WorldState and coordinates multiple player sessions.
+ * Handles game logic, state updates, and broadcasting events to relevant players.
+ */
+class GameServer(
+    private var worldState: WorldState,
+    private val memoryManager: MemoryManager,
+    private val roomDescriptionGenerator: RoomDescriptionGenerator,
+    private val npcInteractionGenerator: NPCInteractionGenerator,
+    private val combatResolver: CombatResolver,
+    private val combatNarrator: CombatNarrator,
+    private val skillCheckResolver: SkillCheckResolver
+) {
+    private val sessions = mutableMapOf<PlayerId, PlayerSession>()
+    private val stateMutex = Mutex()
+
+    /**
+     * Add a player session to the server
+     */
+    suspend fun addPlayerSession(session: PlayerSession, startingRoomId: RoomId) = stateMutex.withLock {
+        // Create player state
+        val playerState = PlayerState(
+            id = session.playerId,
+            name = session.playerName,
+            currentRoomId = startingRoomId
+        )
+
+        // Add to world state
+        worldState = worldState.addPlayer(playerState)
+        sessions[session.playerId] = session
+
+        // Broadcast join event
+        broadcastEvent(
+            GameEvent.PlayerJoined(
+                playerId = session.playerId,
+                playerName = session.playerName,
+                roomId = startingRoomId,
+                excludePlayer = session.playerId
+            )
+        )
+
+        session.sendMessage("Welcome to the dungeon, ${session.playerName}!")
+    }
+
+    /**
+     * Remove a player session from the server
+     */
+    suspend fun removePlayerSession(playerId: PlayerId) = stateMutex.withLock {
+        val session = sessions[playerId] ?: return@withLock
+        val playerState = worldState.getPlayer(playerId) ?: return@withLock
+
+        // Broadcast leave event
+        broadcastEvent(
+            GameEvent.PlayerLeft(
+                playerId = playerId,
+                playerName = playerState.name,
+                roomId = playerState.currentRoomId,
+                excludePlayer = playerId
+            )
+        )
+
+        // Remove from world state and sessions
+        worldState = worldState.removePlayer(playerId)
+        sessions.remove(playerId)
+        session.close()
+    }
+
+    /**
+     * Process an intent from a player and return the response
+     */
+    suspend fun processIntent(playerId: PlayerId, intent: Intent): String = stateMutex.withLock {
+        val session = sessions[playerId] ?: return@withLock "Error: Session not found"
+        val playerState = worldState.getPlayer(playerId) ?: return@withLock "Error: Player not found"
+
+        // Process the intent and get response + new state
+        val (response, newWorldState, event) = handleIntent(playerId, playerState, intent)
+
+        // Update world state
+        worldState = newWorldState
+
+        // Broadcast event if any
+        event?.let { broadcastEvent(it) }
+
+        response
+    }
+
+    /**
+     * Get current world state (thread-safe read)
+     */
+    suspend fun getWorldState(): WorldState = stateMutex.withLock { worldState }
+
+    /**
+     * Update world state (thread-safe write)
+     */
+    suspend fun updateWorldState(newState: WorldState) = stateMutex.withLock {
+        worldState = newState
+    }
+
+    /**
+     * Broadcast a game event to all players in the relevant room
+     */
+    private suspend fun broadcastEvent(event: GameEvent) {
+        val roomId = event.roomId ?: return
+
+        // Find all players in the room
+        val playersInRoom = worldState.getPlayersInRoom(roomId)
+
+        // Send event to each player's session (except excluded player)
+        playersInRoom.forEach { player ->
+            if (player.id != event.excludePlayer) {
+                sessions[player.id]?.notifyEvent(event)
+            }
+        }
+    }
+
+    /**
+     * Handle a specific intent and return response, new state, and optional event
+     */
+    private suspend fun handleIntent(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        intent: Intent
+    ): Triple<String, WorldState, GameEvent?> {
+        val currentRoom = worldState.getCurrentRoom(playerId) ?: return Triple(
+            "Error: Current room not found",
+            worldState,
+            null
+        )
+
+        return when (intent) {
+            is Intent.Move -> handleMove(playerId, playerState, intent.direction)
+            is Intent.Look -> handleLook(playerId, playerState, intent.target)
+            is Intent.Attack -> handleAttack(playerId, playerState, intent.target)
+            is Intent.Talk -> handleTalk(playerId, playerState, intent.target)
+            is Intent.Take -> handleTake(playerId, playerState, intent.target, currentRoom)
+            is Intent.Drop -> handleDrop(playerId, playerState, intent.target, currentRoom)
+            is Intent.Equip -> handleEquip(playerId, playerState, intent.target)
+            is Intent.Use -> handleUse(playerId, playerState, intent.target)
+            is Intent.Check -> handleCheck(playerId, playerState, intent.target, currentRoom)
+            is Intent.Persuade -> handlePersuade(playerId, playerState, intent.target, currentRoom)
+            is Intent.Intimidate -> handleIntimidate(playerId, playerState, intent.target, currentRoom)
+            is Intent.Inventory -> Triple(formatInventory(playerState), worldState, null)
+            is Intent.Save -> Triple("Save not supported in multi-user mode", worldState, null)
+            is Intent.Load -> Triple("Load not supported in multi-user mode", worldState, null)
+            is Intent.Help -> Triple(getHelpText(), worldState, null)
+            is Intent.Quit -> Triple("Goodbye!", worldState, null)
+            is Intent.Invalid -> Triple(intent.message, worldState, null)
+            is Intent.Interact -> Triple("You need to be more specific about how you want to interact.", worldState, null)
+        }
+    }
+
+    private suspend fun handleMove(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        direction: Direction
+    ): Triple<String, WorldState, GameEvent?> {
+        val oldRoomId = playerState.currentRoomId
+        val newWorldState = worldState.movePlayer(playerId, direction)
+
+        return if (newWorldState != null) {
+            val newPlayerState = newWorldState.getPlayer(playerId)!!
+            val newRoomId = newPlayerState.currentRoomId
+            val newRoom = newWorldState.getRoom(newRoomId)!!
+
+            // Generate room description
+            val description = roomDescriptionGenerator.generateDescription(newRoom)
+
+            // Create movement events
+            val leaveEvent = GameEvent.PlayerMoved(
+                playerId = playerId,
+                playerName = playerState.name,
+                fromRoomId = oldRoomId,
+                toRoomId = newRoomId,
+                direction = direction.name.lowercase(),
+                roomId = oldRoomId,
+                excludePlayer = playerId
+            )
+
+            val enterEvent = GameEvent.PlayerJoined(
+                playerId = playerId,
+                playerName = playerState.name,
+                roomId = newRoomId,
+                excludePlayer = playerId
+            )
+
+            // Broadcast both events
+            broadcastEvent(leaveEvent)
+            broadcastEvent(enterEvent)
+
+            Triple(description, newWorldState, null)
+        } else {
+            Triple("You can't go that way.", worldState, null)
+        }
+    }
+
+    private suspend fun handleLook(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        target: String?
+    ): Triple<String, WorldState, GameEvent?> {
+        val currentRoom = worldState.getCurrentRoom(playerId)!!
+
+        return if (target == null) {
+            val description = roomDescriptionGenerator.generateDescription(currentRoom)
+            Triple(description, worldState, null)
+        } else {
+            // Look at specific entity
+            val entity = currentRoom.entities.find { it.name.equals(target, ignoreCase = true) }
+            val response = entity?.description ?: "You don't see that here."
+            Triple(response, worldState, null)
+        }
+    }
+
+    private suspend fun handleAttack(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        targetId: String?
+    ): Triple<String, WorldState, GameEvent?> {
+        val currentRoom = worldState.getCurrentRoom(playerId)!!
+
+        // If in combat, continue combat
+        if (playerState.isInCombat()) {
+            val result = combatResolver.executePlayerAttack(worldState, playerState)
+            val updatedPlayer = playerState.updateCombat(result.newCombatState)
+            val newWorldState = worldState.updatePlayer(updatedPlayer)
+
+            val narrative = buildString {
+                append(result.narrative)
+                if (result.npcDied) append("\nYou are victorious!")
+                if (result.playerDied) append("\nYou have been defeated!")
+            }
+
+            return Triple(narrative, newWorldState, null)
+        }
+
+        // Initiate combat
+        if (targetId == null) {
+            return Triple("Who do you want to attack?", worldState, null)
+        }
+
+        val target = currentRoom.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.equals(targetId, ignoreCase = true) }
+
+        if (target == null) {
+            return Triple("There's no one here by that name.", worldState, null)
+        }
+
+        val result = combatResolver.initiateCombat(worldState, playerState, target.id)
+        if (result == null) {
+            return Triple("Cannot start combat.", worldState, null)
+        }
+
+        val updatedPlayer = playerState.updateCombat(result.newCombatState)
+        val newWorldState = worldState.updatePlayer(updatedPlayer)
+
+        return Triple(result.narrative, newWorldState, null)
+    }
+
+    private suspend fun handleTalk(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        targetId: String
+    ): Triple<String, WorldState, GameEvent?> {
+        val currentRoom = worldState.getCurrentRoom(playerId)!!
+        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.equals(targetId, ignoreCase = true) }
+
+        return if (npc != null) {
+            val dialogue = npcInteractionGenerator.generateDialogue(npc, playerState)
+            Triple(dialogue, worldState, null)
+        } else {
+            Triple("There's no one here by that name.", worldState, null)
+        }
+    }
+
+    private fun handleTake(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        itemId: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val item = currentRoom.entities.filterIsInstance<Entity.Item>()
+            .find { it.name.equals(itemId, ignoreCase = true) }
+
+        return if (item != null && item.isPickupable) {
+            val updatedPlayer = playerState.addToInventory(item)
+            val updatedRoom = currentRoom.removeEntity(item.id)
+            val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
+
+            val event = GameEvent.GenericAction(
+                playerId = playerId,
+                playerName = playerState.name,
+                actionDescription = "picks up ${item.name}",
+                roomId = currentRoom.id,
+                excludePlayer = playerId
+            )
+
+            Triple("You take the ${item.name}.", newWorldState, event)
+        } else {
+            Triple("You can't take that.", worldState, null)
+        }
+    }
+
+    private fun handleDrop(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        itemId: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+
+        return if (item != null) {
+            val updatedPlayer = playerState.removeFromInventory(item.id)
+            val updatedRoom = currentRoom.addEntity(item)
+            val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
+
+            val event = GameEvent.GenericAction(
+                playerId = playerId,
+                playerName = playerState.name,
+                actionDescription = "drops ${item.name}",
+                roomId = currentRoom.id,
+                excludePlayer = playerId
+            )
+
+            Triple("You drop the ${item.name}.", newWorldState, event)
+        } else {
+            Triple("You don't have that item.", worldState, null)
+        }
+    }
+
+    private fun handleEquip(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        itemId: String
+    ): Triple<String, WorldState, GameEvent?> {
+        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+
+        return if (item != null) {
+            when (item.itemType) {
+                ItemType.WEAPON -> {
+                    val updatedPlayer = playerState.equipWeapon(item)
+                    val newWorldState = worldState.updatePlayer(updatedPlayer)
+                    Triple("You equip the ${item.name}.", newWorldState, null)
+                }
+                ItemType.ARMOR -> {
+                    val updatedPlayer = playerState.equipArmor(item)
+                    val newWorldState = worldState.updatePlayer(updatedPlayer)
+                    Triple("You equip the ${item.name}.", newWorldState, null)
+                }
+                else -> Triple("You can't equip that.", worldState, null)
+            }
+        } else {
+            Triple("You don't have that item.", worldState, null)
+        }
+    }
+
+    private fun handleUse(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        itemId: String
+    ): Triple<String, WorldState, GameEvent?> {
+        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+
+        return if (item != null && item.isConsumable) {
+            val oldHealth = playerState.health
+            val updatedPlayer = playerState.useConsumable(item)
+            val newWorldState = worldState.updatePlayer(updatedPlayer)
+            val healedAmount = updatedPlayer.health - oldHealth
+            Triple("You use the ${item.name}. (+$healedAmount HP)", newWorldState, null)
+        } else {
+            Triple("You can't use that.", worldState, null)
+        }
+    }
+
+    private fun handleCheck(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        targetId: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val feature = currentRoom.entities.filterIsInstance<Entity.Feature>()
+            .find { it.name.equals(targetId, ignoreCase = true) }
+
+        if (feature == null || feature.skillChallenge == null) {
+            return Triple("There's nothing here to check.", worldState, null)
+        }
+
+        if (feature.isCompleted) {
+            return Triple("You've already overcome this challenge.", worldState, null)
+        }
+
+        // Extract challenge to local variable for smart cast
+        val challenge = feature.skillChallenge ?: return Triple("There's nothing here to check.", worldState, null)
+        val result = skillCheckResolver.checkPlayer(playerState, challenge.statType, challenge.difficulty)
+
+        val description = buildString {
+            append("You rolled ${result.roll} + ${result.modifier} = ${result.total} vs DC ${result.dc}\n")
+            if (result.isCriticalSuccess) append("Critical success! ")
+            if (result.isCriticalFailure) append("Critical failure! ")
+            append(if (result.success) challenge.successDescription else challenge.failureDescription)
+        }
+
+        val updatedFeature = if (result.success) feature.copy(isCompleted = true) else feature
+        val updatedRoom = currentRoom.removeEntity(feature.id).addEntity(updatedFeature)
+        val newWorldState = worldState.updateRoom(updatedRoom)
+        return Triple(description, newWorldState, null)
+    }
+
+    private fun handlePersuade(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        targetId: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.equals(targetId, ignoreCase = true) }
+
+        if (npc == null || npc.persuasionChallenge == null) {
+            return Triple("You can't persuade that.", worldState, null)
+        }
+
+        if (npc.hasBeenPersuaded) {
+            return Triple("${npc.name} has already been persuaded.", worldState, null)
+        }
+
+        val challenge = npc.persuasionChallenge ?: return Triple("You can't persuade that.", worldState, null)
+        val result = skillCheckResolver.checkPlayer(playerState, challenge.statType, challenge.difficulty)
+
+        val description = buildString {
+            append("You rolled ${result.roll} + ${result.modifier} = ${result.total} vs DC ${result.dc}\n")
+            if (result.isCriticalSuccess) append("Critical success! ")
+            if (result.isCriticalFailure) append("Critical failure! ")
+            append(if (result.success) challenge.successDescription else challenge.failureDescription)
+        }
+
+        val updatedNpc = if (result.success) npc.copy(hasBeenPersuaded = true) else npc
+        val updatedRoom = currentRoom.removeEntity(npc.id).addEntity(updatedNpc)
+        val newWorldState = worldState.updateRoom(updatedRoom)
+        return Triple(description, newWorldState, null)
+    }
+
+    private fun handleIntimidate(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        targetId: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.equals(targetId, ignoreCase = true) }
+
+        if (npc == null || npc.intimidationChallenge == null) {
+            return Triple("You can't intimidate that.", worldState, null)
+        }
+
+        if (npc.hasBeenIntimidated) {
+            return Triple("${npc.name} has already been intimidated.", worldState, null)
+        }
+
+        val challenge = npc.intimidationChallenge ?: return Triple("You can't intimidate that.", worldState, null)
+        val result = skillCheckResolver.checkPlayer(playerState, challenge.statType, challenge.difficulty)
+
+        val description = buildString {
+            append("You rolled ${result.roll} + ${result.modifier} = ${result.total} vs DC ${result.dc}\n")
+            if (result.isCriticalSuccess) append("Critical success! ")
+            if (result.isCriticalFailure) append("Critical failure! ")
+            append(if (result.success) challenge.successDescription else challenge.failureDescription)
+        }
+
+        val updatedNpc = if (result.success) npc.copy(hasBeenIntimidated = true) else npc
+        val updatedRoom = currentRoom.removeEntity(npc.id).addEntity(updatedNpc)
+        val newWorldState = worldState.updateRoom(updatedRoom)
+        return Triple(description, newWorldState, null)
+    }
+
+    private fun formatInventory(playerState: PlayerState): String {
+        val builder = StringBuilder()
+        builder.appendLine("=== Inventory ===")
+        builder.appendLine("Health: ${playerState.health}/${playerState.maxHealth}")
+
+        playerState.equippedWeapon?.let { weapon ->
+            builder.appendLine("Weapon: ${weapon.name} (+${weapon.damageBonus} damage)")
+        }
+        playerState.equippedArmor?.let { armor ->
+            builder.appendLine("Armor: ${armor.name} (+${armor.defenseBonus} defense)")
+        }
+
+        if (playerState.inventory.isNotEmpty()) {
+            builder.appendLine("\nCarrying:")
+            playerState.inventory.forEach { item ->
+                builder.appendLine("  - ${item.name}")
+            }
+        } else {
+            builder.appendLine("\nYour inventory is empty.")
+        }
+
+        return builder.toString()
+    }
+
+    private fun getHelpText(): String = """
+        === Commands ===
+        Movement: north/south/east/west (or n/s/e/w)
+        Interaction: look [target], take <item>, drop <item>, talk <npc>
+        Combat: attack <npc>
+        Equipment: equip <item>
+        Consumables: use <item>
+        Skills: check <feature>, persuade <npc>, intimidate <npc>
+        Meta: inventory (or i), help, quit
+    """.trimIndent()
+}
