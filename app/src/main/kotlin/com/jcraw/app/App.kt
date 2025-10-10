@@ -11,6 +11,8 @@ import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.SkillCheckResolver
+import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
+import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -23,10 +25,55 @@ fun main() {
     val apiKey = System.getenv("OPENAI_API_KEY")
         ?: System.getProperty("openai.api.key")
 
+    // Ask user if they want sample or procedural dungeon
+    println("=" * 60)
+    println("  AI-Powered MUD - Alpha Version")
+    println("=" * 60)
+    println("\nSelect dungeon type:")
+    println("  1. Sample Dungeon (handcrafted, 6 rooms)")
+    println("  2. Procedural Crypt (ancient tombs)")
+    println("  3. Procedural Castle (ruined fortress)")
+    println("  4. Procedural Cave (dark caverns)")
+    println("  5. Procedural Temple (forgotten shrine)")
+    print("\nEnter choice (1-5) [default: 1]: ")
+
+    val choice = readLine()?.trim() ?: "1"
+
+    // Generate world state based on choice
+    val worldState = when (choice) {
+        "2" -> {
+            print("Number of rooms [default: 10]: ")
+            val roomCount = readLine()?.toIntOrNull() ?: 10
+            ProceduralDungeonBuilder.generateCrypt(roomCount)
+        }
+        "3" -> {
+            print("Number of rooms [default: 10]: ")
+            val roomCount = readLine()?.toIntOrNull() ?: 10
+            ProceduralDungeonBuilder.generateCastle(roomCount)
+        }
+        "4" -> {
+            print("Number of rooms [default: 10]: ")
+            val roomCount = readLine()?.toIntOrNull() ?: 10
+            ProceduralDungeonBuilder.generateCave(roomCount)
+        }
+        "5" -> {
+            print("Number of rooms [default: 10]: ")
+            val roomCount = readLine()?.toIntOrNull() ?: 10
+            ProceduralDungeonBuilder.generateTemple(roomCount)
+        }
+        else -> {
+            println("Using Sample Dungeon")
+            SampleDungeon.createInitialWorldState()
+        }
+    }
+
+    println()
+
     val game = if (apiKey.isNullOrBlank()) {
         println("⚠️  OpenAI API key not found - using simple fallback mode")
         println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
         MudGame(
+            initialWorldState = worldState,
             descriptionGenerator = null,
             npcInteractionGenerator = null,
             combatNarrator = null,
@@ -40,6 +87,7 @@ fun main() {
         val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
         val combatNarrator = CombatNarrator(llmClient, memoryManager)
         MudGame(
+            initialWorldState = worldState,
             descriptionGenerator = descriptionGenerator,
             npcInteractionGenerator = npcInteractionGenerator,
             combatNarrator = combatNarrator,
@@ -51,12 +99,13 @@ fun main() {
 }
 
 class MudGame(
+    private val initialWorldState: WorldState,
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
     private val npcInteractionGenerator: NPCInteractionGenerator? = null,
     private val combatNarrator: CombatNarrator? = null,
     private val memoryManager: MemoryManager? = null
 ) {
-    private var worldState: WorldState = SampleDungeon.createInitialWorldState()
+    private var worldState: WorldState = initialWorldState
     private var running = true
     private val combatResolver = CombatResolver()
     private val skillCheckResolver = SkillCheckResolver()
@@ -79,10 +128,8 @@ class MudGame(
     }
 
     private fun printWelcome() {
-        println("=" * 60)
-        println("  AI-Powered MUD - Alpha Version")
-        println("=" * 60)
         println("\nWelcome, ${worldState.player.name}!")
+        println("You have entered a dungeon with ${worldState.rooms.size} rooms to explore.")
         println("Type 'help' for available commands.\n")
     }
 

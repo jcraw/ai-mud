@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: FEATURE-COMPLETE MVP WITH RAG MEMORY** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
+**Current State: FEATURE-COMPLETE MVP WITH PROCEDURAL GENERATION** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 7 modules
@@ -31,12 +31,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Skill check integration** - Interactive features with skill challenges (locked chests, stuck doors, hidden items, arcane runes) ✅
 - **Social skill checks** - Persuasion and intimidation CHA checks for NPCs ✅
 - **RAG memory system** - Semantic memory with embeddings and cosine similarity search ✅
+- **Procedural dungeon generation** - Generate complete dungeons with rooms, NPCs, items, and loot ✅
+- **4 dungeon themes** - Crypt, Castle, Cave, Temple with theme-specific traits ✅
+- **Graph-based dungeon layouts** - Connected room networks with entrance and boss rooms ✅
+- **Deterministic generation** - Optional seeds for reproducible dungeons ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Procedural content generation** - Generate rooms, NPCs, quests dynamically
-2. **Multi-user support** - Multiple players in shared world
-3. **Persistent storage** - Save/load game state and memory to disk
+1. **Multi-user support** - Multiple players in shared world
+2. **Persistent storage** - Save/load game state and memory to disk
+3. **Dynamic quests** - Procedurally generated quest objectives
 4. Later: More complex quest system, dynamic world events
 
 ## Commands
@@ -162,8 +166,18 @@ Clean separation following the planned architecture:
 ✅ **RAG-enhanced NPC dialogues with conversation history**
 ✅ **RAG-enhanced combat narratives showing fight progression**
 ✅ **Comprehensive tests for memory and vector store**
+✅ **Procedural dungeon generation system** 🎲
+✅ **4 themed dungeon generators: Crypt, Castle, Cave, Temple**
+✅ **RoomGenerator creates rooms with theme-appropriate traits**
+✅ **NPCGenerator creates NPCs with varied stats and power levels**
+✅ **ItemGenerator creates weapons, armor, consumables, and treasure**
+✅ **DungeonLayoutGenerator creates connected room graphs**
+✅ **ProceduralDungeonBuilder orchestrates all generators**
+✅ **Deterministic generation with optional seed parameter**
+✅ **Comprehensive tests for all procedural generation components**
+✅ **Interactive dungeon selection menu at game start**
 
-### Current Status: Feature-Complete MVP with RAG Memory System
+### Current Status: Feature-Complete MVP with Procedural Generation
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -182,11 +196,14 @@ Clean separation following the planned architecture:
 ✅ Room descriptions vary based on previous visits
 ✅ NPC conversations reference past dialogues
 ✅ Combat narratives build on previous rounds
+✅ Procedural generation creates varied dungeons with 4 themes
+✅ Can generate dungeons of any size (default 10 rooms)
+✅ Dungeons have entrance rooms, boss rooms, and loot distribution
 
 ### Next Priority
-🔄 Procedural content generation
 🔄 Multi-user support
 🔄 Persistent storage for memory (currently in-memory only)
+🔄 Dynamic quest generation
 
 ## Important Notes
 
@@ -212,6 +229,14 @@ Clean separation following the planned architecture:
   - `core/src/main/kotlin/com/jcraw/mud/core/PlayerState.kt` - equipArmor/unequipArmor/getArmorDefenseBonus
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` - Damage reduction logic
   - `core/src/test/kotlin/com/jcraw/mud/core/ArmorSystemTest.kt` - Comprehensive tests
+- **Procedural Generation System**:
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonTheme.kt` - Theme enums with trait pools
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/RoomGenerator.kt` - Procedural room generation
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` - Procedural NPC generation
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ItemGenerator.kt` - Procedural item generation
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonLayoutGenerator.kt` - Graph-based layout generation
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralDungeonBuilder.kt` - Main orchestrator
+  - `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralGenerationTest.kt` - Comprehensive tests
 - All modules integrated into build system and building successfully
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
@@ -223,8 +248,15 @@ Clean separation following the planned architecture:
 ## Getting Started (Next Developer)
 
 1. **Set up API key**: Add `openai.api.key=sk-...` to `local.properties` (or set OPENAI_API_KEY env var)
-2. **Run the game**: `gradle installDist && app/build/install/app/bin/app` or `./test_combat.sh`
-3. **Commands available**:
+2. **Run the game**: `gradle installDist && app/build/install/app/bin/app`
+3. **Choose dungeon type**: At startup, select from:
+   - Sample Dungeon (handcrafted, 6 rooms)
+   - Procedural Crypt (ancient tombs)
+   - Procedural Castle (ruined fortress)
+   - Procedural Cave (dark caverns)
+   - Procedural Temple (forgotten shrine)
+   - Specify room count for procedural dungeons (default: 10)
+4. **Commands available**:
    - Movement: `n/s/e/w`, `north/south/east/west`, `go <direction>`
    - Interaction: `look [target]`, `take/get <item>`, `drop/put <item>`, `talk/speak <npc>`, `inventory/i`
    - Combat: `attack/kill/fight/hit <npc>` to start combat, then `attack` to continue
@@ -233,22 +265,25 @@ Clean separation following the planned architecture:
    - Skill Checks: `check/test <feature>` to attempt skill checks on interactive features
    - Social: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks
    - Meta: `help`, `quit`
-4. **Sample dungeon**: 6 rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
-5. **LLM features**:
+5. **Dungeon types**:
+   - **Sample dungeon**: 6 handcrafted rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
+   - **Procedural dungeons**: Dynamically generated with theme-appropriate traits, random NPCs, and distributed loot
+6. **LLM features**:
    - Room descriptions dynamically generated using gpt-4o-mini with RAG context
    - NPC dialogue personality-driven (friendly vs hostile, health-aware) with conversation history
    - Combat narratives with visceral, atmospheric descriptions that build on previous rounds
    - Embeddings via text-embedding-3-small for semantic memory retrieval
-6. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
-7. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses that reference past conversations
-8. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
-9. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
-10. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
-11. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
-12. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
-13. **Skill check challenges**: 4 interactive features - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
-14. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
-15. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
-16. **Next logical step**: Procedural content generation or persistent memory storage
+7. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
+8. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses that reference past conversations
+9. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
+10. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
+11. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
+12. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
+13. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
+14. **Skill check challenges**: 4 interactive features in sample dungeon - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
+15. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
+16. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
+17. **Procedural generation**: Create dungeons of any size with 4 themes, each with unique traits, NPCs with varied stats, and distributed loot
+18. **Next logical step**: Multi-user support or persistent storage
 
-The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, AND semantic memory retrieval for contextual narratives.
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, AND procedural dungeon generation with 4 themes!
