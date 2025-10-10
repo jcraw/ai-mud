@@ -3,29 +3,32 @@
 ## Immediate Next Steps (Priority Order)
 
 ### 1. Intent System (perception module)
-- [ ] Create sealed class hierarchy for player actions
+- [x] Create sealed class hierarchy for player actions
   - Move(direction: Direction)
   - Look(target: String? = null)
   - Interact(target: String)
   - Inventory
   - Help
   - Quit
-- [ ] Add Intent.kt to perception module
+  - Invalid(message: String)
+- [x] Add Intent.kt to perception module
+- [x] Add comprehensive tests for Intent hierarchy
 
 ### 2. Fix LLM Dependencies
-- [ ] Check ktor dependencies in gradle/libs.versions.toml
-- [ ] Fix unresolved imports in OpenAIClient.kt
-- [ ] Ensure llm module builds successfully
+- [x] Check ktor dependencies in gradle/libs.versions.toml
+- [x] Fix unresolved imports in OpenAIClient.kt
+- [x] Ensure llm module builds successfully
 
 ### 3. Basic Game Loop Skeleton
-- [ ] Create main game console interface in app module
-- [ ] Implement basic input/output loop
-- [ ] Connect to SampleDungeon for testing
+- [x] Create main game console interface in app module
+- [x] Implement basic input/output loop
+- [x] Connect to SampleDungeon for testing
+- [x] Build and verify game runs successfully
 
 ### 4. Simple Perception
-- [ ] Basic input parser (start with simple string matching)
-- [ ] Convert text input to Intent objects
-- [ ] Handle basic commands like "go north", "look", "inventory"
+- [x] Basic input parser (simple string matching)
+- [x] Convert text input to Intent objects
+- [x] Handle basic commands like "go north", "look", "inventory"
 
 ## Later Implementation (MVP Features)
 
@@ -50,20 +53,27 @@
 ✅ **COMPLETED**
 - Multi-module Gradle setup
 - Core data models (Room, WorldState, PlayerState, Entity)
-- Sample dungeon with 6 interconnected rooms
+- Sample dungeon with 6 interconnected rooms and entities
 - Java 17 toolchain configuration
+- Intent sealed class hierarchy with tests (perception module)
+- LLM module ktor dependencies fixed and building
+- Perception module building with all tests passing
+- **Basic playable game loop with console interface**
+- **Input parser converting text to Intent objects**
+- **Movement, look, inventory, and help commands working**
 
 ⚠️ **BLOCKED**
-- LLM module has dependency issues
-- No main game loop yet
+- None currently
 
 🎯 **READY TO START**
-- Intent system implementation
-- Basic game console interface
+- LLM-powered room description generation (next priority)
+- Item pickup/drop mechanics
+- Interaction system
 
 ## Notes
 
-- Core module builds successfully: `gradle :core:build`
-- Sample dungeon ready for testing: `SampleDungeon.createInitialWorldState()`
+- **Game is now playable!** Run with: `gradle installDist && app/build/install/app/bin/app`
+- Or build and run: `gradle :app:build && app/build/install/app/bin/app`
+- Sample dungeon ready: `SampleDungeon.createInitialWorldState()`
 - Follow KISS principle - start simple, add complexity gradually
-- Focus on getting a basic playable demo first
+- Next step: Integrate LLM for dynamic room descriptions

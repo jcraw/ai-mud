@@ -4,24 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: Core Foundation + Sample Dungeon Complete** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, and sample dungeon implemented. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
+**Current State: PLAYABLE MVP** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 6 modules
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy
 - Direction enum with bidirectional mapping
-- **Sample dungeon with 6 interconnected rooms and rich trait lists**
-- **SampleDungeon.kt with initial world state factory**
-- OpenAI LLM client integrated into build system (needs dependency fixes)
-- Requirements documentation
+- **Sample dungeon with 6 interconnected rooms, entities, and rich trait lists**
+- **Intent sealed class hierarchy (Move, Look, Interact, Inventory, Help, Quit)**
+- **Working console game loop with text parser**
+- **OpenAI LLM client fully integrated with ktor 3.1.0**
+- **GAME IS PLAYABLE** - movement, looking, basic commands work
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Intent system** - Sealed classes for player actions (Move, Look, Interact, etc.)
-2. **LLM service fixes** - Fix dependency issues in llm module
-3. **Basic perception** - Input parsing and intent recognition
-4. **Game loop skeleton** - Console interface and main game logic
-5. Later: Dynamic content generation, memory systems, advanced features
+1. **LLM-powered descriptions** - Generate room descriptions from traits using OpenAI
+2. **Item mechanics** - Pickup/drop items, manage inventory
+3. **Interaction system** - Use items, talk to NPCs, trigger events
+4. Later: Combat, skill checks, memory/RAG, advanced generation
 
 ## Commands
 
@@ -29,7 +29,8 @@ Remaining tasks organized by priority:
 - `gradle build` - Build the project (requires Java 17 toolchain)
 - `gradle check` - Run all checks including tests
 - `gradle clean` - Clean all build outputs
-- `gradle run` - Will run main game when implemented
+- `gradle installDist && app/build/install/app/bin/app` - **Run the game!**
+- `gradle :app:build` - Build just the app module
 
 ### Testing
 - `gradle test` - Run unit tests across all modules
@@ -89,34 +90,42 @@ Clean separation following the planned architecture:
 ### Completed
 ✅ Module structure and dependencies
 ✅ Core data models (Room, WorldState, PlayerState, Entity, Direction)
-✅ Sample dungeon with 6 interconnected rooms and rich traits
+✅ Sample dungeon with 6 interconnected rooms, entities, and rich traits
 ✅ Immutable state design with helper methods
 ✅ Java 17 toolchain configuration
+✅ Intent sealed class hierarchy with comprehensive tests
+✅ LLM module with ktor 3.1.0 dependencies - builds successfully
+✅ **Console-based game loop - PLAYABLE MVP**
+✅ **Text parser converting input to Intent objects**
+✅ **Movement, look, inventory, help commands functional**
 
-### Current Status: LLM Dependencies Need Fixing
-⚠️ LLM module has unresolved dependencies (ktor client)
-⚠️ Core module builds successfully
+### Current Status: Playable MVP Complete
+✅ All modules building successfully
+✅ Game runs and responds to player commands
+✅ Sample dungeon fully navigable
 
 ### Next Priority
-🔄 Intent sealed classes for player actions
-🔄 Fix LLM service dependencies
-🔄 Basic perception module implementation
+🔄 LLM-powered room description generation
+🔄 Item pickup/drop mechanics
+🔄 NPC interaction system
 
 ## Important Notes
 
-- Main class configured as `com.jcraw.app.AppKt` but not implemented yet
-- All modules integrated into build system
-- Core foundation complete - ready for game logic implementation
+- **Main application**: `com.jcraw.app.AppKt` - fully implemented and working
+- All modules integrated into build system and building successfully
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
 - Requirements are in `docs/requirements.txt`
-- Sample dungeon available in `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
+- Sample dungeon: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
+- Game loop: `app/src/main/kotlin/com/jcraw/app/App.kt`
+- Intent system: `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`
 
 ## Getting Started (Next Developer)
 
-1. **Current working state**: Core module builds (`gradle :core:build`)
-2. **Sample dungeon ready**: Use `SampleDungeon.createInitialWorldState()` for testing
-3. **Next logical step**: Create Intent sealed classes in perception module
-4. **Known issue**: LLM module dependencies need fixing (ktor client imports)
+1. **Try the game**: `gradle installDist && app/build/install/app/bin/app`
+2. **Commands work**: `n` (north), `look`, `help`, `inventory`, `quit`
+3. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword) and NPCs (skeleton king)
+4. **Next logical step**: Integrate LLM for dynamic room descriptions instead of static trait lists
+5. **Architecture ready**: Perception→Reasoning→Action flow, just needs LLM hookup
 
-The foundation is solid - we have data models and sample content. Focus on the intent system next.
+The MVP is complete and playable - focus on LLM integration for richer descriptions next.
