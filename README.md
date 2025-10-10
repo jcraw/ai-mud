@@ -1,23 +1,50 @@
-# ai-mud
+# AI-MUD
 
-This project uses [Gradle](https://gradle.org/).
-To build and run the application, use the *Gradle* tool window by clicking the Gradle icon in the right-hand toolbar,
-or run it directly from the terminal:
+An AI-powered MUD (Multi-User Dungeon) engine that will use LLMs to generate dynamic, variable descriptions and handle natural language player interactions.
 
-* Run `./gradlew run` to build and run the application.
-* Run `./gradlew build` to only build the application.
-* Run `./gradlew check` to run all checks, including tests.
-* Run `./gradlew clean` to clean all build outputs.
+## Current Status
 
-Note the usage of the Gradle Wrapper (`./gradlew`).
-This is the suggested way to use Gradle in production projects.
+**⚠️ Early Development Phase** - This project is in the very beginning stages. Currently contains:
 
-[Learn more about the Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+- Basic Gradle multi-module project structure
+- OpenAI LLM client implementation (copied from another project)
+- Requirements documentation outlining the vision
+- No game logic or MUD mechanics implemented yet
 
-[Learn more about Gradle tasks](https://docs.gradle.org/current/userguide/command_line_interface.html#common_tasks).
+## Vision
 
-This project follows the suggested multi-module setup and consists of the `app` and `utils` subprojects.
-The shared build logic was extracted to a convention plugin located in `buildSrc`.
+The goal is to create a text-based roleplaying game where:
+- Players navigate rooms via natural language commands
+- LLM generates unique descriptions each time (based on fixed room traits)
+- Combat and interactions get richer narratives through AI
+- Everything feels fresh and adaptive while maintaining consistency
 
-This project uses a version catalog (see `gradle/libs.versions.toml`) to declare and version dependencies
-and both a build cache and a configuration cache (see `gradle.properties`).
+See `docs/requirements.txt` for detailed specifications.
+
+## Development
+
+This project uses [Gradle](https://gradle.org/) with Kotlin.
+
+### Commands
+
+* `./gradlew build` - Build the project
+* `./gradlew check` - Run all checks including tests
+* `./gradlew clean` - Clean all build outputs
+
+Note: `./gradlew run` is configured but there's no main application logic yet.
+
+### Project Structure
+
+- **app** - Will contain the main game application (currently empty)
+- **utils** - Shared utilities and common code (currently empty)
+- **llm** - OpenAI client for LLM integration (implemented but not integrated into build)
+- **buildSrc** - Shared build logic and convention plugins
+
+### Next Steps
+
+Implementation will follow the requirements in `docs/requirements.txt` to build:
+1. Room graph and world state management
+2. Natural language input parsing
+3. Dynamic content generation
+4. Game mechanics (exploration, skills, combat)
+5. Console-based user interface

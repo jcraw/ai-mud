@@ -4,73 +4,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an AI-powered MUD (Multi-User Dungeon) engine written in Kotlin. The system creates a text-based roleplaying game where players navigate rooms and interact with the world through natural language commands. The LLM generates dynamic, variable descriptions for each room and interaction, making every experience unique while maintaining consistency through fixed room traits.
+**Current State: Early Development** - This is intended to be an AI-powered MUD (Multi-User Dungeon) engine, but is currently just a skeleton project with basic LLM integration. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
+
+### What Exists Now
+- Basic Gradle multi-module setup
+- OpenAI LLM client (copied from another project, not yet integrated)
+- Requirements documentation
+- Empty app and utils modules
+
+### What Needs to Be Built
+See `docs/requirements.txt` for the full vision. Key components to implement:
+- Room graph and world state management
+- Natural language input parsing
+- Dynamic content generation
+- Game mechanics (exploration, skills, combat)
+- Console-based user interface
 
 ## Commands
 
-### Build and Run
-- `./gradlew run` - Build and run the application (main entry point: `com.jcraw.app.AppKt`)
-- `./gradlew build` - Build the application only
+### Build and Development
+- `./gradlew build` - Build the project
 - `./gradlew check` - Run all checks including tests
 - `./gradlew clean` - Clean all build outputs
+- `./gradlew run` - Configured but no main logic exists yet
 
 ### Testing
-- `./gradlew test` - Run unit tests
-- `./gradlew :app:test` - Run tests for the app module
-- `./gradlew :utils:test` - Run tests for the utils module
+- `./gradlew test` - Run unit tests (none exist yet)
+- `./gradlew :app:test` - Run tests for app module
+- `./gradlew :utils:test` - Run tests for utils module
 
 ## Project Structure
 
-This is a multi-module Gradle project with the following structure:
+Multi-module Gradle project:
 
-### Modules
-- **app** - Main application module containing the game entry point
-- **utils** - Shared utilities and common code
-- **llm** - LLM client implementation for OpenAI integration (currently not included in build)
+### Current Modules
+- **app** - Empty, will contain main game application
+- **utils** - Empty, will contain shared utilities
+- **llm** - Contains OpenAI client (not included in `settings.gradle.kts`)
 
-### Key Architecture Components
+### Build Configuration
+- Uses Gradle with Kotlin DSL
+- Version catalog in `gradle/libs.versions.toml`
+- Convention plugin in `buildSrc` for shared build logic
+- Java 24 toolchain, Kotlin 2.2.0
+- kotlinx ecosystem dependencies configured
+
+## Implementation Notes
+
+### Architecture Plan (from requirements)
+The eventual architecture should have:
 - **Perception** - Input parsing and LLM-based intent recognition
 - **Reasoning** - LLM-powered generation and game logic resolution
 - **Action** - Output narration and response generation
 - **Memory** - Vector database for history and structured world state
 
-### Build Configuration
-- Uses Gradle with Kotlin DSL
-- Version catalog in `gradle/libs.versions.toml` for dependency management
-- Convention plugin in `buildSrc` for shared build logic
-- Java 24 toolchain
-- Kotlin 2.2.0 with coroutines and serialization support
-
-### Dependencies
-The project uses kotlinx ecosystem libraries:
-- kotlinx-datetime for time handling
-- kotlinx-serialization-json for JSON processing
-- kotlinx-coroutines-core for async operations
-- Ktor client for HTTP requests (in llm module)
-
-## Game Design
-
-### Core Concepts
-- **Rooms**: Data classes with traits, exits, and contents - stored as graph structure
-- **Dynamic Descriptions**: LLM generates unique room descriptions each time using fixed traits
-- **Natural Language Input**: Players use free-form text commands parsed by LLM
-- **RAG Integration**: Vector database maintains history for coherent, varied responses
-
-### World State
-- Immutable `WorldState` containing room graph and player state
-- Room traits stored as simple strings/lists for flexibility
-- Player position tracked through room navigation
-
-### LLM Integration
-- OpenAI client with configurable models and parameters
-- Specialized prompts for different game functions (room descriptions, combat, skill checks)
-- ReAct pattern for complex decision making (Observe → Reason → Act)
+### Key Principles
+- KISS principle - avoid overengineering
+- Use sealed classes over enums
+- Focus on behavior-driven testing
+- Files under 300-500 lines
+- Use GPT4_1Nano for cost savings during development
 
 ## Important Notes
 
-- The `llm` module exists but is not currently included in `settings.gradle.kts`
-- Main class is `com.jcraw.app.AppKt` as configured in app module
-- Project follows KISS principle - avoid overengineering
-- Use sealed classes over enums per project guidelines
-- Focus on behavior-driven testing, not line coverage
-- All LLM calls should use cost-effective models during development
+- Main class configured as `com.jcraw.app.AppKt` but doesn't exist yet
+- `llm` module has working OpenAI client but isn't included in build
+- No backward compatibility needed - can wipe and restart data
+- Project follows guidelines in `CLAUDE_GUIDELINES.md`
+- Requirements are in `docs/requirements.txt`
