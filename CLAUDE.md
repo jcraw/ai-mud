@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: FEATURE-COMPLETE MVP WITH PROCEDURAL GENERATION** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
+**Current State: FEATURE-COMPLETE MVP WITH PERSISTENT STORAGE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 7 modules
@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Direction enum with bidirectional mapping
 - **Stats system (STR, DEX, CON, INT, WIS, CHA)** - D&D-style stats for player & NPCs ✅
 - **Sample dungeon with 6 interconnected rooms, entities, rich trait lists, and stat-based NPCs**
-- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Persuade, Intimidate, Inventory, Help, Quit)**
+- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Persuade, Intimidate, Save, Load, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
 - **RoomDescriptionGenerator - LLM-powered vivid room descriptions with RAG context** ✨
@@ -35,11 +35,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **4 dungeon themes** - Crypt, Castle, Cave, Temple with theme-specific traits ✅
 - **Graph-based dungeon layouts** - Connected room networks with entrance and boss rooms ✅
 - **Deterministic generation** - Optional seeds for reproducible dungeons ✅
+- **Persistent storage** - JSON-based save/load system for game state ✅
+- **Save/load commands** - save [name] and load [name] commands in game ✅
+- **Pluggable vector stores** - Interface-based design for in-memory or persistent vector stores ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
 1. **Multi-user support** - Multiple players in shared world
-2. **Persistent storage** - Save/load game state and memory to disk
+2. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
 3. **Dynamic quests** - Procedurally generated quest objectives
 4. Later: More complex quest system, dynamic world events
 
@@ -176,8 +179,15 @@ Clean separation following the planned architecture:
 ✅ **Deterministic generation with optional seed parameter**
 ✅ **Comprehensive tests for all procedural generation components**
 ✅ **Interactive dungeon selection menu at game start**
+✅ **Persistent storage system with JSON serialization** 💾
+✅ **Save and Load intents with commands: save [name] and load [name]**
+✅ **PersistenceManager for game state save/load operations**
+✅ **VectorStore interface for pluggable memory backends**
+✅ **PersistentVectorStore implementation with disk persistence**
+✅ **Comprehensive tests for persistence layer (31 tests passing)**
+✅ **Save files stored in saves/ directory with human-readable JSON**
 
-### Current Status: Feature-Complete MVP with Procedural Generation
+### Current Status: Feature-Complete MVP with Persistent Storage
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -199,11 +209,14 @@ Clean separation following the planned architecture:
 ✅ Procedural generation creates varied dungeons with 4 themes
 ✅ Can generate dungeons of any size (default 10 rooms)
 ✅ Dungeons have entrance rooms, boss rooms, and loot distribution
+✅ **Persistent storage working** - save/load game state to JSON files
+✅ Save files preserve all game state: player stats, inventory, equipped items, combat state, room contents
+✅ Load command restores complete game state from disk
 
 ### Next Priority
 🔄 Multi-user support
-🔄 Persistent storage for memory (currently in-memory only)
 🔄 Dynamic quest generation
+🔄 Persistent memory storage (optional - vector embeddings to disk)
 
 ## Important Notes
 
@@ -214,9 +227,15 @@ Clean separation following the planned architecture:
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt`
 - **Memory/RAG System**:
   - `memory/src/main/kotlin/com/jcraw/mud/memory/MemoryManager.kt` - High-level memory interface
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/VectorStoreInterface.kt` - Interface for pluggable vector stores
   - `memory/src/main/kotlin/com/jcraw/mud/memory/VectorStore.kt` - In-memory vector store with cosine similarity
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/PersistentVectorStore.kt` - Disk-based vector store with JSON persistence
   - `memory/src/main/kotlin/com/jcraw/mud/memory/MemoryEntry.kt` - Memory data models
   - `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt` - Embeddings API support
+- **Persistence System**:
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/PersistenceManager.kt` - Game state save/load manager
+  - `memory/src/test/kotlin/com/jcraw/mud/memory/PersistenceManagerTest.kt` - Comprehensive persistence tests
+  - `memory/src/test/kotlin/com/jcraw/mud/memory/PersistentVectorStoreTest.kt` - Vector store persistence tests
 - **Combat System**:
   - `core/src/main/kotlin/com/jcraw/mud/core/CombatState.kt` - Combat data models
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` - Combat mechanics
@@ -264,6 +283,7 @@ Clean separation following the planned architecture:
    - Consumables: `use/consume/drink/eat <item>` to use healing potions
    - Skill Checks: `check/test <feature>` to attempt skill checks on interactive features
    - Social: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks
+   - Persistence: `save [name]` to save game (defaults to 'quicksave'), `load [name]` to load game
    - Meta: `help`, `quit`
 5. **Dungeon types**:
    - **Sample dungeon**: 6 handcrafted rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
@@ -284,6 +304,7 @@ Clean separation following the planned architecture:
 15. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
 16. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
 17. **Procedural generation**: Create dungeons of any size with 4 themes, each with unique traits, NPCs with varied stats, and distributed loot
-18. **Next logical step**: Multi-user support or persistent storage
+18. **Persistence**: Save and load game state to/from JSON files - preserves player stats, inventory, equipment, combat state, and world state
+19. **Next logical step**: Multi-user support or dynamic quest generation
 
-The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, AND procedural dungeon generation with 4 themes!
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, AND persistent save/load system!

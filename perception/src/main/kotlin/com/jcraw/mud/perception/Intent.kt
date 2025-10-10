@@ -99,6 +99,20 @@ sealed class Intent {
     data class Intimidate(val target: String) : Intent()
 
     /**
+     * Save the current game state
+     * @param saveName Optional name for the save file (defaults to "quicksave")
+     */
+    @Serializable
+    data class Save(val saveName: String = "quicksave") : Intent()
+
+    /**
+     * Load a saved game state
+     * @param saveName Optional name of the save file to load (defaults to "quicksave")
+     */
+    @Serializable
+    data class Load(val saveName: String = "quicksave") : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

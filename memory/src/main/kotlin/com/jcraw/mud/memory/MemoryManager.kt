@@ -10,7 +10,7 @@ import java.util.UUID
  */
 class MemoryManager(
     private val llmClient: LLMClient?,
-    private val vectorStore: InMemoryVectorStore = InMemoryVectorStore()
+    private val vectorStore: VectorStore = InMemoryVectorStore()
 ) {
     /**
      * Store a game event in memory

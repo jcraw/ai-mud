@@ -14,6 +14,7 @@ import com.jcraw.mud.reasoning.SkillCheckResolver
 import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.memory.MemoryManager
+import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -109,6 +110,7 @@ class MudGame(
     private var running = true
     private val combatResolver = CombatResolver()
     private val skillCheckResolver = SkillCheckResolver()
+    private val persistenceManager = PersistenceManager()
 
     fun start() {
         printWelcome()
@@ -272,6 +274,8 @@ class MudGame(
                     Intent.Intimidate(args)
                 }
             }
+            "save" -> Intent.Save(args ?: "quicksave")
+            "load" -> Intent.Load(args ?: "quicksave")
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -294,6 +298,8 @@ class MudGame(
             is Intent.Check -> handleCheck(intent.target)
             is Intent.Persuade -> handlePersuade(intent.target)
             is Intent.Intimidate -> handleIntimidate(intent.target)
+            is Intent.Save -> handleSave(intent.saveName)
+            is Intent.Load -> handleLoad(intent.saveName)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -817,6 +823,35 @@ class MudGame(
         }
     }
 
+    private fun handleSave(saveName: String) {
+        val result = persistenceManager.saveGame(worldState, saveName)
+
+        result.onSuccess {
+            println("💾 Game saved as '$saveName'")
+        }.onFailure { error ->
+            println("❌ Failed to save game: ${error.message}")
+        }
+    }
+
+    private fun handleLoad(saveName: String) {
+        val result = persistenceManager.loadGame(saveName)
+
+        result.onSuccess { loadedState ->
+            worldState = loadedState
+            println("📂 Game loaded from '$saveName'")
+            describeCurrentRoom()
+        }.onFailure { error ->
+            println("❌ Failed to load game: ${error.message}")
+
+            val saves = persistenceManager.listSaves()
+            if (saves.isNotEmpty()) {
+                println("Available saves: ${saves.joinToString(", ")}")
+            } else {
+                println("No saved games found.")
+            }
+        }
+    }
+
     private fun handleHelp() {
         println("""
             |Available Commands:
@@ -838,6 +873,8 @@ class MudGame(
             |    inventory, i         - View your inventory and equipped items
             |
             |  Meta:
+            |    save [name]          - Save game (defaults to 'quicksave')
+            |    load [name]          - Load game (defaults to 'quicksave')
             |    help, h, ?           - Show this help
             |    quit, exit, q        - Quit game
         """.trimMargin())

@@ -6,20 +6,20 @@ import kotlin.math.sqrt
  * Simple in-memory vector store with cosine similarity search.
  * KISS principle - no external database for MVP.
  */
-class InMemoryVectorStore {
+class InMemoryVectorStore : VectorStore {
     private val entries = mutableListOf<MemoryEntry>()
 
     /**
      * Add a memory entry to the store
      */
-    fun add(entry: MemoryEntry) {
+    override fun add(entry: MemoryEntry) {
         entries.add(entry)
     }
 
     /**
      * Search for the k most similar entries using cosine similarity
      */
-    fun search(queryEmbedding: List<Double>, k: Int = 5): List<ScoredMemoryEntry> {
+    override fun search(queryEmbedding: List<Double>, k: Int): List<ScoredMemoryEntry> {
         if (entries.isEmpty()) return emptyList()
 
         return entries
@@ -34,19 +34,19 @@ class InMemoryVectorStore {
     /**
      * Get all entries (for debugging/testing)
      */
-    fun getAll(): List<MemoryEntry> = entries.toList()
+    override fun getAll(): List<MemoryEntry> = entries.toList()
 
     /**
      * Clear all entries
      */
-    fun clear() {
+    override fun clear() {
         entries.clear()
     }
 
     /**
      * Get count of entries
      */
-    fun size(): Int = entries.size
+    override fun size(): Int = entries.size
 
     /**
      * Calculate cosine similarity between two vectors
