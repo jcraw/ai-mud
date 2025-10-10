@@ -85,6 +85,20 @@ sealed class Intent {
     data class Check(val target: String) : Intent()
 
     /**
+     * Attempt to persuade an NPC (CHA check)
+     * @param target The name/identifier of the NPC to persuade
+     */
+    @Serializable
+    data class Persuade(val target: String) : Intent()
+
+    /**
+     * Attempt to intimidate an NPC (CHA check)
+     * @param target The name/identifier of the NPC to intimidate
+     */
+    @Serializable
+    data class Intimidate(val target: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

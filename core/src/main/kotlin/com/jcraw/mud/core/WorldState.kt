@@ -43,6 +43,12 @@ data class WorldState(
         return updateRoom(updatedRoom)
     }
 
+    fun replaceEntity(roomId: RoomId, entityId: String, newEntity: Entity): WorldState? {
+        val room = getRoom(roomId) ?: return null
+        val updatedRoom = room.removeEntity(entityId).addEntity(newEntity)
+        return updateRoom(updatedRoom)
+    }
+
     fun getAvailableExits(): List<Direction> = getCurrentRoom()?.getAvailableDirections() ?: emptyList()
 
     fun isInCombat(): Boolean = activeCombat?.isActive() == true

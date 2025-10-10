@@ -72,7 +72,12 @@ sealed class Entity {
         val health: Int = 100,
         val maxHealth: Int = 100,
         val stats: Stats = Stats(),
-        val properties: Map<String, String> = emptyMap()
+        val properties: Map<String, String> = emptyMap(),
+        // Social interaction
+        val persuasionChallenge: SkillChallenge? = null,
+        val intimidationChallenge: SkillChallenge? = null,
+        val hasBeenPersuaded: Boolean = false,
+        val hasBeenIntimidated: Boolean = false
     ) : Entity()
 
     @Serializable
@@ -81,6 +86,8 @@ sealed class Entity {
         override val name: String,
         override val description: String,
         val isInteractable: Boolean = false,
-        val properties: Map<String, String> = emptyMap()
+        val properties: Map<String, String> = emptyMap(),
+        val skillChallenge: SkillChallenge? = null,
+        val isCompleted: Boolean = false  // Track if challenge has been overcome
     ) : Entity()
 }

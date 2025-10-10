@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Direction enum with bidirectional mapping
 - **Stats system (STR, DEX, CON, INT, WIS, CHA)** - D&D-style stats for player & NPCs ✅
 - **Sample dungeon with 6 interconnected rooms, entities, rich trait lists, and stat-based NPCs**
-- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Inventory, Help, Quit)**
+- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Persuade, Intimidate, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
 - **RoomDescriptionGenerator - LLM-powered vivid room descriptions** ✨
@@ -27,11 +27,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Consumables** - use potions/items for healing ✅
 - **Skill check system** - D20 + stat modifier vs DC, with critical success/failure ✅
 - **Armor system** - equip armor to reduce incoming damage ✅
+- **Skill check integration** - Interactive features with skill challenges (locked chests, stuck doors, hidden items, arcane runes) ✅
+- **Social skill checks** - Persuasion and intimidation CHA checks for NPCs ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Skill check integration** - Use checks for interactive challenges (locked doors, persuasion, etc.)
-2. Later: Memory/RAG, procedural generation, multi-user support
+1. **Memory/RAG integration** - Persistent world knowledge and context
+2. Later: Procedural generation, multi-user support
 
 ## Commands
 
@@ -128,7 +130,7 @@ Clean separation following the planned architecture:
 ✅ **Stats system with D&D-style attributes (STR, DEX, CON, INT, WIS, CHA)** 🎲
 ✅ **SkillCheckResolver with d20 mechanics, difficulty classes, critical success/failure**
 ✅ **Combat now uses STR modifiers for player and NPC damage**
-✅ **Check intent added (check/test/attempt/try commands) - stub for future integration**
+✅ **Check intent fully implemented (check/test/attempt/try commands)** 🎲
 ✅ **NPCs have varied stat distributions (Old Guard: wise & hardy, Skeleton King: strong & quick)**
 ✅ **Comprehensive tests for skill check system**
 ✅ **Armor system with defense bonuses** 🛡️
@@ -136,8 +138,20 @@ Clean separation following the planned architecture:
 ✅ **Sample dungeon updated with armor (leather armor +2, chainmail +4)**
 ✅ **Commands: equip/wield/wear <armor> to equip armor from inventory**
 ✅ **Comprehensive tests for armor system**
+✅ **Skill check integration with Feature entities** 🎲
+✅ **Interactive challenges: locked chests (DEX), stuck doors (STR), hidden items (WIS), arcane runes (INT)**
+✅ **Commands: check/test <feature> to attempt skill checks on interactive features**
+✅ **Skill checks show d20 roll, modifier, total vs DC, and critical success/failure**
+✅ **Features marked as completed after successful checks**
+✅ **Sample dungeon has 4 skill challenges across 3 rooms (corridor, treasury, secret chamber)**
+✅ **Persuade and Intimidate intents implemented** 💬
+✅ **Commands: persuade/convince <npc> and intimidate/threaten <npc>**
+✅ **NPCs can have persuasionChallenge and intimidationChallenge fields**
+✅ **Old Guard has persuasion challenge (CHA/DC10) - reveals secrets on success**
+✅ **Skeleton King has intimidation challenge (CHA/DC20) - backs down on success**
+✅ **Social checks mark NPCs as persuaded/intimidated to prevent re-attempts**
 
-### Current Status: Feature-Complete MVP with Full LLM Integration, Skills, and Armor
+### Current Status: Feature-Complete MVP with Full LLM Integration, Skills, Armor, Skill Challenges, and Social Interactions
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, AND combat narration
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -148,10 +162,15 @@ Clean separation following the planned architecture:
 ✅ Equipment system working - weapons provide damage bonuses in combat
 ✅ Consumables working - potions restore health (respects max health)
 ✅ LLM generates personality-driven dialogue and visceral combat descriptions
+✅ Skill check system integrated - 4 interactive challenges in dungeon (DEX, STR, WIS, INT checks)
+✅ D20 mechanics with stat modifiers, difficulty classes, and critical successes/failures working
+✅ Social interaction system - persuasion and intimidation CHA checks for NPCs
+✅ Tested persuading Old Guard (DC 10) and intimidating Skeleton King (DC 20)
 
 ### Next Priority
-🔄 Skill check integration with game world (doors, persuasion, perception, etc.)
 🔄 Memory/RAG integration for persistent world knowledge
+🔄 Procedural content generation
+🔄 Multi-user support
 
 ## Important Notes
 
@@ -190,6 +209,8 @@ Clean separation following the planned architecture:
    - Combat: `attack/kill/fight/hit <npc>` to start combat, then `attack` to continue
    - Equipment: `equip/wield/wear <item>` to equip weapons or armor
    - Consumables: `use/consume/drink/eat <item>` to use healing potions
+   - Skill Checks: `check/test <feature>` to attempt skill checks on interactive features
+   - Social: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks
    - Meta: `help`, `quit`
 4. **Sample dungeon**: 6 rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
 5. **LLM features**:
@@ -203,6 +224,8 @@ Clean separation following the planned architecture:
 10. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
 11. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
 12. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
-13. **Next logical step**: Integrate skill checks into world interactions (locked doors, persuasion, etc.)
+13. **Skill check challenges**: 4 interactive features - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
+14. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
+15. **Next logical step**: Memory/RAG integration for persistent world knowledge
 
-The feature-complete MVP has LLM-powered descriptions, full item system (pickup/drop/equip/use), NPC dialogue, turn-based combat with weapons AND armor, and stat-based skill checks - focus on skill check integration next.
+The feature-complete MVP has LLM-powered descriptions, full item system (pickup/drop/equip/use), NPC dialogue, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, AND social interaction system with persuasion and intimidation.

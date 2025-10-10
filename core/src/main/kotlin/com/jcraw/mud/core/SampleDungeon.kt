@@ -33,6 +33,13 @@ object SampleDungeon {
                     intelligence = 10,  // Average
                     wisdom = 16,        // Experienced and perceptive
                     charisma = 13       // Friendly and talkative
+                ),
+                persuasionChallenge = SkillChallenge(
+                    statType = StatType.CHARISMA,
+                    difficulty = Difficulty.EASY,
+                    description = "The Old Guard seems willing to share information if asked nicely",
+                    successDescription = "The Old Guard smiles warmly. 'Ah, a polite adventurer! Let me tell you - there's a hidden passage in the secret chamber beyond the throne room. Look for the stone door and you'll find ancient treasures beyond!'",
+                    failureDescription = "The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'"
                 )
             )
         )
@@ -53,6 +60,21 @@ object SampleDungeon {
             Direction.EAST to "treasury",
             Direction.WEST to "armory",
             Direction.NORTH to "throne_room"
+        ),
+        entities = listOf(
+            Entity.Feature(
+                id = "loose_stone",
+                name = "Suspicious Loose Stone",
+                description = "A stone in the wall that seems slightly out of place",
+                isInteractable = true,
+                skillChallenge = SkillChallenge(
+                    statType = StatType.WISDOM,
+                    difficulty = Difficulty.EASY,
+                    description = "Your perception tells you something is unusual about this stone",
+                    successDescription = "You carefully examine the stone and notice faint scratch marks around it. Pressing it reveals a small hidden alcove containing a silver key!",
+                    failureDescription = "You inspect the stone but can't figure out what makes it special. Perhaps you're overthinking it."
+                )
+            )
         )
     )
 
@@ -82,6 +104,19 @@ object SampleDungeon {
                 itemType = ItemType.CONSUMABLE,
                 healAmount = 30,
                 isConsumable = true
+            ),
+            Entity.Feature(
+                id = "locked_chest",
+                name = "Locked Ornate Chest",
+                description = "A beautifully carved chest with an intricate lock mechanism",
+                isInteractable = true,
+                skillChallenge = SkillChallenge(
+                    statType = StatType.DEXTERITY,
+                    difficulty = Difficulty.MEDIUM,
+                    description = "The lock is complex but could be picked with nimble fingers",
+                    successDescription = "With deft movements, you manipulate the lock tumblers until you hear a satisfying *click*. The chest opens, revealing a glittering ruby inside!",
+                    failureDescription = "Your fingers fumble with the lock picks. The mechanism is too complex for you right now."
+                )
             )
         )
     )
@@ -163,6 +198,13 @@ object SampleDungeon {
                     intelligence = 12,  // Retains tactical knowledge
                     wisdom = 14,        // Ancient experience
                     charisma = 6        // Terrifying, not charming
+                ),
+                intimidationChallenge = SkillChallenge(
+                    statType = StatType.CHARISMA,
+                    difficulty = Difficulty.HARD,
+                    description = "The Skeleton King's hollow eyes glare at you. Perhaps a show of dominance could make him back down",
+                    successDescription = "Your fierce display of power makes the Skeleton King hesitate. His bones rattle as he backs away from the throne. 'Very well, mortal. You have proven your strength. I shall let you pass... this time.' The Skeleton King slumps back onto the throne, no longer hostile.",
+                    failureDescription = "The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies."
                 )
             )
         )
@@ -178,7 +220,35 @@ object SampleDungeon {
             "humming with magical energy",
             "portal-like shimmer in far wall"
         ),
-        exits = mapOf(Direction.SOUTH to "throne_room")
+        exits = mapOf(Direction.SOUTH to "throne_room"),
+        entities = listOf(
+            Entity.Feature(
+                id = "stuck_door",
+                name = "Heavy Stone Door",
+                description = "A massive stone door partially ajar, but jammed in place",
+                isInteractable = true,
+                skillChallenge = SkillChallenge(
+                    statType = StatType.STRENGTH,
+                    difficulty = Difficulty.HARD,
+                    description = "The door appears stuck. It would take considerable strength to force it open",
+                    successDescription = "With a mighty heave, you force the stone door open wide enough to squeeze through. Beyond lies a hidden passage!",
+                    failureDescription = "You strain against the heavy door, but it barely budges. You're not strong enough to force it open."
+                )
+            ),
+            Entity.Feature(
+                id = "rune_inscription",
+                name = "Ancient Rune Inscription",
+                description = "Glowing runes etched into the wall in an archaic script",
+                isInteractable = true,
+                skillChallenge = SkillChallenge(
+                    statType = StatType.INTELLIGENCE,
+                    difficulty = Difficulty.MEDIUM,
+                    description = "The runes are in an ancient language. Deciphering them would require knowledge of arcane lore",
+                    successDescription = "Your knowledge of ancient scripts pays off. The runes read: 'Here lies the gateway to the Ethereal Plane. Speak the word of power: Azathoth.'",
+                    failureDescription = "The runes are incomprehensible to you. Their meaning remains a mystery."
+                )
+            )
+        )
     )
 
     /**

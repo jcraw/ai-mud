@@ -198,6 +198,20 @@ class MudGame(
                     Intent.Check(args)
                 }
             }
+            "persuade", "convince" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Persuade whom?")
+                } else {
+                    Intent.Persuade(args)
+                }
+            }
+            "intimidate", "threaten" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Intimidate whom?")
+                } else {
+                    Intent.Intimidate(args)
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -218,6 +232,8 @@ class MudGame(
             is Intent.Equip -> handleEquip(intent.target)
             is Intent.Use -> handleUse(intent.target)
             is Intent.Check -> handleCheck(intent.target)
+            is Intent.Persuade -> handlePersuade(intent.target)
+            is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -565,8 +581,180 @@ class MudGame(
     }
 
     private fun handleCheck(target: String) {
-        println("Skill check system not yet fully integrated. (Target: $target)")
-        println("For now, you can view your stats with 'stats' command (once implemented).")
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the feature in the room
+        val feature = room.entities.filterIsInstance<Entity.Feature>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (feature == null) {
+            println("You don't see that here.")
+            return
+        }
+
+        val challenge = feature.skillChallenge
+        if (!feature.isInteractable || challenge == null) {
+            println("There's nothing to check about that.")
+            return
+        }
+
+        if (feature.isCompleted) {
+            println("You've already successfully interacted with that.")
+            return
+        }
+
+        println("\n${challenge.description}")
+
+        // Perform the skill check
+        val result = skillCheckResolver.checkPlayer(
+            worldState.player,
+            challenge.statType,
+            challenge.difficulty
+        )
+
+        // Display roll details
+        println("\nRolling ${challenge.statType.name} check...")
+        println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+        // Display result
+        if (result.isCriticalSuccess) {
+            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
+        } else if (result.isCriticalFailure) {
+            println("\n💀 CRITICAL FAILURE! (Natural 1)")
+        }
+
+        if (result.success) {
+            println("\n✅ Success!")
+            println(challenge.successDescription)
+
+            // Mark feature as completed
+            val updatedFeature = feature.copy(isCompleted = true)
+            worldState = worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: worldState
+        } else {
+            println("\n❌ Failure!")
+            println(challenge.failureDescription)
+        }
+    }
+
+    private fun handlePersuade(target: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (npc == null) {
+            println("There's no one here by that name.")
+            return
+        }
+
+        val challenge = npc.persuasionChallenge
+        if (challenge == null) {
+            println("${npc.name} doesn't seem interested in negotiating.")
+            return
+        }
+
+        if (npc.hasBeenPersuaded) {
+            println("You've already persuaded ${npc.name}.")
+            return
+        }
+
+        println("\n${challenge.description}")
+
+        // Perform the skill check
+        val result = skillCheckResolver.checkPlayer(
+            worldState.player,
+            challenge.statType,
+            challenge.difficulty
+        )
+
+        // Display roll details
+        println("\nRolling ${challenge.statType.name} check...")
+        println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+        // Display result
+        if (result.isCriticalSuccess) {
+            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
+        } else if (result.isCriticalFailure) {
+            println("\n💀 CRITICAL FAILURE! (Natural 1)")
+        }
+
+        if (result.success) {
+            println("\n✅ Success!")
+            println(challenge.successDescription)
+
+            // Mark NPC as persuaded
+            val updatedNpc = npc.copy(hasBeenPersuaded = true)
+            worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+        } else {
+            println("\n❌ Failure!")
+            println(challenge.failureDescription)
+        }
+    }
+
+    private fun handleIntimidate(target: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (npc == null) {
+            println("There's no one here by that name.")
+            return
+        }
+
+        val challenge = npc.intimidationChallenge
+        if (challenge == null) {
+            println("${npc.name} doesn't seem easily intimidated.")
+            return
+        }
+
+        if (npc.hasBeenIntimidated) {
+            println("${npc.name} is already frightened of you.")
+            return
+        }
+
+        println("\n${challenge.description}")
+
+        // Perform the skill check
+        val result = skillCheckResolver.checkPlayer(
+            worldState.player,
+            challenge.statType,
+            challenge.difficulty
+        )
+
+        // Display roll details
+        println("\nRolling ${challenge.statType.name} check...")
+        println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+        // Display result
+        if (result.isCriticalSuccess) {
+            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
+        } else if (result.isCriticalFailure) {
+            println("\n💀 CRITICAL FAILURE! (Natural 1)")
+        }
+
+        if (result.success) {
+            println("\n✅ Success!")
+            println(challenge.successDescription)
+
+            // Mark NPC as intimidated
+            val updatedNpc = npc.copy(hasBeenIntimidated = true)
+            worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+        } else {
+            println("\n❌ Failure!")
+            println(challenge.failureDescription)
+        }
     }
 
     private fun handleHelp() {
@@ -583,6 +771,9 @@ class MudGame(
             |    attack/fight <npc>   - Attack an NPC or continue combat
             |    equip/wield <item>   - Equip a weapon or armor from inventory
             |    use/consume <item>   - Use a consumable item (potion, etc.)
+            |    check/test <feature> - Attempt a skill check on an interactive feature
+            |    persuade <npc>       - Attempt to persuade an NPC (CHA check)
+            |    intimidate <npc>     - Attempt to intimidate an NPC (CHA check)
             |    interact <item>      - Interact with an object (not yet implemented)
             |    inventory, i         - View your inventory and equipped items
             |
