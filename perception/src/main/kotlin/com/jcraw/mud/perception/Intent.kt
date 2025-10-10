@@ -78,6 +78,13 @@ sealed class Intent {
     data class Use(val target: String) : Intent()
 
     /**
+     * Perform a skill check against a target or feature
+     * @param target The name/identifier of what to check against
+     */
+    @Serializable
+    data class Check(val target: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

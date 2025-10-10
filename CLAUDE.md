@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: FEATURE-COMPLETE MVP** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop with turn-based combat, equipment system, and consumables. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
+**Current State: FEATURE-COMPLETE MVP** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, and D&D-style skill checks. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 6 modules
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy, CombatState, ItemType
 - Direction enum with bidirectional mapping
-- **Sample dungeon with 6 interconnected rooms, entities, and rich trait lists**
-- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Inventory, Help, Quit)**
+- **Stats system (STR, DEX, CON, INT, WIS, CHA)** - D&D-style stats for player & NPCs ✅
+- **Sample dungeon with 6 interconnected rooms, entities, rich trait lists, and stat-based NPCs**
+- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
 - **RoomDescriptionGenerator - LLM-powered vivid room descriptions** ✨
@@ -21,15 +22,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GAME IS FULLY PLAYABLE** - movement, looking, combat, items, LLM descriptions work
 - **Item mechanics** - pickup/drop items with take/get/drop/put commands ✅
 - **NPC interaction** - talk to NPCs with personality-driven dialogue ✅
-- **Combat system** - turn-based combat with attack/defend/flee, LLM-narrated ✅
-- **Equipment system** - equip weapons for damage bonuses ✅
+- **Combat system** - turn-based combat with attack/defend/flee, LLM-narrated, STR modifiers ✅
+- **Equipment system** - equip weapons for damage bonuses, armor for defense bonuses ✅
 - **Consumables** - use potions/items for healing ✅
+- **Skill check system** - D20 + stat modifier vs DC, with critical success/failure ✅
+- **Armor system** - equip armor to reduce incoming damage ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Skill checks** - Stat-based interactions and combat modifiers
-2. **Armor system** - Equip armor for defense bonuses
-3. Later: Memory/RAG, procedural generation, multi-user support
+1. **Skill check integration** - Use checks for interactive challenges (locked doors, persuasion, etc.)
+2. Later: Memory/RAG, procedural generation, multi-user support
 
 ## Commands
 
@@ -123,8 +125,19 @@ Clean separation following the planned architecture:
 ✅ **Consumable items with healing effects** 🧪
 ✅ **Commands: use/consume/drink/eat <item> to use consumables**
 ✅ **Sample dungeon updated with weapons (iron sword +5, steel dagger +3) and health potion (+30 HP)**
+✅ **Stats system with D&D-style attributes (STR, DEX, CON, INT, WIS, CHA)** 🎲
+✅ **SkillCheckResolver with d20 mechanics, difficulty classes, critical success/failure**
+✅ **Combat now uses STR modifiers for player and NPC damage**
+✅ **Check intent added (check/test/attempt/try commands) - stub for future integration**
+✅ **NPCs have varied stat distributions (Old Guard: wise & hardy, Skeleton King: strong & quick)**
+✅ **Comprehensive tests for skill check system**
+✅ **Armor system with defense bonuses** 🛡️
+✅ **Armor reduces incoming damage in combat**
+✅ **Sample dungeon updated with armor (leather armor +2, chainmail +4)**
+✅ **Commands: equip/wield/wear <armor> to equip armor from inventory**
+✅ **Comprehensive tests for armor system**
 
-### Current Status: Feature-Complete MVP with Full LLM Integration
+### Current Status: Feature-Complete MVP with Full LLM Integration, Skills, and Armor
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, AND combat narration
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -137,8 +150,7 @@ Clean separation following the planned architecture:
 ✅ LLM generates personality-driven dialogue and visceral combat descriptions
 
 ### Next Priority
-🔄 Skill checks and stat-based interactions
-🔄 Armor system for defense bonuses
+🔄 Skill check integration with game world (doors, persuasion, perception, etc.)
 🔄 Memory/RAG integration for persistent world knowledge
 
 ## Important Notes
@@ -151,6 +163,15 @@ Clean separation following the planned architecture:
 - **Combat System**:
   - `core/src/main/kotlin/com/jcraw/mud/core/CombatState.kt` - Combat data models
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` - Combat mechanics
+- **Skill Check System**:
+  - `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt` - Stats data class
+  - `core/src/main/kotlin/com/jcraw/mud/core/SkillCheck.kt` - Skill check models
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/SkillCheckResolver.kt` - D20 resolution logic
+- **Armor System**:
+  - `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt` - defenseBonus field on Item
+  - `core/src/main/kotlin/com/jcraw/mud/core/PlayerState.kt` - equipArmor/unequipArmor/getArmorDefenseBonus
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` - Damage reduction logic
+  - `core/src/test/kotlin/com/jcraw/mud/core/ArmorSystemTest.kt` - Comprehensive tests
 - All modules integrated into build system and building successfully
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
@@ -167,10 +188,10 @@ Clean separation following the planned architecture:
    - Movement: `n/s/e/w`, `north/south/east/west`, `go <direction>`
    - Interaction: `look [target]`, `take/get <item>`, `drop/put <item>`, `talk/speak <npc>`, `inventory/i`
    - Combat: `attack/kill/fight/hit <npc>` to start combat, then `attack` to continue
-   - Equipment: `equip/wield <weapon>` to equip weapons for damage bonuses
+   - Equipment: `equip/wield/wear <item>` to equip weapons or armor
    - Consumables: `use/consume/drink/eat <item>` to use healing potions
    - Meta: `help`, `quit`
-4. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword +5, steel dagger +3, health potion +30HP) and NPCs (Old Guard, Skeleton King)
+4. **Sample dungeon**: 6 rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
 5. **LLM features**:
    - Room descriptions dynamically generated using gpt-4o-mini
    - NPC dialogue personality-driven (friendly vs hostile, health-aware)
@@ -178,7 +199,10 @@ Clean separation following the planned architecture:
 6. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
 7. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses
 8. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
-9. **Equipment system**: Equip weapons to increase damage, use healing potions during or outside combat
-10. **Next logical step**: Implement skill checks for stat-based interactions
+9. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
+10. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
+11. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
+12. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
+13. **Next logical step**: Integrate skill checks into world interactions (locked doors, persuasion, etc.)
 
-The feature-complete MVP has LLM-powered descriptions, full item system (pickup/drop/equip/use), NPC dialogue, AND turn-based combat with equipment - focus on skill checks next.
+The feature-complete MVP has LLM-powered descriptions, full item system (pickup/drop/equip/use), NPC dialogue, turn-based combat with weapons AND armor, and stat-based skill checks - focus on skill check integration next.

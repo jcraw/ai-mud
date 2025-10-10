@@ -25,7 +25,15 @@ object SampleDungeon {
                 description = "A weathered guard in tarnished armor, watching over the entrance",
                 isHostile = false,
                 health = 30,
-                maxHealth = 50
+                maxHealth = 50,
+                stats = Stats(
+                    strength = 12,      // Average strength for an aging warrior
+                    dexterity = 8,      // Slowed by age
+                    constitution = 14,  // Tough and resilient
+                    intelligence = 10,  // Average
+                    wisdom = 16,        // Experienced and perceptive
+                    charisma = 13       // Friendly and talkative
+                )
             )
         )
     )
@@ -105,6 +113,22 @@ object SampleDungeon {
                 isUsable = true,
                 itemType = ItemType.WEAPON,
                 damageBonus = 3
+            ),
+            Entity.Item(
+                id = "leather_armor",
+                name = "Worn Leather Armor",
+                description = "Supple leather armor, worn but still protective",
+                isUsable = true,
+                itemType = ItemType.ARMOR,
+                defenseBonus = 2
+            ),
+            Entity.Item(
+                id = "chainmail",
+                name = "Heavy Chainmail",
+                description = "A suit of interlocking metal rings, heavy but protective",
+                isUsable = true,
+                itemType = ItemType.ARMOR,
+                defenseBonus = 4
             )
         )
     )
@@ -131,7 +155,15 @@ object SampleDungeon {
                 description = "The animated remains of an ancient ruler",
                 isHostile = true,
                 health = 50,
-                maxHealth = 50
+                maxHealth = 50,
+                stats = Stats(
+                    strength = 16,      // Powerful undead warrior
+                    dexterity = 14,     // Quick and precise
+                    constitution = 10,  // Undead don't tire
+                    intelligence = 12,  // Retains tactical knowledge
+                    wisdom = 14,        // Ancient experience
+                    charisma = 6        // Terrifying, not charming
+                )
             )
         )
     )
@@ -170,7 +202,15 @@ object SampleDungeon {
             name = "Adventurer",
             currentRoomId = STARTING_ROOM_ID,
             health = 100,
-            maxHealth = 100
+            maxHealth = 100,
+            stats = Stats(
+                strength = 14,      // Above-average warrior
+                dexterity = 12,     // Moderately agile
+                constitution = 14,  // Hardy adventurer
+                intelligence = 13,  // Quick-thinking
+                wisdom = 11,        // Some experience
+                charisma = 10       // Average social skills
+            )
         )
     )
 }

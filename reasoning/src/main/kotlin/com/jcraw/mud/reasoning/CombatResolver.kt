@@ -141,16 +141,18 @@ class CombatResolver {
 
     /**
      * Calculate damage dealt by player attack.
-     * Base damage + weapon bonus.
+     * Base damage + weapon bonus + STR modifier.
      */
     private fun calculatePlayerDamage(player: PlayerState): Int {
         val baseDamage = Random.nextInt(5, 16)
         val weaponBonus = player.getWeaponDamageBonus()
-        return baseDamage + weaponBonus
+        val strModifier = player.stats.strModifier()
+        return (baseDamage + weaponBonus + strModifier).coerceAtLeast(1)
     }
 
     /**
      * Calculate damage dealt by NPC attack.
+     * Base damage + STR modifier - player armor defense.
      */
     private fun calculateNpcDamage(worldState: WorldState, npcId: String): Int {
         val room = worldState.getCurrentRoom() ?: return 0
@@ -158,7 +160,10 @@ class CombatResolver {
             .find { it.id == npcId }
             ?: return 0
 
-        // Base damage 3-12, could vary by NPC type
-        return Random.nextInt(3, 13)
+        // Base damage 3-12 + STR modifier - armor defense
+        val baseDamage = Random.nextInt(3, 13)
+        val strModifier = npc.stats.strModifier()
+        val armorDefense = worldState.player.getArmorDefenseBonus()
+        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
     }
 }

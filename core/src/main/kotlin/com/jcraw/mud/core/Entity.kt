@@ -13,6 +13,32 @@ enum class ItemType {
     MISC         // Generic items
 }
 
+/**
+ * Character stats (D&D-style)
+ * Default values represent average human stats (10)
+ */
+@Serializable
+data class Stats(
+    val strength: Int = 10,     // Physical power, melee damage
+    val dexterity: Int = 10,    // Agility, ranged attacks, dodge
+    val constitution: Int = 10, // Endurance, health
+    val intelligence: Int = 10, // Reasoning, magic
+    val wisdom: Int = 10,       // Perception, insight
+    val charisma: Int = 10      // Social interactions, persuasion
+) {
+    /**
+     * Calculate modifier from stat value (D&D formula: (stat - 10) / 2)
+     */
+    fun getModifier(stat: Int): Int = (stat - 10) / 2
+
+    fun strModifier(): Int = getModifier(strength)
+    fun dexModifier(): Int = getModifier(dexterity)
+    fun conModifier(): Int = getModifier(constitution)
+    fun intModifier(): Int = getModifier(intelligence)
+    fun wisModifier(): Int = getModifier(wisdom)
+    fun chaModifier(): Int = getModifier(charisma)
+}
+
 @Serializable
 sealed class Entity {
     abstract val id: String
@@ -30,6 +56,8 @@ sealed class Entity {
         val properties: Map<String, String> = emptyMap(),
         // Weapon properties
         val damageBonus: Int = 0,
+        // Armor properties
+        val defenseBonus: Int = 0,
         // Consumable properties
         val healAmount: Int = 0,
         val isConsumable: Boolean = false
@@ -43,6 +71,7 @@ sealed class Entity {
         val isHostile: Boolean = false,
         val health: Int = 100,
         val maxHealth: Int = 100,
+        val stats: Stats = Stats(),
         val properties: Map<String, String> = emptyMap()
     ) : Entity()
 

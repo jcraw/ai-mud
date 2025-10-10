@@ -10,6 +10,7 @@ import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
 import com.jcraw.mud.reasoning.CombatNarrator
+import com.jcraw.mud.reasoning.SkillCheckResolver
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -45,6 +46,7 @@ class MudGame(
     private var worldState: WorldState = SampleDungeon.createInitialWorldState()
     private var running = true
     private val combatResolver = CombatResolver()
+    private val skillCheckResolver = SkillCheckResolver()
 
     fun start() {
         printWelcome()
@@ -189,6 +191,13 @@ class MudGame(
                     Intent.Use(args)
                 }
             }
+            "check", "test", "attempt", "try" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Check what?")
+                } else {
+                    Intent.Check(args)
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -208,6 +217,7 @@ class MudGame(
             is Intent.Attack -> handleAttack(intent.target)
             is Intent.Equip -> handleEquip(intent.target)
             is Intent.Use -> handleUse(intent.target)
+            is Intent.Check -> handleCheck(intent.target)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -261,6 +271,12 @@ class MudGame(
             println("  Equipped Weapon: (none)")
         }
 
+        if (worldState.player.equippedArmor != null) {
+            println("  Equipped Armor: ${worldState.player.equippedArmor!!.name} (+${worldState.player.equippedArmor!!.defenseBonus} defense)")
+        } else {
+            println("  Equipped Armor: (none)")
+        }
+
         // Show inventory items
         if (worldState.player.inventory.isEmpty()) {
             println("  Carrying: (nothing)")
@@ -269,6 +285,7 @@ class MudGame(
             worldState.player.inventory.forEach { item ->
                 val extra = when (item.itemType) {
                     ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
+                    ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
                     ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
                     else -> ""
                 }
@@ -493,7 +510,14 @@ class MudGame(
                 }
             }
             ItemType.ARMOR -> {
-                println("Armor equipping not yet implemented.")
+                val oldArmor = worldState.player.equippedArmor
+                worldState = worldState.updatePlayer(worldState.player.equipArmor(item))
+
+                if (oldArmor != null) {
+                    println("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense).")
+                } else {
+                    println("You equip the ${item.name} (+${item.defenseBonus} defense).")
+                }
             }
             else -> {
                 println("You can't equip that.")
@@ -540,6 +564,11 @@ class MudGame(
         }
     }
 
+    private fun handleCheck(target: String) {
+        println("Skill check system not yet fully integrated. (Target: $target)")
+        println("For now, you can view your stats with 'stats' command (once implemented).")
+    }
+
     private fun handleHelp() {
         println("""
             |Available Commands:
@@ -552,7 +581,7 @@ class MudGame(
             |    drop/put <item>      - Drop an item from inventory
             |    talk/speak <npc>     - Talk to an NPC
             |    attack/fight <npc>   - Attack an NPC or continue combat
-            |    equip/wield <item>   - Equip a weapon from inventory
+            |    equip/wield <item>   - Equip a weapon or armor from inventory
             |    use/consume <item>   - Use a consumable item (potion, etc.)
             |    interact <item>      - Interact with an object (not yet implemented)
             |    inventory, i         - View your inventory and equipped items
