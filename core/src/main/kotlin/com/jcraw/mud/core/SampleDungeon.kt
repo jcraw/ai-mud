@@ -266,10 +266,10 @@ object SampleDungeon {
     /**
      * Creates initial world state with player at entrance
      */
-    fun createInitialWorldState(): WorldState = WorldState(
-        rooms = rooms,
-        player = PlayerState(
-            name = "Adventurer",
+    fun createInitialWorldState(playerId: PlayerId = "player1", playerName: String = "Adventurer"): WorldState {
+        val initialPlayer = PlayerState(
+            id = playerId,
+            name = playerName,
             currentRoomId = STARTING_ROOM_ID,
             health = 100,
             maxHealth = 100,
@@ -282,5 +282,10 @@ object SampleDungeon {
                 charisma = 10       // Average social skills
             )
         )
-    )
+
+        return WorldState(
+            rooms = rooms,
+            players = mapOf(playerId to initialPlayer)
+        )
+    }
 }

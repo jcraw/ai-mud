@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: FEATURE-COMPLETE MVP WITH PERSISTENT STORAGE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
+**Current State: MULTI-USER ARCHITECTURE FOUNDATION COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, **multi-user capable world state**, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 7 modules
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy, CombatState, ItemType
+- **Multi-user architecture foundation** - WorldState supports multiple players, per-player combat state ✅
+- **PlayerId type** - Unique identifier for each player in the shared world ✅
 - Direction enum with bidirectional mapping
 - **Stats system (STR, DEX, CON, INT, WIS, CHA)** - D&D-style stats for player & NPCs ✅
 - **Sample dungeon with 6 interconnected rooms, entities, rich trait lists, and stat-based NPCs**
@@ -38,12 +40,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Persistent storage** - JSON-based save/load system for game state ✅
 - **Save/load commands** - save [name] and load [name] commands in game ✅
 - **Pluggable vector stores** - Interface-based design for in-memory or persistent vector stores ✅
+- **Multi-user architecture foundation** - WorldState refactored for multiple players, per-player combat ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Multi-user support** - Multiple players in shared world
-2. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
-3. **Dynamic quests** - Procedurally generated quest objectives
+1. **Multi-user implementation** - GameServer, PlayerSession, player visibility, broadcast system
+2. **Dynamic quests** - Procedurally generated quest objectives
+3. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
 4. Later: More complex quest system, dynamic world events
 
 ## Commands
@@ -186,8 +189,15 @@ Clean separation following the planned architecture:
 ✅ **PersistentVectorStore implementation with disk persistence**
 ✅ **Comprehensive tests for persistence layer (31 tests passing)**
 ✅ **Save files stored in saves/ directory with human-readable JSON**
+✅ **Multi-user architecture foundation** 🌐
+✅ **PlayerId type alias for player identification**
+✅ **WorldState refactored: players Map instead of single player**
+✅ **Per-player combat state (activeCombat moved to PlayerState)**
+✅ **Multi-player API methods: getCurrentRoom(playerId), getPlayer(playerId), addPlayer(), removePlayer()**
+✅ **Backward compatibility maintained for single-player code**
+✅ **All 57 tests passing after multi-user refactoring**
 
-### Current Status: Feature-Complete MVP with Persistent Storage
+### Current Status: Multi-User Architecture Foundation Complete
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -212,15 +222,25 @@ Clean separation following the planned architecture:
 ✅ **Persistent storage working** - save/load game state to JSON files
 ✅ Save files preserve all game state: player stats, inventory, equipped items, combat state, room contents
 ✅ Load command restores complete game state from disk
+✅ **Multi-user architecture foundation** - World state supports multiple concurrent players
+✅ Players can be in different rooms simultaneously
+✅ Each player has independent combat state
+✅ PlayerId system for tracking individual players
 
 ### Next Priority
-🔄 Multi-user support
+🔄 Multi-user implementation (GameServer, PlayerSession, visibility, broadcasts)
 🔄 Dynamic quest generation
 🔄 Persistent memory storage (optional - vector embeddings to disk)
 
 ## Important Notes
 
 - **Main application**: `com.jcraw.app.AppKt` - fully implemented with LLM and RAG integration
+- **Multi-user architecture**:
+  - `core/src/main/kotlin/com/jcraw/mud/core/Room.kt` - PlayerId type alias
+  - `core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt` - Multi-player world state with players Map
+  - `core/src/main/kotlin/com/jcraw/mud/core/PlayerState.kt` - Per-player state including combat
+  - Combat state moved from WorldState to PlayerState for independent player battles
+  - Backward compatibility: `worldState.player` still works for single-player code
 - **LLM Generators** (all RAG-enhanced):
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt`
@@ -305,6 +325,33 @@ Clean separation following the planned architecture:
 16. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
 17. **Procedural generation**: Create dungeons of any size with 4 themes, each with unique traits, NPCs with varied stats, and distributed loot
 18. **Persistence**: Save and load game state to/from JSON files - preserves player stats, inventory, equipment, combat state, and world state
-19. **Next logical step**: Multi-user support or dynamic quest generation
+19. **Multi-user architecture**: Foundation complete - WorldState supports multiple players with independent states
+20. **Next logical step**: Implement GameServer and PlayerSession for actual multi-user gameplay, or add dynamic quest generation
 
-The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, AND persistent save/load system!
+## Multi-User Architecture Details
+
+The foundation for multi-user support is complete. Here's what was built:
+
+### Architecture Changes (Completed)
+- **PlayerId type**: `typealias PlayerId = String` for player identification
+- **WorldState refactored**: Changed from `player: PlayerState` to `players: Map<PlayerId, PlayerState>`
+- **Per-player combat**: `activeCombat` moved from WorldState to PlayerState (each player has independent combat)
+- **Multi-player API**:
+  - `getCurrentRoom(playerId)` - Get room for specific player
+  - `getPlayer(playerId)` - Retrieve player state
+  - `addPlayer(playerState)` - Add new player to world
+  - `removePlayer(playerId)` - Remove player from world
+  - `getPlayersInRoom(roomId)` - Query all players in a room
+  - `movePlayer(playerId, direction)` - Move specific player
+- **Backward compatibility**: `worldState.player` property still works (returns first player)
+- **CombatResolver updated**: Now accepts player parameter for per-player combat resolution
+
+### Remaining Work for Full Multi-User
+1. **Entity.Player** - New entity type to represent other players in rooms (for visibility)
+2. **GameServer** - Manages shared WorldState and coordinates multiple player sessions
+3. **PlayerSession** - Handles individual player I/O and maintains player context
+4. **Broadcast system** - Notify players of actions happening in their current room
+5. **Network layer** (optional) - For remote connections (could use stdio multiplexing for local multi-user MVP)
+6. **Multi-user tests** - Verify concurrent player scenarios work correctly
+
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, persistent save/load system, AND multi-user capable architecture!

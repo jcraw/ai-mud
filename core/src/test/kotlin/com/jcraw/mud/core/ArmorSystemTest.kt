@@ -21,6 +21,7 @@ class ArmorSystemTest {
         )
 
         val player = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1",
             inventory = listOf(armor)
@@ -51,6 +52,7 @@ class ArmorSystemTest {
         )
 
         val player = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1",
             inventory = listOf(newArmor),
@@ -75,6 +77,7 @@ class ArmorSystemTest {
         )
 
         val player = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1",
             equippedArmor = armor
@@ -97,12 +100,14 @@ class ArmorSystemTest {
         )
 
         val playerWithArmor = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1",
             equippedArmor = armor
         )
 
         val playerWithoutArmor = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1"
         )
@@ -114,6 +119,7 @@ class ArmorSystemTest {
     @Test
     fun `unequipping when no armor equipped should return unchanged state`() {
         val player = PlayerState(
+            id = "test_player",
             name = "Test",
             currentRoomId = "room1"
         )

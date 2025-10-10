@@ -13,28 +13,39 @@ class CombatResolver {
      * Initiates combat with an NPC.
      * Returns null if combat cannot be started (NPC not found, etc.)
      */
-    fun initiateCombat(worldState: WorldState, targetNpcId: String): CombatResult? {
-        val room = worldState.getCurrentRoom() ?: return null
+    fun initiateCombat(worldState: WorldState, player: PlayerState, targetNpcId: String): CombatResult? {
+        val room = worldState.getCurrentRoom(player.id) ?: return null
         val npc = room.entities.filterIsInstance<Entity.NPC>()
             .find { it.id == targetNpcId }
             ?: return null
 
-        val newWorldState = worldState.startCombat(npc.id, npc.health)
+        val newCombatState = CombatState(
+            combatantNpcId = npc.id,
+            playerHealth = player.health,
+            npcHealth = npc.health,
+            isPlayerTurn = true,
+            turnCount = 0
+        )
 
         return CombatResult(
             narrative = "You engage ${npc.name} in combat!",
-            newCombatState = newWorldState.activeCombat,
+            newCombatState = newCombatState,
             playerDied = false,
             npcDied = false,
             playerFled = false
         )
     }
 
+    // Backward compatibility overload
+    fun initiateCombat(worldState: WorldState, targetNpcId: String): CombatResult? {
+        return initiateCombat(worldState, worldState.player, targetNpcId)
+    }
+
     /**
      * Executes a player attack action during combat.
      */
-    fun executePlayerAttack(worldState: WorldState): CombatResult {
-        val combat = worldState.activeCombat
+    fun executePlayerAttack(worldState: WorldState, player: PlayerState): CombatResult {
+        val combat = player.activeCombat
             ?: return CombatResult(
                 narrative = "You are not in combat.",
                 newCombatState = null,
@@ -52,7 +63,7 @@ class CombatResolver {
         }
 
         // Calculate damage (simple random for now)
-        val damage = calculatePlayerDamage(worldState.player)
+        val damage = calculatePlayerDamage(player)
         val updatedCombat = combat.applyPlayerDamage(damage)
 
         // Check if NPC died
@@ -68,7 +79,7 @@ class CombatResolver {
         }
 
         // NPC's turn to attack
-        val npcDamage = calculateNpcDamage(worldState, combat.combatantNpcId)
+        val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
         val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage).nextTurn()
 
         // Check if player died
@@ -93,11 +104,16 @@ class CombatResolver {
         )
     }
 
+    // Backward compatibility overload
+    fun executePlayerAttack(worldState: WorldState): CombatResult {
+        return executePlayerAttack(worldState, worldState.player)
+    }
+
     /**
      * Attempts to flee from combat.
      */
-    fun attemptFlee(worldState: WorldState): CombatResult {
-        val combat = worldState.activeCombat
+    fun attemptFlee(worldState: WorldState, player: PlayerState): CombatResult {
+        val combat = player.activeCombat
             ?: return CombatResult(
                 narrative = "You are not in combat.",
                 newCombatState = null,
@@ -118,7 +134,7 @@ class CombatResolver {
             )
         } else {
             // Failed flee, NPC gets free attack
-            val npcDamage = calculateNpcDamage(worldState, combat.combatantNpcId)
+            val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
             val afterNpcAttack = combat.applyNpcDamage(npcDamage).nextTurn()
 
             if (afterNpcAttack.playerHealth <= 0) {
@@ -139,6 +155,11 @@ class CombatResolver {
         }
     }
 
+    // Backward compatibility overload
+    fun attemptFlee(worldState: WorldState): CombatResult {
+        return attemptFlee(worldState, worldState.player)
+    }
+
     /**
      * Calculate damage dealt by player attack.
      * Base damage + weapon bonus + STR modifier.
@@ -154,8 +175,8 @@ class CombatResolver {
      * Calculate damage dealt by NPC attack.
      * Base damage + STR modifier - player armor defense.
      */
-    private fun calculateNpcDamage(worldState: WorldState, npcId: String): Int {
-        val room = worldState.getCurrentRoom() ?: return 0
+    private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int {
+        val room = worldState.getCurrentRoom(player.id) ?: return 0
         val npc = room.entities.filterIsInstance<Entity.NPC>()
             .find { it.id == npcId }
             ?: return 0
@@ -163,7 +184,7 @@ class CombatResolver {
         // Base damage 3-12 + STR modifier - armor defense
         val baseDamage = Random.nextInt(3, 13)
         val strModifier = npc.stats.strModifier()
-        val armorDefense = worldState.player.getArmorDefenseBonus()
+        val armorDefense = player.getArmorDefenseBonus()
         return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
     }
 }

@@ -1,5 +1,6 @@
 package com.jcraw.mud.reasoning.procedural
 
+import com.jcraw.mud.core.PlayerId
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.Room
 import com.jcraw.mud.core.Stats
@@ -55,8 +56,10 @@ class ProceduralDungeonBuilder(
         // Get entrance ID
         val entranceId = layout.first { it.isEntrance }.id
 
-        // Create player
+        // Create default player
+        val playerId: PlayerId = "player1"
         val player = PlayerState(
+            id = playerId,
             name = "Adventurer",
             currentRoomId = entranceId,
             health = 100,
@@ -75,7 +78,7 @@ class ProceduralDungeonBuilder(
 
         return WorldState(
             rooms = rooms,
-            player = player
+            players = mapOf(playerId to player)
         )
     }
 

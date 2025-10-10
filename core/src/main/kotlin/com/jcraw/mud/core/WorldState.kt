@@ -5,20 +5,49 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WorldState(
     val rooms: Map<RoomId, Room>,
-    val player: PlayerState,
+    val players: Map<PlayerId, PlayerState>,
     val turnCount: Int = 0,
-    val gameProperties: Map<String, String> = emptyMap(),
-    val activeCombat: CombatState? = null
+    val gameProperties: Map<String, String> = emptyMap()
 ) {
+    // Backward compatibility: get the "main" player (first player, if any)
+    val player: PlayerState
+        get() = players.values.firstOrNull() ?: throw IllegalStateException("No players in world")
+
     fun getCurrentRoom(): Room? = rooms[player.currentRoomId]
+
+    fun getCurrentRoom(playerId: PlayerId): Room? {
+        val playerState = players[playerId] ?: return null
+        return rooms[playerState.currentRoomId]
+    }
+
+    fun getPlayer(playerId: PlayerId): PlayerState? = players[playerId]
 
     fun getRoom(roomId: RoomId): Room? = rooms[roomId]
 
     fun updateRoom(room: Room): WorldState = copy(rooms = rooms + (room.id to room))
 
-    fun updatePlayer(newPlayerState: PlayerState): WorldState = copy(player = newPlayerState)
+    fun updatePlayer(newPlayerState: PlayerState): WorldState =
+        copy(players = players + (newPlayerState.id to newPlayerState))
+
+    fun addPlayer(playerState: PlayerState): WorldState =
+        copy(players = players + (playerState.id to playerState))
+
+    fun removePlayer(playerId: PlayerId): WorldState =
+        copy(players = players - playerId)
 
     fun incrementTurn(): WorldState = copy(turnCount = turnCount + 1)
+
+    fun movePlayer(playerId: PlayerId, direction: Direction): WorldState? {
+        val playerState = players[playerId] ?: return null
+        val currentRoom = rooms[playerState.currentRoomId] ?: return null
+        val targetRoomId = currentRoom.getExit(direction) ?: return null
+
+        return if (rooms.containsKey(targetRoomId)) {
+            updatePlayer(playerState.moveToRoom(targetRoomId))
+        } else {
+            null
+        }
+    }
 
     fun movePlayer(direction: Direction): WorldState? {
         val currentRoom = getCurrentRoom() ?: return null
@@ -51,19 +80,9 @@ data class WorldState(
 
     fun getAvailableExits(): List<Direction> = getCurrentRoom()?.getAvailableDirections() ?: emptyList()
 
-    fun isInCombat(): Boolean = activeCombat?.isActive() == true
+    fun getAvailableExits(playerId: PlayerId): List<Direction> =
+        getCurrentRoom(playerId)?.getAvailableDirections() ?: emptyList()
 
-    fun startCombat(npcId: String, npcHealth: Int): WorldState = copy(
-        activeCombat = CombatState(
-            combatantNpcId = npcId,
-            playerHealth = player.health,
-            npcHealth = npcHealth,
-            isPlayerTurn = true,
-            turnCount = 0
-        )
-    )
-
-    fun updateCombat(newCombatState: CombatState?): WorldState = copy(activeCombat = newCombatState)
-
-    fun endCombat(): WorldState = copy(activeCombat = null)
+    fun getPlayersInRoom(roomId: RoomId): List<PlayerState> =
+        players.values.filter { it.currentRoomId == roomId }
 }

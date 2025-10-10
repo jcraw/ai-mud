@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlayerState(
+    val id: PlayerId,
     val name: String,
     val currentRoomId: RoomId,
     val health: Int = 100,
@@ -13,7 +14,8 @@ data class PlayerState(
     val equippedWeapon: Entity.Item? = null,
     val equippedArmor: Entity.Item? = null,
     val skills: Map<String, Int> = emptyMap(),
-    val properties: Map<String, String> = emptyMap()
+    val properties: Map<String, String> = emptyMap(),
+    val activeCombat: CombatState? = null
 ) {
     fun addToInventory(item: Entity.Item): PlayerState = copy(inventory = inventory + item)
 
@@ -100,4 +102,10 @@ data class PlayerState(
             this
         }
     }
+
+    fun isInCombat(): Boolean = activeCombat?.isActive() == true
+
+    fun updateCombat(newCombatState: CombatState?): PlayerState = copy(activeCombat = newCombatState)
+
+    fun endCombat(): PlayerState = copy(activeCombat = null)
 }

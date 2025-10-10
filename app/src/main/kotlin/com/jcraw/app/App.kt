@@ -139,8 +139,8 @@ class MudGame(
         val room = worldState.getCurrentRoom() ?: return
 
         // Show combat status if in combat
-        if (worldState.isInCombat()) {
-            val combat = worldState.activeCombat!!
+        if (worldState.player.isInCombat()) {
+            val combat = worldState.player.activeCombat!!
             val npc = room.entities.filterIsInstance<Entity.NPC>()
                 .find { it.id == combat.combatantNpcId }
             println("\n⚔️  IN COMBAT with ${npc?.name ?: "Unknown Enemy"}")
@@ -472,12 +472,12 @@ class MudGame(
         val room = worldState.getCurrentRoom() ?: return
 
         // If already in combat
-        if (worldState.isInCombat()) {
+        if (worldState.player.isInCombat()) {
             val result = combatResolver.executePlayerAttack(worldState)
 
             // Generate narrative
             val narrative = if (combatNarrator != null && !result.playerDied && !result.npcDied) {
-                val combat = worldState.activeCombat!!
+                val combat = worldState.player.activeCombat!!
                 val npc = room.entities.filterIsInstance<Entity.NPC>()
                     .find { it.id == combat.combatantNpcId }
 
@@ -499,12 +499,12 @@ class MudGame(
 
             // Update world state
             if (result.newCombatState != null) {
-                worldState = worldState.updateCombat(result.newCombatState)
+                worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
                 describeCurrentRoom()  // Show updated combat status
             } else {
                 // Combat ended - save combat info before ending
-                val endedCombat = worldState.activeCombat
-                worldState = worldState.endCombat()
+                val endedCombat = worldState.player.activeCombat
+                worldState = worldState.updatePlayer(worldState.player.endCombat())
 
                 when {
                     result.npcDied -> {
@@ -563,7 +563,7 @@ class MudGame(
         println("\n$narrative")
 
         if (result.newCombatState != null) {
-            worldState = worldState.updateCombat(result.newCombatState)
+            worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
             describeCurrentRoom()  // Show combat status
         }
     }

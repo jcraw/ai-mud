@@ -19,7 +19,7 @@ class SkillCheckResolverTest {
         val resolver = SkillCheckResolver(FixedRandom(10))
         val stats = Stats(strength = 20) // +5 modifier
 
-        val player = PlayerState("Test", "room1", stats = stats)
+        val player = PlayerState("player1", "Test", "room1", stats = stats)
         val result = resolver.checkPlayer(player, StatType.STRENGTH, Difficulty.EASY)
 
         assertTrue(result.success, "Should succeed with high stat")
@@ -36,7 +36,7 @@ class SkillCheckResolverTest {
         val resolver = SkillCheckResolver(FixedRandom(10))
         val stats = Stats(intelligence = 6) // -2 modifier
 
-        val player = PlayerState("Test", "room1", stats = stats)
+        val player = PlayerState("player1", "Test", "room1", stats = stats)
         val result = resolver.checkPlayer(player, StatType.INTELLIGENCE, Difficulty.HARD)
 
         assertFalse(result.success, "Should fail with low stat")
@@ -50,7 +50,7 @@ class SkillCheckResolverTest {
     @Test
     fun `should detect critical success on natural 20`() {
         val resolver = SkillCheckResolver(FixedRandom(20))
-        val player = PlayerState("Test", "room1")
+        val player = PlayerState("player1", "Test", "room1")
 
         val result = resolver.checkPlayer(player, StatType.DEXTERITY, Difficulty.MEDIUM)
 
@@ -62,7 +62,7 @@ class SkillCheckResolverTest {
     @Test
     fun `should detect critical failure on natural 1`() {
         val resolver = SkillCheckResolver(FixedRandom(1))
-        val player = PlayerState("Test", "room1")
+        val player = PlayerState("player1", "Test", "room1")
 
         val result = resolver.checkPlayer(player, StatType.WISDOM, Difficulty.EASY)
 
@@ -83,7 +83,7 @@ class SkillCheckResolverTest {
             charisma = 6       // -2
         )
 
-        val player = PlayerState("Test", "room1", stats = stats)
+        val player = PlayerState("player1", "Test", "room1", stats = stats)
 
         val strResult = resolver.checkPlayer(player, StatType.STRENGTH, Difficulty.MEDIUM)
         assertEquals(3, strResult.modifier, "STR 16 should give +3")
@@ -126,7 +126,7 @@ class SkillCheckResolverTest {
     fun `opposed check should compare rolls correctly`() {
         // Player rolls 15 (10+5), NPC rolls 12 (10+2)
         val resolver = SkillCheckResolver(AlternatingRandom(listOf(15, 12)))
-        val player = PlayerState("Test", "room1", stats = Stats(strength = 20)) // +5
+        val player = PlayerState("player1", "Test", "room1", stats = Stats(strength = 20)) // +5
         val npc = Entity.NPC("npc1", "NPC", "Test", stats = Stats(strength = 14)) // +2
 
         val playerWins = resolver.opposedCheck(player, npc, StatType.STRENGTH, StatType.STRENGTH)
@@ -138,7 +138,7 @@ class SkillCheckResolverTest {
     fun `should handle edge case at exact DC`() {
         // Roll of 10 + modifier 5 = 15, exactly matching DC 15
         val resolver = SkillCheckResolver(FixedRandom(10))
-        val player = PlayerState("Test", "room1", stats = Stats(dexterity = 20)) // +5
+        val player = PlayerState("player1", "Test", "room1", stats = Stats(dexterity = 20)) // +5
 
         val result = resolver.checkPlayer(player, StatType.DEXTERITY, Difficulty.MEDIUM)
 

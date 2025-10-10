@@ -118,6 +118,7 @@ class PersistenceManagerTest {
         )
 
         val player = PlayerState(
+            id = "player1",
             name = "TestPlayer",
             currentRoomId = "room1",
             inventory = listOf(item)
@@ -125,7 +126,7 @@ class PersistenceManagerTest {
 
         val worldState = WorldState(
             rooms = mapOf("room1" to Room("room1", "Test Room", emptyList())),
-            player = player
+            players = mapOf("player1" to player)
         )
 
         manager.saveGame(worldState, "inventory_test")
@@ -141,7 +142,8 @@ class PersistenceManagerTest {
         val saveDir = File(tempDir, "saves")
         val manager = PersistenceManager(saveDir.path)
 
-        val worldState = createTestWorldState().copy(
+        val baseState = createTestWorldState()
+        val playerWithCombat = baseState.player.copy(
             activeCombat = CombatState(
                 combatantNpcId = "skeleton",
                 playerHealth = 80,
@@ -150,16 +152,17 @@ class PersistenceManagerTest {
                 turnCount = 3
             )
         )
+        val worldState = baseState.updatePlayer(playerWithCombat)
 
         manager.saveGame(worldState, "combat_test")
         val loadedState = manager.loadGame("combat_test").getOrThrow()
 
-        assertNotNull(loadedState.activeCombat)
-        assertEquals("skeleton", loadedState.activeCombat?.combatantNpcId)
-        assertEquals(80, loadedState.activeCombat?.playerHealth)
-        assertEquals(50, loadedState.activeCombat?.npcHealth)
-        assertTrue(loadedState.activeCombat?.isPlayerTurn == true)
-        assertEquals(3, loadedState.activeCombat?.turnCount)
+        assertNotNull(loadedState.player.activeCombat)
+        assertEquals("skeleton", loadedState.player.activeCombat?.combatantNpcId)
+        assertEquals(80, loadedState.player.activeCombat?.playerHealth)
+        assertEquals(50, loadedState.player.activeCombat?.npcHealth)
+        assertTrue(loadedState.player.activeCombat?.isPlayerTurn == true)
+        assertEquals(3, loadedState.player.activeCombat?.turnCount)
     }
 
     private fun createTestWorldState(): WorldState {
@@ -170,6 +173,7 @@ class PersistenceManagerTest {
         )
 
         val player = PlayerState(
+            id = "player1",
             name = "TestPlayer",
             currentRoomId = "room1",
             health = 100
@@ -177,7 +181,7 @@ class PersistenceManagerTest {
 
         return WorldState(
             rooms = mapOf(room.id to room),
-            player = player
+            players = mapOf("player1" to player)
         )
     }
 }

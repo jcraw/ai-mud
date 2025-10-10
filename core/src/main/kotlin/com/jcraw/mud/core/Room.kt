@@ -3,6 +3,7 @@ package com.jcraw.mud.core
 import kotlinx.serialization.Serializable
 
 typealias RoomId = String
+typealias PlayerId = String
 
 @Serializable
 data class Room(
