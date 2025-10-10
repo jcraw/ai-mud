@@ -4,29 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: Foundation Complete** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture and core data models implemented. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
+**Current State: Core Foundation + Sample Dungeon Complete** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, and sample dungeon implemented. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 6 modules
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy
 - Direction enum with bidirectional mapping
-- OpenAI LLM client integrated into build system
-- Requirements documentation and comprehensive TODO list
+- **Sample dungeon with 6 interconnected rooms and rich trait lists**
+- **SampleDungeon.kt with initial world state factory**
+- OpenAI LLM client integrated into build system (needs dependency fixes)
+- Requirements documentation
 
-### What Needs to Be Built
-42 remaining tasks organized into these areas:
-- LLM integration and prompt engineering
-- Natural language input parsing with intent recognition
-- Dynamic content generation with RAG
-- Game mechanics (exploration, skills, combat)
-- Console-based user interface
-- Memory systems and state persistence
-- Testing infrastructure and error handling
+### What Needs to Be Built Next
+Remaining tasks organized by priority:
+1. **Intent system** - Sealed classes for player actions (Move, Look, Interact, etc.)
+2. **LLM service fixes** - Fix dependency issues in llm module
+3. **Basic perception** - Input parsing and intent recognition
+4. **Game loop skeleton** - Console interface and main game logic
+5. Later: Dynamic content generation, memory systems, advanced features
 
 ## Commands
 
 ### Build and Development
-- `gradle build` - Build the project (requires Java 24 toolchain)
+- `gradle build` - Build the project (requires Java 17 toolchain)
 - `gradle check` - Run all checks including tests
 - `gradle clean` - Clean all build outputs
 - `gradle run` - Will run main game when implemented
@@ -58,7 +58,7 @@ Multi-module Gradle project:
 - Uses Gradle with Kotlin DSL
 - Version catalog in `gradle/libs.versions.toml`
 - Convention plugin in `buildSrc` for shared build logic
-- Java 24 toolchain, Kotlin 2.2.0
+- Java 17 toolchain, Kotlin 2.2.0
 - kotlinx ecosystem dependencies configured
 
 ## Implementation Notes
@@ -86,16 +86,21 @@ Clean separation following the planned architecture:
 
 ## Implementation Status
 
-### Completed (Day 1/14)
+### Completed
 ✅ Module structure and dependencies
 ✅ Core data models (Room, WorldState, PlayerState, Entity, Direction)
-✅ LLM client integration
+✅ Sample dungeon with 6 interconnected rooms and rich traits
 ✅ Immutable state design with helper methods
+✅ Java 17 toolchain configuration
+
+### Current Status: LLM Dependencies Need Fixing
+⚠️ LLM module has unresolved dependencies (ktor client)
+⚠️ Core module builds successfully
 
 ### Next Priority
-🔄 Sample dungeon creation with room traits
 🔄 Intent sealed classes for player actions
-🔄 LLM service interfaces and prompt templates
+🔄 Fix LLM service dependencies
+🔄 Basic perception module implementation
 
 ## Important Notes
 
@@ -105,4 +110,13 @@ Clean separation following the planned architecture:
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
 - Requirements are in `docs/requirements.txt`
-- 42 remaining tasks tracked in TODO system
+- Sample dungeon available in `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
+
+## Getting Started (Next Developer)
+
+1. **Current working state**: Core module builds (`gradle :core:build`)
+2. **Sample dungeon ready**: Use `SampleDungeon.createInitialWorldState()` for testing
+3. **Next logical step**: Create Intent sealed classes in perception module
+4. **Known issue**: LLM module dependencies need fixing (ktor client imports)
+
+The foundation is solid - we have data models and sample content. Focus on the intent system next.
