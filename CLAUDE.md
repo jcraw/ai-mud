@@ -11,18 +11,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy
 - Direction enum with bidirectional mapping
 - **Sample dungeon with 6 interconnected rooms, entities, and rich trait lists**
-- **Intent sealed class hierarchy (Move, Look, Interact, Inventory, Help, Quit)**
+- **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
 - **RoomDescriptionGenerator - LLM-powered vivid room descriptions** ✨
+- **NPCInteractionGenerator - LLM-powered dynamic NPC dialogue** ✨
 - **API key support via local.properties or OPENAI_API_KEY env var**
 - **GAME IS FULLY PLAYABLE** - movement, looking, LLM descriptions work
+- **Item mechanics** - pickup/drop items with take/get/drop/put commands ✅
+- **NPC interaction** - talk to NPCs with personality-driven dialogue ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Item mechanics** - Pickup/drop items, manage inventory
-2. **Interaction system** - Use items, talk to NPCs, trigger events
-3. Later: Combat, skill checks, memory/RAG, advanced generation
+1. **Combat mechanics** - Basic turn-based combat with LLM-narrated attacks/defenses
+2. **Item usage system** - Use items, equip weapons, consume potions
+3. Later: Skill checks, memory/RAG, procedural generation, multi-user support
 
 ## Commands
 
@@ -102,22 +105,32 @@ Clean separation following the planned architecture:
 ✅ **LLM-powered room description generation** ✨
 ✅ **RoomDescriptionGenerator in reasoning module with tests**
 ✅ **API key configuration via local.properties**
+✅ **Item pickup/drop mechanics with Take and Drop intents**
+✅ **Commands: take/get/pickup/pick and drop/put**
+✅ **NPC dialogue system with Talk intent**
+✅ **NPCInteractionGenerator in reasoning module**
+✅ **Commands: talk/speak/chat with personality-aware responses**
 
-### Current Status: Enhanced MVP with LLM
+### Current Status: Enhanced MVP with LLM, Items, and NPC Dialogue
 ✅ All modules building successfully
-✅ Game runs with LLM-powered descriptions
+✅ Game runs with LLM-powered descriptions and NPC dialogue
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
-✅ Fallback to simple trait descriptions if no API key
+✅ Fallback to simple descriptions if no API key
+✅ Item mechanics fully functional - tested with gold pouch and iron sword
+✅ NPC interaction working - tested with Old Guard (friendly) and Skeleton King (hostile)
+✅ LLM generates personality-driven dialogue based on NPC disposition and health
 
 ### Next Priority
-🔄 Item pickup/drop mechanics
-🔄 Enhanced NPC interaction system
-🔄 Combat mechanics
+🔄 Combat mechanics (turn-based, LLM-narrated attacks)
+🔄 Item usage system (use items, equip weapons)
+🔄 Skill checks and stat-based interactions
 
 ## Important Notes
 
-- **Main application**: `com.jcraw.app.AppKt` - fully implemented and working with LLM integration
-- **LLM Generator**: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
+- **Main application**: `com.jcraw.app.AppKt` - fully implemented with LLM integration
+- **LLM Generators**:
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt`
 - All modules integrated into build system and building successfully
 - No backward compatibility needed - can wipe and restart data
 - Project follows guidelines in `CLAUDE_GUIDELINES.md`
@@ -129,10 +142,17 @@ Clean separation following the planned architecture:
 ## Getting Started (Next Developer)
 
 1. **Set up API key**: Add `openai.api.key=sk-...` to `local.properties` (or set OPENAI_API_KEY env var)
-2. **Run the game**: `gradle installDist && app/build/install/app/bin/app`
-3. **Commands work**: `n` (north), `look`, `help`, `inventory`, `quit`
-4. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword) and NPCs (skeleton king)
-5. **LLM descriptions**: Room descriptions are dynamically generated using gpt-4o-mini
-6. **Next logical step**: Implement item pickup/drop mechanics
+2. **Run the game**: `gradle installDist && app/build/install/app/bin/app` or `./test_game.sh`
+3. **Commands work**:
+   - Movement: `n/s/e/w`, `north/south/east/west`, `go <direction>`
+   - Interaction: `look [target]`, `take/get <item>`, `drop/put <item>`, `talk/speak <npc>`, `inventory/i`
+   - Meta: `help`, `quit`
+4. **Sample dungeon**: 6 rooms with items (gold pouch, iron sword) and NPCs (Old Guard, Skeleton King)
+5. **LLM features**:
+   - Room descriptions dynamically generated using gpt-4o-mini
+   - NPC dialogue personality-driven (friendly vs hostile, health-aware)
+6. **Item mechanics**: Pick up items, drop them, manage inventory
+7. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses
+8. **Next logical step**: Implement combat mechanics
 
-The enhanced MVP is complete with LLM-powered descriptions - focus on item mechanics next.
+The enhanced MVP is complete with LLM-powered descriptions, item mechanics, AND NPC dialogue - focus on combat next.

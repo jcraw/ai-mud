@@ -5,6 +5,7 @@ import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
+import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -17,20 +18,24 @@ fun main() {
         ?: System.getProperty("openai.api.key")
 
     val game = if (apiKey.isNullOrBlank()) {
-        println("⚠️  OpenAI API key not found - using simple trait-based descriptions")
+        println("⚠️  OpenAI API key not found - using simple fallback mode")
         println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
-        MudGame(descriptionGenerator = null)
+        MudGame(descriptionGenerator = null, npcInteractionGenerator = null)
     } else {
-        println("✅ Using LLM-powered room descriptions\n")
+        println("✅ Using LLM-powered descriptions and NPC dialogue\n")
         val llmClient = OpenAIClient(apiKey)
         val descriptionGenerator = RoomDescriptionGenerator(llmClient)
-        MudGame(descriptionGenerator = descriptionGenerator)
+        val npcInteractionGenerator = NPCInteractionGenerator(llmClient)
+        MudGame(descriptionGenerator = descriptionGenerator, npcInteractionGenerator = npcInteractionGenerator)
     }
 
     game.start()
 }
 
-class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null) {
+class MudGame(
+    private val descriptionGenerator: RoomDescriptionGenerator? = null,
+    private val npcInteractionGenerator: NPCInteractionGenerator? = null
+) {
     private var worldState: WorldState = SampleDungeon.createInitialWorldState()
     private var running = true
 
@@ -124,6 +129,27 @@ class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null
                     Intent.Interact(args)
                 }
             }
+            "take", "get", "pickup", "pick" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Take what?")
+                } else {
+                    Intent.Take(args)
+                }
+            }
+            "drop", "put" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Drop what?")
+                } else {
+                    Intent.Drop(args)
+                }
+            }
+            "talk", "speak", "chat" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Talk to whom?")
+                } else {
+                    Intent.Talk(args)
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -137,6 +163,9 @@ class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null
             is Intent.Look -> handleLook(intent.target)
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
+            is Intent.Take -> handleTake(intent.target)
+            is Intent.Drop -> handleDrop(intent.target)
+            is Intent.Talk -> handleTalk(intent.target)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -191,6 +220,98 @@ class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null
         }
     }
 
+    private fun handleTake(target: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the item in the room
+        val item = room.entities.filterIsInstance<com.jcraw.mud.core.Entity.Item>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (item == null) {
+            println("You don't see that here.")
+            return
+        }
+
+        if (!item.isPickupable) {
+            println("You can't take that.")
+            return
+        }
+
+        // Remove item from room and add to inventory
+        val newState = worldState
+            .removeEntityFromRoom(room.id, item.id)
+            ?.updatePlayer(worldState.player.addToInventory(item))
+
+        if (newState != null) {
+            worldState = newState
+            println("You take the ${item.name}.")
+        } else {
+            println("Something went wrong.")
+        }
+    }
+
+    private fun handleDrop(target: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the item in inventory
+        val item = worldState.player.inventory.find { invItem ->
+            invItem.name.lowercase().contains(target.lowercase()) ||
+            invItem.id.lowercase().contains(target.lowercase())
+        }
+
+        if (item == null) {
+            println("You don't have that.")
+            return
+        }
+
+        // Remove from inventory and add to room
+        val newState = worldState
+            .updatePlayer(worldState.player.removeFromInventory(item.id))
+            .addEntityToRoom(room.id, item)
+
+        if (newState != null) {
+            worldState = newState
+            println("You drop the ${item.name}.")
+        } else {
+            println("Something went wrong.")
+        }
+    }
+
+    private fun handleTalk(target: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
+
+        if (npc == null) {
+            println("There's no one here by that name.")
+            return
+        }
+
+        // Generate dialogue
+        if (npcInteractionGenerator != null) {
+            println("\nYou speak to ${npc.name}...")
+            val dialogue = runBlocking {
+                npcInteractionGenerator.generateDialogue(npc, worldState.player)
+            }
+            println("\n${npc.name} says: \"$dialogue\"")
+        } else {
+            // Fallback dialogue without LLM
+            if (npc.isHostile) {
+                println("\n${npc.name} glares at you menacingly and says nothing.")
+            } else {
+                println("\n${npc.name} nods at you in acknowledgment.")
+            }
+        }
+    }
+
     private fun handleHelp() {
         println("""
             |Available Commands:
@@ -199,6 +320,9 @@ class MudGame(private val descriptionGenerator: RoomDescriptionGenerator? = null
             |
             |  Actions:
             |    look [target]    - Examine room or specific object
+            |    take/get <item>  - Pick up an item
+            |    drop/put <item>  - Drop an item from inventory
+            |    talk/speak <npc> - Talk to an NPC
             |    interact <item>  - Interact with an object (not yet implemented)
             |    inventory, i     - View your inventory
             |

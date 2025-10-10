@@ -17,7 +17,17 @@ object SampleDungeon {
             "musty air",
             "ancient runes carved into doorframe"
         ),
-        exits = mapOf(Direction.NORTH to "corridor")
+        exits = mapOf(Direction.NORTH to "corridor"),
+        entities = listOf(
+            Entity.NPC(
+                id = "old_guard",
+                name = "Old Guard",
+                description = "A weathered guard in tarnished armor, watching over the entrance",
+                isHostile = false,
+                health = 30,
+                maxHealth = 50
+            )
+        )
     )
 
     private val corridor = Room(

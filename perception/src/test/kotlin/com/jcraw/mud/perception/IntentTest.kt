@@ -38,6 +38,24 @@ class IntentTest {
     }
 
     @Test
+    fun `Take intent requires target`() {
+        val take = Intent.Take("sword")
+        assertEquals("sword", take.target)
+    }
+
+    @Test
+    fun `Drop intent requires target`() {
+        val drop = Intent.Drop("pouch")
+        assertEquals("pouch", drop.target)
+    }
+
+    @Test
+    fun `Talk intent requires target`() {
+        val talk = Intent.Talk("skeleton")
+        assertEquals("skeleton", talk.target)
+    }
+
+    @Test
     fun `Invalid intent contains error message`() {
         val invalid = Intent.Invalid("Unknown command: foobar")
         assertTrue(invalid.message.contains("foobar"))
@@ -50,6 +68,9 @@ class IntentTest {
             Intent.Look(),
             Intent.Interact("door"),
             Intent.Inventory,
+            Intent.Take("item"),
+            Intent.Drop("item"),
+            Intent.Talk("npc"),
             Intent.Help,
             Intent.Quit,
             Intent.Invalid("test")
@@ -73,6 +94,27 @@ class IntentTest {
     }
 
     @Test
+    fun `Take intent serializes correctly`() {
+        val intent = Intent.Take("gold_pouch")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("gold_pouch"))
+    }
+
+    @Test
+    fun `Drop intent serializes correctly`() {
+        val intent = Intent.Drop("iron_sword")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("iron_sword"))
+    }
+
+    @Test
+    fun `Talk intent serializes correctly`() {
+        val intent = Intent.Talk("skeleton_king")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("skeleton_king"))
+    }
+
+    @Test
     fun `Singleton intents are distinct objects`() {
         val help1 = Intent.Help
         val help2 = Intent.Help
@@ -87,6 +129,9 @@ class IntentTest {
     fun `Intent equality works as expected`() {
         assertEquals(Intent.Move(Direction.NORTH), Intent.Move(Direction.NORTH))
         assertEquals(Intent.Look("target"), Intent.Look("target"))
+        assertEquals(Intent.Take("item"), Intent.Take("item"))
+        assertEquals(Intent.Drop("item"), Intent.Drop("item"))
+        assertEquals(Intent.Talk("npc"), Intent.Talk("npc"))
         assertEquals(Intent.Help, Intent.Help)
     }
 }

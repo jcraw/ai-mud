@@ -21,10 +21,10 @@ else
 fi
 
 echo ""
-echo "Starting game (will run: look, quit)..."
+echo "Starting game (testing NPC interaction: talk to friendly and hostile NPCs)..."
 echo ""
 
-echo -e "look\nquit\ny" | app/build/install/app/bin/app 2>&1 | grep -v "SLF4J"
+echo -e "look\ntalk guard\nn\nn\ntalk skeleton\nquit\ny" | app/build/install/app/bin/app 2>&1 | grep -v "SLF4J"
 
 echo ""
 echo "=========================================="

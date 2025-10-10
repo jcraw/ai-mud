@@ -36,6 +36,27 @@ sealed class Intent {
     data object Inventory : Intent()
 
     /**
+     * Pick up an item from the current room
+     * @param target The name/identifier of the item to pick up
+     */
+    @Serializable
+    data class Take(val target: String) : Intent()
+
+    /**
+     * Drop an item from inventory into the current room
+     * @param target The name/identifier of the item to drop
+     */
+    @Serializable
+    data class Drop(val target: String) : Intent()
+
+    /**
+     * Talk to an NPC
+     * @param target The name/identifier of the NPC to talk to
+     */
+    @Serializable
+    data class Talk(val target: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable
