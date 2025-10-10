@@ -105,6 +105,11 @@ class RoomDescriptionGeneratorTest {
             )
         }
 
+        override suspend fun createEmbedding(text: String, model: String): List<Double> {
+            // Return a dummy embedding
+            return List(1536) { 0.1 }
+        }
+
         override fun close() {}
     }
 
@@ -120,6 +125,10 @@ class RoomDescriptionGeneratorTest {
             temperature: Double
         ): OpenAIResponse {
             throw RuntimeException("Simulated LLM failure")
+        }
+
+        override suspend fun createEmbedding(text: String, model: String): List<Double> {
+            throw RuntimeException("Simulated embedding failure")
         }
 
         override fun close() {}

@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":perception"))
     implementation(project(":reasoning"))
+    implementation(project(":memory"))
     implementation(project(":llm"))
     implementation(project(":utils"))
     implementation(libs.bundles.kotlinxEcosystem)

@@ -11,6 +11,7 @@ import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.SkillCheckResolver
+import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -25,14 +26,25 @@ fun main() {
     val game = if (apiKey.isNullOrBlank()) {
         println("⚠️  OpenAI API key not found - using simple fallback mode")
         println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
-        MudGame(descriptionGenerator = null, npcInteractionGenerator = null, combatNarrator = null)
+        MudGame(
+            descriptionGenerator = null,
+            npcInteractionGenerator = null,
+            combatNarrator = null,
+            memoryManager = null
+        )
     } else {
-        println("✅ Using LLM-powered descriptions, NPC dialogue, and combat narration\n")
+        println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
         val llmClient = OpenAIClient(apiKey)
-        val descriptionGenerator = RoomDescriptionGenerator(llmClient)
-        val npcInteractionGenerator = NPCInteractionGenerator(llmClient)
-        val combatNarrator = CombatNarrator(llmClient)
-        MudGame(descriptionGenerator = descriptionGenerator, npcInteractionGenerator = npcInteractionGenerator, combatNarrator = combatNarrator)
+        val memoryManager = MemoryManager(llmClient)
+        val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
+        val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
+        val combatNarrator = CombatNarrator(llmClient, memoryManager)
+        MudGame(
+            descriptionGenerator = descriptionGenerator,
+            npcInteractionGenerator = npcInteractionGenerator,
+            combatNarrator = combatNarrator,
+            memoryManager = memoryManager
+        )
     }
 
     game.start()
@@ -41,7 +53,8 @@ fun main() {
 class MudGame(
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
     private val npcInteractionGenerator: NPCInteractionGenerator? = null,
-    private val combatNarrator: CombatNarrator? = null
+    private val combatNarrator: CombatNarrator? = null,
+    private val memoryManager: MemoryManager? = null
 ) {
     private var worldState: WorldState = SampleDungeon.createInitialWorldState()
     private var running = true

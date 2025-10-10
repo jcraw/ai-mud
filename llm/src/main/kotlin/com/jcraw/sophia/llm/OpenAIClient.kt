@@ -91,6 +91,45 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
         }
     }
 
+    override suspend fun createEmbedding(text: String, model: String): List<Double> {
+        println("🔢 OpenAI Embedding API call starting...")
+        println("   Model: $model")
+        println("   Text: ${text.take(100)}...")
+
+        val request = OpenAIEmbeddingRequest(
+            model = model,
+            input = text
+        )
+
+        try {
+            val httpResponse = client.post("https://api.openai.com/v1/embeddings") {
+                header("Authorization", "Bearer $apiKey")
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+
+            println("📡 HTTP Status: ${httpResponse.status}")
+
+            if (httpResponse.status.value !in 200..299) {
+                val errorBody = httpResponse.bodyAsText()
+                println("❌ Error Response Body: $errorBody")
+                throw RuntimeException("OpenAI Embedding API error: ${httpResponse.status} - $errorBody")
+            }
+
+            val response = httpResponse.body<OpenAIEmbeddingResponse>()
+
+            println("🔥 Embedding API: $model | tokens=${response.usage.totalTokens}")
+            println("✅ Embedding generated, dimension: ${response.data.first().embedding.size}")
+
+            return response.data.first().embedding
+        } catch (e: Exception) {
+            println("❌ OpenAI Embedding API call failed: ${e.message}")
+            println("   Exception type: ${e::class.simpleName}")
+            e.printStackTrace()
+            throw e
+        }
+    }
+
     override fun close() {
         client.close()
     }

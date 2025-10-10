@@ -9,5 +9,10 @@ interface LLMClient {
         temperature: Double = 0.7
     ): OpenAIResponse
 
+    suspend fun createEmbedding(
+        text: String,
+        model: String = "text-embedding-3-small"
+    ): List<Double>
+
     fun close()
 }

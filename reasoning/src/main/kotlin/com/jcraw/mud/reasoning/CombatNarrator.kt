@@ -2,13 +2,17 @@ package com.jcraw.mud.reasoning
 
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.sophia.llm.LLMClient
 
 /**
- * Generates vivid, atmospheric combat narratives using LLM.
+ * Generates vivid, atmospheric combat narratives using LLM with combat history.
  * Transforms simple combat mechanics into engaging descriptive text.
  */
-class CombatNarrator(private val llmClient: LLMClient) {
+class CombatNarrator(
+    private val llmClient: LLMClient,
+    private val memoryManager: MemoryManager? = null
+) {
 
     /**
      * Narrates a combat round with player attack and enemy counter-attack.
@@ -23,11 +27,15 @@ class CombatNarrator(private val llmClient: LLMClient) {
     ): String {
         val room = worldState.getCurrentRoom() ?: return "You fight in darkness..."
 
+        // Retrieve past combat encounters for context
+        val memories = memoryManager?.recall("combat with ${npc.name}", k = 2) ?: emptyList()
+
         val systemPrompt = """
             You are a dungeon master narrating a turn-based combat encounter.
             Create vivid, atmospheric combat descriptions that bring the action to life.
             Keep descriptions concise (2-3 sentences) but evocative.
             Focus on the visceral details of combat - the clash of steel, the grunt of effort, the spray of blood.
+            If past combat history is provided, build on it to show progression of the fight.
         """.trimIndent()
 
         val userContext = buildString {
@@ -39,6 +47,11 @@ class CombatNarrator(private val llmClient: LLMClient) {
             appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")
             appendLine("- Enemy (${npc.name}): ${npc.description}")
             appendLine()
+            if (memories.isNotEmpty()) {
+                appendLine("Previous combat rounds:")
+                memories.forEach { appendLine("- $it") }
+                appendLine()
+            }
             appendLine("Actions this round:")
             appendLine("1. Player attacks ${npc.name} for $playerDamage damage")
             if (!npcDied) {
@@ -64,8 +77,16 @@ class CombatNarrator(private val llmClient: LLMClient) {
                 maxTokens = 150,
                 temperature = 0.8
             )
-            response.choices.firstOrNull()?.message?.content?.trim()
+            val narrative = response.choices.firstOrNull()?.message?.content?.trim()
                 ?: buildFallbackNarrative(npc.name, playerDamage, npcDamage, npcDied, playerDied)
+
+            // Store this combat round in memory
+            memoryManager?.remember(
+                "Combat with ${npc.name}: $narrative",
+                mapOf("type" to "combat", "npc" to npc.name)
+            )
+
+            narrative
         } catch (e: Exception) {
             // Fallback to simple narrative
             buildFallbackNarrative(npc.name, playerDamage, npcDamage, npcDied, playerDied)

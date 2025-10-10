@@ -39,3 +39,23 @@ data class OpenAIResponse(
     val choices: List<OpenAIChoice>,
     val usage: OpenAIUsage
 )
+
+@Serializable
+data class OpenAIEmbeddingRequest(
+    val model: String,
+    val input: String
+)
+
+@Serializable
+data class OpenAIEmbeddingData(
+    val embedding: List<Double>,
+    val index: Int
+)
+
+@Serializable
+data class OpenAIEmbeddingResponse(
+    val `object`: String,
+    val data: List<OpenAIEmbeddingData>,
+    val model: String,
+    val usage: OpenAIUsage
+)

@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: FEATURE-COMPLETE MVP** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, and D&D-style skill checks. The vision is to create a text-based roleplaying game with dynamic LLM-generated content.
+**Current State: FEATURE-COMPLETE MVP WITH RAG MEMORY** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, core data models, sample dungeon, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
-- Complete Gradle multi-module setup with 6 modules
+- Complete Gradle multi-module setup with 7 modules
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy, CombatState, ItemType
 - Direction enum with bidirectional mapping
 - **Stats system (STR, DEX, CON, INT, WIS, CHA)** - D&D-style stats for player & NPCs ✅
@@ -15,13 +15,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Intent sealed class hierarchy (Move, Look, Interact, Take, Drop, Talk, Attack, Equip, Use, Check, Persuade, Intimidate, Inventory, Help, Quit)**
 - **Working console game loop with text parser**
 - **OpenAI LLM client fully integrated with ktor 3.1.0**
-- **RoomDescriptionGenerator - LLM-powered vivid room descriptions** ✨
-- **NPCInteractionGenerator - LLM-powered dynamic NPC dialogue** ✨
-- **CombatNarrator - LLM-powered atmospheric combat descriptions** ✨
+- **RoomDescriptionGenerator - LLM-powered vivid room descriptions with RAG context** ✨
+- **NPCInteractionGenerator - LLM-powered dynamic NPC dialogue with conversation history** ✨
+- **CombatNarrator - LLM-powered atmospheric combat descriptions with fight progression** ✨
+- **MemoryManager - RAG system with vector embeddings for contextual retrieval** 💾
 - **API key support via local.properties or OPENAI_API_KEY env var**
-- **GAME IS FULLY PLAYABLE** - movement, looking, combat, items, LLM descriptions work
+- **GAME IS FULLY PLAYABLE** - movement, looking, combat, items, LLM descriptions with memory work
 - **Item mechanics** - pickup/drop items with take/get/drop/put commands ✅
-- **NPC interaction** - talk to NPCs with personality-driven dialogue ✅
+- **NPC interaction** - talk to NPCs with personality-driven dialogue that remembers past conversations ✅
 - **Combat system** - turn-based combat with attack/defend/flee, LLM-narrated, STR modifiers ✅
 - **Equipment system** - equip weapons for damage bonuses, armor for defense bonuses ✅
 - **Consumables** - use potions/items for healing ✅
@@ -29,11 +30,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Armor system** - equip armor to reduce incoming damage ✅
 - **Skill check integration** - Interactive features with skill challenges (locked chests, stuck doors, hidden items, arcane runes) ✅
 - **Social skill checks** - Persuasion and intimidation CHA checks for NPCs ✅
+- **RAG memory system** - Semantic memory with embeddings and cosine similarity search ✅
 
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Memory/RAG integration** - Persistent world knowledge and context
-2. Later: Procedural generation, multi-user support
+1. **Procedural content generation** - Generate rooms, NPCs, quests dynamically
+2. **Multi-user support** - Multiple players in shared world
+3. **Persistent storage** - Save/load game state and memory to disk
+4. Later: More complex quest system, dynamic world events
 
 ## Commands
 
@@ -150,10 +154,18 @@ Clean separation following the planned architecture:
 ✅ **Old Guard has persuasion challenge (CHA/DC10) - reveals secrets on success**
 ✅ **Skeleton King has intimidation challenge (CHA/DC20) - backs down on success**
 ✅ **Social checks mark NPCs as persuaded/intimidated to prevent re-attempts**
+✅ **Memory/RAG system implemented** 💾
+✅ **OpenAI embeddings API integration (text-embedding-3-small)**
+✅ **InMemoryVectorStore with cosine similarity search**
+✅ **MemoryManager for storing and retrieving game events**
+✅ **RAG-enhanced room descriptions with historical context**
+✅ **RAG-enhanced NPC dialogues with conversation history**
+✅ **RAG-enhanced combat narratives showing fight progression**
+✅ **Comprehensive tests for memory and vector store**
 
-### Current Status: Feature-Complete MVP with Full LLM Integration, Skills, Armor, Skill Challenges, and Social Interactions
+### Current Status: Feature-Complete MVP with RAG Memory System
 ✅ All modules building successfully
-✅ Game runs with LLM-powered descriptions, NPC dialogue, AND combat narration
+✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
 ✅ Fallback to simple descriptions/narratives if no API key
 ✅ Item mechanics fully functional - pickup/drop/equip/use all working
@@ -166,19 +178,28 @@ Clean separation following the planned architecture:
 ✅ D20 mechanics with stat modifiers, difficulty classes, and critical successes/failures working
 ✅ Social interaction system - persuasion and intimidation CHA checks for NPCs
 ✅ Tested persuading Old Guard (DC 10) and intimidating Skeleton King (DC 20)
+✅ RAG memory system provides contextual history for all LLM generators
+✅ Room descriptions vary based on previous visits
+✅ NPC conversations reference past dialogues
+✅ Combat narratives build on previous rounds
 
 ### Next Priority
-🔄 Memory/RAG integration for persistent world knowledge
 🔄 Procedural content generation
 🔄 Multi-user support
+🔄 Persistent storage for memory (currently in-memory only)
 
 ## Important Notes
 
-- **Main application**: `com.jcraw.app.AppKt` - fully implemented with LLM integration
-- **LLM Generators**:
+- **Main application**: `com.jcraw.app.AppKt` - fully implemented with LLM and RAG integration
+- **LLM Generators** (all RAG-enhanced):
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt`
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt`
+- **Memory/RAG System**:
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/MemoryManager.kt` - High-level memory interface
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/VectorStore.kt` - In-memory vector store with cosine similarity
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/MemoryEntry.kt` - Memory data models
+  - `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt` - Embeddings API support
 - **Combat System**:
   - `core/src/main/kotlin/com/jcraw/mud/core/CombatState.kt` - Combat data models
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` - Combat mechanics
@@ -214,11 +235,12 @@ Clean separation following the planned architecture:
    - Meta: `help`, `quit`
 4. **Sample dungeon**: 6 rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
 5. **LLM features**:
-   - Room descriptions dynamically generated using gpt-4o-mini
-   - NPC dialogue personality-driven (friendly vs hostile, health-aware)
-   - Combat narratives with visceral, atmospheric descriptions
+   - Room descriptions dynamically generated using gpt-4o-mini with RAG context
+   - NPC dialogue personality-driven (friendly vs hostile, health-aware) with conversation history
+   - Combat narratives with visceral, atmospheric descriptions that build on previous rounds
+   - Embeddings via text-embedding-3-small for semantic memory retrieval
 6. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
-7. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses
+7. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses that reference past conversations
 8. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
 9. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
 10. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
@@ -226,6 +248,7 @@ Clean separation following the planned architecture:
 12. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
 13. **Skill check challenges**: 4 interactive features - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
 14. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
-15. **Next logical step**: Memory/RAG integration for persistent world knowledge
+15. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
+16. **Next logical step**: Procedural content generation or persistent memory storage
 
-The feature-complete MVP has LLM-powered descriptions, full item system (pickup/drop/equip/use), NPC dialogue, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, AND social interaction system with persuasion and intimidation.
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, AND semantic memory retrieval for contextual narratives.
