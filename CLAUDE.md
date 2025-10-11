@@ -46,17 +46,16 @@ For complete documentation, see:
 - **Mode selection**: Single-player or multi-user at startup
 
 ### Testing ✅
-- **Test bot**: Automated LLM-powered testing with 7 scenarios
+- **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
 - **Comprehensive tests**: 60+ tests across all modules
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
 
 Priority tasks:
-1. **Test bot quest testing** - Update test bot to test quest functionality (accept, progress, claim)
-2. **Quest objective auto-tracking** - Automatically update quest progress when player actions occur
-3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-4. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+1. **Quest objective auto-tracking** - Automatically update quest progress when player actions occur
+2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
 ## Commands
 
@@ -69,6 +68,7 @@ Priority tasks:
 - `gradle test` - Run unit tests across all modules
 - `gradle :core:test` - Run tests for specific module
 - `gradle :testbot:run` - Run automated test bot (requires OpenAI API key)
+- `./test_quests.sh` - Run quest testing scenario specifically
 
 ## Project Structure
 
@@ -195,10 +195,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The quest system is complete! Next priorities:
-1. **Test bot quest testing** - Update test bot to include quest testing scenario (accept, progress tracking, claim rewards)
-2. **Quest auto-tracking** - Automatically update quest progress as player performs actions
-3. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
-4. **Persistent vector storage** (optional) - Save/load embeddings to disk
+The quest system and automated testing are complete! Next priorities:
+1. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
+2. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
+3. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
 See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.

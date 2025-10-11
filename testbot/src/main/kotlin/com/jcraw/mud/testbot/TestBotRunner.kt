@@ -162,12 +162,29 @@ class TestBotRunner(
         val currentRoom = worldState.getCurrentRoom()
         val player = worldState.player
 
+        val questInfo = if (scenario is TestScenario.QuestTesting) {
+            val activeQuests = player.activeQuests
+            val availableQuests = worldState.availableQuests
+            val completedQuestIds = player.completedQuests
+            val activeComplete = activeQuests.filter { it.isComplete() }
+            """
+
+            Quests:
+              - Active: ${activeQuests.size} (${activeQuests.joinToString { it.id }})
+              - Active & Complete (ready to claim): ${activeComplete.size} (${activeComplete.joinToString { it.id }})
+              - Available: ${availableQuests.size} (${availableQuests.joinToString { it.id }})
+              - Claimed: ${completedQuestIds.size}
+            """.trimIndent()
+        } else {
+            ""
+        }
+
         return """
             Current room: ${currentRoom?.name ?: "Unknown"}
             Player health: ${player.health}/${player.maxHealth}
             Inventory: ${player.inventory.joinToString { it.name }}
             In combat: ${player.isInCombat()}
-            Steps completed: ${state.currentStep}/${state.scenario.maxSteps}
+            Steps completed: ${state.currentStep}/${state.scenario.maxSteps}$questInfo
         """.trimIndent()
     }
 

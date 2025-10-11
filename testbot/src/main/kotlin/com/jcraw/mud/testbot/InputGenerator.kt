@@ -116,6 +116,14 @@ class InputGenerator(
                 - Collect items and equipment
                 - Progress toward completing the dungeon
             """.trimIndent()
+            is TestScenario.QuestTesting -> """
+                Focus on:
+                - Viewing quests (quests, journal, j)
+                - Accepting available quests (accept <quest_id>)
+                - Completing quest objectives (kill NPCs, collect items, explore rooms, talk to NPCs, use skills)
+                - Claiming completed quest rewards (claim <quest_id>)
+                - Testing abandon functionality (abandon <quest_id>)
+            """.trimIndent()
         }
 
         return """

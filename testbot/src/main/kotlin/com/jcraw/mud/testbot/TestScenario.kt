@@ -65,4 +65,13 @@ sealed class TestScenario {
         override val description: String = "Complete playthrough from start to dungeon completion",
         override val maxSteps: Int = 100
     ) : TestScenario()
+
+    @Serializable
+    data class QuestTesting(
+        override val name: String = "quest_testing",
+        override val description: String = "Test quest system: viewing, accepting, progressing, and claiming quests",
+        override val maxSteps: Int = 40,
+        val targetQuestsToAccept: Int = 2,
+        val targetQuestsToClaim: Int = 1
+    ) : TestScenario()
 }

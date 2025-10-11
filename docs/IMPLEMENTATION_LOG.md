@@ -123,9 +123,11 @@ This document tracks all completed features and implementations in chronological
 ## Test Bot System (Completed)
 ✅ **Test Bot System** - Automated testing with LLM-powered input generation and validation
 ✅ **TestBotRunner** - ReAct loop (Reason-Act-Observe) for autonomous testing
-✅ **7 test scenarios** - Exploration, Combat, Skills, Items, Social, Exploratory, Full Playthrough
+✅ **8 test scenarios** - Exploration, Combat, Skills, Items, Social, Quest Testing, Exploratory, Full Playthrough
+✅ **Quest testing scenario** - Tests quest viewing, acceptance, progress tracking, and reward claiming
 ✅ **Gameplay logging** - JSON and human-readable logs with validation results
 ✅ **InMemoryGameEngine** - Headless game engine for automated testing
+✅ **Test script** - `./test_quests.sh` for running quest testing scenario
 
 ## Quest System (Completed) 🎯
 ✅ **Dynamic Quest System** - Procedurally generated quests with multiple objective types
@@ -135,8 +137,7 @@ This document tracks all completed features and implementations in chronological
 ✅ **Quest tracking in PlayerState** - activeQuests, completedQuests, experiencePoints, gold
 ✅ **Available quest pool in WorldState** - Quests generated at dungeon start
 ✅ **Comprehensive quest tests** - 6 tests covering quest lifecycle and player interaction
-
-**TODO**: Test bot quest scenario - Add automated testing for quest acceptance, progress, and reward claiming
+✅ **Automated quest testing** - Test bot quest scenario validates full quest workflow
 
 ## Current Status Summary
 

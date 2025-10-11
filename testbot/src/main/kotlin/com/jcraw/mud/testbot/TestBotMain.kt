@@ -53,9 +53,10 @@ fun main() = runBlocking {
     println("  3. Skill Checks (${TestScenario.SkillChecks().maxSteps} steps)")
     println("  4. Item Interaction (${TestScenario.ItemInteraction().maxSteps} steps)")
     println("  5. Social Interaction (${TestScenario.SocialInteraction().maxSteps} steps)")
-    println("  6. Exploratory (${TestScenario.Exploratory().maxSteps} steps)")
-    println("  7. Full Playthrough (${TestScenario.FullPlaythrough().maxSteps} steps)")
-    print("\nEnter choice (1-7) [default: 1]: ")
+    println("  6. Quest Testing (${TestScenario.QuestTesting().maxSteps} steps)")
+    println("  7. Exploratory (${TestScenario.Exploratory().maxSteps} steps)")
+    println("  8. Full Playthrough (${TestScenario.FullPlaythrough().maxSteps} steps)")
+    print("\nEnter choice (1-8) [default: 1]: ")
 
     val scenarioChoice = readLine()?.trim() ?: "1"
     val scenario = when (scenarioChoice) {
@@ -63,8 +64,9 @@ fun main() = runBlocking {
         "3" -> TestScenario.SkillChecks()
         "4" -> TestScenario.ItemInteraction()
         "5" -> TestScenario.SocialInteraction()
-        "6" -> TestScenario.Exploratory()
-        "7" -> TestScenario.FullPlaythrough()
+        "6" -> TestScenario.QuestTesting()
+        "7" -> TestScenario.Exploratory()
+        "8" -> TestScenario.FullPlaythrough()
         else -> TestScenario.Exploration()
     }
 

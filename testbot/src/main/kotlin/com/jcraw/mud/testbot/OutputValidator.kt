@@ -121,6 +121,14 @@ class OutputValidator(
                 - NPCs respond coherently
                 - Conversation maintains context
             """.trimIndent()
+            is TestScenario.QuestTesting -> """
+                Check that:
+                - Quest viewing commands show quests correctly
+                - Accept/abandon quest commands work properly
+                - Quest progress is tracked accurately
+                - Claim rewards command succeeds when quest is complete
+                - Rewards are properly awarded (XP, gold, items)
+            """.trimIndent()
             is TestScenario.Exploratory -> """
                 Check that:
                 - Invalid inputs are handled gracefully
