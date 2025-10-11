@@ -6,6 +6,7 @@ import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.perception.Intent
+import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.*
 import com.jcraw.sophia.llm.LLMClient
 
@@ -18,18 +19,22 @@ class InMemoryGameEngine(
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
     private val npcInteractionGenerator: NPCInteractionGenerator? = null,
     private val combatNarrator: CombatNarrator? = null,
-    private val memoryManager: MemoryManager? = null
+    private val memoryManager: MemoryManager? = null,
+    private val llmClient: LLMClient? = null
 ) : GameEngineInterface {
 
     private var worldState: WorldState = initialWorldState
     private var running = true
     private val combatResolver = CombatResolver()
     private val skillCheckResolver = SkillCheckResolver()
+    private val intentRecognizer = IntentRecognizer(llmClient)
 
     override suspend fun processInput(input: String): String {
         if (!running) return "Game is not running."
 
-        val intent = parseInput(input)
+        val room = worldState.getCurrentRoom()
+        val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
+        val intent = intentRecognizer.parseIntent(input, roomContext)
         return processIntent(intent)
     }
 
@@ -41,48 +46,6 @@ class InMemoryGameEngine(
     }
 
     override fun isRunning(): Boolean = running
-
-    private fun parseInput(input: String): Intent {
-        val parts = input.lowercase().split(" ", limit = 2)
-        val command = parts[0]
-        val args = parts.getOrNull(1)
-
-        return when (command) {
-            "go", "move", "n", "s", "e", "w", "north", "south", "east", "west",
-            "ne", "nw", "se", "sw", "northeast", "northwest", "southeast", "southwest",
-            "u", "d", "up", "down" -> {
-                val direction = when (command) {
-                    "n", "north" -> Direction.NORTH
-                    "s", "south" -> Direction.SOUTH
-                    "e", "east" -> Direction.EAST
-                    "w", "west" -> Direction.WEST
-                    "ne", "northeast" -> Direction.NORTHEAST
-                    "nw", "northwest" -> Direction.NORTHWEST
-                    "se", "southeast" -> Direction.SOUTHEAST
-                    "sw", "southwest" -> Direction.SOUTHWEST
-                    "u", "up" -> Direction.UP
-                    "d", "down" -> Direction.DOWN
-                    "go", "move" -> Direction.fromString(args ?: "") ?: return Intent.Invalid("Go where?")
-                    else -> return Intent.Invalid("Unknown direction")
-                }
-                Intent.Move(direction)
-            }
-            "look", "l" -> Intent.Look(args)
-            "take", "get", "pickup", "pick" -> if (args.isNullOrBlank()) Intent.Invalid("Take what?") else Intent.Take(args)
-            "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)
-            "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
-            "attack", "kill", "fight", "hit" -> Intent.Attack(args)
-            "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)
-            "use", "consume", "drink", "eat" -> if (args.isNullOrBlank()) Intent.Invalid("Use what?") else Intent.Use(args)
-            "check", "test", "attempt", "try" -> if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)
-            "persuade", "convince" -> if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)
-            "intimidate", "threaten" -> if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)
-            "inventory", "i" -> Intent.Inventory
-            "help", "h", "?" -> Intent.Help
-            "quit", "exit", "q" -> Intent.Quit
-            else -> Intent.Invalid("Unknown command: $command")
-        }
-    }
 
     private suspend fun processIntent(intent: Intent): String {
         return when (intent) {

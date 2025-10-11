@@ -6,6 +6,7 @@ import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.perception.Intent
+import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
@@ -118,7 +119,8 @@ fun main() {
             combatNarrator = combatNarrator,
             memoryManager = memoryManager,
             combatResolver = combatResolver,
-            skillCheckResolver = skillCheckResolver
+            skillCheckResolver = skillCheckResolver,
+            llmClient = llmClient
         )
 
         multiUserGame.start()
@@ -134,7 +136,8 @@ fun main() {
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
                 combatNarrator = combatNarrator,
-                memoryManager = memoryManager
+                memoryManager = memoryManager,
+                llmClient = llmClient
             )
         } else {
             MudGame(
@@ -142,7 +145,8 @@ fun main() {
                 descriptionGenerator = null,
                 npcInteractionGenerator = null,
                 combatNarrator = null,
-                memoryManager = null
+                memoryManager = null,
+                llmClient = null
             )
         }
 
@@ -155,13 +159,15 @@ class MudGame(
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
     private val npcInteractionGenerator: NPCInteractionGenerator? = null,
     private val combatNarrator: CombatNarrator? = null,
-    private val memoryManager: MemoryManager? = null
+    private val memoryManager: MemoryManager? = null,
+    private val llmClient: OpenAIClient? = null
 ) {
     private var worldState: WorldState = initialWorldState
     private var running = true
     private val combatResolver = CombatResolver()
     private val skillCheckResolver = SkillCheckResolver()
     private val persistenceManager = PersistenceManager()
+    private val intentRecognizer = IntentRecognizer(llmClient)
 
     fun start() {
         printWelcome()
@@ -173,7 +179,11 @@ class MudGame(
 
             if (input.isBlank()) continue
 
-            val intent = parseInput(input)
+            val room = worldState.getCurrentRoom()
+            val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
+            val intent = runBlocking {
+                intentRecognizer.parseIntent(input, roomContext)
+            }
             processIntent(intent)
         }
 
@@ -226,127 +236,6 @@ class MudGame(
         } else {
             // Fallback to simple trait concatenation
             room.traits.joinToString(". ") + "."
-        }
-    }
-
-    private fun parseInput(input: String): Intent {
-        val parts = input.lowercase().split(" ", limit = 2)
-        val command = parts[0]
-        val args = parts.getOrNull(1)
-
-        return when (command) {
-            "go", "move", "n", "s", "e", "w", "north", "south", "east", "west",
-            "ne", "nw", "se", "sw", "northeast", "northwest", "southeast", "southwest",
-            "u", "d", "up", "down" -> {
-                val direction = when (command) {
-                    "n", "north" -> Direction.NORTH
-                    "s", "south" -> Direction.SOUTH
-                    "e", "east" -> Direction.EAST
-                    "w", "west" -> Direction.WEST
-                    "ne", "northeast" -> Direction.NORTHEAST
-                    "nw", "northwest" -> Direction.NORTHWEST
-                    "se", "southeast" -> Direction.SOUTHEAST
-                    "sw", "southwest" -> Direction.SOUTHWEST
-                    "u", "up" -> Direction.UP
-                    "d", "down" -> Direction.DOWN
-                    "go", "move" -> Direction.fromString(args ?: "") ?: return Intent.Invalid("Go where?")
-                    else -> return Intent.Invalid("Unknown direction")
-                }
-                Intent.Move(direction)
-            }
-            "look", "l" -> {
-                Intent.Look(args)
-            }
-            "interact" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Interact with what?")
-                } else {
-                    Intent.Interact(args)
-                }
-            }
-            "take", "get", "pickup", "pick" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Take what?")
-                } else {
-                    Intent.Take(args)
-                }
-            }
-            "drop", "put" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Drop what?")
-                } else {
-                    Intent.Drop(args)
-                }
-            }
-            "talk", "speak", "chat" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Talk to whom?")
-                } else {
-                    Intent.Talk(args)
-                }
-            }
-            "attack", "kill", "fight", "hit" -> {
-                // In combat, target is optional (attack current combatant)
-                // Out of combat, target is required to initiate combat
-                Intent.Attack(args)
-            }
-            "equip", "wield", "wear" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Equip what?")
-                } else {
-                    Intent.Equip(args)
-                }
-            }
-            "use", "consume", "drink", "eat" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Use what?")
-                } else {
-                    Intent.Use(args)
-                }
-            }
-            "check", "test", "attempt", "try" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Check what?")
-                } else {
-                    Intent.Check(args)
-                }
-            }
-            "persuade", "convince" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Persuade whom?")
-                } else {
-                    Intent.Persuade(args)
-                }
-            }
-            "intimidate", "threaten" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Intimidate whom?")
-                } else {
-                    Intent.Intimidate(args)
-                }
-            }
-            "save" -> Intent.Save(args ?: "quicksave")
-            "load" -> Intent.Load(args ?: "quicksave")
-            "quests", "quest", "journal", "j" -> Intent.Quests
-            "accept" -> Intent.AcceptQuest(args)
-            "abandon" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Abandon which quest?")
-                } else {
-                    Intent.AbandonQuest(args)
-                }
-            }
-            "claim" -> {
-                if (args.isNullOrBlank()) {
-                    Intent.Invalid("Claim reward for which quest?")
-                } else {
-                    Intent.ClaimReward(args)
-                }
-            }
-            "inventory", "i" -> Intent.Inventory
-            "help", "h", "?" -> Intent.Help
-            "quit", "exit", "q" -> Intent.Quit
-            else -> Intent.Invalid("Unknown command: $command. Type 'help' for available commands.")
         }
     }
 
@@ -1109,9 +998,11 @@ class MultiUserGame(
     private val combatNarrator: CombatNarrator?,
     private val memoryManager: MemoryManager?,
     private val combatResolver: CombatResolver,
-    private val skillCheckResolver: SkillCheckResolver
+    private val skillCheckResolver: SkillCheckResolver,
+    private val llmClient: OpenAIClient?
 ) {
     private lateinit var gameServer: GameServer
+    private val intentRecognizer = IntentRecognizer(llmClient)
 
     fun start() = runBlocking {
         // Create fallback components if needed
@@ -1194,8 +1085,10 @@ class MultiUserGame(
             val input = session.readLine() ?: break
             if (input.trim().isBlank()) continue
 
-            // Parse intent
-            val intent = parseInput(input.trim())
+            // Parse intent using LLM
+            val room = gameServer.getWorldState().getCurrentRoom(session.playerId)
+            val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
+            val intent = intentRecognizer.parseIntent(input.trim(), roomContext)
 
             // Check for quit
             if (intent is Intent.Quit) {
@@ -1208,53 +1101,6 @@ class MultiUserGame(
             // Process intent through game server
             val response = gameServer.processIntent(session.playerId, intent)
             session.sendMessage(response)
-        }
-    }
-
-    private fun parseInput(input: String): Intent {
-        val parts = input.lowercase().split(" ", limit = 2)
-        val command = parts[0]
-        val args = parts.getOrNull(1)
-
-        return when (command) {
-            "go", "move", "n", "s", "e", "w", "north", "south", "east", "west",
-            "ne", "nw", "se", "sw", "northeast", "northwest", "southeast", "southwest",
-            "u", "d", "up", "down" -> {
-                val direction = when (command) {
-                    "n", "north" -> Direction.NORTH
-                    "s", "south" -> Direction.SOUTH
-                    "e", "east" -> Direction.EAST
-                    "w", "west" -> Direction.WEST
-                    "ne", "northeast" -> Direction.NORTHEAST
-                    "nw", "northwest" -> Direction.NORTHWEST
-                    "se", "southeast" -> Direction.SOUTHEAST
-                    "sw", "southwest" -> Direction.SOUTHWEST
-                    "u", "up" -> Direction.UP
-                    "d", "down" -> Direction.DOWN
-                    "go", "move" -> Direction.fromString(args ?: "") ?: return Intent.Invalid("Go where?")
-                    else -> return Intent.Invalid("Unknown direction")
-                }
-                Intent.Move(direction)
-            }
-            "look", "l" -> Intent.Look(args)
-            "interact" -> if (args.isNullOrBlank()) Intent.Invalid("Interact with what?") else Intent.Interact(args)
-            "take", "get", "pickup", "pick" -> if (args.isNullOrBlank()) Intent.Invalid("Take what?") else Intent.Take(args)
-            "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)
-            "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
-            "attack", "kill", "fight", "hit" -> Intent.Attack(args)
-            "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)
-            "use", "consume", "drink", "eat" -> if (args.isNullOrBlank()) Intent.Invalid("Use what?") else Intent.Use(args)
-            "check", "test", "attempt", "try" -> if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)
-            "persuade", "convince" -> if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)
-            "intimidate", "threaten" -> if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)
-            "quests", "quest", "journal", "j" -> Intent.Quests
-            "accept" -> Intent.AcceptQuest(args)
-            "abandon" -> if (args.isNullOrBlank()) Intent.Invalid("Abandon which quest?") else Intent.AbandonQuest(args)
-            "claim" -> if (args.isNullOrBlank()) Intent.Invalid("Claim reward for which quest?") else Intent.ClaimReward(args)
-            "inventory", "i" -> Intent.Inventory
-            "help", "h", "?" -> Intent.Help
-            "quit", "exit", "q" -> Intent.Quit
-            else -> Intent.Invalid("Unknown command: $command. Type 'help' for available commands.")
         }
     }
 

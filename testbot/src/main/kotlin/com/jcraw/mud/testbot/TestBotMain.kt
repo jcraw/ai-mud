@@ -90,7 +90,8 @@ fun main() = runBlocking {
         descriptionGenerator = descriptionGenerator,
         npcInteractionGenerator = npcInteractionGenerator,
         combatNarrator = combatNarrator,
-        memoryManager = memoryManager
+        memoryManager = memoryManager,
+        llmClient = llmClient
     )
 
     // Create test bot runner
