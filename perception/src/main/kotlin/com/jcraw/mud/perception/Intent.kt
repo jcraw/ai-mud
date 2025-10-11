@@ -113,6 +113,33 @@ sealed class Intent {
     data class Load(val saveName: String = "quicksave") : Intent()
 
     /**
+     * View active quests and quest progress
+     */
+    @Serializable
+    data object Quests : Intent()
+
+    /**
+     * Accept a new quest
+     * @param questId Optional quest identifier to accept (if omitted, shows available quests)
+     */
+    @Serializable
+    data class AcceptQuest(val questId: String? = null) : Intent()
+
+    /**
+     * Abandon an active quest
+     * @param questId The identifier of the quest to abandon
+     */
+    @Serializable
+    data class AbandonQuest(val questId: String) : Intent()
+
+    /**
+     * Claim reward for a completed quest
+     * @param questId The identifier of the quest to claim reward for
+     */
+    @Serializable
+    data class ClaimReward(val questId: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

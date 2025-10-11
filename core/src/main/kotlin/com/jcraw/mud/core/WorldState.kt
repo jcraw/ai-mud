@@ -7,7 +7,8 @@ data class WorldState(
     val rooms: Map<RoomId, Room>,
     val players: Map<PlayerId, PlayerState>,
     val turnCount: Int = 0,
-    val gameProperties: Map<String, String> = emptyMap()
+    val gameProperties: Map<String, String> = emptyMap(),
+    val availableQuests: List<Quest> = emptyList()
 ) {
     // Backward compatibility: get the "main" player (first player, if any)
     val player: PlayerState
@@ -85,4 +86,13 @@ data class WorldState(
 
     fun getPlayersInRoom(roomId: RoomId): List<PlayerState> =
         players.values.filter { it.currentRoomId == roomId }
+
+    fun addAvailableQuest(quest: Quest): WorldState =
+        copy(availableQuests = availableQuests + quest)
+
+    fun removeAvailableQuest(questId: QuestId): WorldState =
+        copy(availableQuests = availableQuests.filter { it.id != questId })
+
+    fun getAvailableQuest(questId: QuestId): Quest? =
+        availableQuests.find { it.id == questId }
 }

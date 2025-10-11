@@ -151,11 +151,19 @@ class GameServer(
             is Intent.Inventory -> Triple(formatInventory(playerState), worldState, null)
             is Intent.Save -> Triple("Save not supported in multi-user mode", worldState, null)
             is Intent.Load -> Triple("Load not supported in multi-user mode", worldState, null)
+            is Intent.Quests -> Triple(formatQuests(playerState), worldState, null)
+            is Intent.AcceptQuest -> Triple("Quest system not yet supported in multi-user mode", worldState, null)
+            is Intent.AbandonQuest -> Triple("Quest system not yet supported in multi-user mode", worldState, null)
+            is Intent.ClaimReward -> Triple("Quest system not yet supported in multi-user mode", worldState, null)
             is Intent.Help -> Triple(getHelpText(), worldState, null)
             is Intent.Quit -> Triple("Goodbye!", worldState, null)
             is Intent.Invalid -> Triple(intent.message, worldState, null)
             is Intent.Interact -> Triple("You need to be more specific about how you want to interact.", worldState, null)
         }
+    }
+
+    private fun formatQuests(playerState: PlayerState): String {
+        return "Quest system coming soon to multi-user mode!"
     }
 
     private suspend fun handleMove(

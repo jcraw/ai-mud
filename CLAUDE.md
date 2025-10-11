@@ -53,12 +53,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Gameplay logging** - JSON and human-readable logs with validation results ✅
 - **InMemoryGameEngine** - Headless game engine for automated testing ✅
 
+- **Dynamic Quest System** - Procedurally generated quests with multiple objective types ✅
+- **QuestGenerator** - Creates quests based on dungeon state and theme ✅
+- **6 quest objective types** - Kill, Collect, Explore, Talk, UseSkill, Deliver ✅
+- **Quest rewards** - Experience points, gold, and item rewards ✅
+- **Quest commands** - quests/journal, accept, abandon, claim commands ✅
+- **Quest tracking** - Active quests, completed quests, progress tracking ✅
+
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Dynamic quests** - Procedurally generated quest objectives
+1. **Quest objective auto-tracking** - Automatically update quest progress when player actions occur
 2. **Network layer for multi-player** - TCP/WebSocket support for remote connections (optional)
 3. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
-4. Later: More complex quest system, dynamic world events
+4. Later: More complex quest chains, dynamic world events
 
 ## Commands
 

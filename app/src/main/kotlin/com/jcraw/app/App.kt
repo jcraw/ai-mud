@@ -13,6 +13,7 @@ import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.SkillCheckResolver
 import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
+import com.jcraw.mud.reasoning.procedural.QuestGenerator
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.sophia.llm.OpenAIClient
@@ -53,31 +54,39 @@ fun main() {
     val choice = readLine()?.trim() ?: "1"
 
     // Generate world state based on choice
-    val worldState = when (choice) {
+    val (worldState, dungeonTheme) = when (choice) {
         "2" -> {
             print("Number of rooms [default: 10]: ")
             val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCrypt(roomCount)
+            ProceduralDungeonBuilder.generateCrypt(roomCount) to DungeonTheme.CRYPT
         }
         "3" -> {
             print("Number of rooms [default: 10]: ")
             val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCastle(roomCount)
+            ProceduralDungeonBuilder.generateCastle(roomCount) to DungeonTheme.CASTLE
         }
         "4" -> {
             print("Number of rooms [default: 10]: ")
             val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCave(roomCount)
+            ProceduralDungeonBuilder.generateCave(roomCount) to DungeonTheme.CAVE
         }
         "5" -> {
             print("Number of rooms [default: 10]: ")
             val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateTemple(roomCount)
+            ProceduralDungeonBuilder.generateTemple(roomCount) to DungeonTheme.TEMPLE
         }
         else -> {
             println("Using Sample Dungeon")
-            SampleDungeon.createInitialWorldState()
+            SampleDungeon.createInitialWorldState() to DungeonTheme.CRYPT // Sample uses crypt theme
         }
+    }
+
+    // Generate initial quests
+    val questGenerator = QuestGenerator()
+    val initialQuests = questGenerator.generateQuestPool(worldState, dungeonTheme, count = 3)
+    var worldStateWithQuests = worldState
+    initialQuests.forEach { quest ->
+        worldStateWithQuests = worldStateWithQuests.addAvailableQuest(quest)
     }
 
     println()
@@ -102,7 +111,7 @@ fun main() {
         val combatResolver = CombatResolver()
 
         val multiUserGame = MultiUserGame(
-            initialWorldState = worldState,
+            initialWorldState = worldStateWithQuests,
             descriptionGenerator = descriptionGenerator,
             npcInteractionGenerator = npcInteractionGenerator,
             combatNarrator = combatNarrator,
@@ -120,7 +129,7 @@ fun main() {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
             MudGame(
-                initialWorldState = worldState,
+                initialWorldState = worldStateWithQuests,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
                 combatNarrator = combatNarrator,
@@ -128,7 +137,7 @@ fun main() {
             )
         } else {
             MudGame(
-                initialWorldState = worldState,
+                initialWorldState = worldStateWithQuests,
                 descriptionGenerator = null,
                 npcInteractionGenerator = null,
                 combatNarrator = null,
@@ -317,6 +326,22 @@ class MudGame(
             }
             "save" -> Intent.Save(args ?: "quicksave")
             "load" -> Intent.Load(args ?: "quicksave")
+            "quests", "quest", "journal", "j" -> Intent.Quests
+            "accept" -> Intent.AcceptQuest(args)
+            "abandon" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Abandon which quest?")
+                } else {
+                    Intent.AbandonQuest(args)
+                }
+            }
+            "claim" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Claim reward for which quest?")
+                } else {
+                    Intent.ClaimReward(args)
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
@@ -341,6 +366,10 @@ class MudGame(
             is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Save -> handleSave(intent.saveName)
             is Intent.Load -> handleLoad(intent.saveName)
+            is Intent.Quests -> handleQuests()
+            is Intent.AcceptQuest -> handleAcceptQuest(intent.questId)
+            is Intent.AbandonQuest -> handleAbandonQuest(intent.questId)
+            is Intent.ClaimReward -> handleClaimReward(intent.questId)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> println(intent.message)
@@ -913,12 +942,151 @@ class MudGame(
             |    interact <item>      - Interact with an object (not yet implemented)
             |    inventory, i         - View your inventory and equipped items
             |
+            |  Quests:
+            |    quests, quest, journal, j - View quest log and available quests
+            |    accept <quest_id>    - Accept an available quest
+            |    abandon <quest_id>   - Abandon an active quest
+            |    claim <quest_id>     - Claim reward for a completed quest
+            |
             |  Meta:
             |    save [name]          - Save game (defaults to 'quicksave')
             |    load [name]          - Load game (defaults to 'quicksave')
             |    help, h, ?           - Show this help
             |    quit, exit, q        - Quit game
         """.trimMargin())
+    }
+
+    private fun handleQuests() {
+        val player = worldState.player
+
+        println("\n═══════ QUEST LOG ═══════")
+        println("Experience: ${player.experiencePoints} | Gold: ${player.gold}")
+        println()
+
+        if (player.activeQuests.isEmpty()) {
+            println("No active quests.")
+        } else {
+            println("Active Quests:")
+            player.activeQuests.forEachIndexed { index, quest ->
+                val statusIcon = when (quest.status) {
+                    com.jcraw.mud.core.QuestStatus.ACTIVE -> if (quest.isComplete()) "✓" else "○"
+                    com.jcraw.mud.core.QuestStatus.COMPLETED -> "✓"
+                    com.jcraw.mud.core.QuestStatus.CLAIMED -> "★"
+                    com.jcraw.mud.core.QuestStatus.FAILED -> "✗"
+                }
+                println("\n${index + 1}. $statusIcon ${quest.title}")
+                println("   ${quest.description}")
+                println("   Progress: ${quest.getProgressSummary()}")
+
+                quest.objectives.forEach { obj ->
+                    val checkmark = if (obj.isCompleted) "✓" else "○"
+                    println("     $checkmark ${obj.description}")
+                }
+
+                if (quest.status == com.jcraw.mud.core.QuestStatus.COMPLETED) {
+                    println("   ⚠ Ready to claim reward! Use 'claim ${quest.id}'")
+                }
+            }
+        }
+
+        println()
+        if (worldState.availableQuests.isNotEmpty()) {
+            println("Available Quests (use 'accept <id>' to accept):")
+            worldState.availableQuests.forEach { quest ->
+                println("  - ${quest.id}: ${quest.title}")
+            }
+        }
+        println("═" * 26)
+    }
+
+    private fun handleAcceptQuest(questId: String?) {
+        if (questId == null) {
+            // Show available quests
+            if (worldState.availableQuests.isEmpty()) {
+                println("No quests available to accept.")
+            } else {
+                println("\nAvailable Quests:")
+                worldState.availableQuests.forEach { quest ->
+                    println("  ${quest.id}: ${quest.title}")
+                    println("    ${quest.description}")
+                }
+                println("\nUse 'accept <quest_id>' to accept a quest.")
+            }
+            return
+        }
+
+        val quest = worldState.getAvailableQuest(questId)
+        if (quest == null) {
+            println("No quest available with ID '$questId'.")
+            return
+        }
+
+        if (worldState.player.hasQuest(questId)) {
+            println("You already have this quest!")
+            return
+        }
+
+        worldState = worldState
+            .updatePlayer(worldState.player.addQuest(quest))
+            .removeAvailableQuest(questId)
+
+        println("\n📜 Quest Accepted: ${quest.title}")
+        println("${quest.description}")
+        println("\nObjectives:")
+        quest.objectives.forEach { println("  ○ ${it.description}") }
+    }
+
+    private fun handleAbandonQuest(questId: String) {
+        val quest = worldState.player.getQuest(questId)
+        if (quest == null) {
+            println("You don't have a quest with ID '$questId'.")
+            return
+        }
+
+        println("Are you sure you want to abandon '${quest.title}'? (y/n)")
+        val confirm = readLine()?.trim()?.lowercase()
+        if (confirm == "y" || confirm == "yes") {
+            worldState = worldState
+                .updatePlayer(worldState.player.removeQuest(questId))
+                .addAvailableQuest(quest)
+            println("Quest abandoned.")
+        }
+    }
+
+    private fun handleClaimReward(questId: String) {
+        val quest = worldState.player.getQuest(questId)
+        if (quest == null) {
+            println("You don't have a quest with ID '$questId'.")
+            return
+        }
+
+        if (!quest.isComplete()) {
+            println("Quest '${quest.title}' is not complete yet!")
+            println("Progress: ${quest.getProgressSummary()}")
+            return
+        }
+
+        if (quest.status == com.jcraw.mud.core.QuestStatus.CLAIMED) {
+            println("You've already claimed the reward for this quest!")
+            return
+        }
+
+        worldState = worldState.updatePlayer(worldState.player.claimQuestReward(questId))
+
+        println("\n🎉 Quest Completed: ${quest.title}")
+        println("\nRewards:")
+        if (quest.reward.experiencePoints > 0) {
+            println("  +${quest.reward.experiencePoints} Experience")
+        }
+        if (quest.reward.goldAmount > 0) {
+            println("  +${quest.reward.goldAmount} Gold")
+        }
+        if (quest.reward.items.isNotEmpty()) {
+            println("  Items:")
+            quest.reward.items.forEach { println("    - ${it.name}") }
+        }
+        println("\nTotal Experience: ${worldState.player.experiencePoints}")
+        println("Total Gold: ${worldState.player.gold}")
     }
 
     private fun handleQuit() {
@@ -1078,6 +1246,10 @@ class MultiUserGame(
             "check", "test", "attempt", "try" -> if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)
             "persuade", "convince" -> if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)
             "intimidate", "threaten" -> if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)
+            "quests", "quest", "journal", "j" -> Intent.Quests
+            "accept" -> Intent.AcceptQuest(args)
+            "abandon" -> if (args.isNullOrBlank()) Intent.Invalid("Abandon which quest?") else Intent.AbandonQuest(args)
+            "claim" -> if (args.isNullOrBlank()) Intent.Invalid("Claim reward for which quest?") else Intent.ClaimReward(args)
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit

@@ -15,7 +15,11 @@ data class PlayerState(
     val equippedArmor: Entity.Item? = null,
     val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap(),
-    val activeCombat: CombatState? = null
+    val activeCombat: CombatState? = null,
+    val activeQuests: List<Quest> = emptyList(),
+    val completedQuests: List<QuestId> = emptyList(),
+    val experiencePoints: Int = 0,
+    val gold: Int = 0
 ) {
     fun addToInventory(item: Entity.Item): PlayerState = copy(inventory = inventory + item)
 
@@ -108,4 +112,39 @@ data class PlayerState(
     fun updateCombat(newCombatState: CombatState?): PlayerState = copy(activeCombat = newCombatState)
 
     fun endCombat(): PlayerState = copy(activeCombat = null)
+
+    // Quest management
+    fun addQuest(quest: Quest): PlayerState = copy(activeQuests = activeQuests + quest)
+
+    fun removeQuest(questId: QuestId): PlayerState = copy(activeQuests = activeQuests.filter { it.id != questId })
+
+    fun getQuest(questId: QuestId): Quest? = activeQuests.find { it.id == questId }
+
+    fun updateQuest(updatedQuest: Quest): PlayerState {
+        val updatedQuests = activeQuests.map { if (it.id == updatedQuest.id) updatedQuest else it }
+        return copy(activeQuests = updatedQuests)
+    }
+
+    fun completeQuest(questId: QuestId): PlayerState {
+        val quest = getQuest(questId) ?: return this
+        return copy(
+            completedQuests = completedQuests + questId,
+            activeQuests = activeQuests.filter { it.id != questId }
+        )
+    }
+
+    fun claimQuestReward(questId: QuestId): PlayerState {
+        val quest = getQuest(questId) ?: return this
+        if (!quest.isComplete()) return this
+
+        return copy(
+            experiencePoints = experiencePoints + quest.reward.experiencePoints,
+            gold = gold + quest.reward.goldAmount,
+            inventory = inventory + quest.reward.items
+        ).updateQuest(quest.claim())
+    }
+
+    fun hasQuest(questId: QuestId): Boolean = activeQuests.any { it.id == questId }
+
+    fun hasCompletedQuest(questId: QuestId): Boolean = completedQuests.contains(questId)
 }
