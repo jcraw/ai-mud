@@ -1,0 +1,103 @@
+Client UI Requirements for Roleplaying Engine
+This requirements spec outlines a Compose Multiplatform UI client for interacting with the MUD-style roleplaying engine. The UI enables character selection and gameplay via a text-based interface: a scrollable log for history (system outputs like room/combat descriptions + player actions) and an input field for natural language commands. Designed for single-player MVP, it replaces console I/O while keeping the engine scalable (e.g., to Discord). Use Kotlin/Compose; unidirectional flow with immutable UI state. Keep modules small, KISS.
+1. Overview
+
+Purpose: User-facing client to play the game—select character, view immersive log, input actions. Enhances UX over console with scrolling, formatting, auto-focus.
+Key Features:
+
+Character Selection: Dropdown or cards for premade chars (e.g., Warrior, Rogue).
+Log Window: Scrollable, formatted text pane showing interleaved history (player inputs bold/italic, system narratives plain, with timestamps).
+Input Field: Text box for commands; submit on Enter, with history recall (up/down arrows).
+UX Niceties: Auto-scroll to new content; dark/light theme toggle (fantasy aesthetic: muted colors, serif fonts); status bar for char stats (HP, position); clear button for input; copy log to clipboard.
+
+
+Tech:
+
+Compose Multiplatform (desktop target for MVP; scalable to mobile/web).
+Integrate with engine: Use engine's InputOutputHandler abstraction—implement UI version (e.g., coroutines for async updates).
+State: Immutable UiState(logEntries: List<LogEntry>, currentChar: Character?, status: Status) exposed via ViewModel.
+
+
+Changes to Engine:
+
+Make I/O pluggable: Expose interface GameClient { fun sendInput(text: String); fun observeOutput(): Flow<String> } for UI to hook in.
+Add structured outputs: Engine emits events (e.g., sealed class GameEvent { class Narrative(text: String) : GameEvent() ... }) for better UI formatting.
+Persistence: Save/load session state for UI resumes.
+Async: Use Flows/Coroutines for real-time updates without blocking UI.
+
+
+
+2. Functional Requirements
+2.1 Screens/Components
+
+Character Selection Screen:
+
+Display on startup: Grid/cards of premade chars (name, desc, stats).
+Select via click; confirm starts game, transitions to main screen.
+LLM integration: If needed, generate char bios dynamically.
+
+
+Main Gameplay Screen:
+
+Log Window: Composable Scrollable Column/Text; append entries on output. Format: Player actions prefixed "You: ", system as narrative blocks. Auto-scroll; infinite scroll for long sessions.
+Input Field: TextField at bottom; submit sends to engine. Features: Auto-complete suggestions (e.g., common commands via LLM?); multi-line for complex inputs; validation (non-empty).
+Status Bar: Top bar showing char name, HP, current room; update on events.
+Controls: Buttons for theme toggle, copy log, quit/session save.
+
+
+
+2.2 User Flow
+
+Launch: Show char select.
+Select Char: Engine initializes session; switch to main screen with initial room desc.
+Play: Input command → Send to engine → Engine processes (LLM parse/resolve) → Output to log → Update status.
+History: Log persists across app restarts via engine's memory module.
+End: Quit button saves state, exits.
+
+2.3 UX Design
+
+Immersive: Fantasy theme—parchment background, glowing text effects via Compose modifiers.
+Accessibility: High contrast modes; keyboard nav (focus input on launch).
+Responsiveness: Handle long narratives (pagination?); loading indicators for LLM delays.
+Error Handling: Display engine errors in log (e.g., "Invalid action—try again."); graceful offline (if LLM fails).
+Nice Touches: Emoji/icons in log (e.g., ⚔️ for combat); sound cues (optional, via Compose extensions); undo last input.
+
+3. Non-Functional Requirements
+
+Performance: Smooth scrolling for 1000+ log entries; async LLM calls.
+Scalability: Multiplatform—desktop MVP, easy Android/iOS add.
+Reliability: State persistence; crash recovery (autosave log).
+Cost: No new LLM calls for UI—reuse engine's.
+Simplicity: Single ViewModel; no deep composables.
+
+4. Architecture Outline
+
+Modules:
+
+Perception: Input field events → Engine send.
+Reasoning: ViewModel processes engine outputs → Update UI state.
+Action: Render log/status via Composables.
+Memory: Tie to engine's vector DB for log history.
+
+
+Data Flow: ViewModel exposes StateFlow<UiState>; UI observes, renders immutably.
+Integration Changes: Engine adds event emitter (e.g., Flow<GameEvent>); UI subscribes.
+
+5. Testing Requirements
+
+Focus: UI behaviors (e.g., log appends on output; input submits).
+Types:
+
+Unit: Composables with mocks.
+Integration: Mock engine for full flows (char select → play).
+Property-Based: Varied inputs/outputs.
+E2E: Simulated session with variability checks.
+
+
+Fixtures: Deterministic engine mocks.
+
+6. Next Steps
+
+Prototype UI: Basic Compose app with mocked engine.
+Integrate: Hook to real engine, test flows.
+This should feel polished—let's mock a session to verify UX.
