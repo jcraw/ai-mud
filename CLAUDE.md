@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: MULTI-USER ARCHITECTURE FOUNDATION COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, **multi-user capable world state**, and a working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
+**Current State: MULTI-USER SERVER INTEGRATION COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, **fully functional multi-user game server**, and working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
 - Complete Gradle multi-module setup with 7 modules
@@ -42,10 +42,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Pluggable vector stores** - Interface-based design for in-memory or persistent vector stores ✅
 - **Multi-user architecture foundation** - WorldState refactored for multiple players, per-player combat ✅
 
+- **Multi-user server integration** - GameServer and PlayerSession integrated into App.kt ✅
+- **MultiUserGame class** - Runs GameServer with thread-safe state management ✅
+- **Mode selection** - Choose between single-player and multi-user modes at startup ✅
+- **Fallback support** - Multi-user mode works with or without API key ✅
+
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
-1. **Multi-user game server integration** - Wire up GameServer to App.kt for actual multi-player gameplay
-2. **Dynamic quests** - Procedurally generated quest objectives
+1. **Dynamic quests** - Procedurally generated quest objectives
+2. **Network layer for multi-player** - TCP/WebSocket support for remote connections (optional)
 3. **Persistent memory storage** - Save/load vector embeddings to disk (optional enhancement)
 4. Later: More complex quest system, dynamic world events
 
@@ -205,7 +210,7 @@ Clean separation following the planned architecture:
 ✅ **Per-player event channels with asynchronous delivery**
 ✅ **All game intents supported in multi-user context**
 
-### Current Status: Multi-User Server Implementation Complete
+### Current Status: Multi-User Server Integration Complete 🎮
 ✅ All modules building successfully
 ✅ Game runs with LLM-powered descriptions, NPC dialogue, combat narration, AND RAG memory
 ✅ Sample dungeon fully navigable with vivid, atmospheric descriptions
@@ -238,6 +243,10 @@ Clean separation following the planned architecture:
 ✅ Event broadcasting system for player-to-player visibility
 ✅ Thread-safe WorldState management with Kotlin coroutines
 ✅ Complete game logic ported to multi-user context
+✅ **Multi-user server integrated** - GameServer wired into App.kt with mode selection
+✅ **MultiUserGame class** - Manages game server lifecycle and player sessions
+✅ **Mode selection at startup** - Choose between single-player or multi-user (local) modes
+✅ **Fallback LLM support** - Multi-user mode works without API key using mock clients
 
 ### Next Priority
 🔄 Dynamic quest generation
@@ -303,14 +312,17 @@ Clean separation following the planned architecture:
 
 1. **Set up API key**: Add `openai.api.key=sk-...` to `local.properties` (or set OPENAI_API_KEY env var)
 2. **Run the game**: `gradle installDist && app/build/install/app/bin/app`
-3. **Choose dungeon type**: At startup, select from:
+3. **Choose game mode**: At startup, select from:
+   - **Single-player mode** - Traditional single-player experience with save/load support
+   - **Multi-user mode (local)** - Uses GameServer architecture (future network support)
+4. **Choose dungeon type**: At startup, select from:
    - Sample Dungeon (handcrafted, 6 rooms)
    - Procedural Crypt (ancient tombs)
    - Procedural Castle (ruined fortress)
    - Procedural Cave (dark caverns)
    - Procedural Temple (forgotten shrine)
    - Specify room count for procedural dungeons (default: 10)
-4. **Commands available**:
+5. **Commands available**:
    - Movement: `n/s/e/w`, `north/south/east/west`, `go <direction>`
    - Interaction: `look [target]`, `take/get <item>`, `drop/put <item>`, `talk/speak <npc>`, `inventory/i`
    - Combat: `attack/kill/fight/hit <npc>` to start combat, then `attack` to continue
@@ -320,28 +332,29 @@ Clean separation following the planned architecture:
    - Social: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks
    - Persistence: `save [name]` to save game (defaults to 'quicksave'), `load [name]` to load game
    - Meta: `help`, `quit`
-5. **Dungeon types**:
+6. **Dungeon types**:
    - **Sample dungeon**: 6 handcrafted rooms with items (weapons, armor, potions, gold) and NPCs (Old Guard, Skeleton King)
    - **Procedural dungeons**: Dynamically generated with theme-appropriate traits, random NPCs, and distributed loot
-6. **LLM features**:
+7. **LLM features**:
    - Room descriptions dynamically generated using gpt-4o-mini with RAG context
    - NPC dialogue personality-driven (friendly vs hostile, health-aware) with conversation history
    - Combat narratives with visceral, atmospheric descriptions that build on previous rounds
    - Embeddings via text-embedding-3-small for semantic memory retrieval
-7. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
-8. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses that reference past conversations
-9. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
-10. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
-11. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
-12. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
-13. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
-14. **Skill check challenges**: 4 interactive features in sample dungeon - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
-15. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
-16. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
-17. **Procedural generation**: Create dungeons of any size with 4 themes, each with unique traits, NPCs with varied stats, and distributed loot
-18. **Persistence**: Save and load game state to/from JSON files - preserves player stats, inventory, equipment, combat state, and world state
-19. **Multi-user architecture**: Foundation complete - WorldState supports multiple players with independent states
-20. **Next logical step**: Implement GameServer and PlayerSession for actual multi-user gameplay, or add dynamic quest generation
+8. **Item mechanics**: Pick up items, drop them, equip weapons, use consumables
+9. **NPC interaction**: Talk to NPCs and get contextual, personality-driven responses that reference past conversations
+10. **Combat system**: Turn-based combat with health tracking, weapon damage bonuses, victory/defeat conditions
+11. **Equipment system**: Equip weapons to increase damage, equip armor to reduce damage taken
+12. **Skill system**: D&D-style stats (STR, DEX, CON, INT, WIS, CHA) with d20 + modifier vs DC
+13. **Combat modifiers**: STR affects damage dealt, armor defense reduces damage taken
+14. **Armor mechanics**: Chainmail (+4 defense) reduces incoming damage by 4, leather armor (+2) reduces by 2
+15. **Skill check challenges**: 4 interactive features in sample dungeon - loose stone (WIS/DC10), locked chest (DEX/DC15), stuck door (STR/DC20), runes (INT/DC15)
+16. **Social interactions**: Persuade Old Guard (CHA/DC10) for hints, intimidate Skeleton King (CHA/DC20) to avoid combat
+17. **RAG Memory**: All game events stored with embeddings, retrieved contextually for LLM prompts
+18. **Procedural generation**: Create dungeons of any size with 4 themes, each with unique traits, NPCs with varied stats, and distributed loot
+19. **Persistence**: Save and load game state to/from JSON files - preserves player stats, inventory, equipment, combat state, and world state
+20. **Multi-user architecture**: Complete integration - GameServer wired into App.kt with mode selection
+21. **Multi-user mode**: Choose at startup for server-based gameplay (ready for network layer)
+22. **Next logical step**: Add dynamic quest generation or network layer for remote multi-player
 
 ## Multi-User Architecture Details
 
@@ -370,9 +383,17 @@ The foundation for multi-user support is complete. Here's what was built:
 6. ✅ **All intents supported** - Move, Look, Attack, Talk, Take, Drop, Equip, Use, Check, Persuade, Intimidate, Inventory
 7. ✅ **Thread safety** - Kotlin coroutines with Mutex for safe concurrent access to WorldState
 
-### Remaining Work for Network Multi-User
-1. **Wire GameServer to App.kt** - Replace single-player loop with server-based multiplayer loop
-2. **Network layer** (optional) - For remote connections (could use stdio multiplexing for local multi-user MVP)
-3. **Add multi-user tests dependencies** - JUnit and kotlin.test dependencies for app module
+### Multi-User Server Integration (✅ COMPLETE)
+1. ✅ **MultiUserGame class** - Manages GameServer lifecycle and player sessions
+2. ✅ **Mode selection** - Choose between single-player and multi-user modes at startup
+3. ✅ **GameServer integration** - Wired into App.kt main() function
+4. ✅ **Fallback support** - Mock LLM clients for multi-user mode without API key
+5. ✅ **Complete game logic** - All intents work in multi-user context
+6. ✅ **Thread-safe** - Mutex-protected WorldState mutations for concurrent access
 
-The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, persistent save/load system, multi-user capable architecture, AND a fully-implemented GameServer with event broadcasting!
+### Remaining Work for Network Multi-User
+1. **Network layer** (optional) - TCP/WebSocket server for remote connections
+2. **Client protocol** - Message format for network communication
+3. **Add multi-user tests** - JUnit dependencies and integration tests for app module
+
+The feature-complete MVP has LLM-powered descriptions with RAG memory, full item system (pickup/drop/equip/use), NPC dialogue with conversation history, turn-based combat with weapons AND armor, stat-based skill checks (all 6 stats used!), interactive skill challenges, social interaction system with persuasion and intimidation, semantic memory retrieval for contextual narratives, procedural dungeon generation with 4 themes, persistent save/load system, multi-user capable architecture, fully-integrated GameServer with event broadcasting, AND mode selection for single-player vs multi-user gameplay!

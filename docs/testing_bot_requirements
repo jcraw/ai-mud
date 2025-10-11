@@ -1,0 +1,100 @@
+Testing Bot Requirements
+1. Overview
+
+Purpose: Automate testing of the MUD roleplaying engine by simulating player inputs, validating outputs, and logging gameplay (player actions + GM responses) to a file.
+Features:
+Generate natural language inputs via LLM (e.g., "I look around").
+Verify engine outputs for correctness/coherence using LLM.
+Test exploration, skills, combat; handle edge cases.
+Save gameplay log as a file (human readable text, like a story).
+Support console I/O, scalable to Discord.
+
+
+Tech:
+Kotlin, Gradle.
+LLM: GPT4_1Nano, mocked in tests.
+Unidirectional flow, immutable test state.
+ReAct loops for agentic testing.
+Log format: Structured (e.g., JSON: {timestamp, player_input, gm_response}).
+
+
+
+2. Functional Requirements
+2.1 Bot Behavior
+
+Input Generation: LLM prompt: "Generate player input for a MUD, targeting [scenario, e.g., combat]."
+Output Validation: LLM checks: "Does output match [criteria, e.g., unique room desc]? Return JSON {pass: bool, reason: str}."
+Scenarios:
+Predefined: Char select → Explore → Combat → Verify variability.
+Exploratory: Random inputs for robustness.
+Edge Cases: Ambiguous/invalid inputs.
+
+
+Address Detection: Test chit-chat vs. DM-addressed inputs; verify ignores.
+Gameplay Log: Save each turn (player input + GM response) to file.
+
+2.2 Test Flow
+
+Setup: Run engine in test mode (in-memory, mocked random).
+Loop:
+Generate input (LLM).
+Submit via engine’s I/O handler.
+Capture output; LLM validates.
+Log turn: {time: str, input: str, output: str} to file (e.g., gameplay_log.json).
+ReAct: Observe state/output, reason (pass/fail), act (next input/end).
+
+
+Coverage:
+Exploration: Test moves/looks; verify desc variability (LLM prompt: "Are descs different but consistent?").
+Skills: Check rolls/outcomes.
+Combat: Verify health updates, narrative quality.
+Coherence: Use RAG history in validation.
+
+
+
+2.3 Integration
+
+Hook: Use engine’s InputOutputHandler for console I/O.
+Async: Coroutines for future multi-bot tests.
+Log Output: Append to file after each turn; ensure atomic writes.
+
+3. Non-Functional Requirements
+
+Performance: Fast runs; mock LLMs in tests.
+Scalability: Add scenarios; support multi-bot later.
+Reliability: Handle engine crashes; log inputs/outputs, token counts, costs.
+Cost: Use cheap LLM; mock in dev.
+Flexibility: Configurable prompts; semantic parsing.
+
+4. Architecture
+
+Modules:
+Perception: Capture outputs + LLM analysis.
+Reasoning: LLM for input gen/validation (ReAct).
+Action: Submit inputs; log to file.
+Memory: Share engine’s vector DB; test state (data class TestState(scenario: TestScenario, results: List<StepResult>)).
+
+
+Data Flow: Immutable state; events update it.
+LLM Prompts: JSON outputs (e.g., validation: {pass: bool, details: str}).
+Log Storage: File-based (e.g., JSON or plain text); scalable to DB.
+
+5. Testing (Meta)
+
+Focus: Behavior (e.g., correct fail detection).
+Types:
+Unit: Mock LLM/engine.
+Integration: Mocked scenario runs.
+Property-Based: Varied inputs.
+E2E: One full session.
+
+
+Fixtures: Deterministic (fixed seeds, mock LLM).
+
+6. Next Steps
+
+Build harness: In-memory engine runner.
+Prototype scenario: Exploration with logging.
+Test it; ensure logs are clean and useful.
+
+Make sure this will scale so that multiple bots can test the same game in the future, so multiplayer can also be tested

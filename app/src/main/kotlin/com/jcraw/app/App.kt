@@ -26,11 +26,23 @@ fun main() {
     val apiKey = System.getenv("OPENAI_API_KEY")
         ?: System.getProperty("openai.api.key")
 
-    // Ask user if they want sample or procedural dungeon
     println("=" * 60)
     println("  AI-Powered MUD - Alpha Version")
     println("=" * 60)
-    println("\nSelect dungeon type:")
+
+    // Ask user for game mode
+    println("\nSelect game mode:")
+    println("  1. Single-player mode")
+    println("  2. Multi-user mode (local)")
+    print("\nEnter choice (1-2) [default: 1]: ")
+
+    val modeChoice = readLine()?.trim() ?: "1"
+    val isMultiUser = modeChoice == "2"
+
+    println()
+
+    // Ask user if they want sample or procedural dungeon
+    println("Select dungeon type:")
     println("  1. Sample Dungeon (handcrafted, 6 rooms)")
     println("  2. Procedural Crypt (ancient tombs)")
     println("  3. Procedural Castle (ruined fortress)")
@@ -70,33 +82,62 @@ fun main() {
 
     println()
 
-    val game = if (apiKey.isNullOrBlank()) {
+    // Initialize LLM components if API key is available
+    val llmClient = if (!apiKey.isNullOrBlank()) {
+        println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
+        OpenAIClient(apiKey)
+    } else {
         println("⚠️  OpenAI API key not found - using simple fallback mode")
         println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
-        MudGame(
-            initialWorldState = worldState,
-            descriptionGenerator = null,
-            npcInteractionGenerator = null,
-            combatNarrator = null,
-            memoryManager = null
-        )
-    } else {
-        println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
-        val llmClient = OpenAIClient(apiKey)
-        val memoryManager = MemoryManager(llmClient)
-        val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
-        val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
-        val combatNarrator = CombatNarrator(llmClient, memoryManager)
-        MudGame(
+        null
+    }
+
+    if (isMultiUser) {
+        // Multi-user mode
+        val memoryManager = llmClient?.let { MemoryManager(it) }
+        val descriptionGenerator = llmClient?.let { RoomDescriptionGenerator(it, memoryManager!!) }
+        val npcInteractionGenerator = llmClient?.let { NPCInteractionGenerator(it, memoryManager!!) }
+        val combatNarrator = llmClient?.let { CombatNarrator(it, memoryManager!!) }
+        val skillCheckResolver = SkillCheckResolver()
+        val combatResolver = CombatResolver()
+
+        val multiUserGame = MultiUserGame(
             initialWorldState = worldState,
             descriptionGenerator = descriptionGenerator,
             npcInteractionGenerator = npcInteractionGenerator,
             combatNarrator = combatNarrator,
-            memoryManager = memoryManager
+            memoryManager = memoryManager,
+            combatResolver = combatResolver,
+            skillCheckResolver = skillCheckResolver
         )
-    }
 
-    game.start()
+        multiUserGame.start()
+    } else {
+        // Single-player mode
+        val game = if (llmClient != null) {
+            val memoryManager = MemoryManager(llmClient)
+            val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
+            val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
+            val combatNarrator = CombatNarrator(llmClient, memoryManager)
+            MudGame(
+                initialWorldState = worldState,
+                descriptionGenerator = descriptionGenerator,
+                npcInteractionGenerator = npcInteractionGenerator,
+                combatNarrator = combatNarrator,
+                memoryManager = memoryManager
+            )
+        } else {
+            MudGame(
+                initialWorldState = worldState,
+                descriptionGenerator = null,
+                npcInteractionGenerator = null,
+                combatNarrator = null,
+                memoryManager = null
+            )
+        }
+
+        game.start()
+    }
 }
 
 class MudGame(
@@ -886,6 +927,237 @@ class MudGame(
         if (confirm == "y" || confirm == "yes") {
             running = false
         }
+    }
+}
+
+/**
+ * Multi-user game mode that runs GameServer and manages multiple player sessions
+ */
+class MultiUserGame(
+    private val initialWorldState: WorldState,
+    private val descriptionGenerator: RoomDescriptionGenerator?,
+    private val npcInteractionGenerator: NPCInteractionGenerator?,
+    private val combatNarrator: CombatNarrator?,
+    private val memoryManager: MemoryManager?,
+    private val combatResolver: CombatResolver,
+    private val skillCheckResolver: SkillCheckResolver
+) {
+    private lateinit var gameServer: GameServer
+
+    fun start() = runBlocking {
+        // Create fallback components if needed
+        val effectiveMemoryManager = memoryManager ?: createFallbackMemoryManager()
+        val effectiveDescGenerator = descriptionGenerator ?: createFallbackDescriptionGenerator(effectiveMemoryManager)
+        val effectiveNpcGenerator = npcInteractionGenerator ?: createFallbackNPCGenerator(effectiveMemoryManager)
+        val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
+
+        // Initialize game server
+        gameServer = GameServer(
+            worldState = initialWorldState,
+            memoryManager = effectiveMemoryManager,
+            roomDescriptionGenerator = effectiveDescGenerator,
+            npcInteractionGenerator = effectiveNpcGenerator,
+            combatResolver = combatResolver,
+            combatNarrator = effectiveCombatNarrator,
+            skillCheckResolver = skillCheckResolver
+        )
+
+        println("\n🎮 Multi-User Mode Enabled")
+        println("=" * 60)
+        println("This mode uses the multi-user server architecture.")
+        println("Future versions will support network connections for true multi-player.")
+        println("\nEnter your player name: ")
+
+        val playerName = readLine()?.trim()?.ifBlank { "Adventurer" } ?: "Adventurer"
+
+        println("\n🌟 Starting game for $playerName...")
+        println("=" * 60)
+
+        // Get starting room
+        val startingRoom = initialWorldState.rooms.values.first()
+
+        // Create player session
+        val playerId = "player_main"
+        val session = PlayerSession(
+            playerId = playerId,
+            playerName = playerName,
+            input = System.`in`.bufferedReader(),
+            output = System.out.writer().buffered().let { java.io.PrintWriter(it) }
+        )
+
+        gameServer.addPlayerSession(session, startingRoom.id)
+
+        // Run session
+        runPlayerSession(session)
+
+        println("\n\n🎮 Game ended. Thanks for playing!")
+    }
+
+    private suspend fun runPlayerSession(session: PlayerSession) {
+        var running = true
+
+        // Welcome message
+        session.sendMessage("\n" + "=" * 60)
+        session.sendMessage("  Welcome, ${session.playerName}!")
+        session.sendMessage("=" * 60)
+
+        // Show initial room
+        val initialRoom = gameServer.getWorldState().getCurrentRoom(session.playerId)
+        if (initialRoom != null) {
+            val description = descriptionGenerator?.generateDescription(initialRoom)
+                ?: initialRoom.traits.joinToString(". ") + "."
+            session.sendMessage("\n${initialRoom.name}")
+            session.sendMessage("-" * initialRoom.name.length)
+            session.sendMessage(description)
+        }
+
+        session.sendMessage("\nType 'help' for commands.\n")
+
+        while (running) {
+            // Process any pending events
+            val events = session.processEvents()
+            events.forEach { session.sendMessage(it) }
+
+            // Show prompt
+            session.sendMessage("\n[${session.playerName}] > ")
+
+            // Read input
+            val input = session.readLine() ?: break
+            if (input.trim().isBlank()) continue
+
+            // Parse intent
+            val intent = parseInput(input.trim())
+
+            // Check for quit
+            if (intent is Intent.Quit) {
+                session.sendMessage("Goodbye, ${session.playerName}!")
+                running = false
+                gameServer.removePlayerSession(session.playerId)
+                break
+            }
+
+            // Process intent through game server
+            val response = gameServer.processIntent(session.playerId, intent)
+            session.sendMessage(response)
+        }
+    }
+
+    private fun parseInput(input: String): Intent {
+        val parts = input.lowercase().split(" ", limit = 2)
+        val command = parts[0]
+        val args = parts.getOrNull(1)
+
+        return when (command) {
+            "go", "move", "n", "s", "e", "w", "north", "south", "east", "west",
+            "ne", "nw", "se", "sw", "northeast", "northwest", "southeast", "southwest",
+            "u", "d", "up", "down" -> {
+                val direction = when (command) {
+                    "n", "north" -> Direction.NORTH
+                    "s", "south" -> Direction.SOUTH
+                    "e", "east" -> Direction.EAST
+                    "w", "west" -> Direction.WEST
+                    "ne", "northeast" -> Direction.NORTHEAST
+                    "nw", "northwest" -> Direction.NORTHWEST
+                    "se", "southeast" -> Direction.SOUTHEAST
+                    "sw", "southwest" -> Direction.SOUTHWEST
+                    "u", "up" -> Direction.UP
+                    "d", "down" -> Direction.DOWN
+                    "go", "move" -> Direction.fromString(args ?: "") ?: return Intent.Invalid("Go where?")
+                    else -> return Intent.Invalid("Unknown direction")
+                }
+                Intent.Move(direction)
+            }
+            "look", "l" -> Intent.Look(args)
+            "interact" -> if (args.isNullOrBlank()) Intent.Invalid("Interact with what?") else Intent.Interact(args)
+            "take", "get", "pickup", "pick" -> if (args.isNullOrBlank()) Intent.Invalid("Take what?") else Intent.Take(args)
+            "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)
+            "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
+            "attack", "kill", "fight", "hit" -> Intent.Attack(args)
+            "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)
+            "use", "consume", "drink", "eat" -> if (args.isNullOrBlank()) Intent.Invalid("Use what?") else Intent.Use(args)
+            "check", "test", "attempt", "try" -> if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)
+            "persuade", "convince" -> if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)
+            "intimidate", "threaten" -> if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)
+            "inventory", "i" -> Intent.Inventory
+            "help", "h", "?" -> Intent.Help
+            "quit", "exit", "q" -> Intent.Quit
+            else -> Intent.Invalid("Unknown command: $command. Type 'help' for available commands.")
+        }
+    }
+
+    private fun createFallbackMemoryManager(): MemoryManager {
+        // Create memory manager with null client (will use in-memory store only)
+        return MemoryManager(null)
+    }
+
+    private fun createFallbackDescriptionGenerator(memoryManager: MemoryManager): RoomDescriptionGenerator {
+        // Create a simple mock LLM client that always throws to trigger fallback logic
+        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
+            override suspend fun chatCompletion(
+                modelId: String,
+                systemPrompt: String,
+                userContext: String,
+                maxTokens: Int,
+                temperature: Double
+            ): com.jcraw.sophia.llm.OpenAIResponse {
+                throw UnsupportedOperationException("Mock client - fallback mode")
+            }
+
+            override suspend fun createEmbedding(text: String, model: String): List<Double> {
+                return emptyList()
+            }
+
+            override fun close() {
+                // No-op for mock
+            }
+        }
+        return RoomDescriptionGenerator(mockClient, memoryManager)
+    }
+
+    private fun createFallbackNPCGenerator(memoryManager: MemoryManager): NPCInteractionGenerator {
+        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
+            override suspend fun chatCompletion(
+                modelId: String,
+                systemPrompt: String,
+                userContext: String,
+                maxTokens: Int,
+                temperature: Double
+            ): com.jcraw.sophia.llm.OpenAIResponse {
+                throw UnsupportedOperationException("Mock client - fallback mode")
+            }
+
+            override suspend fun createEmbedding(text: String, model: String): List<Double> {
+                return emptyList()
+            }
+
+            override fun close() {
+                // No-op for mock
+            }
+        }
+        return NPCInteractionGenerator(mockClient, memoryManager)
+    }
+
+    private fun createFallbackCombatNarrator(memoryManager: MemoryManager): CombatNarrator {
+        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
+            override suspend fun chatCompletion(
+                modelId: String,
+                systemPrompt: String,
+                userContext: String,
+                maxTokens: Int,
+                temperature: Double
+            ): com.jcraw.sophia.llm.OpenAIResponse {
+                throw UnsupportedOperationException("Mock client - fallback mode")
+            }
+
+            override suspend fun createEmbedding(text: String, model: String): List<Double> {
+                return emptyList()
+            }
+
+            override fun close() {
+                // No-op for mock
+            }
+        }
+        return CombatNarrator(mockClient, memoryManager)
     }
 }
 
