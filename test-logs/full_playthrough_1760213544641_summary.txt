@@ -1,0 +1,427 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: full_playthrough
+        Description: Complete playthrough from start to dungeon completion
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 100
+        - Passed: 38
+        - Failed: 62
+        - Pass Rate: 38%
+
+        Timing:
+        - Start: 2025-10-11T20:12:24.643072596Z
+        - End: 2025-10-11T20:25:51.402567951Z
+        - Duration: 806.76s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 5: ✗ FAIL
+Input: take some gold coins
+Reason: The response does not allow the player to take gold coins, which is inconsistent with the expected mechanics of the game.
+
+Step 6: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: search for hidden items
+Reason: The response does not address the player's action of searching for hidden items and instead repeats the room description without providing any new information about hidden items.
+
+Step 8: ✗ FAIL
+Input: go east
+Reason: The response does not allow the player to progress in the game as expected.
+
+Step 9: ✗ FAIL
+Input: go west
+Reason: The response does not provide a description of the area to the west, which is expected after the player input.
+
+Step 10: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: go north
+Reason: The response indicates a new area but does not follow the previous room's exit options correctly.
+
+Step 12: ✗ FAIL
+Input: search the throne
+Reason: The response does not provide any items or clues found while searching the throne, which is expected when performing a search action.
+
+Step 13: ✗ FAIL
+Input: check the throne for hidden compartments
+Reason: The response does not provide any information about hidden compartments or items, which is expected after searching the throne.
+
+Step 14: ✓ PASS
+Input: look around the Abandoned Throne Room
+Reason: Step completed successfully
+
+Step 15: ✗ FAIL
+Input: search the room for hidden items
+Reason: The GM response does not provide information about hidden items or clues, despite the player's specific request to search for them.
+
+Step 16: ✓ PASS
+Input: move north from the Abandoned Throne Room
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: look around the Hidden Chamber
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: examine the crystal formations
+Reason: Step completed successfully
+
+Step 19: ✗ FAIL
+Input: check the crystal formations for hidden items
+Reason: The response does not provide any information about hidden items and fails to advance the game state appropriately.
+
+Step 20: ✗ FAIL
+Input: move north from the Hidden Chamber
+Reason: The response does not allow the player to progress to a new room, which is expected after examining the area.
+
+Step 21: ✗ FAIL
+Input: look around the Hidden Chamber
+Reason: The GM response repeats the room name and does not provide a coherent description or acknowledge the player's previous actions.
+
+Step 22: ✗ FAIL
+Input: examine the crystal formations closely
+Reason: The response provides a detailed description but does not advance the game state or offer any new information that could aid in progression.
+
+Step 23: ✗ FAIL
+Input: take a crystal formation
+Reason: The response does not provide sufficient information about why the player cannot take the crystal formation.
+
+Step 24: ✗ FAIL
+Input: search the hidden chamber for hidden items
+Reason: The response does not address the player's action of searching for hidden items and instead provides a room description.
+
+Step 25: ✓ PASS
+Input: look around for exits or hidden passages
+Reason: Step completed successfully
+
+Step 26: ✓ PASS
+Input: examine the crystal formations closely
+Reason: Step completed successfully
+
+Step 27: ✗ FAIL
+Input: go north from the hidden chamber
+Reason: The response does not allow the player to progress from the hidden chamber, which contradicts the expectation of moving to a new area.
+
+Step 28: ✗ FAIL
+Input: search the hidden chamber for items
+Reason: The response does not provide any items or treasures found in the hidden chamber as expected.
+
+Step 29: ✓ PASS
+Input: look around for any hidden passages or secrets
+Reason: Step completed successfully
+
+Step 30: ✓ PASS
+Input: examine the crystal formations for anything useful
+Reason: Step completed successfully
+
+Step 31: ✗ FAIL
+Input: take a closer look at the nearest crystal formation
+Reason: The response does not provide any information about hidden items or further details about the properties of the crystal formation as expected.
+
+Step 32: ✗ FAIL
+Input: check the crystal formation for hidden items or effects
+Reason: The response does not provide any information about hidden items or effects, which is expected after the player input to check the crystal formation.
+
+Step 33: ✗ FAIL
+Input: look for an exit in the Hidden Chamber
+Reason: The response does not provide information about exits, which is expected in a room description.
+
+Step 34: ✗ FAIL
+Input: go w
+Reason: The response does not allow the player to progress in the game by moving west, which contradicts the expected outcome of entering a new room.
+
+Step 35: ✗ FAIL
+Input: examine the walls for any secret passages
+Reason: The response does not reveal whether there are any secret passages or items hidden within the walls, which was the player's intent.
+
+Step 36: ✗ FAIL
+Input: check the magical circles on the walls
+Reason: The response does not provide any details about the magical circles and fails to advance the game state appropriately.
+
+Step 37: ✗ FAIL
+Input: look around for any hidden items or clues
+Reason: The GM response does not address the player's input about looking for hidden items or clues, instead repeating the room description.
+
+Step 38: ✓ PASS
+Input: look closely at the crystal formations
+Reason: Step completed successfully
+
+Step 39: ✗ FAIL
+Input: search the chamber for hidden items
+Reason: The response does not provide information about any hidden items or clues, which was the player's request.
+
+Step 40: ✓ PASS
+Input: examine the crystal formations more closely
+Reason: Step completed successfully
+
+Step 41: ✗ FAIL
+Input: take a crystal formation
+Reason: The response does not provide sufficient context or explanation regarding why the player cannot take the crystal formation.
+
+Step 42: ✓ PASS
+Input: look around for any hidden passages or doors
+Reason: Step completed successfully
+
+Step 43: ✗ FAIL
+Input: search the hidden chamber for items
+Reason: The GM response does not reveal any items, treasures, or clues as expected from the player's search action.
+
+Step 44: ✓ PASS
+Input: examine the crystal formations more closely
+Reason: Step completed successfully
+
+Step 45: ✗ FAIL
+Input: check the crystal formations for any hidden items or mechanisms
+Reason: The response does not provide any information about hidden items or mechanisms as expected, which disrupts the natural progression of the game.
+
+Step 46: ✓ PASS
+Input: look around the hidden chamber for exits or paths
+Reason: Step completed successfully
+
+Step 47: ✗ FAIL
+Input: move north
+Reason: The response does not allow the player to progress in the game as expected, contradicting the player's intention to explore further.
+
+Step 48: ✗ FAIL
+Input: examine the crystal formations closely for any hidden passages
+Reason: The response does not reveal any hidden passages or items related to the crystal formations, failing to enhance exploration options.
+
+Step 49: ✗ FAIL
+Input: search the hidden chamber for hidden items or secrets
+Reason: The GM response does not reveal any hidden items or secrets as expected, which is a key part of the player's action to search the hidden chamber.
+
+Step 50: ✗ FAIL
+Input: look at the crystal formations to see if there's anything unusual about them
+Reason: The response does not advance the game state or provide new information about the crystal formations as expected.
+
+Step 51: ✗ FAIL
+Input: touch one of the crystal formations to see if it reacts
+Reason: The response indicates that the command is not supported, which halts the game progression and does not align with expected outcomes.
+
+Step 52: ✓ PASS
+Input: examine the magical circles around the crystal formations
+Reason: Step completed successfully
+
+Step 53: ✗ FAIL
+Input: go north
+Reason: The response does not allow the player to progress in the game, which is not consistent with the expected outcome of moving to a new room.
+
+Step 54: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 55: ✓ PASS
+Input: examine the crystal formations
+Reason: Step completed successfully
+
+Step 56: ✗ FAIL
+Input: take a crystal formation
+Reason: The response does not provide an explanation for why the player cannot take the crystal formation, which is important for coherence and game progression.
+
+Step 57: ✗ FAIL
+Input: go north
+Reason: The response does not allow the player to progress to the next room, which is expected after examining the crystal formations.
+
+Step 58: ✓ PASS
+Input: look at the walls
+Reason: Step completed successfully
+
+Step 59: ✗ FAIL
+Input: examine the etchings on the walls
+Reason: The response does not provide a description of the etchings, which is expected given the previous input about looking at the walls.
+
+Step 60: ✗ FAIL
+Input: search the hidden chamber for hidden items
+Reason: The response does not address the player's action of searching for hidden items and instead repeats the room description.
+
+Step 61: ✓ PASS
+Input: look around the hidden chamber for any exits or items
+Reason: Step completed successfully
+
+Step 62: ✗ FAIL
+Input: move north from the hidden chamber
+Reason: The response does not allow the player to progress from the hidden chamber, which contradicts the expectation of finding an exit or moving to a new room.
+
+Step 63: ✓ PASS
+Input: examine the crystal formations
+Reason: Step completed successfully
+
+Step 64: ✗ FAIL
+Input: take a closer look at the crystal formations
+Reason: The response does not advance the game state or provide the expected outcome of discovering hidden items or lore.
+
+Step 65: ✓ PASS
+Input: look around the hidden chamber again
+Reason: Step completed successfully
+
+Step 66: ✓ PASS
+Input: search the crystal formations
+Reason: Step completed successfully
+
+Step 67: ✗ FAIL
+Input: check the crystal formations for hidden items
+Reason: The response does not provide any hidden items or clues, which contradicts the player's expectation and the context of the previous interactions.
+
+Step 68: ✗ FAIL
+Input: go north
+Reason: The response does not allow the player to progress in the game, which contradicts the expected outcome of moving to a new area.
+
+Step 69: ✓ PASS
+Input: look around the Hidden Chamber
+Reason: Step completed successfully
+
+Step 70: ✓ PASS
+Input: examine the crystal formations closely
+Reason: Step completed successfully
+
+Step 71: ✗ FAIL
+Input: take a closer look at the kaleidoscope of colors
+Reason: The response does not provide meaningful interaction with the environment and fails to progress the game naturally.
+
+Step 72: ✗ FAIL
+Input: search the Hidden Chamber for hidden items
+Reason: The GM response does not address the player's action of searching for hidden items and instead repeats the room description without revealing any hidden items or secrets.
+
+Step 73: ✓ PASS
+Input: look around the Hidden Chamber for clues or items
+Reason: Step completed successfully
+
+Step 74: ✓ PASS
+Input: examine the crystal formations more closely
+Reason: Step completed successfully
+
+Step 75: ✗ FAIL
+Input: take a closer look at one of the crystals to see if I can find anything hidden within
+Reason: The response does not allow for interaction with the crystals as expected and lacks progression in the game state.
+
+Step 76: ✗ FAIL
+Input: check one of the crystal formations for hidden items
+Reason: The response does not provide any information about hidden items or clues, which is expected after the player's input to check the crystal formations.
+
+Step 77: ✓ PASS
+Input: look around the Hidden Chamber for any exits or hidden paths
+Reason: Step completed successfully
+
+Step 78: ✗ FAIL
+Input: move north to explore the Hidden Chamber further
+Reason: The response does not allow for progression in the game and contradicts the expectation of exploring the Hidden Chamber further.
+
+Step 79: ✗ FAIL
+Input: look closely at the crystal formations for any hidden passages
+Reason: The response does not advance the game state or reveal any hidden passages or items as expected.
+
+Step 80: ✗ FAIL
+Input: check the crystal formations for any useful items or clues
+Reason: The response does not provide any useful information about items or clues, which contradicts the player's action of checking the crystal formations.
+
+Step 81: ✗ FAIL
+Input: search the hidden chamber for secret doors or passages
+Reason: The GM response does not address the player's specific action of searching for secret doors or passages and instead repeats the room description.
+
+Step 82: ✗ FAIL
+Input: look for exit in hidden chamber
+Reason: The GM response does not provide clear information about exits or pathways, which is essential for the player's action of looking for an exit.
+
+Step 83: ✓ PASS
+Input: inspect the crystal formations more closely
+Reason: Step completed successfully
+
+Step 84: ✗ FAIL
+Input: take a closer look at the pulsing crystals and see if I can collect one
+Reason: The response does not address the player's intent to collect a crystal or provide information about the feasibility of doing so.
+
+Step 85: ✗ FAIL
+Input: check the pulsing crystals for any hidden items or secrets
+Reason: The response does not provide any new information or progress the game, which is inconsistent with the player's previous actions and expectations.
+
+Step 86: ✓ PASS
+Input: look around the Hidden Chamber for any exits or strange features
+Reason: Step completed successfully
+
+Step 87: ✗ FAIL
+Input: move north
+Reason: The response does not allow the player to progress, which contradicts the expected outcome of moving to the next area.
+
+Step 88: ✓ PASS
+Input: examine the crystal formations
+Reason: Step completed successfully
+
+Step 89: ✗ FAIL
+Input: take a closer look at the crystal formations and check if any of them are loose or have hidden compartments
+Reason: The response does not address the player's specific action of checking for loose crystals or hidden compartments.
+
+Step 90: ✗ FAIL
+Input: search the Hidden Chamber for hidden items or clues
+Reason: The GM response does not address the player's action of searching for hidden items or clues, instead providing a description of the chamber without revealing any items or clues.
+
+Step 91: ✓ PASS
+Input: look deeper into the shadows of the Hidden Chamber
+Reason: Step completed successfully
+
+Step 92: ✗ FAIL
+Input: examine the crystal formations for any hidden mechanisms or passages
+Reason: The response describes the crystal formations but does not reveal any hidden mechanisms or passages as expected.
+
+Step 93: ✗ FAIL
+Input: take a closer look at one of the crystal formations to see if I can find a way to activate it
+Reason: The response does not provide any indication of discovering a hidden mechanism or item, which is expected based on the player's input.
+
+Step 94: ✗ FAIL
+Input: touch one of the crystal formations to see if it reacts
+Reason: The game response indicates a command is not supported, which halts progression and does not provide a coherent narrative.
+
+Step 95: ✗ FAIL
+Input: look for hidden passages or items in the Hidden Chamber
+Reason: The response does not address the player's specific input about looking for hidden passages or items, instead repeating the room description without providing new information.
+
+Step 96: ✗ FAIL
+Input: search the area for hidden items or passages
+Reason: The response does not provide any information about hidden items or passages as expected, and it repeats the previous description without advancing the game state.
+
+Step 97: ✓ PASS
+Input: examine the crystal formations closely
+Reason: Step completed successfully
+
+Step 98: ✗ FAIL
+Input: take a closer look at the glistening surfaces of the crystals to see if any are loose or can be removed
+Reason: The response does not address the player's specific action of checking if any crystals are loose or can be removed.
+
+Step 99: ✗ FAIL
+Input: check my inventory for useful items or gear
+Reason: The response indicates that the player has no items in their inventory, which may not align with previous actions that could have yielded items.
+
+Step 100: ✓ PASS
+Input: look around the hidden chamber for anything unusual or out of place
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

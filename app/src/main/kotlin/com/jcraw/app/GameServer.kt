@@ -18,7 +18,8 @@ class GameServer(
     private val npcInteractionGenerator: NPCInteractionGenerator,
     private val combatResolver: CombatResolver,
     private val combatNarrator: CombatNarrator,
-    private val skillCheckResolver: SkillCheckResolver
+    private val skillCheckResolver: SkillCheckResolver,
+    private val sceneryGenerator: SceneryDescriptionGenerator
 ) {
     private val sessions = mutableMapOf<PlayerId, PlayerSession>()
     private val stateMutex = Mutex()
@@ -223,8 +224,16 @@ class GameServer(
         } else {
             // Look at specific entity
             val entity = currentRoom.entities.find { it.name.equals(target, ignoreCase = true) }
-            val response = entity?.description ?: "You don't see that here."
-            Triple(response, worldState, null)
+
+            if (entity != null) {
+                Triple(entity.description, worldState, null)
+            } else {
+                // Try scenery
+                val roomDescription = roomDescriptionGenerator.generateDescription(currentRoom)
+                val sceneryDescription = sceneryGenerator.describeScenery(target, currentRoom, roomDescription)
+                val response = sceneryDescription ?: "You don't see that here."
+                Triple(response, worldState, null)
+            }
         }
     }
 

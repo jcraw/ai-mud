@@ -9,6 +9,7 @@ import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.*
 import com.jcraw.sophia.llm.LLMClient
+import kotlinx.coroutines.runBlocking
 
 /**
  * In-memory game engine implementation for testing.
@@ -28,6 +29,7 @@ class InMemoryGameEngine(
     private val combatResolver = CombatResolver()
     private val skillCheckResolver = SkillCheckResolver()
     private val intentRecognizer = IntentRecognizer(llmClient)
+    private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
 
     override suspend fun processInput(input: String): String {
         if (!running) return "Game is not running."
@@ -88,7 +90,15 @@ class InMemoryGameEngine(
             val entity = room.entities.find { e ->
                 e.name.lowercase().contains(target.lowercase()) || e.id.lowercase().contains(target.lowercase())
             }
-            entity?.description ?: "You don't see that here."
+
+            if (entity != null) {
+                entity.description
+            } else {
+                // Try to describe scenery
+                val roomDescription = buildRoomDescription(room)
+                val sceneryDescription = sceneryGenerator.describeScenery(target, room, roomDescription)
+                sceneryDescription ?: "You don't see that here."
+            }
         }
     }
 

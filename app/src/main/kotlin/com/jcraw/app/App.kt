@@ -8,6 +8,7 @@ import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
+import com.jcraw.mud.reasoning.SceneryDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
 import com.jcraw.mud.reasoning.CombatNarrator
@@ -168,6 +169,7 @@ class MudGame(
     private val skillCheckResolver = SkillCheckResolver()
     private val persistenceManager = PersistenceManager()
     private val intentRecognizer = IntentRecognizer(llmClient)
+    private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
 
     fun start() {
         printWelcome()
@@ -294,7 +296,17 @@ class MudGame(
             if (entity != null) {
                 println(entity.description)
             } else {
-                println("You don't see that here.")
+                // Try to describe scenery (non-entity objects like walls, floor, etc.)
+                val roomDescription = generateRoomDescription(room)
+                val sceneryDescription = runBlocking {
+                    sceneryGenerator.describeScenery(target, room, roomDescription)
+                }
+
+                if (sceneryDescription != null) {
+                    println(sceneryDescription)
+                } else {
+                    println("You don't see that here.")
+                }
             }
         }
     }
@@ -1012,6 +1024,7 @@ class MultiUserGame(
         val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
 
         // Initialize game server
+        val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
         gameServer = GameServer(
             worldState = initialWorldState,
             memoryManager = effectiveMemoryManager,
@@ -1019,7 +1032,8 @@ class MultiUserGame(
             npcInteractionGenerator = effectiveNpcGenerator,
             combatResolver = combatResolver,
             combatNarrator = effectiveCombatNarrator,
-            skillCheckResolver = skillCheckResolver
+            skillCheckResolver = skillCheckResolver,
+            sceneryGenerator = sceneryGenerator
         )
 
         println("\n🎮 Multi-User Mode Enabled")
