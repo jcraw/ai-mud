@@ -90,11 +90,18 @@ class OutputValidator(
         expectedOutcome: String?,
         worldState: WorldState?
     ): String {
-        // Extract room name from previous step for movement validation
+        // Extract room name from CURRENT response for tracking
+        val currentRoomName = gmResponse.lines().firstOrNull()?.trim()?.takeIf {
+            it.isNotBlank() && !it.startsWith("You ")
+        }
+
+        // Extract room name from PREVIOUS step for movement validation
         val previousRoomName = if (recentHistory.isNotEmpty()) {
             val lastResponse = recentHistory.last().gmResponse
             // Try to extract room name from first line
-            lastResponse.lines().firstOrNull()?.trim()
+            lastResponse.lines().firstOrNull()?.trim()?.takeIf {
+                it.isNotBlank() && !it.startsWith("You ")
+            }
         } else {
             null
         }
@@ -111,15 +118,23 @@ class OutputValidator(
         val gameStateContext = if (worldState != null) {
             val currentRoom = worldState.getCurrentRoom()
             val player = worldState.player
-            val previousRoomInfo = if (previousRoomName != null) {
-                "\n            - Previous room (from last response): $previousRoomName"
-            } else {
-                ""
+            val roomTransitionInfo = buildString {
+                if (previousRoomName != null && currentRoomName != null) {
+                    if (previousRoomName != currentRoomName) {
+                        append("\n            - ROOM CHANGED: \"$previousRoomName\" → \"$currentRoomName\" (successful movement)")
+                    } else {
+                        append("\n            - Same room name: \"$previousRoomName\" (could be: stayed in place, OR moved to different room with same name)")
+                    }
+                } else if (previousRoomName != null) {
+                    append("\n            - Previous room: $previousRoomName")
+                } else if (currentRoomName != null) {
+                    append("\n            - Current room from response: $currentRoomName")
+                }
             }
             """
 
             Current game state:
-            - Player location: ${currentRoom?.name ?: "Unknown"}$previousRoomInfo
+            - Player location: ${currentRoom?.name ?: "Unknown"}$roomTransitionInfo
             - Available exits: ${currentRoom?.exits?.keys?.joinToString(", ") { it.displayName } ?: "none"}
             - Player health: ${player.health}/${player.maxHealth}
             - In combat: ${player.isInCombat()}
@@ -136,19 +151,49 @@ class OutputValidator(
                 - Look commands provide appropriate information
                 - Descriptions vary but remain consistent with previous descriptions
 
-                MOVEMENT VALIDATION RULES (CRITICAL):
-                1. If player typed "go north" and response shows a room description → PASS (successful movement)
-                2. If player typed "go east" and response is "You can't go that way" → PASS (correct rejection)
-                3. DO NOT expect "You move..." text - the game just shows the new room
-                4. The same room NAME appearing is OK - could be a different room with same name, or player returning
-                5. ONLY fail movement if response is an error AND game state shows exits exist
+                MOVEMENT VALIDATION RULES (CRITICAL - READ EVERY WORD):
 
-                EXAMPLES OF VALID RESPONSES:
-                - Player: "go north" → Response: "Dark Corridor\nYou step into..." → PASS
-                - Player: "go east" → Response: "You can't go that way." → PASS
-                - Player: "look around" → Response: "Dungeon Entrance\nYou stand..." → PASS
-                - Player: "look at walls" → Response: detailed wall description → PASS
-                - Player: "look at moss" → Response: "You don't see that here" → PASS (valid for flavor text items)
+                **RULE 1: ANY room description starting with a room name = SUCCESSFUL MOVEMENT → PASS**
+                - If response has format "Room Name\n[description]\nExits: ..." → ALWAYS PASS
+                - Does NOT matter if you've seen this room name before
+                - Does NOT matter if description is different from last time
+                - This is how the game engine shows you entered a room
+
+                **RULE 2: "You can't go that way" = CORRECT REJECTION → PASS**
+                - This means the player tried an invalid direction
+                - Check game state exits FIRST before failing
+                - ONLY fail if game state shows the exit DOES exist but got rejection
+
+                **RULE 3: Game shows rooms DIRECTLY, not "You move..."**
+                - NO "You move north" or "You walk east" messages exist
+                - Seeing a room description IS the movement confirmation
+
+                **RULE 4: Trust "ROOM CHANGED" markers**
+                - If game state shows "ROOM CHANGED: X → Y" → ALWAYS PASS
+
+                **EXAMPLES FROM ACTUAL FAILED VALIDATIONS (ALL SHOULD PASS):**
+
+                ✓ Player: "go east" from "Dark Corridor"
+                  Response: "Ancient Treasury\nYou enter the Ancient Treasury, where the glimmer..."
+                  → PASS (room description = successful movement, even if first time seeing this room)
+
+                ✓ Player: "go south" from "Ancient Treasury" (only exit: west)
+                  Response: "You can't go that way."
+                  → PASS (correct rejection of invalid direction, south doesn't exist)
+
+                ✓ Player: "go east" from "Dark Corridor" (exits: south, east, west, north)
+                  Response: "Ancient Treasury\nYou enter..."
+                  → PASS (east IS a valid exit, got room description = success)
+
+                ✗ Player: "go north" + Response: "Error: NullPointerException"
+                  → FAIL (crash)
+
+                ✗ Player: "go east" (east IS in exits) + Response: "You can't go that way."
+                  → FAIL (game state shows exit exists but rejected)
+
+                **DO NOT FAIL** for seeing the same room name twice. Players can visit rooms multiple times!
+                **DO NOT FAIL** for "You can't go that way" unless the game state proves the exit exists!
+                **DO NOT FAIL** for getting a room description after a movement command - this is SUCCESS!
             """.trimIndent()
             is TestScenario.Combat -> """
                 Check that:

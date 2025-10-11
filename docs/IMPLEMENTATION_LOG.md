@@ -179,23 +179,48 @@ This document tracks all completed features and implementations in chronological
 - **Fallback LLM support** - Multi-user mode works without API key using mock clients
 - **Quest system** - Players can accept, track, and complete procedurally generated quests
 
-## Test Bot Validation Fixes (2025-10-11) 🔧
+## Test Bot Validation Fixes - Round 2 & 3 (2025-10-11) 🔧
 
-**Issue**: Exploration test scenario was incorrectly failing valid game responses due to overly strict validation logic.
+**Issue**: Exploration test scenario had false failures due to LLM validator misinterpreting valid game responses.
+- **Initial**: 70% pass rate (14/20, 6 false failures)
+- **After Round 2**: 85% pass rate (17/20, 3 false failures)
+- **Round 3 goal**: 95%+ pass rate (19-20/20)
 
-**Problems Identified**:
-- Validator expected explicit "You move north" text but game correctly just shows new room description after movement
-- "You can't go that way" for invalid exits was incorrectly marked as FAIL
-- Validator couldn't track room state changes when rooms had the same name
+**Root Causes Identified**:
+1. **LLM validator confusion about room entry** (Round 3) - Validator saw "Ancient Treasury" description after "go east" and thought player "remained in same room" or "entered again", when actually it was the FIRST successful entry
+2. **Invalid direction rejection misunderstood** (Round 3) - Validator failed "You can't go that way" responses even when the direction was correctly invalid (e.g., "go south" when only "west" exit exists)
+3. **No room transition tracking** (Round 2) - Validator couldn't see if player moved from "Room A" → "Room B"
+4. **Missing explicit movement text** (Round 2) - Game shows new room directly, not "You move north"
+5. **Validation rules not explicit enough** (Round 2 & 3) - LLM needed increasingly explicit instructions with real examples
 
 **Changes Made** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt`):
-1. Updated exploration validation criteria to recognize that room descriptions after movement ARE successful movements
-2. Clarified that "You can't go that way" is the correct response for invalid exits
-3. Added previous room name tracking to validation context for better state awareness
 
-**Status**: 🟡 Fixes applied, awaiting test verification
+**Round 2 fixes** (lines 85-171):
+1. Enhanced room tracking - Extract both current and previous room names from responses
+2. Explicit transition detection - Show "ROOM CHANGED: X → Y" message in validation context
+3. Strengthened validation rules - Added real examples from failed tests
+4. Clear pass/fail criteria - Emphasized room description = successful movement
+
+**Round 3 fixes** (lines 147-197):
+1. **Ultra-explicit validation rules** - RULE 1-4 format in ALL CAPS with detailed explanations
+2. **Real examples from actual failed validations** - Copied exact scenarios from step 7, 16, 20 failures
+3. **Negative examples** - Show what SHOULD fail (crashes, rejections when exit exists)
+4. **Triple emphasis on "DO NOT FAIL"** - Explicit warnings about room revisits, correct rejections, room descriptions after movement
+
+**Failed Test Analysis** (from `test-logs/exploration_1760225557539_summary.txt`):
+- **Step 7 & 16**: "go east" → "Ancient Treasury" description → Validator INCORRECTLY failed
+  - Fixed: Added explicit example matching this scenario to validation rules
+- **Step 20**: "go south" (invalid) → "You can't go that way" → Validator INCORRECTLY failed
+  - Fixed: Emphasized checking game state exits BEFORE failing on rejections
+
+**Technical Details**:
+- Lines 93-107: Extract current and previous room names, filtering out "You..." responses
+- Lines 121-133: Build room transition info showing explicit room changes
+- Lines 147-197: Updated exploration scenario with RULE 1-4 format and real failure examples
+
+**Status**: ✅ Round 3 fixes implemented and built. **Awaiting test run** to verify if LLM validator now understands.
 
 **Next Steps**:
-- Run `gradle :testbot:run --args="exploration"` to verify improved pass rate
-- Analyze results and refine validation prompts if needed
-- Apply similar improvements to other test scenarios
+1. Run `gradle :testbot:run --args="exploration"` to check if pass rate improved to 95%+
+2. If still failing: Consider switching to rule-based validation (regex for room names) instead of LLM-based
+3. Apply same validation improvements to other test scenarios (combat, skill checks, etc.)

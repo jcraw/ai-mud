@@ -1,0 +1,107 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: exploration
+        Description: Test room navigation, look commands, and description variability
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 20
+        - Passed: 17
+        - Failed: 3
+        - Pass Rate: 85%
+
+        Timing:
+        - Start: 2025-10-11T23:43:32.984116093Z
+        - End: 2025-10-11T23:46:36.763604671Z
+        - Duration: 183.78s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: look at the gold coins
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: look at the treasure chest
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: look around the Ancient Treasury
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: look at the gold coins on the ground
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: go west
+Reason: The response indicates the player is still in the Dark Corridor, which suggests that the movement to the west was not successful, despite the game state showing that west is a valid exit.
+
+Step 12: ✓ PASS
+Input: look at the walls of the Dark Corridor
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the response indicates they are still in the Ancient Treasury without any indication of a new room or obstacle.
+
+Step 14: ✓ PASS
+Input: look at the scattered gold coins
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: look around the Ancient Treasury
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the response indicates they returned to the Ancient Treasury, which contradicts the expected behavior since the player should have entered a new room or received a rejection message for an invalid direction.
+
+Step 18: ✓ PASS
+Input: look at the gold coins
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: look around the Ancient Treasury
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
