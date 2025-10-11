@@ -8,6 +8,8 @@ dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
+        google()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
@@ -28,5 +30,6 @@ include(":reasoning")
 include(":memory")
 include(":action")
 include(":testbot")
+include(":client")
 
 rootProject.name = "ai-mud"

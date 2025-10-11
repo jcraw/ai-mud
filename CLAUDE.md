@@ -4,12 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: QUEST SYSTEM COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, **dynamic quest system**, persistent save/load system, fully functional multi-user game server, and working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, and RAG-enhanced memory system for contextual narratives.
+**Current State: GUI CLIENT WITH REAL ENGINE INTEGRATION COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, **dynamic quest system**, persistent save/load system, fully functional multi-user game server, **fully integrated Compose Multiplatform GUI client**, and working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, and RAG-enhanced memory system for contextual narratives.
 
-**Quick Start**: `gradle installDist && app/build/install/app/bin/app`
+**Quick Start**:
+- Console: `gradle installDist && app/build/install/app/bin/app`
+- GUI Client: `gradle :client:run`
 
 For complete documentation, see:
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Setup, commands, gameplay features
+- **[Client UI Guide](docs/CLIENT_UI.md)** - Graphical client documentation
 - **[Architecture Documentation](docs/ARCHITECTURE.md)** - Module structure, data flow, component details
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological list of completed features
 - **[Multi-User Architecture](docs/MULTI_USER.md)** - Multi-player system details
@@ -17,7 +20,7 @@ For complete documentation, see:
 ## What's Implemented
 
 ### Core Systems ✅
-- **8 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, utils
+- **9 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
 - **World model**: Room, WorldState, PlayerState, Entity hierarchy, CombatState, Direction
 - **Multi-user architecture**: Multiple concurrent players with thread-safe state management
 - **Intent system**: 18+ intent types for player actions
@@ -45,9 +48,19 @@ For complete documentation, see:
 - **Event broadcasting**: Players see actions in their room
 - **Mode selection**: Single-player or multi-user at startup
 
+### UI Client ✅
+- **Compose Multiplatform**: Desktop GUI with fantasy theme
+- **Real engine integration**: EngineGameClient wraps complete MudGame engine
+- **Character selection**: 5 pre-made templates (Warrior, Rogue, Mage, Cleric, Bard)
+- **Full gameplay**: All game systems work through GUI (combat, quests, equipment, etc.)
+- **Game log**: Scrollable, color-coded message history
+- **Command input**: Text field with history navigation (up/down arrows)
+- **Status bar**: HP, gold, XP, theme toggle, copy log
+- **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
+
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: 60+ tests across all modules
+- **Comprehensive tests**: 67+ tests across all modules (including 7 UI tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -62,30 +75,39 @@ Priority tasks:
 ### Build and Development
 - `gradle build` - Build the project (requires Java 17 toolchain)
 - `gradle test` - Run all tests
-- `gradle installDist && app/build/install/app/bin/app` - **Run the game!**
+- `gradle installDist && app/build/install/app/bin/app` - **Run console game**
+- `gradle :client:run` - **Run GUI client**
 
 ### Testing
 - `gradle test` - Run unit tests across all modules
 - `gradle :core:test` - Run tests for specific module
+- `gradle :client:test` - Run UI client tests
 - `gradle :testbot:run` - Run automated test bot (requires OpenAI API key)
 - `./test_quests.sh` - Run quest testing scenario specifically
 
 ## Project Structure
 
 ### Modules
-- **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest)
+- **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest, GameClient, GameEvent)
 - **perception** - Input parsing and intent recognition
 - **reasoning** - LLM-powered content generation and game logic
 - **memory** - Vector database integration and state persistence
 - **action** - Output formatting and narration
 - **llm** - OpenAI client and LLM interfaces
 - **app** - Main game application and console interface
+- **client** - Compose Multiplatform GUI client
 - **testbot** - Automated testing system with LLM-powered validation
 - **utils** - Shared utilities
 
 ### Key Files
-- **Main app**: `app/src/main/kotlin/com/jcraw/app/App.kt`
+- **Console app**: `app/src/main/kotlin/com/jcraw/app/App.kt`
+- **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/Main.kt`
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
+- **Client architecture**:
+  - `core/src/main/kotlin/com/jcraw/mud/core/GameClient.kt` - Client interface
+  - `core/src/main/kotlin/com/jcraw/mud/core/GameEvent.kt` - Event types
+  - `client/src/main/kotlin/com/jcraw/mud/client/GameViewModel.kt` - State management
+  - `client/src/main/kotlin/com/jcraw/mud/client/ui/` - UI screens
 - **Quest system**:
   - `core/src/main/kotlin/com/jcraw/mud/core/Quest.kt`
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/QuestGenerator.kt`
@@ -189,15 +211,18 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 ## Documentation
 
 - **[Getting Started](docs/GETTING_STARTED.md)** - Setup, commands, gameplay walkthrough
+- **[Client UI](docs/CLIENT_UI.md)** - GUI client documentation and usage
 - **[Architecture](docs/ARCHITECTURE.md)** - Module structure, data flow, file locations
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
 ## Next Developer
 
-The quest system and automated testing are complete! Next priorities:
-1. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
-2. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
-3. **Persistent vector storage** (optional) - Save/load embeddings to disk
+The GUI client with real engine integration, quest system, and automated testing are complete! Next priorities:
+1. **Analyze and fix issues in full_playthrough_1760213544641.txt**
+2. ~~**Connect GUI client to real game engine**~~ - ✅ **COMPLETE** - EngineGameClient fully integrated
+3. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
+4. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
+5. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
 See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.
