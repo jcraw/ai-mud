@@ -1,0 +1,107 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: exploration
+        Description: Test room navigation, look commands, and description variability
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 20
+        - Passed: 5
+        - Failed: 15
+        - Pass Rate: 25%
+
+        Timing:
+        - Start: 2025-10-11T23:11:49.699608272Z
+        - End: 2025-10-11T23:14:37.193059154Z
+        - Duration: 167.49s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go north
+Reason: The response does not provide a new room description after the player moves north, instead repeating the previous room description.
+
+Step 3: ✗ FAIL
+Input: look around
+Reason: The room description for 'look around' in the Dark Corridor is repetitive and does not introduce new information or variability, despite being coherent.
+
+Step 4: ✗ FAIL
+Input: go south
+Reason: The player attempted to go south but was returned to the Dungeon Entrance without an error message, indicating a failure in movement mechanics.
+
+Step 5: ✗ FAIL
+Input: go east
+Reason: The response does not provide a new room description or appropriate information for the player's action.
+
+Step 6: ✓ PASS
+Input: look at the stone archway
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: look around
+Reason: The response does not provide a detailed description of the Dungeon Entrance as expected and repeats the previous description without adding new information.
+
+Step 8: ✗ FAIL
+Input: go north
+Reason: The response does not indicate whether the player can move north and instead repeats the current room description without acknowledging the movement.
+
+Step 9: ✗ FAIL
+Input: look at the moss on the walls
+Reason: The response does not provide a description of the moss, which is expected based on the player's input.
+
+Step 10: ✗ FAIL
+Input: look down
+Reason: The response to 'look down' is not appropriate as it fails to provide any description of the floor, which is expected.
+
+Step 11: ✗ FAIL
+Input: go south
+Reason: The response indicates the player is still at the Dungeon Entrance after attempting to go south, which is not valid as there are no exits to the south.
+
+Step 12: ✗ FAIL
+Input: go east
+Reason: The response does not reflect a valid movement option and fails to provide a new room description.
+
+Step 13: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: go north
+Reason: The response indicates the player is still in the Dark Corridor despite attempting to go north, which suggests the movement did not succeed.
+
+Step 15: ✓ PASS
+Input: look at the walls
+Reason: Step completed successfully
+
+Step 16: ✗ FAIL
+Input: go south
+Reason: The response does not reflect the player's movement south as expected; it incorrectly returns to the Dungeon Entrance without acknowledging the previous room.
+
+Step 17: ✗ FAIL
+Input: go east
+Reason: The response does not provide a new room description for a valid movement attempt, and instead incorrectly states that the player can't go that way.
+
+Step 18: ✗ FAIL
+Input: go north
+Reason: The response does not indicate a successful movement into a new room, but rather repeats the description of the current room.
+
+Step 19: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 20: ✗ FAIL
+Input: go south
+Reason: The response incorrectly allowed movement south from the Dark Corridor to the Dungeon Entrance, which should not be possible as the player is in a dead-end corridor.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

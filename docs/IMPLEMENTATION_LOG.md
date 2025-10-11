@@ -178,3 +178,24 @@ This document tracks all completed features and implementations in chronological
 - **Mode selection at startup** - Choose between single-player or multi-user (local) modes
 - **Fallback LLM support** - Multi-user mode works without API key using mock clients
 - **Quest system** - Players can accept, track, and complete procedurally generated quests
+
+## Test Bot Validation Fixes (2025-10-11) 🔧
+
+**Issue**: Exploration test scenario was incorrectly failing valid game responses due to overly strict validation logic.
+
+**Problems Identified**:
+- Validator expected explicit "You move north" text but game correctly just shows new room description after movement
+- "You can't go that way" for invalid exits was incorrectly marked as FAIL
+- Validator couldn't track room state changes when rooms had the same name
+
+**Changes Made** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt`):
+1. Updated exploration validation criteria to recognize that room descriptions after movement ARE successful movements
+2. Clarified that "You can't go that way" is the correct response for invalid exits
+3. Added previous room name tracking to validation context for better state awareness
+
+**Status**: 🟡 Fixes applied, awaiting test verification
+
+**Next Steps**:
+- Run `gradle :testbot:run --args="exploration"` to verify improved pass rate
+- Analyze results and refine validation prompts if needed
+- Apply similar improvements to other test scenarios
