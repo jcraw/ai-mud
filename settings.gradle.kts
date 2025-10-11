@@ -27,5 +27,6 @@ include(":perception")
 include(":reasoning")
 include(":memory")
 include(":action")
+include(":testbot")
 
 rootProject.name = "ai-mud"

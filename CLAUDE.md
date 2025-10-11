@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Current State: MULTI-USER SERVER INTEGRATION COMPLETE** - This is an AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural dungeon generation, persistent save/load system, **fully functional multi-user game server**, and working console-based game loop with turn-based combat, full equipment system (weapons & armor), consumables, D&D-style skill checks, AND RAG-enhanced memory system for contextual narratives. The vision is to create a text-based roleplaying game with dynamic LLM-generated content that remembers and builds on player history.
 
 ### What Exists Now
-- Complete Gradle multi-module setup with 7 modules
+- Complete Gradle multi-module setup with 8 modules (added testbot)
 - Core world model: Room, WorldState, PlayerState, Entity hierarchy, CombatState, ItemType
 - **Multi-user architecture foundation** - WorldState supports multiple players, per-player combat state ✅
 - **PlayerId type** - Unique identifier for each player in the shared world ✅
@@ -47,6 +47,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Mode selection** - Choose between single-player and multi-user modes at startup ✅
 - **Fallback support** - Multi-user mode works with or without API key ✅
 
+- **Test Bot System** - Automated testing with LLM-powered input generation and validation ✅
+- **TestBotRunner** - ReAct loop (Reason-Act-Observe) for autonomous testing ✅
+- **7 test scenarios** - Exploration, Combat, Skills, Items, Social, Exploratory, Full Playthrough ✅
+- **Gameplay logging** - JSON and human-readable logs with validation results ✅
+- **InMemoryGameEngine** - Headless game engine for automated testing ✅
+
 ### What Needs to Be Built Next
 Remaining tasks organized by priority:
 1. **Dynamic quests** - Procedurally generated quest objectives
@@ -71,6 +77,13 @@ Remaining tasks organized by priority:
 - `gradle :memory:test` - Run tests for memory module
 - `gradle :action:test` - Run tests for action module
 - `gradle :app:test` - Run tests for app module
+- `gradle :testbot:test` - Run tests for test bot module
+
+### Test Bot (Automated Testing)
+- `gradle :testbot:run` - Run the automated test bot (requires OpenAI API key)
+- Test bot uses LLM to generate inputs and validate outputs autonomously
+- Logs saved to `test-logs/` directory (JSON + human-readable text)
+- 7 predefined scenarios: Exploration, Combat, Skills, Items, Social, Exploratory, Full Playthrough
 
 ## Project Structure
 
@@ -84,6 +97,7 @@ Multi-module Gradle project:
 - **action** - Output formatting and narration (depends on: core)
 - **llm** - OpenAI client and LLM interfaces
 - **app** - Main game application and console interface
+- **testbot** - Automated testing system with LLM-powered input generation and validation (depends on: core, llm, perception, reasoning, memory, action)
 - **utils** - Shared utilities
 
 ### Build Configuration
