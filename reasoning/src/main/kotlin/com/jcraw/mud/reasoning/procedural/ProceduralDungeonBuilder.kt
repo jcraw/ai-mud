@@ -86,10 +86,12 @@ class ProceduralDungeonBuilder(
      * Generate entrance room with minimal danger
      */
     private fun generateEntranceRoom(node: DungeonNode): Room {
+        println("DEBUG generateEntranceRoom: node.id=${node.id}, node.connections=${node.connections}")
         val room = roomGenerator.generateEntranceRoom(
             id = node.id,
             exits = node.connections
         )
+        println("DEBUG after generateEntranceRoom: room.exits=${room.exits}")
 
         // Entrance has no enemies, maybe a friendly NPC and some basic loot
         val entities = mutableListOf<com.jcraw.mud.core.Entity>()

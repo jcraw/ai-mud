@@ -98,6 +98,12 @@ class DungeonLayoutGenerator(
         // Add some cross-connections for non-linear dungeons (optional loops)
         addCrossConnections(nodes, occupiedPositions)
 
+        // Debug: log final connections for each node
+        println("DEBUG: Final dungeon layout:")
+        nodes.forEach { node ->
+            println("  ${node.id}: ${node.connections.size} exits = ${node.connections.keys.joinToString(", ") { it.displayName }}")
+        }
+
         return nodes
     }
 

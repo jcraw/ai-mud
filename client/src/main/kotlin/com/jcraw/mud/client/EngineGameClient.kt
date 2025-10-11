@@ -153,6 +153,9 @@ class EngineGameClient(
             appendLine(description)
 
             if (room.exits.isNotEmpty()) {
+                // Debug: print exits map
+                println("DEBUG: room.exits = ${room.exits}")
+                println("DEBUG: room.exits.keys = ${room.exits.keys}")
                 appendLine("\nExits: ${room.exits.keys.joinToString(", ") { it.displayName }}")
             }
 
