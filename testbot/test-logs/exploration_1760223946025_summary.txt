@@ -1,0 +1,107 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: exploration
+        Description: Test room navigation, look commands, and description variability
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 20
+        - Passed: 8
+        - Failed: 12
+        - Pass Rate: 40%
+
+        Timing:
+        - Start: 2025-10-11T23:05:46.031040114Z
+        - End: 2025-10-11T23:08:42.558430432Z
+        - Duration: 176.53s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go north
+Reason: The GM response does not indicate a successful movement to a new room, as it repeats the same room name 'Dark Corridor' without showing a new description.
+
+Step 3: ✓ PASS
+Input: look at the walls
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 5: ✗ FAIL
+Input: go east
+Reason: The player attempted to move east, but the response indicates that this direction is not valid, which contradicts the expected outcome of moving to a new room.
+
+Step 6: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: go north
+Reason: The response indicates the same room name without confirming movement, which is inconsistent with the expected outcome.
+
+Step 8: ✗ FAIL
+Input: look at the walls
+Reason: The response does not provide new information about the walls or reveal hidden features or items as expected.
+
+Step 9: ✗ FAIL
+Input: go south
+Reason: The response incorrectly describes the Dungeon Entrance again instead of acknowledging the player's movement back from the Dark Corridor.
+
+Step 10: ✗ FAIL
+Input: go east
+Reason: The player attempted to move east but was incorrectly told they can't go that way, despite the game state indicating valid movement options.
+
+Step 11: ✗ FAIL
+Input: go north
+Reason: The response indicates the player is still in the Dark Corridor after attempting to move north, but the input suggests movement should have occurred.
+
+Step 12: ✗ FAIL
+Input: look around
+Reason: The response does not provide a new or varied description for the 'look around' command, repeating the previous room description without any additional details.
+
+Step 13: ✗ FAIL
+Input: go south
+Reason: The player attempted to go south from the Dark Corridor, but the response indicated they were in the Dungeon Entrance, which is inconsistent with the previous room state.
+
+Step 14: ✗ FAIL
+Input: go north
+Reason: The player attempted to go north from the Dungeon Entrance but was returned to the Dark Corridor without a change in description, which violates the expectation of varying descriptions for already explored areas.
+
+Step 15: ✓ PASS
+Input: look at the walls
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the response indicates they cannot move that way despite the game state suggesting there should be a valid exit.
+
+Step 18: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 20: ✗ FAIL
+Input: go south
+Reason: The game incorrectly allowed movement south when there is no exit in that direction.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

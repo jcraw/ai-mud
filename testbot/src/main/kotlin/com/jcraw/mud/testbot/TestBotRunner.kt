@@ -118,7 +118,8 @@ class TestBotRunner(
                 playerInput = generatedInput.input,
                 gmResponse = gmResponse,
                 recentHistory = state.steps.takeLast(2),
-                expectedOutcome = generatedInput.expected
+                expectedOutcome = generatedInput.expected,
+                worldState = gameEngine.getWorldState()
             )
         } catch (e: Exception) {
             println("   ⚠️  Validation failed: ${e.message}")

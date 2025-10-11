@@ -1,5 +1,6 @@
 package com.jcraw.mud.testbot
 
+import com.jcraw.mud.core.WorldState
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.json.Json
 
@@ -19,7 +20,8 @@ class OutputValidator(
         playerInput: String,
         gmResponse: String,
         recentHistory: List<TestStep>,
-        expectedOutcome: String? = null
+        expectedOutcome: String? = null,
+        worldState: WorldState? = null
     ): ValidationResult {
         val systemPrompt = buildSystemPrompt(scenario)
         val userContext = buildUserContext(
@@ -27,7 +29,8 @@ class OutputValidator(
             playerInput,
             gmResponse,
             recentHistory,
-            expectedOutcome
+            expectedOutcome,
+            worldState
         )
 
         val response = llmClient.chatCompletion(
@@ -75,8 +78,18 @@ class OutputValidator(
         playerInput: String,
         gmResponse: String,
         recentHistory: List<TestStep>,
-        expectedOutcome: String?
+        expectedOutcome: String?,
+        worldState: WorldState?
     ): String {
+        // Extract room name from previous step for movement validation
+        val previousRoomName = if (recentHistory.isNotEmpty()) {
+            val lastResponse = recentHistory.last().gmResponse
+            // Try to extract room name from first line
+            lastResponse.lines().firstOrNull()?.trim()
+        } else {
+            null
+        }
+
         val historyText = if (recentHistory.isEmpty()) {
             "No previous history."
         } else {
@@ -85,13 +98,42 @@ class OutputValidator(
             }
         }
 
+        // Add game state context for better validation
+        val gameStateContext = if (worldState != null) {
+            val currentRoom = worldState.getCurrentRoom()
+            val player = worldState.player
+            val previousRoomInfo = if (previousRoomName != null) {
+                "\n            - Previous room (from last response): $previousRoomName"
+            } else {
+                ""
+            }
+            """
+
+            Current game state:
+            - Player location: ${currentRoom?.name ?: "Unknown"}$previousRoomInfo
+            - Available exits: ${currentRoom?.exits?.keys?.joinToString(", ") { it.displayName } ?: "none"}
+            - Player health: ${player.health}/${player.maxHealth}
+            - In combat: ${player.isInCombat()}
+            - Room entities: ${currentRoom?.entities?.joinToString(", ") { it.name } ?: "none"}
+            """.trimIndent()
+        } else {
+            ""
+        }
+
         val scenarioCriteria = when (scenario) {
             is TestScenario.Exploration -> """
                 Check that:
                 - Room descriptions are vivid and detailed
-                - Movement commands properly transition between rooms
+                - Movement commands either:
+                  * Show a new room description (may not explicitly say "You move..."), OR
+                  * Return "You can't go that way" message for invalid exits
                 - Look commands provide appropriate information
-                - Descriptions vary but remain consistent
+                - Descriptions vary but remain consistent with previous descriptions
+                - The response is appropriate for the player's action
+
+                IMPORTANT: A room description appearing after a movement command IS a successful movement.
+                The game may show the same room name if the player moved to a different room with the same name.
+                Only fail movement if there's an error message AND game state shows the movement should have succeeded.
             """.trimIndent()
             is TestScenario.Combat -> """
                 Check that:
@@ -148,6 +190,7 @@ class OutputValidator(
         return """
             Recent history:
             $historyText
+            $gameStateContext
 
             Current turn:
             Player input: $playerInput

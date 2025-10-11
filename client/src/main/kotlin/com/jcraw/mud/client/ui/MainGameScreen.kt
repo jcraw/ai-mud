@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jcraw.mud.client.GameViewModel
@@ -281,9 +284,9 @@ fun GameInputField(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(focusRequester)
-                    .onKeyEvent { keyEvent ->
+                    .onPreviewKeyEvent { keyEvent ->
                         when {
-                            keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Enter -> {
+                            keyEvent.type == KeyEventType.KeyDown && (keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) -> {
                                 if (inputText.isNotBlank()) {
                                     onSendInput(inputText)
                                     inputText = ""
@@ -308,8 +311,18 @@ fun GameInputField(
                     focusedTextColor = colors.onSurface,
                     unfocusedTextColor = colors.onSurface
                 ),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(
+                    onSend = {
+                        if (inputText.isNotBlank()) {
+                            onSendInput(inputText)
+                            inputText = ""
+                        }
+                    }
+                )
             )
+
 
             Button(
                 onClick = {
