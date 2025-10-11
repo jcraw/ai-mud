@@ -136,6 +136,8 @@ This document tracks all completed features and implementations in chronological
 ✅ **Available quest pool in WorldState** - Quests generated at dungeon start
 ✅ **Comprehensive quest tests** - 6 tests covering quest lifecycle and player interaction
 
+**TODO**: Test bot quest scenario - Add automated testing for quest acceptance, progress, and reward claiming
+
 ## Current Status Summary
 
 **All modules building successfully** ✅

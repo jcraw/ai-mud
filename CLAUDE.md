@@ -53,9 +53,10 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Quest objective auto-tracking** - Automatically update quest progress when player actions occur
-2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+1. **Test bot quest testing** - Update test bot to test quest functionality (accept, progress, claim)
+2. **Quest objective auto-tracking** - Automatically update quest progress when player actions occur
+3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+4. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
 ## Commands
 
@@ -195,8 +196,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 ## Next Developer
 
 The quest system is complete! Next priorities:
-1. **Quest auto-tracking** - Automatically update quest progress as player performs actions
-2. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
-3. **Persistent vector storage** (optional) - Save/load embeddings to disk
+1. **Test bot quest testing** - Update test bot to include quest testing scenario (accept, progress tracking, claim rewards)
+2. **Quest auto-tracking** - Automatically update quest progress as player performs actions
+3. **Network layer** (optional) - Add TCP/WebSocket support for remote multi-player
+4. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
 See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.
