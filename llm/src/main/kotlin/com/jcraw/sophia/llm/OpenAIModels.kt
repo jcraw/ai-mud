@@ -26,7 +26,7 @@ data class OpenAIChoice(
 @Serializable
 data class OpenAIUsage(
     @SerialName("prompt_tokens") val promptTokens: Int,
-    @SerialName("completion_tokens") val completionTokens: Int,
+    @SerialName("completion_tokens") val completionTokens: Int? = null,  // Optional: embeddings don't have completions
     @SerialName("total_tokens") val totalTokens: Int
 )
 

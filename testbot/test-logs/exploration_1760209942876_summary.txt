@@ -1,0 +1,31 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: exploration
+        Description: Test room navigation, look commands, and description variability
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 1
+        - Passed: 0
+        - Failed: 1
+        - Pass Rate: 0%
+
+        Timing:
+        - Start: 2025-10-11T19:12:22.880569845Z
+        - End: 2025-10-11T19:12:28.171597887Z
+        - Duration: 5.29s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✗ FAIL
+Input: go west
+Reason: The response does not allow the player to move west, which contradicts the expected outcome of successfully navigating to a new room.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

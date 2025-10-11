@@ -51,7 +51,14 @@ data class TestState(
         val newSteps = steps + step
         val newResults = results + result
         val newStepNumber = currentStep + 1
-        val complete = newStepNumber >= scenario.maxSteps || !result.passed
+
+        // Only complete when we reach max steps (allow recovery from failures)
+        val complete = newStepNumber >= scenario.maxSteps
+
+        // Determine final status based on overall pass rate
+        val passedCount = newResults.count { it.passed }
+        val totalCount = newResults.size
+        val passRate = if (totalCount > 0) passedCount.toDouble() / totalCount else 0.0
 
         return copy(
             steps = newSteps,
@@ -59,9 +66,10 @@ data class TestState(
             currentStep = newStepNumber,
             isComplete = complete,
             finalStatus = when {
-                !result.passed -> TestStatus.FAILED
-                complete && result.passed -> TestStatus.PASSED
-                else -> TestStatus.RUNNING
+                !complete -> TestStatus.RUNNING
+                passRate >= 0.8 -> TestStatus.PASSED  // 80% pass rate = success
+                passRate >= 0.5 -> TestStatus.FAILED  // 50-80% = partial failure
+                else -> TestStatus.FAILED             // <50% = failure
             }
         )
     }

@@ -43,9 +43,12 @@ class InputGenerator(
             Scenario: ${scenario.name}
             Description: ${scenario.description}
 
+            IMPORTANT: You are ALREADY in the game. Look at the "Current game state" to see where you are.
+            Do NOT try to "enter" or "start" the game - you're already playing!
+
             Generate a single player command that:
-            1. Is appropriate for the current scenario
-            2. Uses natural language (e.g., "look around", "attack skeleton", "go north")
+            1. Is appropriate for the current scenario and game state
+            2. Uses valid game commands (look, go/move/n/s/e/w, take, attack, talk, equip, use, check, etc.)
             3. Tests game mechanics relevant to this scenario
             4. Varies from previous inputs to explore different code paths
 
@@ -111,10 +114,12 @@ class InputGenerator(
                 - Ambiguous commands
             """.trimIndent()
             is TestScenario.FullPlaythrough -> """
-                Play naturally:
-                - Explore, fight, interact with NPCs
-                - Collect items and equipment
-                - Progress toward completing the dungeon
+                Play naturally to complete the dungeon:
+                - Start by looking around and exploring (look, n/s/e/w)
+                - Find and collect items, equip weapons/armor
+                - Fight NPCs when encountered
+                - Talk to friendly NPCs for information
+                - Work toward reaching the end of the dungeon
             """.trimIndent()
             is TestScenario.QuestTesting -> """
                 Focus on:

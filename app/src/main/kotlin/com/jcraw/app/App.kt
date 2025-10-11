@@ -26,6 +26,7 @@ fun main() {
     // Get OpenAI API key from environment or system property (from local.properties)
     val apiKey = System.getenv("OPENAI_API_KEY")
         ?: System.getProperty("openai.api.key")
+        ?: loadApiKeyFromLocalProperties()
 
     println("=" * 60)
     println("  AI-Powered MUD - Alpha Version")
@@ -1335,3 +1336,36 @@ class MultiUserGame(
 
 // String repetition helper
 private operator fun String.times(n: Int): String = repeat(n)
+
+/**
+ * Load API key from local.properties file.
+ * This allows the app to work when run directly from IDE.
+ * Checks both current directory and project root.
+ */
+private fun loadApiKeyFromLocalProperties(): String? {
+    // Try current directory first
+    var localPropertiesFile = java.io.File("local.properties")
+
+    // If not found, try project root (when run via Gradle from submodule)
+    if (!localPropertiesFile.exists()) {
+        localPropertiesFile = java.io.File("../local.properties")
+    }
+
+    // If still not found, try going up two levels (just in case)
+    if (!localPropertiesFile.exists()) {
+        localPropertiesFile = java.io.File("../../local.properties")
+    }
+
+    if (!localPropertiesFile.exists()) {
+        return null
+    }
+
+    return try {
+        localPropertiesFile.readLines()
+            .firstOrNull { it.trim().startsWith("openai.api.key=") }
+            ?.substringAfter("openai.api.key=")
+            ?.trim()
+    } catch (e: Exception) {
+        null
+    }
+}

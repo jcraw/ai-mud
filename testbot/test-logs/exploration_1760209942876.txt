@@ -1,0 +1,10 @@
+        ================================================================================
+        [2025-10-11T19:12:28.066712314Z]
+
+        Player: go west
+
+        Game Master:
+        You can't go that way.
+
+        Validation: FAIL
+Reason: The response does not allow the player to move west, which contradicts the expected outcome of successfully navigating to a new room.

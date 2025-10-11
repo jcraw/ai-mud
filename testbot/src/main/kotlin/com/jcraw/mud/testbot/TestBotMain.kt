@@ -20,6 +20,7 @@ fun main() = runBlocking {
     // Get API key
     val apiKey = System.getenv("OPENAI_API_KEY")
         ?: System.getProperty("openai.api.key")
+        ?: loadApiKeyFromLocalProperties()
 
     if (apiKey.isNullOrBlank()) {
         println("\n❌ OpenAI API key not found!")
@@ -121,3 +122,36 @@ fun main() = runBlocking {
 
 // String repetition helper
 private operator fun String.times(n: Int): String = repeat(n)
+
+/**
+ * Load API key from local.properties file.
+ * This allows the test bot to work when run directly from IDE.
+ * Checks both current directory and project root.
+ */
+private fun loadApiKeyFromLocalProperties(): String? {
+    // Try current directory first
+    var localPropertiesFile = java.io.File("local.properties")
+
+    // If not found, try project root (when run via Gradle from submodule)
+    if (!localPropertiesFile.exists()) {
+        localPropertiesFile = java.io.File("../local.properties")
+    }
+
+    // If still not found, try going up two levels (just in case)
+    if (!localPropertiesFile.exists()) {
+        localPropertiesFile = java.io.File("../../local.properties")
+    }
+
+    if (!localPropertiesFile.exists()) {
+        return null
+    }
+
+    return try {
+        localPropertiesFile.readLines()
+            .firstOrNull { it.trim().startsWith("openai.api.key=") }
+            ?.substringAfter("openai.api.key=")
+            ?.trim()
+    } catch (e: Exception) {
+        null
+    }
+}

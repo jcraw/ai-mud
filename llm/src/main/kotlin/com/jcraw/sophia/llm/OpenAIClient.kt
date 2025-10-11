@@ -71,7 +71,7 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
 
             val response = httpResponse.body<OpenAIResponse>()
 
-            println("🔥 LLM API: $modelId | tokens=${response.usage.totalTokens} (${response.usage.promptTokens}+${response.usage.completionTokens})")
+            println("🔥 LLM API: $modelId | tokens=${response.usage.totalTokens} (${response.usage.promptTokens}+${response.usage.completionTokens ?: 0})")
             println("✅ OpenAI API call successful, received ${response.choices.size} choices")
 
             // Debug the response content when empty
