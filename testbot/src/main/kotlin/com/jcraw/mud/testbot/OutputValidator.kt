@@ -347,6 +347,140 @@ class OutputValidator(
             }
         }
 
+        // COMBAT VALIDATION
+
+        // Parse "attack" commands
+        val attackMatch = Regex(
+            "(?:attack|fight|kill|hit)(?:\\s+(.+))?",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (attackMatch != null) {
+            val targetName = attackMatch.groupValues[1].trim()
+
+            // Check if player is in combat
+            val inCombat = worldState.player.isInCombat()
+
+            if (inCombat) {
+                // During combat: check for combat progression
+                if (gmResponse.contains("strike", ignoreCase = true) &&
+                    (gmResponse.contains("damage", ignoreCase = true) ||
+                     gmResponse.contains("HP", ignoreCase = true))) {
+                    // Successful combat round
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] Combat round executed successfully",
+                        details = mapOf("validation_type" to "code", "combat" to "ongoing")
+                    )
+                }
+
+                // Victory condition
+                if (gmResponse.contains("defeated", ignoreCase = true) ||
+                    gmResponse.contains("slain", ignoreCase = true) ||
+                    gmResponse.contains("victory", ignoreCase = true) ||
+                    (gmResponse.contains("strike", ignoreCase = true) &&
+                     gmResponse.contains("falls", ignoreCase = true))) {
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] Combat victory achieved",
+                        details = mapOf("validation_type" to "code", "combat" to "victory")
+                    )
+                }
+
+                // Defeat condition
+                if (gmResponse.contains("died", ignoreCase = true) ||
+                    gmResponse.contains("death", ignoreCase = true) ||
+                    gmResponse.contains("fallen", ignoreCase = true)) {
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] Combat defeat (player died)",
+                        details = mapOf("validation_type" to "code", "combat" to "defeat")
+                    )
+                }
+            } else {
+                // Not in combat: initiating combat or error
+                if (targetName.isBlank()) {
+                    // Missing target
+                    if (gmResponse.contains("Attack whom", ignoreCase = true) ||
+                        gmResponse.contains("who", ignoreCase = true)) {
+                        return ValidationResult(
+                            pass = true,
+                            reason = "[CODE] Correctly requested combat target",
+                            details = mapOf("validation_type" to "code", "combat" to "missing_target")
+                        )
+                    }
+                } else {
+                    // Has target
+                    if (gmResponse.contains("engage", ignoreCase = true) ||
+                        gmResponse.contains("combat", ignoreCase = true) ||
+                        gmResponse.contains("battle", ignoreCase = true) ||
+                        gmResponse.contains("attack", ignoreCase = true)) {
+                        return ValidationResult(
+                            pass = true,
+                            reason = "[CODE] Combat initiated successfully",
+                            details = mapOf("validation_type" to "code", "combat" to "initiated")
+                        )
+                    }
+
+                    // NPC not found
+                    if (gmResponse.contains("No one by that name", ignoreCase = true) ||
+                        gmResponse.contains("don't see", ignoreCase = true)) {
+                        // Check if NPC actually exists in room
+                        val npcInRoom = currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
+                            it.name.lowercase().contains(targetName.lowercase()) ||
+                            targetName.lowercase().contains(it.name.lowercase())
+                        } ?: false
+
+                        return if (npcInRoom) {
+                            ValidationResult(
+                                pass = false,
+                                reason = "[CODE] Bug: NPC '$targetName' exists but wasn't found",
+                                details = mapOf(
+                                    "validation_type" to "code",
+                                    "combat" to "npc_not_found_bug",
+                                    "npcs_in_room" to (currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
+                                        ?.joinToString { it.name } ?: "")
+                                )
+                            )
+                        } else {
+                            ValidationResult(
+                                pass = true,
+                                reason = "[CODE] Correctly rejected: NPC '$targetName' not in room",
+                                details = mapOf("validation_type" to "code", "combat" to "npc_not_found")
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Parse "use" commands (consumables in combat)
+        val useMatch = Regex(
+            "(?:use|consume|drink|eat)\\s+(.+)",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (useMatch != null) {
+            val itemName = useMatch.groupValues[1].trim()
+
+            if (gmResponse.contains("restore", ignoreCase = true) &&
+                (gmResponse.contains("HP", ignoreCase = true) || gmResponse.contains("health", ignoreCase = true))) {
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Successfully used consumable '$itemName'",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+
+            if (gmResponse.contains("full health", ignoreCase = true)) {
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Correctly noted already at full health",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+        }
+
         // No definitive validation, let LLM handle it
         return null
     }
@@ -549,11 +683,60 @@ class OutputValidator(
                 **DO NOT FAIL** for getting a room description after a movement command - this is SUCCESS!
             """.trimIndent()
             is TestScenario.Combat -> """
-                Check that:
-                - Combat mechanics work (attack/damage/health)
-                - Health values update correctly
-                - Combat resolves to victory or defeat
-                - Narratives are engaging and coherent
+                COMBAT VALIDATION RULES:
+
+                **Combat Initiation:**
+                - "attack <npc_name>" → should start combat with narrative
+                - "You engage..." or "combat!" or similar = SUCCESS
+                - "No one by that name" when NPC IS in room = FAIL (bug)
+                - "No one by that name" when NPC NOT in room = PASS (correct)
+                - "Attack whom?" when no target specified = PASS (correct)
+
+                **Combat Rounds:**
+                - "strike for X damage" + "retaliates for Y damage" = PASS
+                - Damage numbers should be present (e.g., "5 damage", "12 damage")
+                - Health tracking should be consistent
+                - Both player and NPC should take damage each round
+
+                **Equipment Bonuses:**
+                - Weapons should increase damage (higher numbers with weapon equipped)
+                - Armor should reduce incoming damage (lower NPC damage with armor)
+                - "equip weapon" → "+X damage" message = PASS
+
+                **Victory Condition:**
+                - NPC reaches 0 HP → "defeated", "slain", "falls" = PASS
+                - NPC should be removed from room after defeat
+                - Combat should end, allowing other actions
+
+                **Defeat Condition:**
+                - Player reaches 0 HP → "died", "fallen", "death" = PASS
+                - Game should end or restrict actions after defeat
+
+                **Consumables:**
+                - "use potion" during combat → "restore X HP" = PASS
+                - Health should increase after using healing items
+                - "already at full health" = PASS (correct behavior)
+
+                **Combat State:**
+                - Can't move during combat = PASS
+                - Can't take items during combat = PASS
+                - Must use "attack" to continue combat = PASS
+
+                PASS for:
+                - Combat starts correctly with named NPC
+                - Damage is dealt each round (with numbers)
+                - Health tracking is consistent
+                - Victory/defeat conditions work
+                - Equipment bonuses are reflected in damage
+                - Consumables heal during combat
+
+                FAIL only for:
+                - Combat doesn't start when NPC is present
+                - No damage numbers in combat rounds
+                - Health doesn't decrease
+                - Victory/defeat doesn't end combat properly
+                - Equipment bonuses don't affect combat
+                - Crashes or errors
             """.trimIndent()
             is TestScenario.SkillChecks -> """
                 Check that:

@@ -1,0 +1,318 @@
+        ================================================================================
+        [2025-10-12T06:36:38.737699331Z]
+
+        Player: look around for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'around for enemies'
+        ================================================================================
+        [2025-10-12T06:36:42.846721758Z]
+
+        Player: move deeper into the dungeon
+
+        Game Master:
+        Go where?
+
+        Validation: FAIL
+Reason: The response does not acknowledge the player's intention to move deeper into the dungeon and instead prompts with 'Go where?', which is not coherent with the input.
+        ================================================================================
+        [2025-10-12T06:36:45.292293578Z]
+
+        Player: go south
+
+        Game Master:
+        You can't go that way.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected invalid direction: SOUTH
+        ================================================================================
+        [2025-10-12T06:36:47.631376043Z]
+
+        Player: go east
+
+        Game Master:
+        You can't go that way.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected invalid direction: EAST
+        ================================================================================
+        [2025-10-12T06:36:50.100192031Z]
+
+        Player: look around for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'around for enemies'
+        ================================================================================
+        [2025-10-12T06:36:52.843734717Z]
+
+        Player: look for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for enemies'
+        ================================================================================
+        [2025-10-12T06:36:57.323779655Z]
+
+        Player: move north
+
+        Game Master:
+        Dark Corridor
+You find yourself in a narrow stone passage, its walls rough and cold to the touch. The sound of your footsteps echoes eerily, swallowed by the oppressive darkness that envelops you. Drips of water punctuate the silence, each drop resonating like a distant heartbeat, while delicate spider webs stretch across the corners, glistening faintly in the dim light. The worn flagstone floor beneath your feet feels uneven, as if it has borne the weight of countless adventurers before you.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-10-12T06:37:01.599154994Z]
+
+        Player: attack with my sword
+
+        Game Master:
+        Attack whom?
+
+        Validation: FAIL
+Reason: The response does not address the player's action of attacking and fails to indicate that there are no enemies to attack.
+        ================================================================================
+        [2025-10-12T06:37:07.060155441Z]
+
+        Player: move north
+
+        Game Master:
+        Abandoned Throne Room
+You step into the abandoned throne room, where a massive stone throne looms in the center, its grandeur faded by time. Faded royal tapestries hang limply from the walls, their once-vibrant colors lost to dust and neglect, while the cracked marble floor bears the scars of ages past. Ominous shadows creep along the edges, shifting restlessly in the flickering light, and a cold draft whispers through unseen passages, sending a shiver racing down your spine. In the throne's embrace, a skeleton slumps as if caught in a moment of eternal despair, the remnants of a ruler long forgotten.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-10-12T06:37:12.855173195Z]
+
+        Player: look around
+
+        Game Master:
+        Abandoned Throne Room
+You return to the abandoned throne room, where the massive stone throne sits like a somber sentinel amidst the decay. The faded royal tapestries sag from the walls, their regal reds and golds dulled to muted whispers of grandeur, while the cracked marble floor tells tales of opulent gatherings now long forgotten. Ominous shadows dance in the corners, stretching and retracting as if alive, while a cold draft sneaks through the room, stirring the dust like whispers of lost souls. The skeletal figure slumped on the throne seems to watch over the desolation with hollow eye sockets, a grim reminder of the power that once ruled here.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'around'
+        ================================================================================
+        [2025-10-12T06:37:17.092792464Z]
+
+        Player: search for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: FAIL
+Reason: The response indicates that the search command is not supported, which is not coherent with the expected outcome of searching for enemies.
+        ================================================================================
+        [2025-10-12T06:37:20.322686984Z]
+
+        Player: look for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for enemies'
+        ================================================================================
+        [2025-10-12T06:37:25.150962836Z]
+
+        Player: attack the shadows
+
+        Game Master:
+        Attack whom?
+
+        Validation: FAIL
+Reason: The response does not acknowledge the presence of the Skeleton King and fails to engage in combat.
+        ================================================================================
+        [2025-10-12T06:37:31.089148992Z]
+
+        Player: move north
+
+        Game Master:
+        Hidden Chamber
+You step into the hidden chamber, where the air thrums with an otherworldly energy. Mysteriously lit crystal formations rise from the ground like stalagmites, casting radiant hues that saturate the stone walls in pulsating colors. Ancient magical circles are etched into the floor, their intricate patterns glimmering as floating arcane symbols drift lazily above, whispering secrets of long-lost spells. A portal-like shimmer dances in the far wall, beckoning with promises of untold mysteries just beyond its shimmering veil.
+Exits: south
+You see: Heavy Stone Door, Ancient Rune Inscription
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Hidden Chamber'
+        ================================================================================
+        [2025-10-12T06:37:35.643263032Z]
+
+        Player: attack the crystal formations
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response does not acknowledge the player's action of attacking the crystal formations and instead gives an unrelated message.
+        ================================================================================
+        [2025-10-12T06:37:38.289738722Z]
+
+        Player: look for NPCs
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for NPCs'
+        ================================================================================
+        [2025-10-12T06:37:40.447260019Z]
+
+        Player: move east
+
+        Game Master:
+        You can't go that way.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected invalid direction: EAST
+        ================================================================================
+        [2025-10-12T06:37:42.443123985Z]
+
+        Player: move west
+
+        Game Master:
+        You can't go that way.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected invalid direction: WEST
+        ================================================================================
+        [2025-10-12T06:37:47.103574859Z]
+
+        Player: attack the shadowy figure
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response indicates that there is no target for the attack, which contradicts the player's input to attack a shadowy figure that should be present.
+        ================================================================================
+        [2025-10-12T06:37:53.718285546Z]
+
+        Player: look around
+
+        Game Master:
+        Hidden Chamber
+You stand in the hidden chamber, where the air crackles with an electric hum of magical energy. Mysteriously lit crystal formations rise from the ground, their radiant glow casting a kaleidoscope of colors that dance upon the ancient stone walls. Intricate magical circles are etched into the floor, their surfaces shimmering softly, while floating arcane symbols drift overhead, weaving through the air like whispers of ancient incantations. In the distance, a portal-like shimmer pulsates gently in the far wall, a tantalizing glimpse of otherworldly realms waiting just beyond its veil.
+Exits: south
+You see: Heavy Stone Door, Ancient Rune Inscription
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'around'
+        ================================================================================
+        [2025-10-12T06:37:57.363755858Z]
+
+        Player: search the hidden chamber for enemies
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: FAIL
+Reason: The response indicates a command not supported in test mode instead of providing information about enemies or combat encounters.
+        ================================================================================
+        [2025-10-12T06:38:01.520756612Z]
+
+        Player: attack the glowing crystal formation
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response does not acknowledge the player's action to attack the glowing crystal formation and instead gives an unrelated message about a name not being found.
+        ================================================================================
+        [2025-10-12T06:38:04.203414330Z]
+
+        Player: look for hidden creatures
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for hidden creatures'
+        ================================================================================
+        [2025-10-12T06:38:09.092300487Z]
+
+        Player: move deeper into the hidden chamber
+
+        Game Master:
+        Go where?
+
+        Validation: FAIL
+Reason: The response 'Go where?' does not acknowledge the player's intent to move deeper into the hidden chamber.
+        ================================================================================
+        [2025-10-12T06:38:11.969959188Z]
+
+        Player: look for creatures in the shadows
+
+        Game Master:
+        Command not supported in test mode: Search(target=creatures)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for creatures in the shadows'
+        ================================================================================
+        [2025-10-12T06:38:16.134623022Z]
+
+        Player: attack the shadows with my sword
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response does not acknowledge the player's action of attacking and fails to engage with the combat mechanics.
+        ================================================================================
+        [2025-10-12T06:38:23.802322636Z]
+
+        Player: look around for enemies
+
+        Game Master:
+        Hidden Chamber
+You step into the hidden chamber once more, the air alive with a pulsing hum of magical energy that vibrates through your very being. Mysteriously lit crystal formations rise around you, their glow casting a prismatic light that dances off the ancient stone walls like a living tapestry of colors. Beneath your feet, the floor is adorned with intricate magical circles, their ethereal patterns shimmering in response to the floating arcane symbols that drift gracefully above, whispering forgotten incantations. Ahead, a portal-like shimmer flickers in the far wall, its allure drawing you closer to the unknown wonders that lie just beyond its radiant surface.
+Exits: south
+You see: Heavy Stone Door, Ancient Rune Inscription
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'around for enemies'
+        ================================================================================
+        [2025-10-12T06:38:27.506184597Z]
+
+        Player: attack the nearest crystal formation with my sword
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response does not address the player's action of attacking the crystal formation and incorrectly states 'No one by that name here.'
+        ================================================================================
+        [2025-10-12T06:38:30.423128366Z]
+
+        Player: look for any hidden enemies or traps in the chamber
+
+        Game Master:
+        Command not supported in test mode: Search(target=null)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'for any hidden enemies or traps in the chamber'
+        ================================================================================
+        [2025-10-12T06:38:35.860413531Z]
+
+        Player: attack the crystal formation with a fireball spell
+
+        Game Master:
+        No one by that name here.
+
+        Validation: FAIL
+Reason: The response does not address the player's action of attacking the crystal formation with a fireball spell and instead repeats an unrelated error message.

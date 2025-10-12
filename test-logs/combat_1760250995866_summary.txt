@@ -1,0 +1,147 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: combat
+        Description: Test combat mechanics, health tracking, and victory/defeat conditions
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 30
+        - Passed: 18
+        - Failed: 12
+        - Pass Rate: 60%
+
+        Timing:
+        - Start: 2025-10-12T06:36:35.868672379Z
+        - End: 2025-10-12T06:38:35.960724157Z
+        - Duration: 120.09s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look around for enemies
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: move deeper into the dungeon
+Reason: The response does not acknowledge the player's intention to move deeper into the dungeon and instead prompts with 'Go where?', which is not coherent with the input.
+
+Step 3: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: look around for enemies
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: move north
+Reason: Step completed successfully
+
+Step 8: ✗ FAIL
+Input: attack with my sword
+Reason: The response does not address the player's action of attacking and fails to indicate that there are no enemies to attack.
+
+Step 9: ✓ PASS
+Input: move north
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: search for enemies
+Reason: The response indicates that the search command is not supported, which is not coherent with the expected outcome of searching for enemies.
+
+Step 12: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: attack the shadows
+Reason: The response does not acknowledge the presence of the Skeleton King and fails to engage in combat.
+
+Step 14: ✓ PASS
+Input: move north
+Reason: Step completed successfully
+
+Step 15: ✗ FAIL
+Input: attack the crystal formations
+Reason: The response does not acknowledge the player's action of attacking the crystal formations and instead gives an unrelated message.
+
+Step 16: ✓ PASS
+Input: look for NPCs
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: move east
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: move west
+Reason: Step completed successfully
+
+Step 19: ✗ FAIL
+Input: attack the shadowy figure
+Reason: The response indicates that there is no target for the attack, which contradicts the player's input to attack a shadowy figure that should be present.
+
+Step 20: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 21: ✗ FAIL
+Input: search the hidden chamber for enemies
+Reason: The response indicates a command not supported in test mode instead of providing information about enemies or combat encounters.
+
+Step 22: ✗ FAIL
+Input: attack the glowing crystal formation
+Reason: The response does not acknowledge the player's action to attack the glowing crystal formation and instead gives an unrelated message about a name not being found.
+
+Step 23: ✓ PASS
+Input: look for hidden creatures
+Reason: Step completed successfully
+
+Step 24: ✗ FAIL
+Input: move deeper into the hidden chamber
+Reason: The response 'Go where?' does not acknowledge the player's intent to move deeper into the hidden chamber.
+
+Step 25: ✓ PASS
+Input: look for creatures in the shadows
+Reason: Step completed successfully
+
+Step 26: ✗ FAIL
+Input: attack the shadows with my sword
+Reason: The response does not acknowledge the player's action of attacking and fails to engage with the combat mechanics.
+
+Step 27: ✓ PASS
+Input: look around for enemies
+Reason: Step completed successfully
+
+Step 28: ✗ FAIL
+Input: attack the nearest crystal formation with my sword
+Reason: The response does not address the player's action of attacking the crystal formation and incorrectly states 'No one by that name here.'
+
+Step 29: ✓ PASS
+Input: look for any hidden enemies or traps in the chamber
+Reason: Step completed successfully
+
+Step 30: ✗ FAIL
+Input: attack the crystal formation with a fireball spell
+Reason: The response does not address the player's action of attacking the crystal formation with a fireball spell and instead repeats an unrelated error message.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

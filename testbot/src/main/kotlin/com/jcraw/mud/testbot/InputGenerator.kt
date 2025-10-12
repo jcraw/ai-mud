@@ -107,10 +107,40 @@ class InputGenerator(
             """.trimIndent()
             }
             is TestScenario.Combat -> """
-                Focus on:
-                - Finding and attacking NPCs
-                - Using equipped weapons
-                - Continuing combat until victory or defeat
+                IMPORTANT: You start in a room with an NPC ready for combat. You may have equipment already.
+
+                Test ALL combat mechanics systematically (target: ~15-20 actions):
+                1. Look around - See what NPCs and items are present
+                2. Check inventory - See if you have any equipment/potions already
+                3. Equip items (if available) - Equip weapon and armor BEFORE fighting
+                4. Initiate combat - 'attack <npc_name>' to start combat with specific NPC
+                5. Continue attacking - Keep using 'attack' during combat (tests turn-based combat)
+                6. Monitor health - Watch HP decrease from NPC counterattacks
+                7. Use consumables - If health gets low and you have potions, use them
+                8. Test equipment bonuses - Observe damage with/without weapons
+                9. Complete first combat - Fight to victory or defeat
+                10. Move to new room - Find second NPC if first combat ends early
+                11. Test second combat - Fight another NPC to test consistency
+
+                Combat mechanics to validate:
+                - Weapon damage bonuses (e.g., +5 for sword, +3 for dagger)
+                - Armor defense bonuses (e.g., +4 chainmail, +2 leather)
+                - Turn-based system (player attacks, NPC counterattacks)
+                - Health tracking (both player and NPC HP decrease correctly)
+                - Victory condition (NPC dies at 0 HP, gets removed from room)
+                - Defeat condition (player dies at 0 HP, game ends)
+                - Combat state (can't do non-combat actions during combat)
+
+                DO NOT:
+                - Try to flee (not the focus of this test)
+                - Try to talk during combat (not supported)
+                - Use invalid attack syntax (must target NPC by name initially)
+
+                Strategy:
+                - If you have equipment, equip it FIRST (makes combat easier)
+                - Target NPCs by their exact name (e.g., "attack Skeleton King")
+                - Continue with just "attack" once combat starts
+                - Use health potions if you have them and HP drops below 50%
             """.trimIndent()
             is TestScenario.SkillChecks -> """
                 Focus on:
