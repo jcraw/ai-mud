@@ -16,7 +16,7 @@ sealed class TestScenario {
     data class Exploration(
         override val name: String = "exploration",
         override val description: String = "Test room navigation, look commands, and description variability",
-        override val maxSteps: Int = 20,
+        override val maxSteps: Int = 15,
         val targetRoomsToVisit: Int = 5
     ) : TestScenario()
 

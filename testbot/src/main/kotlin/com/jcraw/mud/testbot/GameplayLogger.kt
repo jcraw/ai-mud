@@ -117,6 +117,20 @@ class GameplayLogger(
 
         val durationSeconds = report.duration / 1000.0
 
+        // Add exploration metrics if this is an exploration scenario
+        val explorationMetrics = if (report.scenario is TestScenario.Exploration) {
+            val target = report.scenario.targetRoomsToVisit
+            val actual = report.uniqueRoomsVisited
+            val roomsVisited = report.roomNames.joinToString(", ")
+            """
+
+        Exploration Metrics:
+        - Unique Rooms Visited: $actual / $target (target)
+        - Rooms: $roomsVisited"""
+        } else {
+            ""
+        }
+
         return """
         ================================================================================
         TEST REPORT SUMMARY
@@ -131,7 +145,7 @@ class GameplayLogger(
         - Total Steps: ${report.totalSteps}
         - Passed: ${report.passedSteps}
         - Failed: ${report.failedSteps}
-        - Pass Rate: $passRate%
+        - Pass Rate: $passRate%$explorationMetrics
 
         Timing:
         - Start: ${report.startTime}

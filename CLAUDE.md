@@ -216,50 +216,47 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Test Bot Validation Fixes - Round 3 (2025-10-11)
+## Current Status: Exploration Test Optimization Complete (2025-10-11)
 
-**Issue**: Exploration test scenario validation logic was incorrectly failing valid game responses (initial 70% → improved to 85% pass rate, but still 3/20 false failures).
+**What Changed**: Optimized the exploration test scenario for better coverage and efficiency.
 
-**Root Causes Identified** (from analyzing test logs):
-1. **LLM validator confusion about room entry** - Validator saw "Ancient Treasury" description and thought player "remained in same room" or "entered again", when actually it was the FIRST entry
-2. **Invalid direction rejection misunderstood** - Validator failed "You can't go that way" responses even when the direction was correctly invalid (e.g., "go south" when only "west" exit exists)
-3. **Validation rules not explicit enough** - Even with examples, LLM was still misinterpreting successful movements
+**Issues Identified**:
+1. **Insufficient room coverage** - Test only visited 2/6 rooms (33%) despite 20 steps
+2. **Redundant commands** - 30% of steps were repetitive (4x looking at gold coins, 3x looking around same room)
+3. **Inefficient pathing** - Bot kept going back and forth between Treasury and Corridor without exploring other areas
+4. **No exploration metrics** - No tracking of unique rooms visited
 
-**Fixes Applied** (in `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:147-197`):
-1. **Round 1-2 fixes**:
-   - Enhanced room tracking (extract current + previous room names)
-   - "ROOM CHANGED: X → Y" markers in validation context
-   - Basic movement validation rules with examples
-2. **Round 3 fixes** (LATEST):
-   - **Ultra-explicit validation rules** with RULE 1-4 format in ALL CAPS
-   - **Real examples from actual failed validations** that should pass
-   - **Negative examples** showing what should fail (crashes, invalid exits that exist)
-   - **Triple emphasis** on "DO NOT FAIL" scenarios (room revisits, correct rejections, room descriptions after movement)
+**Improvements Applied**:
+1. **Reduced step count from 20 → 15** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/TestScenario.kt:19`)
+   - Removed redundancy while maintaining coverage
+2. **Enhanced input generation** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt:78-104`)
+   - Added breadth-first exploration guidance
+   - Track rooms visited and display to LLM
+   - Prioritize NEW rooms over revisiting
+   - Discourage repeated object examination
+3. **Room tracking system** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt:199-216`)
+   - Extract room names from GM responses with regex
+   - Pass full history to generator for accurate tracking
+4. **Exploration metrics** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt:111-159`)
+   - Added `uniqueRoomsVisited` and `roomNames` to TestReport
+   - Display "X / 5 rooms visited" in console and summary logs
+   - Track which specific rooms were explored
 
-**Failed Test Analysis** (from `test-logs/exploration_1760225557539_summary.txt`):
-- **Step 7 & 16**: Player "go east" from Dark Corridor → "Ancient Treasury" description → Validator INCORRECTLY failed (said "entered again" or "remained in same room")
-  - **Reality**: This was SUCCESSFUL movement east to Treasury
-  - **Fix**: Added explicit example matching this exact scenario to validation rules
-- **Step 20**: Player "go south" from Ancient Treasury (only exit: west) → "You can't go that way" → Validator INCORRECTLY failed (said "should allow movement... exit to west exists")
-  - **Reality**: South is INVALID, west is irrelevant, rejection was CORRECT
-  - **Fix**: Emphasized checking game state exits BEFORE failing on rejections
+**Expected Results**:
+- **Better coverage**: Should reach 4-5 rooms in 15 steps (up from 2 rooms in 20 steps)
+- **Less redundancy**: Avoid looking at same object multiple times
+- **Clearer metrics**: See exactly which rooms were explored
+- **More efficient**: 25% fewer steps with better results
 
-**Status**: ✅ Round 3 fixes implemented and built. **Awaiting test run** to verify if LLM validator now understands the rules.
-
-**Next Steps**:
-1. **Run exploration test**: User will execute `gradle :testbot:run --args="exploration"`
-2. **Check pass rate**: Target is 95%+ (19-20/20 passing)
-3. **If still failing**: May need to switch validation strategy (rule-based instead of LLM-based, or use few-shot examples directly in prompt)
-4. **Apply to other scenarios**: Once exploration validation is solid, apply same approach to combat, skill checks, etc.
+**Status**: ✅ All changes implemented and built. Ready for testing with `gradle :testbot:run --args="exploration"`
 
 ## Next Developer
 
 The GUI client with real engine integration, quest system, and automated testing are complete! Next priorities:
-1. **🔧 VERIFY ROUND 3 VALIDATION FIXES** - Check if exploration test pass rate improved from 85% → 95%+
-2. **Consider alternative validation approach** - If LLM validator still struggles, implement rule-based validation for movement (check for room name in response = success)
-3. **Fix remaining test bot validation issues** - Apply lessons learned to other test scenarios (combat, skill checks, etc.)
-4. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
-5. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-6. **Persistent vector storage** (optional) - Save/load embeddings to disk
+1. **🧪 TEST EXPLORATION IMPROVEMENTS** - Run `gradle :testbot:run --args="exploration"` to verify 4-5 room coverage
+2. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
+3. **Fix unit test failures** - 5 testbot tests failing due to JSON serialization changes (line count assertions need updating)
+4. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+5. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
 See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.

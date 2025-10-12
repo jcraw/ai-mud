@@ -107,12 +107,17 @@ data class TestReport(
     val endTime: String,
     val duration: Long, // milliseconds
     val steps: List<TestStep>,
-    val results: List<StepResult>
+    val results: List<StepResult>,
+    val uniqueRoomsVisited: Int = 0,
+    val roomNames: List<String> = emptyList()
 ) {
     companion object {
         fun fromTestState(state: TestState, startTime: Instant, endTime: Instant): TestReport {
             val passedSteps = state.results.count { it.passed }
             val failedSteps = state.results.count { !it.passed }
+
+            // Extract unique rooms for exploration scenario
+            val roomNames = extractRoomsFromSteps(state.steps)
 
             return TestReport(
                 scenario = state.scenario,
@@ -124,8 +129,31 @@ data class TestReport(
                 endTime = endTime.toString(),
                 duration = endTime.toEpochMilli() - startTime.toEpochMilli(),
                 steps = state.steps,
-                results = state.results
+                results = state.results,
+                uniqueRoomsVisited = roomNames.size,
+                roomNames = roomNames.toList()
             )
+        }
+
+        /**
+         * Extract unique room names from test steps.
+         */
+        private fun extractRoomsFromSteps(steps: List<TestStep>): Set<String> {
+            val roomNames = mutableSetOf<String>()
+            val roomPattern = Regex("^([A-Z][a-zA-Z\\s]+)\\n", RegexOption.MULTILINE)
+
+            for (step in steps) {
+                val match = roomPattern.find(step.gmResponse)
+                if (match != null) {
+                    val roomName = match.groupValues[1].trim()
+                    // Filter out common non-room patterns
+                    if (roomName.length > 3 && !roomName.startsWith("You ") && !roomName.startsWith("The ")) {
+                        roomNames.add(roomName)
+                    }
+                }
+            }
+
+            return roomNames
         }
     }
 }

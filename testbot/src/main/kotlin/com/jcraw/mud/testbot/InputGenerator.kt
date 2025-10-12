@@ -74,13 +74,34 @@ class InputGenerator(
             }
         }
 
+        // Track unique rooms visited for exploration scenario
+        val roomsVisited = if (scenario is TestScenario.Exploration) {
+            extractRoomsFromHistory(recentHistory)
+        } else {
+            emptySet()
+        }
+
         val scenarioGuidance = when (scenario) {
-            is TestScenario.Exploration -> """
+            is TestScenario.Exploration -> {
+                val roomsVisitedText = if (roomsVisited.isNotEmpty()) {
+                    "Rooms visited so far: ${roomsVisited.joinToString(", ")}"
+                } else {
+                    "No rooms visited yet."
+                }
+                """
                 Focus on:
-                - Moving between rooms (n/s/e/w, north/south/east/west)
-                - Looking at the environment and objects
-                - Exploring different areas
+                - PRIORITY: Visit NEW rooms you haven't been to yet (target: 5 different rooms)
+                - Use directional movement (n/s/e/w, north/south/east/west)
+                - Try ALL available exits from a room before moving on
+                - Avoid revisiting the same room more than twice
+                - Look at objects occasionally, but prioritize exploration over examination
+                - Avoid looking at the same object multiple times
+
+                $roomsVisitedText
+
+                Strategy: Be breadth-first, not depth-first. Discover new areas!
             """.trimIndent()
+            }
             is TestScenario.Combat -> """
                 Focus on:
                 - Finding and attacking NPCs
@@ -169,6 +190,29 @@ class InputGenerator(
                 expected = "fallback"
             )
         }
+    }
+
+    /**
+     * Extract unique room names from test history.
+     * Looks for room name headers in GM responses.
+     */
+    private fun extractRoomsFromHistory(history: List<TestStep>): Set<String> {
+        val roomNames = mutableSetOf<String>()
+        val roomPattern = Regex("^([A-Z][a-zA-Z\\s]+)\\n", RegexOption.MULTILINE)
+
+        for (step in history) {
+            // Look for room name at start of GM response
+            val match = roomPattern.find(step.gmResponse)
+            if (match != null) {
+                val roomName = match.groupValues[1].trim()
+                // Filter out common non-room patterns
+                if (roomName.length > 3 && !roomName.startsWith("You ") && !roomName.startsWith("The ")) {
+                    roomNames.add(roomName)
+                }
+            }
+        }
+
+        return roomNames
     }
 }
 

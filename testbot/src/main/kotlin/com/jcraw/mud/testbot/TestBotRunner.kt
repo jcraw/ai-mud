@@ -79,7 +79,7 @@ class TestBotRunner(
         val generatedInput = try {
             inputGenerator.generateInput(
                 scenario = scenario,
-                recentHistory = state.steps.takeLast(3),
+                recentHistory = state.steps, // Pass full history for room tracking
                 currentContext = currentContext
             )
         } catch (e: Exception) {
@@ -212,6 +212,15 @@ class TestBotRunner(
         println("Status: ${report.finalStatus}")
         println("Steps: ${report.totalSteps} (${report.passedSteps} passed, ${report.failedSteps} failed)")
         println("Pass Rate: $passRate%")
+
+        // Add exploration metrics if this is an exploration scenario
+        if (report.scenario is TestScenario.Exploration) {
+            val target = report.scenario.targetRoomsToVisit
+            val actual = report.uniqueRoomsVisited
+            println("Rooms Visited: $actual / $target")
+            println("Rooms: ${report.roomNames.joinToString(", ")}")
+        }
+
         println("Duration: ${report.duration / 1000.0}s")
         println("=".repeat(60))
     }
