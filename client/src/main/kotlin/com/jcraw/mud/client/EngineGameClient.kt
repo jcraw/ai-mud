@@ -224,29 +224,62 @@ class EngineGameClient(
         }
 
         val room = worldState.getCurrentRoom() ?: return
-        val entity = room.entities.find { e ->
+
+        // First check room entities
+        val roomEntity = room.entities.find { e ->
             e.name.lowercase().contains(target.lowercase()) ||
             e.id.lowercase().contains(target.lowercase())
         }
 
-        if (entity != null) {
-            emitEvent(GameEvent.Narrative(entity.description))
+        if (roomEntity != null) {
+            emitEvent(GameEvent.Narrative(roomEntity.description))
+            return
+        }
+
+        // Then check inventory (including equipped items)
+        val inventoryItem = worldState.player.inventory.find { item ->
+            item.name.lowercase().contains(target.lowercase()) ||
+            item.id.lowercase().contains(target.lowercase())
+        }
+
+        if (inventoryItem != null) {
+            emitEvent(GameEvent.Narrative(inventoryItem.description))
+            return
+        }
+
+        // Check equipped weapon
+        val equippedWeapon = worldState.player.equippedWeapon
+        if (equippedWeapon != null &&
+            (equippedWeapon.name.lowercase().contains(target.lowercase()) ||
+             equippedWeapon.id.lowercase().contains(target.lowercase()))) {
+            emitEvent(GameEvent.Narrative(equippedWeapon.description + " (equipped)"))
+            return
+        }
+
+        // Check equipped armor
+        val equippedArmor = worldState.player.equippedArmor
+        if (equippedArmor != null &&
+            (equippedArmor.name.lowercase().contains(target.lowercase()) ||
+             equippedArmor.id.lowercase().contains(target.lowercase()))) {
+            emitEvent(GameEvent.Narrative(equippedArmor.description + " (equipped)"))
+            return
+        }
+
+        // Finally try scenery
+        val roomDescription = if (descriptionGenerator != null) {
+            runBlocking { descriptionGenerator.generateDescription(room) }
         } else {
-            val roomDescription = if (descriptionGenerator != null) {
-                runBlocking { descriptionGenerator.generateDescription(room) }
-            } else {
-                room.traits.joinToString(". ") + "."
-            }
+            room.traits.joinToString(". ") + "."
+        }
 
-            val sceneryDescription = runBlocking {
-                sceneryGenerator.describeScenery(target, room, roomDescription)
-            }
+        val sceneryDescription = runBlocking {
+            sceneryGenerator.describeScenery(target, room, roomDescription)
+        }
 
-            if (sceneryDescription != null) {
-                emitEvent(GameEvent.Narrative(sceneryDescription))
-            } else {
-                emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
-            }
+        if (sceneryDescription != null) {
+            emitEvent(GameEvent.Narrative(sceneryDescription))
+        } else {
+            emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
         }
     }
 

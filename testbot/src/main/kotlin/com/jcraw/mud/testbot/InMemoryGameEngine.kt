@@ -84,22 +84,48 @@ class InMemoryGameEngine(
     private suspend fun handleLook(target: String?): String {
         val room = worldState.getCurrentRoom() ?: return "You are nowhere."
 
-        return if (target == null) {
-            buildRoomDescription(room)
-        } else {
-            val entity = room.entities.find { e ->
-                e.name.lowercase().contains(target.lowercase()) || e.id.lowercase().contains(target.lowercase())
-            }
-
-            if (entity != null) {
-                entity.description
-            } else {
-                // Try to describe scenery
-                val roomDescription = buildRoomDescription(room)
-                val sceneryDescription = sceneryGenerator.describeScenery(target, room, roomDescription)
-                sceneryDescription ?: "You don't see that here."
-            }
+        if (target == null) {
+            return buildRoomDescription(room)
         }
+
+        // First check room entities
+        val roomEntity = room.entities.find { e ->
+            e.name.lowercase().contains(target.lowercase()) || e.id.lowercase().contains(target.lowercase())
+        }
+
+        if (roomEntity != null) {
+            return roomEntity.description
+        }
+
+        // Then check inventory
+        val inventoryItem = worldState.player.inventory.find { item ->
+            item.name.lowercase().contains(target.lowercase()) || item.id.lowercase().contains(target.lowercase())
+        }
+
+        if (inventoryItem != null) {
+            return inventoryItem.description
+        }
+
+        // Check equipped weapon
+        val equippedWeapon = worldState.player.equippedWeapon
+        if (equippedWeapon != null &&
+            (equippedWeapon.name.lowercase().contains(target.lowercase()) ||
+             equippedWeapon.id.lowercase().contains(target.lowercase()))) {
+            return equippedWeapon.description + " (equipped)"
+        }
+
+        // Check equipped armor
+        val equippedArmor = worldState.player.equippedArmor
+        if (equippedArmor != null &&
+            (equippedArmor.name.lowercase().contains(target.lowercase()) ||
+             equippedArmor.id.lowercase().contains(target.lowercase()))) {
+            return equippedArmor.description + " (equipped)"
+        }
+
+        // Finally try scenery
+        val roomDescription = buildRoomDescription(room)
+        val sceneryDescription = sceneryGenerator.describeScenery(target, room, roomDescription)
+        return sceneryDescription ?: "You don't see that here."
     }
 
     private fun handleInventory(): String {

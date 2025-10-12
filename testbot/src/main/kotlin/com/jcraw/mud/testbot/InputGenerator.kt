@@ -119,11 +119,26 @@ class InputGenerator(
                 - Testing different stat-based challenges
             """.trimIndent()
             is TestScenario.ItemInteraction -> """
-                Focus on:
-                - Taking/picking up items
-                - Dropping items
-                - Equipping weapons and armor
-                - Using consumables like potions
+                Test ALL item/inventory mechanics efficiently:
+                1. Examine items in room - Use 'look <item>' to inspect items before taking
+                2. Take items - Pick up items with 'take <item>'
+                3. Check inventory - Use 'inventory' or 'i' to verify item state
+                4. Examine inventory items - Use 'look <item>' on items you're carrying (NEW!)
+                5. Equip items - Equip weapons/armor with 'equip <item>' (automatically unequips old)
+                6. Examine equipped items - Use 'look <weapon/armor>' to see equipped item descriptions
+                7. Use consumables - Use potions with 'use <item>' (test healing)
+                8. Drop items - Drop items with 'drop <item>'
+
+                Efficient strategy (minimize steps):
+                - Look at 1-2 items in room before taking
+                - Take 2-3 different item types (weapon, armor, consumable)
+                - Check inventory after taking
+                - Look at 1 item in inventory to verify examination works
+                - Equip weapon, then look at it to see "(equipped)" tag
+                - Equip armor
+                - Use consumable if damaged
+                - Drop 1 item, verify it appears in room
+                - Target: ~12-15 actions total
             """.trimIndent()
             is TestScenario.SocialInteraction -> """
                 Focus on:

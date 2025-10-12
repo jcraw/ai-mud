@@ -39,9 +39,9 @@ sealed class TestScenario {
     @Serializable
     data class ItemInteraction(
         override val name: String = "item_interaction",
-        override val description: String = "Test pickup, drop, equip, and use item mechanics",
-        override val maxSteps: Int = 20,
-        val targetItemsToInteract: Int = 5
+        override val description: String = "Test examine (room+inventory), pickup, inventory, equip, use, and drop mechanics",
+        override val maxSteps: Int = 18,
+        val targetItemsToInteract: Int = 3
     ) : TestScenario()
 
     @Serializable
