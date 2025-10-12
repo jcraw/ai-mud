@@ -33,9 +33,11 @@ class CombatNarrator(
         val systemPrompt = """
             You are a dungeon master narrating a turn-based combat encounter.
             Create vivid, atmospheric combat descriptions that bring the action to life.
-            Keep descriptions concise (2-3 sentences) but evocative.
+            Keep descriptions brief (1-2 SHORT sentences per attack) but evocative.
             Focus on the visceral details of combat - the clash of steel, the grunt of effort, the spray of blood.
             If past combat history is provided, build on it to show progression of the fight.
+
+            IMPORTANT: Put each attack on its own line. First line: player's attack. Second line: enemy's counter (if any).
         """.trimIndent()
 
         val userContext = buildString {
@@ -45,6 +47,9 @@ class CombatNarrator(
             appendLine()
             appendLine("Combatants:")
             appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")
+            appendLine("  - Weapon: ${worldState.player.equippedWeapon?.name ?: "bare fists"}")
+            appendLine("  - Armor: ${worldState.player.equippedArmor?.name ?: "no armor"}")
+            appendLine("  - STR: ${worldState.player.stats.strength}, DEX: ${worldState.player.stats.dexterity}")
             appendLine("- Enemy (${npc.name}): ${npc.description}")
             appendLine()
             if (memories.isNotEmpty()) {
@@ -66,7 +71,7 @@ class CombatNarrator(
                 appendLine("Result: Combat continues")
             }
             appendLine()
-            appendLine("Narrate this combat round in 2-3 vivid sentences. Do not include damage numbers or game mechanics in the narrative.")
+            appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put player attack on one line, enemy counter on next line. Use the player's actual weapon (or fists if unarmed). Do not include damage numbers.")
         }
 
         return try {
@@ -74,7 +79,7 @@ class CombatNarrator(
                 modelId = "gpt-4o-mini",
                 systemPrompt = systemPrompt,
                 userContext = userContext,
-                maxTokens = 150,
+                maxTokens = 80,
                 temperature = 0.8
             )
             val narrative = response.choices.firstOrNull()?.message?.content?.trim()
@@ -98,6 +103,8 @@ class CombatNarrator(
      */
     suspend fun narrateCombatStart(worldState: WorldState, npc: Entity.NPC): String {
         val room = worldState.getCurrentRoom() ?: return "Combat begins..."
+        val player = worldState.player
+        val weapon = player.equippedWeapon?.name ?: "bare fists"
 
         val systemPrompt = """
             You are a dungeon master narrating the start of a combat encounter.
@@ -109,10 +116,11 @@ class CombatNarrator(
             appendLine("Combat Starting:")
             appendLine("Location: ${room.name}")
             appendLine("Atmosphere: ${room.traits.joinToString(", ")}")
+            appendLine("Player weapon: $weapon")
             appendLine("Enemy: ${npc.name} - ${npc.description}")
             appendLine("Enemy disposition: ${if (npc.isHostile) "Hostile" else "Provoked"}")
             appendLine()
-            appendLine("Narrate the moment combat begins in 1-2 sentences.")
+            appendLine("Narrate the moment combat begins in 1-2 sentences. Mention the player's actual weapon (or fists if unarmed).")
         }
 
         return try {
@@ -124,16 +132,24 @@ class CombatNarrator(
                 temperature = 0.8
             )
             response.choices.firstOrNull()?.message?.content?.trim()
-                ?: (if (npc.isHostile) {
-                    "${npc.name} attacks! Steel rings as you draw your weapon!"
-                } else {
-                    "You engage ${npc.name} in combat!"
-                })
+                ?: buildFallbackCombatStart(npc, weapon)
         } catch (e: Exception) {
-            if (npc.isHostile) {
-                "${npc.name} attacks! Steel rings as you draw your weapon!"
+            buildFallbackCombatStart(npc, weapon)
+        }
+    }
+
+    private fun buildFallbackCombatStart(npc: Entity.NPC, weapon: String): String {
+        return if (npc.isHostile) {
+            if (weapon == "bare fists") {
+                "${npc.name} attacks! You raise your fists to defend yourself!"
             } else {
-                "You engage ${npc.name} in combat!"
+                "${npc.name} attacks! You ready your $weapon!"
+            }
+        } else {
+            if (weapon == "bare fists") {
+                "You engage ${npc.name} with your bare hands!"
+            } else {
+                "You engage ${npc.name} with your $weapon!"
             }
         }
     }
@@ -148,11 +164,17 @@ class CombatNarrator(
         npcDied: Boolean,
         playerDied: Boolean
     ): String = buildString {
-        append("You strike $npcName for $playerDamage damage! ")
+        append("You strike $npcName for $playerDamage damage!")
         when {
-            npcDied -> append("$npcName falls defeated!")
-            playerDied -> append("$npcName's counter-attack for $npcDamage damage strikes you down!")
-            else -> append("$npcName retaliates for $npcDamage damage!")
+            npcDied -> append(" $npcName falls defeated!")
+            playerDied -> {
+                appendLine()
+                append("$npcName's counter-attack for $npcDamage damage strikes you down!")
+            }
+            else -> {
+                appendLine()
+                append("$npcName retaliates for $npcDamage damage!")
+            }
         }
     }
 }

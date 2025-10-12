@@ -423,3 +423,55 @@ Updated `OutputValidator.kt:358-426` to use explicit signals and query state:
 **Build Status**: ✅ `gradle :reasoning:assemble :testbot:assemble` successful
 
 **Status**: ✅ **COMPLETE** - Combat test validation achieves 100% reliability
+
+## Combat Narration Improvements (2025-10-12) 🎨
+
+**Feature**: Combat narration now uses equipment-aware, concise descriptions!
+
+**Problems Addressed**:
+1. Combat text was too long and wordy
+2. Player and enemy attacks ran together on same line (hard to read)
+3. Generic weapon references (e.g., "blade") when player had no weapon equipped
+
+**Solutions Applied** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt`):
+
+### 1. Equipment-Aware Narration (lines 50-52, 119, 141-155)
+```kotlin
+// LLM prompt now includes:
+appendLine("  - Weapon: ${worldState.player.equippedWeapon?.name ?: "bare fists"}")
+appendLine("  - Armor: ${worldState.player.equippedArmor?.name ?: "no armor"}")
+appendLine("  - STR: ${worldState.player.stats.strength}, DEX: ${worldState.player.stats.dexterity}")
+```
+
+**Fallback narratives** now handle unarmed vs armed combat:
+```kotlin
+if (weapon == "bare fists") {
+    "${npc.name} attacks! You raise your fists to defend yourself!"
+} else {
+    "${npc.name} attacks! You ready your $weapon!"
+}
+```
+
+### 2. Shorter, Line-Separated Text (lines 36, 40, 82, 167-177)
+- **Reduced max tokens**: 150 → 80 for more concise responses
+- **Explicit line-break instruction**: "Put each attack on its own line. First line: player's attack. Second line: enemy's counter (if any)."
+- **Fallback uses appendLine()**: Separates player attack from enemy counter-attack
+
+### 3. Better Prompting (line 74)
+```kotlin
+appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put player attack on one line, enemy counter on next line. Use the player's actual weapon (or fists if unarmed). Do not include damage numbers.")
+```
+
+**Result**:
+- ✅ Combat descriptions are now 1-2 SHORT sentences per action
+- ✅ Each attack appears on separate line for clarity
+- ✅ References actual equipped gear (weapons, armor)
+- ✅ Handles unarmed combat properly ("bare fists" instead of generic "blade")
+- ✅ More readable combat log in GUI client
+
+**Files Modified**:
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt` (lines 36-52, 74, 82, 104-155, 167-177)
+
+**Build Status**: ✅ `gradle :reasoning:build` and `gradle :app:installDist` successful
+
+**Status**: ✅ **COMPLETE** - Combat narration is now concise, accurate, and equipment-aware

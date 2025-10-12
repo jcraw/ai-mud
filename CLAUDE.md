@@ -40,7 +40,7 @@ For complete documentation, see:
 - **RAG memory system**: Vector embeddings with semantic search
 - **Dynamic descriptions**: Room descriptions that build on history
 - **NPC dialogue**: Personality-driven with conversation memory
-- **Combat narration**: Atmospheric, contextual combat descriptions
+- **Combat narration**: Equipment-aware, concise combat descriptions (1-2 sentences per action, line-separated)
 
 ### Multi-User Features ✅
 - **GameServer**: Thread-safe shared world state
@@ -228,147 +228,37 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Combat Test Validation Fixed (2025-10-12)
+## Current Status: Combat Narration Improvements (2025-10-12)
 
-**Feature Complete**: Combat test validation now achieves **100% pass rate** (20/20 steps).
+**Feature Complete**: Combat narration now uses equipment-aware, concise descriptions!
 
-**Problem**: Combat test had 30% pass rate due to validator not recognizing when NPCs were defeated:
-- Test would kill Skeleton King successfully (steps 1-5 pass)
-- Subsequent attacks on dead NPC would fail validation (steps 6-20 fail)
-- Validator thought NPC should still be alive despite being removed from room
+**Improvements Made** (`CombatNarrator.kt`):
 
-**Root Cause**:
-1. No explicit signal when NPC dies (ambiguous "You strike for X damage!" could be killing blow or regular hit)
-2. Validator tried to infer death from combat patterns (brittle, violates guidelines)
-3. "attack" with no target triggered LLM validation that was confused about combat state
+1. **Equipment-Aware Narration**:
+   - LLM prompts include player's equipped weapon (or "bare fists" if unarmed)
+   - Prompts include armor and STR/DEX stats for better combat context
+   - Fallback narratives properly handle unarmed vs armed combat
+   - No more generic "blade" references when player has no weapon
 
-**Solution - Hardcoded Victory Marker**:
+2. **Shorter, Line-Separated Text**:
+   - Reduced max tokens from 150 to 80 for more concise responses
+   - Each attack now on separate line (player attack, then enemy counter)
+   - Combat descriptions now 1-2 SHORT sentences per action
+   - Improved readability in combat log
 
-Added explicit death signal in `CombatResolver.kt:72`:
-```kotlin
-// Before:
-narrative = "You strike for $damage damage!"
-
-// After:
-narrative = "You strike for $damage damage! Your enemy has been defeated!"
-```
-
-**Solution - Simplified Validator**:
-
-Updated `OutputValidator.kt` to use hardcoded marker and query game state directly:
-- Check for "has been defeated" marker → PASS (line 370)
-- Check for "Attack whom?" when no target → PASS (line 362)
-- Query `worldState.getCurrentRoom()` to check if NPC is in room (line 364)
-- If NPC not in room, it was killed → PASS (line 415)
-
-Removed brittle `trackKilledNPCsFromHistory()` function that tried to detect deaths from patterns.
+3. **Better Prompting**:
+   - Explicit instructions to use actual equipped gear
+   - Clear formatting requirements (line breaks between attacks)
+   - More focused, atmospheric combat descriptions
 
 **Files Modified**:
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt:72` - Added victory marker
-- `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:358-426` - Simplified combat validation
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt` - Equipment-aware prompts, shorter output, line-separated attacks
 
-**Test Results**: ✅ **100% pass rate** (20/20 steps)
-- Previous: 30% pass rate (6/20 steps)
-- Improvement: +70% pass rate
-- All combat scenarios now validate correctly
-
-**Design Philosophy**:
-- Uses **explicit signals** (hardcoded markers) instead of pattern inference
-- Queries **game state directly** instead of analyzing history
-- Follows guidelines: "prefer explicit over implicit", "query state not patterns"
-
-See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full technical details.
-
-## Previous Status: Quest Auto-Tracking (2025-10-11)
-
-**Feature Complete**: Quest objectives now automatically track progress as players perform actions!
-
-**Implementation Details** (`App.kt:275-305`, `GameServer.kt:127-162`):
-
-1. **QuestTracker Integration**:
-   - Added `QuestTracker` instance to both `MudGame` and `GameServer`
-   - Created `trackQuests()` helper method that calls `QuestTracker.updateQuestsAfterAction()`
-   - Checks for completed objectives and quests, displays notifications
-
-2. **Action Tracking Points**:
-   - **Move** (lines 307-325 in App.kt): Tracks `QuestAction.VisitedRoom` when entering rooms
-   - **Take** (lines 415-498): Tracks `QuestAction.CollectedItem` when picking up items
-   - **Talk** (lines 520-560): Tracks `QuestAction.TalkedToNPC` when talking to NPCs
-   - **Attack** (lines 562-620): Tracks `QuestAction.KilledNPC` when NPCs die in combat
-   - **Check** (lines 738-803): Tracks `QuestAction.UsedSkill` when skill checks succeed
-
-3. **User Notifications**:
-   - Shows `✓ Quest objective completed: <description>` when objectives complete
-   - Shows `🎉 Quest completed: <title>` when all objectives done
-   - Reminds player to use `claim <quest_id>` to collect rewards
-
-4. **Multi-User Support**:
-   - Same tracking logic implemented in `GameServer.kt` for multi-user mode
-   - Thread-safe quest updates within the server's Mutex lock
-
-**What's Not Implemented**:
-- DeliverItem quest objectives (QuestAction.DeliverItem tracking not yet hooked up)
-
-**Testing**:
-- Build successful: `gradle :app:installDist -x test`
-- Ready to test in-game by accepting quests and performing actions
-
-## Previous Status: State-Aware Item Validation (2025-10-11)
-
-**Problem Identified**: Item interaction test had overly strict LLM validation causing false failures:
-1. Valid item descriptions were rejected (e.g., "A sharp dagger" marked as FAIL)
-2. First "take" command failed because validator didn't know starting room items
-3. Items already in inventory incorrectly expected to be takeable again
-
-**Root Cause Analysis**:
-- LLM validator lacked visibility into actual room/inventory state
-- No inventory tracking across test history
-- Validator couldn't distinguish between "already taken" vs "doesn't exist"
-
-**Solutions Implemented** (`OutputValidator.kt:69-366`):
-
-1. **Inventory State Tracking** (`trackInventoryFromHistory()`:333-366):
-   - Analyzes test history to track items taken/dropped
-   - Returns set of lowercase item names currently in inventory
-   - Used by both code validation and LLM context
-
-2. **Code-Based Item Validation** (`validateWithCode()`:94-239):
-   - **TAKE commands** (94-172): Validates against inventory state + room entities
-     - Success: "You take X" when item not in inventory → PASS
-     - Rejection when already in inventory → PASS (correct behavior)
-     - Rejection when item exists in room but not in inventory → FAIL (bug)
-   - **LOOK commands** (174-200): Any descriptive text (>5 chars, no errors) → PASS
-   - **EQUIP commands** (202-221): "You equip/wield/wear X" → PASS
-   - **DROP commands** (223-239): "You drop X" → PASS
-
-3. **State-Aware LLM Context** (`buildUserContext()`:437-473):
-   - Includes tracked inventory in game state context
-   - Shows "Items in inventory (tracked): [list]" to LLM validator
-   - Enables validator to make informed decisions about item availability
-
-4. **Updated ItemInteraction Criteria** (540-581):
-   - Clear rules: "You can't take that" when item IS in inventory → PASS
-   - Explicitly states ANY description (even short) is valid
-   - Tells validator to check tracked inventory before failing
-
-**Validation Strategy**:
-- Code validation (deterministic) runs first for mechanical correctness
-- LLM validation (subjective) only runs if code can't make definitive judgment
-- Hybrid approach eliminates false positives while maintaining flexibility
-
-**Test Spawn Location** (from previous fix):
-- Item tests spawn in Armory with 4 items available
-- `SampleDungeon.kt:269-301` supports `startingRoomId` parameter
+**Result**: Combat text is now punchier, more accurate, and easier to read!
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, and combat test validation are complete!
-
-**Combat System Status**: ✅ **100% test pass rate**
-- Combat mechanics work correctly (NPCs removed from rooms after defeat)
-- Test validation recognizes victory states properly
-- Hardcoded markers make validation deterministic and reliable
-- Follows design guidelines (explicit signals, query state not patterns)
+The GUI client with real engine integration, quest system with auto-tracking, combat test validation, and combat narration improvements are complete!
 
 **Next Priorities**:
 
