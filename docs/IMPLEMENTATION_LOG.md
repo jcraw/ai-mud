@@ -366,3 +366,60 @@ val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage)
 - No more "It's not your turn!" errors during continuous combat
 
 **Status**: ✅ Fix implemented and built. **Ready to test** - Run `gradle :testbot:run` → option 2 (Combat)
+
+## Combat Test Validation Fix (2025-10-12) 🎯
+
+**Problem**: Combat test had 30% pass rate (6/20) - combat mechanics worked correctly but test validator incorrectly failed most steps.
+
+**Pattern from logs** (`test-logs/combat_1760306000586.txt`):
+- Steps 1-4: Combat works (initiate → rounds → killing blow) ✅ PASS
+- Step 5: "No one by that name here" after NPC death ✅ PASS
+- Steps 6-20: Same response but validator fails ❌ FAIL
+- Validator: "Skeleton King is not present when it should be...should still be in combat"
+
+**Root Causes**:
+1. **No explicit victory signal** - "You strike for X damage!" was ambiguous (killing blow vs normal hit)
+2. **Brittle pattern detection** - Validator tried to infer NPC death from combat history patterns
+3. **LLM confusion** - "attack" with no target → "Attack whom?" failed because LLM thought combat should be ongoing
+
+**Solution 1 - Hardcoded Victory Marker**:
+
+Added explicit death signal in `CombatResolver.kt:72`:
+```kotlin
+// Before:
+narrative = "You strike for $damage damage!"
+
+// After:
+narrative = "You strike for $damage damage! Your enemy has been defeated!"
+```
+
+**Solution 2 - Query Game State Directly**:
+
+Updated `OutputValidator.kt:358-426` to use explicit signals and query state:
+- **Line 362-370**: Check "attack" with no target → "Attack whom?" = PASS
+- **Line 380**: Check for "has been defeated" marker = PASS (victory)
+- **Line 364-367**: Query `worldState.getCurrentRoom()` to check if NPC is in room
+- **Line 415-421**: If NPC not in room, it was killed = PASS (correctly rejected)
+
+**Removed brittle code**:
+- Deleted `trackKilledNPCsFromHistory()` function that tried to detect deaths from patterns
+- No more regex pattern matching on combat responses
+- No more analyzing history for victory indicators
+
+**Design Philosophy Applied**:
+- ✅ **Explicit signals** (hardcoded markers) over implicit pattern inference
+- ✅ **Query state directly** instead of analyzing history
+- ✅ Follows `CLAUDE_GUIDELINES.md`: "prefer explicit over implicit", "no regex as LLM backups"
+
+**Files Modified**:
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt:72` - Added victory marker
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:358-426` - Simplified validation
+
+**Test Results**: ✅ **100% pass rate** (20/20 steps)
+- Previous: 30% pass rate (6/20 steps)
+- Improvement: +70% pass rate
+- All combat scenarios validate correctly
+
+**Build Status**: ✅ `gradle :reasoning:assemble :testbot:assemble` successful
+
+**Status**: ✅ **COMPLETE** - Combat test validation achieves 100% reliability

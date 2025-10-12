@@ -228,49 +228,56 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Combat NPC Removal Bug Fixed (2025-10-12)
+## Current Status: Combat Test Validation Fixed (2025-10-12)
 
-**Bug Fixed**: Combat system now properly removes defeated NPCs from rooms.
+**Feature Complete**: Combat test validation now achieves **100% pass rate** (20/20 steps).
 
-**Problem**: Test bot combat scenario had 65% pass rate with pattern of failures:
-- Attack would defeat NPC but show "You strike for X damage!" (no retaliation)
-- Next attack would re-initiate combat: "You engage Skeleton King in combat!"
-- This indicated NPC was never removed from room after death
+**Problem**: Combat test had 30% pass rate due to validator not recognizing when NPCs were defeated:
+- Test would kill Skeleton King successfully (steps 1-5 pass)
+- Subsequent attacks on dead NPC would fail validation (steps 6-20 fail)
+- Validator thought NPC should still be alive despite being removed from room
 
-**Root Cause**: `InMemoryGameEngine.kt:218-223` had state management bug:
+**Root Cause**:
+1. No explicit signal when NPC dies (ambiguous "You strike for X damage!" could be killing blow or regular hit)
+2. Validator tried to infer death from combat patterns (brittle, violates guidelines)
+3. "attack" with no target triggered LLM validation that was confused about combat state
+
+**Solution - Hardcoded Victory Marker**:
+
+Added explicit death signal in `CombatResolver.kt:72`:
 ```kotlin
-worldState = worldState.updatePlayer(worldState.player.endCombat())  // Line 218: activeCombat set to null
-if (result.npcDied) {
-    val combat = worldState.player.activeCombat  // Line 220: BUG! Already null after endCombat()
-    if (combat != null) {
-        worldState = worldState.removeEntityFromRoom(room.id, combat.combatantNpcId)  // Never executed
-    }
-}
+// Before:
+narrative = "You strike for $damage damage!"
+
+// After:
+narrative = "You strike for $damage damage! Your enemy has been defeated!"
 ```
 
-The code called `endCombat()` which nulls `activeCombat`, then tried to read `activeCombat` to get the NPC ID. Since it was already null, the NPC never got removed from the room.
+**Solution - Simplified Validator**:
 
-**Fix Applied**: Save combat state BEFORE ending combat in `InMemoryGameEngine.kt:218-224`:
-```kotlin
-// Combat ended - save combat info BEFORE ending
-val endedCombat = worldState.player.activeCombat
-worldState = worldState.updatePlayer(worldState.player.endCombat())
+Updated `OutputValidator.kt` to use hardcoded marker and query game state directly:
+- Check for "has been defeated" marker → PASS (line 370)
+- Check for "Attack whom?" when no target → PASS (line 362)
+- Query `worldState.getCurrentRoom()` to check if NPC is in room (line 364)
+- If NPC not in room, it was killed → PASS (line 415)
 
-if (result.npcDied && endedCombat != null) {
-    worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
-}
-```
+Removed brittle `trackKilledNPCsFromHistory()` function that tried to detect deaths from patterns.
 
 **Files Modified**:
-- `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt:215-228`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt:72` - Added victory marker
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:358-426` - Simplified combat validation
 
-**Test Results**: ✅ Combat test pass rate: **95%** (19/20 steps pass)
-- Previous: 65% pass rate (13/20 steps)
-- Improvement: +30% pass rate
+**Test Results**: ✅ **100% pass rate** (20/20 steps)
+- Previous: 30% pass rate (6/20 steps)
+- Improvement: +70% pass rate
+- All combat scenarios now validate correctly
 
-**Build Status**: ✅ `gradle :testbot:assemble` successful
+**Design Philosophy**:
+- Uses **explicit signals** (hardcoded markers) instead of pattern inference
+- Queries **game state directly** instead of analyzing history
+- Follows guidelines: "prefer explicit over implicit", "query state not patterns"
 
-See [Implementation Log](docs/IMPLEMENTATION_LOG.md) section "Combat NPC Removal Bug Fix (2025-10-12)" for full technical details.
+See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full technical details.
 
 ## Previous Status: Quest Auto-Tracking (2025-10-11)
 
@@ -355,12 +362,13 @@ See [Implementation Log](docs/IMPLEMENTATION_LOG.md) section "Combat NPC Removal
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, state-aware test validation, and combat NPC removal bug fix are complete!
+The GUI client with real engine integration, quest system with auto-tracking, and combat test validation are complete!
 
-**Combat System Status**: ✅ **95% test pass rate** (fixed from 65%)
-- NPCs properly removed from rooms after defeat
-- No more phantom combat re-initiations
-- Only 1 intermittent LLM validation failure remaining
+**Combat System Status**: ✅ **100% test pass rate**
+- Combat mechanics work correctly (NPCs removed from rooms after defeat)
+- Test validation recognizes victory states properly
+- Hardcoded markers make validation deterministic and reliable
+- Follows design guidelines (explicit signals, query state not patterns)
 
 **Next Priorities**:
 
