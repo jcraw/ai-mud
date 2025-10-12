@@ -228,7 +228,51 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Quest Auto-Tracking (2025-10-11)
+## Current Status: Combat NPC Removal Bug Fixed (2025-10-12)
+
+**Bug Fixed**: Combat system now properly removes defeated NPCs from rooms.
+
+**Problem**: Test bot combat scenario had 65% pass rate with pattern of failures:
+- Attack would defeat NPC but show "You strike for X damage!" (no retaliation)
+- Next attack would re-initiate combat: "You engage Skeleton King in combat!"
+- This indicated NPC was never removed from room after death
+
+**Root Cause**: `InMemoryGameEngine.kt:218-223` had state management bug:
+```kotlin
+worldState = worldState.updatePlayer(worldState.player.endCombat())  // Line 218: activeCombat set to null
+if (result.npcDied) {
+    val combat = worldState.player.activeCombat  // Line 220: BUG! Already null after endCombat()
+    if (combat != null) {
+        worldState = worldState.removeEntityFromRoom(room.id, combat.combatantNpcId)  // Never executed
+    }
+}
+```
+
+The code called `endCombat()` which nulls `activeCombat`, then tried to read `activeCombat` to get the NPC ID. Since it was already null, the NPC never got removed from the room.
+
+**Fix Applied**: Save combat state BEFORE ending combat in `InMemoryGameEngine.kt:218-224`:
+```kotlin
+// Combat ended - save combat info BEFORE ending
+val endedCombat = worldState.player.activeCombat
+worldState = worldState.updatePlayer(worldState.player.endCombat())
+
+if (result.npcDied && endedCombat != null) {
+    worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
+}
+```
+
+**Files Modified**:
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt:215-228`
+
+**Test Results**: ✅ Combat test pass rate: **95%** (19/20 steps pass)
+- Previous: 65% pass rate (13/20 steps)
+- Improvement: +30% pass rate
+
+**Build Status**: ✅ `gradle :testbot:assemble` successful
+
+See [Implementation Log](docs/IMPLEMENTATION_LOG.md) section "Combat NPC Removal Bug Fix (2025-10-12)" for full technical details.
+
+## Previous Status: Quest Auto-Tracking (2025-10-11)
 
 **Feature Complete**: Quest objectives now automatically track progress as players perform actions!
 
@@ -311,11 +355,18 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, and state-aware test validation are complete! Next priorities:
-1. **Test quest auto-tracking** - Play through the game and verify quest objectives automatically update as expected
-2. **Deliver quest objectives** - Implement the DeliverItem quest objective tracking (currently not implemented)
-3. **Fix unit tests** (optional) - Update GameServerTest to fix compilation errors with deprecated APIs
-4. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-5. **Persistent vector storage** (optional) - Save/load embeddings to disk
+The GUI client with real engine integration, quest system with auto-tracking, state-aware test validation, and combat NPC removal bug fix are complete!
+
+**Combat System Status**: ✅ **95% test pass rate** (fixed from 65%)
+- NPCs properly removed from rooms after defeat
+- No more phantom combat re-initiations
+- Only 1 intermittent LLM validation failure remaining
+
+**Next Priorities**:
+
+1. **Deliver quest objectives** - Implement DeliverItem quest objective tracking (currently not implemented)
+2. **Fix unit tests** (optional) - Update GameServerTest to fix compilation errors with deprecated APIs
+3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+4. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
 See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.

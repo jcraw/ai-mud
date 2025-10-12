@@ -2,88 +2,104 @@
         TEST REPORT SUMMARY
         ================================================================================
 
-        Scenario: exploration
-        Description: Test room navigation, look commands, and description variability
+        Scenario: combat
+        Description: Test combat mechanics, health tracking, and victory/defeat conditions
 
         Status: PASSED
 
         Results:
-        - Total Steps: 15
-        - Passed: 15
-        - Failed: 0
-        - Pass Rate: 100%
-
-        Exploration Metrics:
-        - Unique Rooms Visited: 3 / 5 (target)
-        - Rooms: Dark Corridor, Ancient Treasury, Abandoned Throne Room
+        - Total Steps: 20
+        - Passed: 19
+        - Failed: 1
+        - Pass Rate: 95%
 
         Timing:
-        - Start: 2025-10-12T05:55:22.354510577Z
-        - End: 2025-10-12T05:56:25.510694415Z
-        - Duration: 63.16s
+        - Start: 2025-10-12T21:36:05.460672337Z
+        - End: 2025-10-12T21:37:09.954608618Z
+        - Duration: 64.49s
 
         ================================================================================
         STEP DETAILS
         ================================================================================
 
         Step 1: ✓ PASS
-Input: go north
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 2: ✓ PASS
-Input: go east
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 3: ✓ PASS
-Input: go west
+Input: attack Skeleton King
 Reason: Step completed successfully
 
-Step 4: ✓ PASS
-Input: go northeast
-Reason: Step completed successfully
+Step 4: ✗ FAIL
+Input: attack Skeleton King
+Reason: Combat did not initiate correctly; the player is not in combat despite attacking an NPC.
 
 Step 5: ✓ PASS
-Input: go north
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 6: ✓ PASS
-Input: go southeast
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 7: ✓ PASS
-Input: look at the throne
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 8: ✓ PASS
-Input: go northwest
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 9: ✓ PASS
-Input: go northeast
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 10: ✓ PASS
-Input: go south
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 11: ✓ PASS
-Input: go east
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 12: ✓ PASS
-Input: go north
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 13: ✓ PASS
-Input: go southwest
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 14: ✓ PASS
-Input: go southeast
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 15: ✓ PASS
-Input: go northeast
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: attack Skeleton King
 Reason: Step completed successfully
 
         ================================================================================

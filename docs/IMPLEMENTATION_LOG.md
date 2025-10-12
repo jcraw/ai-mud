@@ -302,3 +302,67 @@ private fun splitCompoundCommand(input: String): String {
 1. Run `gradle :testbot:run` → option 4 to verify item interaction test now works properly
 2. Expect 80%+ pass rate testing actual item mechanics (take, equip, drop, inventory)
 3. Apply same testing improvements to other scenarios as needed
+
+## Combat Turn Bug Fix (2025-10-12) 🔧
+
+**Problem**: Combat test had 10% pass rate (2/20) - first attack succeeded, second attack succeeded, then all subsequent attacks failed with "It's not your turn!"
+
+**Root Cause Analysis**:
+From test logs (`test-logs/combat_1760287108686.txt`):
+- Step 1: ✓ "attack Skeleton King" → "You engage Skeleton King in combat!" (PASS)
+- Step 2: ✓ "attack Skeleton King" → "You strike for 14 damage! The enemy retaliates for 11 damage!" (PASS)
+- Step 3-20: ✗ "attack Skeleton King" → "It's not your turn!" (FAIL)
+
+**Bug Location** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt`):
+
+**Line 83** (original):
+```kotlin
+val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage).nextTurn()
+```
+
+**Problem**: The `nextTurn()` method toggles `isPlayerTurn` flag:
+```kotlin
+fun nextTurn(): CombatState = copy(
+    isPlayerTurn = !isPlayerTurn,  // Flips to false after NPC counter
+    turnCount = turnCount + 1
+)
+```
+
+**Turn Flow Bug**:
+1. Combat starts: `isPlayerTurn = true`
+2. Player attacks → NPC counters → `.nextTurn()` called → `isPlayerTurn = false`
+3. Next attack command → Check `if (!combat.isPlayerTurn)` → "It's not your turn!"
+4. Player permanently locked out of combat
+
+**Solution Applied** (`CombatResolver.kt:81-83, 136-138`):
+
+Removed `.nextTurn()` calls in two locations:
+1. **Line 83** - After NPC counterattack in normal combat round
+2. **Line 138** - After NPC attack when flee attempt fails
+
+**New behavior** - Simultaneous turn-based system:
+- Player attacks → NPC counters **immediately** → Player can attack again
+- `isPlayerTurn` remains `true` throughout combat
+- No waiting for "turns" - player is always allowed to act
+
+**Code Changes**:
+```kotlin
+// Before (line 83):
+val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage).nextTurn()
+
+// After (line 83):
+val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage)
+// Comment: (simultaneous turn - player can attack again immediately)
+```
+
+**Files Modified**:
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt` (lines 81-83, 136-138)
+
+**Build Status**: ✅ `gradle :reasoning:build` and `gradle :app:installDist` successful
+
+**Expected Test Results**:
+- Combat test should now show 90%+ pass rate
+- Players can continuously attack until enemy dies or player dies
+- No more "It's not your turn!" errors during continuous combat
+
+**Status**: ✅ Fix implemented and built. **Ready to test** - Run `gradle :testbot:run` → option 2 (Combat)

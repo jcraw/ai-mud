@@ -78,9 +78,9 @@ class CombatResolver {
             )
         }
 
-        // NPC's turn to attack
+        // NPC's turn to attack (simultaneous turn - player can attack again immediately)
         val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
-        val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage).nextTurn()
+        val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage)
 
         // Check if player died
         if (afterNpcAttack.playerHealth <= 0) {
@@ -133,9 +133,9 @@ class CombatResolver {
                 playerFled = true
             )
         } else {
-            // Failed flee, NPC gets free attack
+            // Failed flee, NPC gets free attack (but player can still act after)
             val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
-            val afterNpcAttack = combat.applyNpcDamage(npcDamage).nextTurn()
+            val afterNpcAttack = combat.applyNpcDamage(npcDamage)
 
             if (afterNpcAttack.playerHealth <= 0) {
                 return CombatResult(

@@ -1,0 +1,200 @@
+        ================================================================================
+        [2025-10-12T21:36:10.714329540Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You engage Skeleton King in combat!
+
+        Validation: PASS
+Reason: Combat initiation is successful and coherent.
+        ================================================================================
+        [2025-10-12T21:36:13.739924884Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You strike for 17 damage! The enemy retaliates for 10 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat round executed successfully
+        ================================================================================
+        [2025-10-12T21:36:16.998972236Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You strike for 21 damage! The enemy retaliates for 3 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat round executed successfully
+        ================================================================================
+        [2025-10-12T21:36:22.223157097Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You strike for 21 damage!
+
+        Validation: FAIL
+Reason: Combat did not initiate correctly; the player is not in combat despite attacking an NPC.
+        ================================================================================
+        [2025-10-12T21:36:24.939260516Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:27.805778826Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:31.081770777Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:34.234944821Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:38.611937387Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:41.211095283Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:43.897306178Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:47.117856834Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:50.093790656Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:52.728378759Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:55.451660452Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:36:57.886996172Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:37:00.667820723Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:37:03.411716317Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:37:07.119819092Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room
+        ================================================================================
+        [2025-10-12T21:37:09.854255111Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: NPC 'Skeleton King' not in room

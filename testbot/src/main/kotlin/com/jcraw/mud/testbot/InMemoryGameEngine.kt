@@ -215,12 +215,12 @@ class InMemoryGameEngine(
             if (result.newCombatState != null) {
                 worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
             } else {
+                // Combat ended - save combat info BEFORE ending
+                val endedCombat = worldState.player.activeCombat
                 worldState = worldState.updatePlayer(worldState.player.endCombat())
-                if (result.npcDied) {
-                    val combat = worldState.player.activeCombat
-                    if (combat != null) {
-                        worldState = worldState.removeEntityFromRoom(room.id, combat.combatantNpcId) ?: worldState
-                    }
+
+                if (result.npcDied && endedCombat != null) {
+                    worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
                 }
                 if (result.playerDied) {
                     running = false
