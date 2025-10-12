@@ -1,0 +1,598 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.ItemInteraction"
+    },
+    "totalSteps": 18,
+    "passedSteps": 15,
+    "failedSteps": 3,
+    "finalStatus": "PASSED",
+    "startTime": "2025-10-12T05:58:20.325635781Z",
+    "endTime": "2025-10-12T05:59:08.391691450Z",
+    "duration": 48066,
+    "steps": [
+        {
+            "timestamp": "2025-10-12T05:58:22.883004251Z",
+            "playerInput": "examine Rusty Iron Sword",
+            "gmResponse": "An old iron sword, still sharp despite the rust",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Rusty Iron Sword",
+                    "description_length": "47"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:25.317353999Z",
+            "playerInput": "take Sharp Steel Dagger",
+            "gmResponse": "You take the Sharp Steel Dagger.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Sharp Steel Dagger' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Sharp Steel Dagger"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:27.257806282Z",
+            "playerInput": "take Worn Leather Armor",
+            "gmResponse": "You take the Worn Leather Armor.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Worn Leather Armor' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:29.417340110Z",
+            "playerInput": "examine Heavy Chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Heavy Chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Heavy Chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:32.011119396Z",
+            "playerInput": "take Rusty Iron Sword",
+            "gmResponse": "You take the Rusty Iron Sword.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Rusty Iron Sword' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Rusty Iron Sword"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:35.267029849Z",
+            "playerInput": "inventory",
+            "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword",
+            "validationResult": {
+                "pass": false,
+                "reason": "The inventory response does not include the Rusty Iron Sword, which is in the player's inventory.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "fail",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:37.786034147Z",
+            "playerInput": "examine Sharp Steel Dagger",
+            "gmResponse": "A well-balanced dagger with a keen edge",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Sharp Steel Dagger'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Sharp Steel Dagger",
+                    "description_length": "39"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:40.617277341Z",
+            "playerInput": "look at Heavy Chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Heavy Chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Heavy Chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:42.889621075Z",
+            "playerInput": "take Heavy Chainmail",
+            "gmResponse": "You take the Heavy Chainmail.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Heavy Chainmail' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Heavy Chainmail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:45.280221494Z",
+            "playerInput": "examine Worn Leather Armor",
+            "gmResponse": "Supple leather armor, worn but still protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor",
+                    "description_length": "47"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:48.949503791Z",
+            "playerInput": "inventory",
+            "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail",
+            "validationResult": {
+                "pass": false,
+                "reason": "The GM response does not include the Heavy Chainmail in the inventory listing despite it being tracked as picked up.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:51.299408068Z",
+            "playerInput": "examine Rusty Iron Sword",
+            "gmResponse": "An old iron sword, still sharp despite the rust",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Rusty Iron Sword",
+                    "description_length": "47"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:53.711495311Z",
+            "playerInput": "take Heavy Chainmail",
+            "gmResponse": "You can't take that.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected: 'Heavy Chainmail' not available",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Heavy Chainmail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:56.070551464Z",
+            "playerInput": "examine Worn Leather Armor",
+            "gmResponse": "Supple leather armor, worn but still protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor",
+                    "description_length": "47"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:58:59.053900732Z",
+            "playerInput": "examine Sharp Steel Dagger",
+            "gmResponse": "A well-balanced dagger with a keen edge",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Sharp Steel Dagger'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Sharp Steel Dagger",
+                    "description_length": "39"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:59:01.497686689Z",
+            "playerInput": "take Rusty Iron Sword",
+            "gmResponse": "You can't take that.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected: 'Rusty Iron Sword' not available",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Rusty Iron Sword"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:59:05.351511979Z",
+            "playerInput": "inventory",
+            "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail",
+            "validationResult": {
+                "pass": false,
+                "reason": "The GM response lists items in the inventory that are not tracked as picked up by the player.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "fail",
+                    "mechanics": "fail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T05:59:08.291270879Z",
+            "playerInput": "examine Worn Leather Armor",
+            "gmResponse": "Supple leather armor, worn but still protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor",
+                    "description_length": "47"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-10-12T05:58:22.883004251Z",
+                "playerInput": "examine Rusty Iron Sword",
+                "gmResponse": "An old iron sword, still sharp despite the rust",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Rusty Iron Sword",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-10-12T05:58:25.317353999Z",
+                "playerInput": "take Sharp Steel Dagger",
+                "gmResponse": "You take the Sharp Steel Dagger.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Sharp Steel Dagger' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Sharp Steel Dagger"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-10-12T05:58:27.257806282Z",
+                "playerInput": "take Worn Leather Armor",
+                "gmResponse": "You take the Worn Leather Armor.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Worn Leather Armor' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-10-12T05:58:29.417340110Z",
+                "playerInput": "examine Heavy Chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Heavy Chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Heavy Chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-10-12T05:58:32.011119396Z",
+                "playerInput": "take Rusty Iron Sword",
+                "gmResponse": "You take the Rusty Iron Sword.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Rusty Iron Sword' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Rusty Iron Sword"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-10-12T05:58:35.267029849Z",
+                "playerInput": "inventory",
+                "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The inventory response does not include the Rusty Iron Sword, which is in the player's inventory.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "fail",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The inventory response does not include the Rusty Iron Sword, which is in the player's inventory."
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-10-12T05:58:37.786034147Z",
+                "playerInput": "examine Sharp Steel Dagger",
+                "gmResponse": "A well-balanced dagger with a keen edge",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Sharp Steel Dagger'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Sharp Steel Dagger",
+                        "description_length": "39"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-10-12T05:58:40.617277341Z",
+                "playerInput": "look at Heavy Chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Heavy Chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Heavy Chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-10-12T05:58:42.889621075Z",
+                "playerInput": "take Heavy Chainmail",
+                "gmResponse": "You take the Heavy Chainmail.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Heavy Chainmail' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Heavy Chainmail"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-10-12T05:58:45.280221494Z",
+                "playerInput": "examine Worn Leather Armor",
+                "gmResponse": "Supple leather armor, worn but still protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 11,
+            "step": {
+                "timestamp": "2025-10-12T05:58:48.949503791Z",
+                "playerInput": "inventory",
+                "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The GM response does not include the Heavy Chainmail in the inventory listing despite it being tracked as picked up.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The GM response does not include the Heavy Chainmail in the inventory listing despite it being tracked as picked up."
+        },
+        {
+            "stepNumber": 12,
+            "step": {
+                "timestamp": "2025-10-12T05:58:51.299408068Z",
+                "playerInput": "examine Rusty Iron Sword",
+                "gmResponse": "An old iron sword, still sharp despite the rust",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Rusty Iron Sword",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 13,
+            "step": {
+                "timestamp": "2025-10-12T05:58:53.711495311Z",
+                "playerInput": "take Heavy Chainmail",
+                "gmResponse": "You can't take that.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected: 'Heavy Chainmail' not available",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Heavy Chainmail"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-10-12T05:58:56.070551464Z",
+                "playerInput": "examine Worn Leather Armor",
+                "gmResponse": "Supple leather armor, worn but still protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-10-12T05:58:59.053900732Z",
+                "playerInput": "examine Sharp Steel Dagger",
+                "gmResponse": "A well-balanced dagger with a keen edge",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Sharp Steel Dagger'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Sharp Steel Dagger",
+                        "description_length": "39"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 16,
+            "step": {
+                "timestamp": "2025-10-12T05:59:01.497686689Z",
+                "playerInput": "take Rusty Iron Sword",
+                "gmResponse": "You can't take that.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected: 'Rusty Iron Sword' not available",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Rusty Iron Sword"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 17,
+            "step": {
+                "timestamp": "2025-10-12T05:59:05.351511979Z",
+                "playerInput": "inventory",
+                "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The GM response lists items in the inventory that are not tracked as picked up by the player.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "fail",
+                        "mechanics": "fail"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The GM response lists items in the inventory that are not tracked as picked up by the player."
+        },
+        {
+            "stepNumber": 18,
+            "step": {
+                "timestamp": "2025-10-12T05:59:08.291270879Z",
+                "playerInput": "examine Worn Leather Armor",
+                "gmResponse": "Supple leather armor, worn but still protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Worn Leather Armor'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        }
+    ]
+}

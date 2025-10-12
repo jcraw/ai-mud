@@ -1,0 +1,99 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: item_interaction
+        Description: Test examine (room+inventory), pickup, inventory, equip, use, and drop mechanics
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 18
+        - Passed: 15
+        - Failed: 3
+        - Pass Rate: 83%
+
+        Timing:
+        - Start: 2025-10-12T05:58:20.325635781Z
+        - End: 2025-10-12T05:59:08.391691450Z
+        - Duration: 48.07s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: examine Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: take Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: take Worn Leather Armor
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: examine Heavy Chainmail
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: take Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: inventory
+Reason: The inventory response does not include the Rusty Iron Sword, which is in the player's inventory.
+
+Step 7: ✓ PASS
+Input: examine Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: look at Heavy Chainmail
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: take Heavy Chainmail
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: examine Worn Leather Armor
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: inventory
+Reason: The GM response does not include the Heavy Chainmail in the inventory listing despite it being tracked as picked up.
+
+Step 12: ✓ PASS
+Input: examine Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: take Heavy Chainmail
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: examine Worn Leather Armor
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: examine Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: take Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: inventory
+Reason: The GM response lists items in the inventory that are not tracked as picked up by the player.
+
+Step 18: ✓ PASS
+Input: examine Worn Leather Armor
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

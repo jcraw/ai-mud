@@ -117,10 +117,9 @@ fun main() = runBlocking {
 
     // Show where logs were saved
     println("\n📁 Test logs saved to: test-logs/")
-    println("   - Gameplay log (JSON): ${scenario.name}_*.json")
-    println("   - Gameplay log (text): ${scenario.name}_*.txt")
-    println("   - Test report (JSON): ${scenario.name}_*_report.json")
-    println("   - Test summary (text): ${scenario.name}_*_summary.txt")
+    println("   - Gameplay log: ${scenario.name}_*.txt")
+    println("   - Test report: ${scenario.name}_*_report.json")
+    println("   - Test summary: ${scenario.name}_*_summary.txt")
 
     // Cleanup
     llmClient.close()

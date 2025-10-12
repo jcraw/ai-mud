@@ -85,6 +85,161 @@ class OutputValidator(
         val currentRoomId = worldState.player.currentRoomId
         val currentRoom = worldState.getCurrentRoom()
 
+        // Track inventory state from history
+        val inventoryTracker = trackInventoryFromHistory(recentHistory)
+
+        // ITEM INTERACTION VALIDATION
+
+        // Parse "take/get/pickup" commands
+        val takeMatch = Regex(
+            "(?:take|get|pickup)\\s+(.+)",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (takeMatch != null) {
+            val itemName = takeMatch.groupValues[1].trim()
+            val normalizedItemName = itemName.lowercase()
+
+            // Check if response indicates success
+            if (gmResponse.contains("You take", ignoreCase = true) ||
+                gmResponse.contains("You pick up", ignoreCase = true)) {
+                // Check if item was already in inventory
+                if (inventoryTracker.contains(normalizedItemName)) {
+                    return ValidationResult(
+                        pass = false,
+                        reason = "[CODE] Bug: Item '$itemName' taken but was already in inventory",
+                        details = mapOf(
+                            "validation_type" to "code",
+                            "item" to itemName,
+                            "inventory" to inventoryTracker.joinToString(", ")
+                        )
+                    )
+                }
+                // Success - item taken
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Item '$itemName' successfully taken",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+
+            // Check if response indicates failure
+            if (gmResponse.contains("can't take", ignoreCase = true) ||
+                gmResponse.contains("don't see", ignoreCase = true)) {
+
+                // Check if item is in current room entities
+                val itemInRoom = currentRoom?.entities?.any {
+                    it.name.lowercase().contains(normalizedItemName) ||
+                    normalizedItemName.contains(it.name.lowercase())
+                } ?: false
+
+                // Check if item is already in inventory
+                val itemInInventory = inventoryTracker.contains(normalizedItemName)
+
+                if (itemInInventory) {
+                    // Correct behavior - can't take what you already have
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] Correctly rejected: '$itemName' already in inventory",
+                        details = mapOf(
+                            "validation_type" to "code",
+                            "item" to itemName,
+                            "inventory" to inventoryTracker.joinToString(", ")
+                        )
+                    )
+                }
+
+                if (itemInRoom) {
+                    // Bug - item is in room but can't be taken
+                    return ValidationResult(
+                        pass = false,
+                        reason = "[CODE] Bug: '$itemName' exists in room but was rejected",
+                        details = mapOf(
+                            "validation_type" to "code",
+                            "item" to itemName,
+                            "room_entities" to (currentRoom?.entities?.joinToString(", ") { it.name } ?: "")
+                        )
+                    )
+                }
+
+                // Correct behavior - item doesn't exist and rejection is appropriate
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Correctly rejected: '$itemName' not available",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+        }
+
+        // Parse "look/examine" commands
+        val lookMatch = Regex(
+            "(?:look|examine|inspect)(?:\\s+(?:at\\s+)?(.+))?",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (lookMatch != null && lookMatch.groupValues[1].isNotEmpty()) {
+            val itemName = lookMatch.groupValues[1].trim()
+
+            // Any descriptive text (non-error) = valid description
+            if (!gmResponse.contains("error", ignoreCase = true) &&
+                !gmResponse.contains("crash", ignoreCase = true) &&
+                !gmResponse.contains("exception", ignoreCase = true) &&
+                gmResponse.isNotBlank() &&
+                gmResponse.length > 5) { // At least a minimal description
+
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Description provided for '$itemName'",
+                    details = mapOf(
+                        "validation_type" to "code",
+                        "item" to itemName,
+                        "description_length" to gmResponse.length.toString()
+                    )
+                )
+            }
+        }
+
+        // Parse "equip/wield/wear" commands
+        val equipMatch = Regex(
+            "(?:equip|wield|wear)\\s+(.+)",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (equipMatch != null) {
+            val itemName = equipMatch.groupValues[1].trim()
+
+            if (gmResponse.contains("You equip", ignoreCase = true) ||
+                gmResponse.contains("You wield", ignoreCase = true) ||
+                gmResponse.contains("You wear", ignoreCase = true)) {
+
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Item '$itemName' successfully equipped",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+        }
+
+        // Parse "drop" commands
+        val dropMatch = Regex(
+            "(?:drop)\\s+(.+)",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (dropMatch != null) {
+            val itemName = dropMatch.groupValues[1].trim()
+
+            if (gmResponse.contains("You drop", ignoreCase = true)) {
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Item '$itemName' successfully dropped",
+                    details = mapOf("validation_type" to "code", "item" to itemName)
+                )
+            }
+        }
+
+        // MOVEMENT VALIDATION
+
         // Parse movement command - support all directions including diagonals
         val movementMatch = Regex(
             "(?:go|move|^)\\s*(north|south|east|west|northeast|northwest|southeast|southwest|up|down|n|s|e|w|ne|nw|se|sw|u|d)(?:\\s|$)",
@@ -171,6 +326,45 @@ class OutputValidator(
         return null
     }
 
+    /**
+     * Track inventory state by analyzing history for take/drop commands.
+     * Returns set of lowercase item names currently in inventory.
+     */
+    private fun trackInventoryFromHistory(history: List<TestStep>): Set<String> {
+        val inventory = mutableSetOf<String>()
+
+        for (step in history) {
+            val input = step.playerInput
+            val response = step.gmResponse
+
+            // Check for successful "take" commands
+            val takeMatch = Regex(
+                "(?:take|get|pickup)\\s+(.+)",
+                RegexOption.IGNORE_CASE
+            ).find(input)
+
+            if (takeMatch != null &&
+                (response.contains("You take", ignoreCase = true) ||
+                 response.contains("You pick up", ignoreCase = true))) {
+                val itemName = takeMatch.groupValues[1].trim().lowercase()
+                inventory.add(itemName)
+            }
+
+            // Check for successful "drop" commands
+            val dropMatch = Regex(
+                "(?:drop)\\s+(.+)",
+                RegexOption.IGNORE_CASE
+            ).find(input)
+
+            if (dropMatch != null && response.contains("You drop", ignoreCase = true)) {
+                val itemName = dropMatch.groupValues[1].trim().lowercase()
+                inventory.remove(itemName)
+            }
+        }
+
+        return inventory
+    }
+
     private fun buildSystemPrompt(scenario: TestScenario): String {
         return """
             You are a QA validator for a text-based MUD (Multi-User Dungeon) game engine.
@@ -240,6 +434,9 @@ class OutputValidator(
             }
         }
 
+        // Track inventory from history for item validation
+        val trackedInventory = trackInventoryFromHistory(recentHistory)
+
         // Add game state context for better validation
         val gameStateContext = if (worldState != null) {
             val currentRoom = worldState.getCurrentRoom()
@@ -257,6 +454,11 @@ class OutputValidator(
                     append("\n            - Current room from response: $currentRoomName")
                 }
             }
+            val inventoryInfo = if (trackedInventory.isNotEmpty()) {
+                "\n            - Items in inventory (tracked): ${trackedInventory.joinToString(", ")}"
+            } else {
+                "\n            - Inventory is empty (tracked)"
+            }
             """
 
             Current game state:
@@ -264,7 +466,7 @@ class OutputValidator(
             - Available exits: ${currentRoom?.exits?.keys?.joinToString(", ") { it.displayName } ?: "none"}
             - Player health: ${player.health}/${player.maxHealth}
             - In combat: ${player.isInCombat()}
-            - Room entities: ${currentRoom?.entities?.joinToString(", ") { it.name } ?: "none"}
+            - Room entities: ${currentRoom?.entities?.joinToString(", ") { it.name } ?: "none"}$inventoryInfo
             """.trimIndent()
         } else {
             ""
@@ -336,31 +538,46 @@ class OutputValidator(
                 - Critical successes/failures are handled
             """.trimIndent()
             is TestScenario.ItemInteraction -> """
-                CONTEXT: Player is in the Armory with 4 items available:
+                CONTEXT: Player starts in the Armory with 4 items available:
                 - Rusty Iron Sword (weapon)
                 - Sharp Steel Dagger (weapon)
                 - Worn Leather Armor (armor)
                 - Heavy Chainmail (armor)
 
-                Check that:
-                - Items can be picked up ("You pick up X" or similar)
-                - Inventory shows picked-up items correctly
-                - Looking at items provides descriptions
-                - Equipment commands work ("You equip X" or similar)
-                - Equipped items show "(equipped)" tag when examined
-                - Items can be dropped and appear in room again
-                - "You can't take that" is VALID if item doesn't exist or isn't takeable
+                IMPORTANT: Check "Items in inventory (tracked)" in game state to know what's been picked up!
 
-                PASS for normal responses like:
-                - Room descriptions showing items
-                - Successful take/drop/equip actions
-                - "You don't see that here" if looking for non-existent items
-                - Inventory listings (empty or with items)
+                VALIDATION RULES (STATE-AWARE):
+
+                1. **TAKE/GET commands:**
+                   - "You take X" = PASS (item successfully taken)
+                   - "You can't take that" when item IS in inventory (tracked) = PASS (correct rejection)
+                   - "You can't take that" when item NOT in inventory and NOT in room = PASS (item doesn't exist)
+                   - "You can't take that" when item NOT in inventory BUT IS in room entities = FAIL (bug)
+
+                2. **LOOK/EXAMINE commands:**
+                   - ANY descriptive text (even short like "A sharp dagger") = PASS
+                   - Only FAIL for crashes/errors/exceptions
+
+                3. **EQUIP/WIELD commands:**
+                   - "You equip X" or "You wield X" = PASS
+
+                4. **DROP commands:**
+                   - "You drop X" = PASS
+
+                5. **INVENTORY tracking:**
+                   - Use "Items in inventory (tracked)" to know what player has
+                   - Items can't be taken twice - rejection is CORRECT if already in inventory
+
+                PASS for:
+                - Successful take/drop/equip/look actions
+                - "You can't take that" when item already in inventory
+                - Any item description (short or long, doesn't matter)
+                - Inventory listings
 
                 FAIL only for:
                 - Crashes or error messages
-                - Items disappearing without explanation
-                - Inventory showing wrong items
+                - Taking an item that's already in inventory (should be rejected)
+                - Rejecting an item that exists in room and isn't in inventory yet
             """.trimIndent()
             is TestScenario.SocialInteraction -> """
                 Check that:

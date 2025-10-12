@@ -22,14 +22,10 @@ class GameplayLogger(
     }
 
     /**
-     * Log a single step to both JSON and text files.
+     * Log a single step to text file.
      */
     fun logStep(sessionId: String, step: TestStep) {
-        val jsonFile = getJsonFile(sessionId)
         val textFile = getTextFile(sessionId)
-
-        // Append to JSON log (array of steps)
-        appendJsonStep(jsonFile, step)
 
         // Append to human-readable log
         appendTextStep(textFile, step)
@@ -57,10 +53,6 @@ class GameplayLogger(
         return "${scenario.name}_$timestamp"
     }
 
-    private fun getJsonFile(sessionId: String): File {
-        return Paths.get(outputDir, "$sessionId.json").toFile()
-    }
-
     private fun getTextFile(sessionId: String): File {
         return Paths.get(outputDir, "$sessionId.txt").toFile()
     }
@@ -71,13 +63,6 @@ class GameplayLogger(
 
     private fun getSummaryFile(sessionId: String): File {
         return Paths.get(outputDir, "${sessionId}_summary.txt").toFile()
-    }
-
-    private fun appendJsonStep(file: File, step: TestStep) {
-        synchronized(this) {
-            val jsonText = json.encodeToString(step)
-            file.appendText(jsonText + "\n")
-        }
     }
 
     private fun appendTextStep(file: File, step: TestStep) {
