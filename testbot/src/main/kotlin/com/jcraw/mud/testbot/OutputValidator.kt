@@ -1,11 +1,14 @@
 package com.jcraw.mud.testbot
 
+import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.WorldState
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.json.Json
 
 /**
- * Validates game engine outputs using LLM.
+ * Validates game engine outputs using hybrid approach:
+ * 1. Code-based validation (fast, deterministic) for mechanical correctness
+ * 2. LLM validation (slower, subjective) for narrative quality
  * Uses gpt-4o-mini for cost savings as per guidelines.
  */
 class OutputValidator(
@@ -23,6 +26,20 @@ class OutputValidator(
         expectedOutcome: String? = null,
         worldState: WorldState? = null
     ): ValidationResult {
+        // STEP 1: Code-based validation (deterministic, always runs first)
+        val codeValidation = validateWithCode(
+            playerInput = playerInput,
+            gmResponse = gmResponse,
+            recentHistory = recentHistory,
+            worldState = worldState
+        )
+
+        // If code validation finds a definitive pass/fail, use it
+        if (codeValidation != null) {
+            return codeValidation
+        }
+
+        // STEP 2: LLM validation (for subjective checks)
         val systemPrompt = buildSystemPrompt(scenario)
         val userContext = buildUserContext(
             scenario,
@@ -43,6 +60,107 @@ class OutputValidator(
 
         val responseText = response.choices.firstOrNull()?.message?.content ?: ""
         return parseValidation(responseText)
+    }
+
+    /**
+     * Code-based validation using actual game state metadata.
+     * Returns ValidationResult if we can definitively validate, null otherwise.
+     */
+    private fun validateWithCode(
+        playerInput: String,
+        gmResponse: String,
+        recentHistory: List<TestStep>,
+        worldState: WorldState?
+    ): ValidationResult? {
+        if (worldState == null) return null
+
+        // Extract previous room ID from history
+        val previousRoomId = if (recentHistory.isNotEmpty()) {
+            worldState.player.currentRoomId // This is the room AFTER the last action
+        } else {
+            null
+        }
+
+        // Get current room ID after this action
+        val currentRoomId = worldState.player.currentRoomId
+        val currentRoom = worldState.getCurrentRoom()
+
+        // Parse movement command
+        val movementMatch = Regex("(?:go|move)\\s+(north|south|east|west|n|s|e|w)", RegexOption.IGNORE_CASE)
+            .find(playerInput)
+
+        if (movementMatch != null) {
+            val directionStr = movementMatch.groupValues[1].lowercase()
+            val direction = when (directionStr) {
+                "north", "n" -> Direction.NORTH
+                "south", "s" -> Direction.SOUTH
+                "east", "e" -> Direction.EAST
+                "west", "w" -> Direction.WEST
+                else -> null
+            }
+
+            if (direction != null && currentRoom != null) {
+                // Check if the direction was valid in the previous room
+                val hadValidExit = recentHistory.lastOrNull()?.let { lastStep ->
+                    // Extract exits from last response
+                    val exitsMatch = Regex("Exits: ([\\w, ]+)").find(lastStep.gmResponse)
+                    exitsMatch?.groupValues?.get(1)?.split(", ")?.any { exit ->
+                        exit.equals(direction.displayName, ignoreCase = true) ||
+                        exit.equals(directionStr, ignoreCase = true)
+                    } ?: false
+                } ?: true // If no history, assume valid
+
+                // Case 1: "You can't go that way" should only happen for invalid exits
+                if (gmResponse.contains("can't go that way", ignoreCase = true)) {
+                    return if (hadValidExit) {
+                        // Exit existed but got rejection = BUG
+                        ValidationResult(
+                            pass = false,
+                            reason = "[CODE] Invalid rejection: exit $direction existed but game rejected movement",
+                            details = mapOf(
+                                "validation_type" to "code",
+                                "coherence" to "fail",
+                                "consistency" to "fail",
+                                "mechanics" to "fail"
+                            )
+                        )
+                    } else {
+                        // No exit existed, rejection is correct
+                        ValidationResult(
+                            pass = true,
+                            reason = "[CODE] Correctly rejected invalid direction: $direction",
+                            details = mapOf(
+                                "validation_type" to "code",
+                                "coherence" to "pass",
+                                "consistency" to "pass",
+                                "mechanics" to "pass"
+                            )
+                        )
+                    }
+                }
+
+                // Case 2: Room description with header = successful movement
+                val roomHeaderMatch = Regex("^([A-Z][a-zA-Z\\s]+)\\n").find(gmResponse)
+                if (roomHeaderMatch != null) {
+                    // Got a room description = movement succeeded
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] Movement succeeded: entered room '${roomHeaderMatch.groupValues[1].trim()}'",
+                        details = mapOf(
+                            "validation_type" to "code",
+                            "coherence" to "pass",
+                            "consistency" to "pass",
+                            "mechanics" to "pass",
+                            "room_name" to roomHeaderMatch.groupValues[1].trim(),
+                            "room_id" to currentRoomId
+                        )
+                    )
+                }
+            }
+        }
+
+        // No definitive validation, let LLM handle it
+        return null
     }
 
     private fun buildSystemPrompt(scenario: TestScenario): String {

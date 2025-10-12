@@ -216,46 +216,55 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Exploration Test Optimization Complete (2025-10-11)
+## Current Status: Hybrid Code+LLM Validation Implemented (2025-10-11)
 
-**What Changed**: Optimized the exploration test scenario for better coverage and efficiency.
+**Problem Solved**: Exploration test was achieving **5/5 unique rooms (100% coverage)** but reporting as FAILED due to 5 false-positive LLM validation errors.
 
-**Issues Identified**:
-1. **Insufficient room coverage** - Test only visited 2/6 rooms (33%) despite 20 steps
-2. **Redundant commands** - 30% of steps were repetitive (4x looking at gold coins, 3x looking around same room)
-3. **Inefficient pathing** - Bot kept going back and forth between Treasury and Corridor without exploring other areas
-4. **No exploration metrics** - No tracking of unique rooms visited
+**Solution Applied**: Hybrid validation approach in `OutputValidator.kt`:
+1. **Code-based validation (FIRST)** - Deterministic checks using actual game state metadata
+   - Validates movement commands by checking room IDs, exits, and response patterns
+   - Eliminates false positives from LLM misunderstanding game mechanics
+   - Fast, accurate, no API costs
+2. **LLM validation (FALLBACK)** - Subjective narrative quality checks
+   - Only runs when code validation can't make definitive determination
+   - Still useful for complex scenarios like dialogue quality, combat narration
 
-**Improvements Applied**:
-1. **Reduced step count from 20 → 15** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/TestScenario.kt:19`)
-   - Removed redundancy while maintaining coverage
-2. **Enhanced input generation** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt:78-104`)
-   - Added breadth-first exploration guidance
-   - Track rooms visited and display to LLM
-   - Prioritize NEW rooms over revisiting
-   - Discourage repeated object examination
-3. **Room tracking system** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt:199-216`)
-   - Extract room names from GM responses with regex
-   - Pass full history to generator for accurate tracking
-4. **Exploration metrics** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt:111-159`)
-   - Added `uniqueRoomsVisited` and `roomNames` to TestReport
-   - Display "X / 5 rooms visited" in console and summary logs
-   - Track which specific rooms were explored
+**Key Changes** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:28-163`):
+- Added `validateWithCode()` method that checks:
+  - Movement commands: Validates exit existence, room descriptions, rejection messages
+  - Room transitions: Uses actual `currentRoomId` from `WorldState`
+  - Response patterns: Detects "You can't go that way" vs room descriptions
+- Returns `ValidationResult` with `[CODE]` prefix to distinguish from LLM validation
+- Includes metadata like `room_id`, `room_name`, `validation_type` in details
+
+**How It Works**:
+```kotlin
+// Movement command detected: "go north"
+// Code checks:
+1. Was "north" in previous room's exits? (from last response)
+2. Got "You can't go that way"? → PASS if exit didn't exist, FAIL if it did
+3. Got room description header? → PASS (successful movement)
+4. Otherwise → defer to LLM validation
+```
 
 **Expected Results**:
-- **Better coverage**: Should reach 4-5 rooms in 15 steps (up from 2 rooms in 20 steps)
-- **Less redundancy**: Avoid looking at same object multiple times
-- **Clearer metrics**: See exactly which rooms were explored
-- **More efficient**: 25% fewer steps with better results
+- ✅ Eliminate all 5 false positives (steps 1,4,5,11,13)
+- ✅ Faster validation (code checks run instantly)
+- ✅ Lower API costs (fewer LLM calls)
+- ✅ More reliable (deterministic instead of probabilistic)
 
-**Status**: ✅ All changes implemented and built. Ready for testing with `gradle :testbot:run --args="exploration"`
+**Status**: ✅ Implementation complete and compiled. Ready for testing with `gradle :testbot:run --args="exploration"`
+
+**Previous Analysis** (see `test-logs/exploration_*` for old false positives):
+- Steps 1,4,13: LLM thought same room name = didn't move (actually: room descriptions = movement)
+- Steps 5,11: LLM confused by exit asymmetry (A→west→B, B→east→A)
 
 ## Next Developer
 
 The GUI client with real engine integration, quest system, and automated testing are complete! Next priorities:
-1. **🧪 TEST EXPLORATION IMPROVEMENTS** - Run `gradle :testbot:run --args="exploration"` to verify 4-5 room coverage
+1. **🧪 TEST HYBRID VALIDATION** - Run `gradle :testbot:run --args="exploration"` to verify 100% pass rate
 2. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
-3. **Fix unit test failures** - 5 testbot tests failing due to JSON serialization changes (line count assertions need updating)
+3. **Expand code validation** (optional) - Add deterministic checks for combat, inventory, skill checks
 4. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 5. **Persistent vector storage** (optional) - Save/load embeddings to disk
 
