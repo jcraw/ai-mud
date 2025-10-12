@@ -1,0 +1,99 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: item_interaction
+        Description: Test examine (room+inventory), pickup, inventory, equip, use, and drop mechanics
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 18
+        - Passed: 5
+        - Failed: 13
+        - Pass Rate: 27%
+
+        Timing:
+        - Start: 2025-10-12T05:43:57.391301789Z
+        - End: 2025-10-12T05:45:19.405693618Z
+        - Duration: 82.01s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✗ FAIL
+Input: take Rusty Iron Sword
+Reason: The player attempted to take the Rusty Iron Sword, but the GM response indicates that the item was taken without it being present in the room's entities.
+
+Step 2: ✗ FAIL
+Input: look Sharp Steel Dagger
+Reason: The response does not provide a description of the Sharp Steel Dagger as expected.
+
+Step 3: ✓ PASS
+Input: take Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: look Worn Leather Armor
+Reason: The response does not provide a description of the Worn Leather Armor, which is expected.
+
+Step 5: ✓ PASS
+Input: take Worn Leather Armor
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: look Heavy Chainmail
+Reason: The response does not provide a description of the Heavy Chainmail as expected.
+
+Step 7: ✓ PASS
+Input: take Heavy Chainmail
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: inventory
+Reason: Step completed successfully
+
+Step 9: ✗ FAIL
+Input: look Rusty Iron Sword
+Reason: The response does not provide a description for the Rusty Iron Sword as expected.
+
+Step 10: ✓ PASS
+Input: equip Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: take Heavy Chainmail
+Reason: The response indicates that the player cannot take the Heavy Chainmail, which contradicts the expected outcome since the item is present in the room and should be pickable.
+
+Step 12: ✗ FAIL
+Input: take Worn Leather Armor
+Reason: The game incorrectly prevents the player from taking the Worn Leather Armor, which should be pickable.
+
+Step 13: ✗ FAIL
+Input: look at Rusty Iron Sword
+Reason: The response does not provide a description of the Rusty Iron Sword, which is expected.
+
+Step 14: ✗ FAIL
+Input: take Sharp Steel Dagger
+Reason: The player should be able to take the Sharp Steel Dagger, but the response indicates they cannot.
+
+Step 15: ✗ FAIL
+Input: look at Heavy Chainmail
+Reason: The response does not provide a description of the Heavy Chainmail as expected.
+
+Step 16: ✗ FAIL
+Input: take Worn Leather Armor
+Reason: The player should be able to take the Worn Leather Armor, but the response indicates they cannot.
+
+Step 17: ✗ FAIL
+Input: look at Rusty Iron Sword
+Reason: The response does not provide a description of the Rusty Iron Sword that includes its damage value and condition as expected.
+
+Step 18: ✗ FAIL
+Input: take Sharp Steel Dagger
+Reason: The player should be able to take the Sharp Steel Dagger, but the response indicates they cannot, which contradicts the expected game mechanics.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

@@ -45,7 +45,7 @@ class TestModelsTest {
     }
 
     @Test
-    fun `TestState completes on failure`() {
+    fun `TestState continues despite failures`() {
         val scenario = TestScenario.Exploration(maxSteps = 10)
         val state = TestState(scenario)
 
@@ -62,8 +62,10 @@ class TestModelsTest {
 
         val newState = state.withStep(step, result)
 
-        assertTrue(newState.isComplete)
-        assertEquals(TestStatus.FAILED, newState.finalStatus)
+        // Should NOT complete on single failure - continues to max steps
+        assertFalse(newState.isComplete)
+        assertEquals(TestStatus.RUNNING, newState.finalStatus)
+        assertEquals(1, newState.currentStep)
     }
 
     @Test

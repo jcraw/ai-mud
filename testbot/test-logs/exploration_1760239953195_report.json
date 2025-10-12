@@ -1,0 +1,565 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.Exploration"
+    },
+    "totalSteps": 15,
+    "passedSteps": 15,
+    "failedSteps": 0,
+    "finalStatus": "PASSED",
+    "startTime": "2025-10-12T03:32:33.201094246Z",
+    "endTime": "2025-10-12T03:33:46.110289171Z",
+    "duration": 72909,
+    "steps": [
+        {
+            "timestamp": "2025-10-12T03:32:38.766143904Z",
+            "playerInput": "go north",
+            "gmResponse": "Dark Corridor\nYou find yourself in a narrow stone passage that seems to stretch endlessly into the darkness. The sound of your footsteps echoes off the damp walls, a rhythmic reminder of your solitude. From somewhere in the shadows, water drips steadily, creating a haunting melody that mingles with the silence. In the corners, delicate spider webs glisten like silver threads, remnants of life that cling to the rough-hewn stone, while the worn flagstone floor beneath your feet tells tales of countless travelers long since vanished.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:32:44.606523825Z",
+            "playerInput": "go east",
+            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air thrums with a palpable magical aura that tingles against your skin. Gleaming gold coins are scattered across the floor, catching the soft glow of light that filters through a narrow shaft above, illuminating dust motes that dance like tiny stars in the stillness. Ornate treasure chests, adorned with intricate carvings, stand sentinel around the room, while jeweled artifacts perched upon pedestals glimmer invitingly, their colors vibrant against the shadows. The atmosphere is thick with the weight of forgotten wealth, whispering secrets of opulence and long-lost grandeur.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Ancient Treasury",
+                    "room_id": "treasury"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:32:47.327448373Z",
+            "playerInput": "go south",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: SOUTH",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:32:54.031238138Z",
+            "playerInput": "look around",
+            "gmResponse": "Ancient Treasury\nYou step back into the Ancient Treasury, where the air buzzes with a lingering magical aura, wrapping around you like an enchanting embrace. The gleaming gold coins scattered across the floor shimmer in the soft shaft of light, illuminating a flurry of dust motes that swirl like ethereal fireflies in the enchanted stillness. Ornate treasure chests, each a masterpiece of craftsmanship, stand proudly, their intricately carved surfaces almost alive with stories to tell. Jeweled artifacts on pedestals catch the light, their vibrant hues sparkling against the surrounding darkness, inviting you to lose yourself in their timeless allure.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a detailed room description consistent with the Ancient Treasury and follows MUD conventions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:32:59.302375783Z",
+            "playerInput": "go west",
+            "gmResponse": "Dark Corridor\nYou find yourself once more in the narrow stone passage, the walls closing in around you as shadows stretch long and deep. The echo of your footsteps reverberates ominously, a reminder of your solitude in this dimly lit corridor. Water drips steadily from unseen crevices, each drop a soft punctuation in the silence that envelops you, while delicate spider webs sway slightly in the stale air, their silken strands glistening like forgotten treasures. The worn flagstone floor beneath your feet bears the weight of many wanderers before you, its surface cool and uneven, whispering tales of journeys both brave and weary.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:04.963199399Z",
+            "playerInput": "go north",
+            "gmResponse": "Abandoned Throne Room\nYou step into the abandoned throne room, where a massive stone throne looms like a forgotten monument to power and glory. Faded royal tapestries drape mournfully along the cracked marble walls, their once-vibrant colors now dulled by neglect and time. An unsettling cold draft sweeps through the chamber, stirring the ominous shadows that linger in every corner, while the skeletal figure slumped upon the throne seems to watch over the remnants of its lost kingdom. The air is thick with a sense of desolation, a chilling reminder of the grandeur that once filled this space and the ominous silence that now reigns.\nExits: south, north\nYou see: Skeleton King",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Abandoned Throne Room",
+                    "room_id": "throne_room"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:07.585928219Z",
+            "playerInput": "go east",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: EAST",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:16.831648606Z",
+            "playerInput": "look at the throne",
+            "gmResponse": "You approach the massive stone throne, its surface worn and rough from centuries of neglect. The throne towers over you, its imposing stature a stark reminder of the power that once resided here, while intricate carvings of forgotten symbols twist along its arms, now chipped and faded. The cold draft sends a shiver down your spine as you notice dust clinging to the cracks in the marble floor, hinting at the countless years this seat of authority has remained undisturbed.",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent and detailed description of the throne, enhancing the player's understanding of the room's lore.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:19.890741365Z",
+            "playerInput": "go northwest",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: NORTHWEST",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:22.737387256Z",
+            "playerInput": "go northeast",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: NORTHEAST",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:28.691496390Z",
+            "playerInput": "go south",
+            "gmResponse": "Dark Corridor\nYou find yourself back in the narrow stone passage, its constricting walls amplifying the sound of your footsteps into a haunting symphony of echoes. The air is thick with humidity, punctuated by the rhythmic drip of water from unseen crevices, each drop resonating like a distant heartbeat in the oppressive silence. In the corners, fragile spider webs cling tenaciously, their shimmering strands catching the meager light and creating a ghostly tapestry that sways gently in the stale air. The worn flagstone floor beneath you shifts with every step, a testament to the countless souls who have traversed this passage, their stories fading into the shadows that envelop you.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:34.649093605Z",
+            "playerInput": "go east",
+            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury once more, where the air buzzes with an ever-present magical aura, wrapping around you like the whispers of long-forgotten secrets. Gleaming gold coins scatter across the stone floor, their reflections flickering in the soft shaft of light that pours down, illuminating the delicate dance of dust motes that swirl like tiny celestial beings in the stillness. Ornate treasure chests, each a testament to exquisite craftsmanship, stand proudly, their surfaces telling tales of opulence, while jeweled artifacts on pedestals bask in the glow, their vibrant colors shimmering against the shadows like promises of untold adventures. The very atmosphere hums with the weight of history, inviting you to delve deeper into its enchanting embrace.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Ancient Treasury",
+                    "room_id": "treasury"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:36.928055025Z",
+            "playerInput": "go northwest",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: NORTHWEST",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:43.956156602Z",
+            "playerInput": "look around",
+            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air vibrates with an electrifying magical aura, wrapping around you like a forgotten memory. Gleaming gold coins scatter across the stone floor, their surfaces reflecting the soft shaft of light that breaks through the shadows, setting dust motes aglow in a delicate waltz. Ornate treasure chests, proudly displaying intricate carvings that hint at the treasures within, stand like guardians of history, while jeweled artifacts on pedestals pulse with vibrant colors, their luster beckoning you into a world of lost opulence and whispered dreams. The atmosphere is thick with the echoes of treasure-seekers long gone, enveloping you in a sense of wonder and intrigue.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a detailed and vivid description of the Ancient Treasury, consistent with the expected outcome.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T03:33:46.009846324Z",
+            "playerInput": "go south",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: SOUTH",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-10-12T03:32:38.766143904Z",
+                "playerInput": "go north",
+                "gmResponse": "Dark Corridor\nYou find yourself in a narrow stone passage that seems to stretch endlessly into the darkness. The sound of your footsteps echoes off the damp walls, a rhythmic reminder of your solitude. From somewhere in the shadows, water drips steadily, creating a haunting melody that mingles with the silence. In the corners, delicate spider webs glisten like silver threads, remnants of life that cling to the rough-hewn stone, while the worn flagstone floor beneath your feet tells tales of countless travelers long since vanished.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-10-12T03:32:44.606523825Z",
+                "playerInput": "go east",
+                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air thrums with a palpable magical aura that tingles against your skin. Gleaming gold coins are scattered across the floor, catching the soft glow of light that filters through a narrow shaft above, illuminating dust motes that dance like tiny stars in the stillness. Ornate treasure chests, adorned with intricate carvings, stand sentinel around the room, while jeweled artifacts perched upon pedestals glimmer invitingly, their colors vibrant against the shadows. The atmosphere is thick with the weight of forgotten wealth, whispering secrets of opulence and long-lost grandeur.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Ancient Treasury",
+                        "room_id": "treasury"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-10-12T03:32:47.327448373Z",
+                "playerInput": "go south",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: SOUTH",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-10-12T03:32:54.031238138Z",
+                "playerInput": "look around",
+                "gmResponse": "Ancient Treasury\nYou step back into the Ancient Treasury, where the air buzzes with a lingering magical aura, wrapping around you like an enchanting embrace. The gleaming gold coins scattered across the floor shimmer in the soft shaft of light, illuminating a flurry of dust motes that swirl like ethereal fireflies in the enchanted stillness. Ornate treasure chests, each a masterpiece of craftsmanship, stand proudly, their intricately carved surfaces almost alive with stories to tell. Jeweled artifacts on pedestals catch the light, their vibrant hues sparkling against the surrounding darkness, inviting you to lose yourself in their timeless allure.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a detailed room description consistent with the Ancient Treasury and follows MUD conventions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-10-12T03:32:59.302375783Z",
+                "playerInput": "go west",
+                "gmResponse": "Dark Corridor\nYou find yourself once more in the narrow stone passage, the walls closing in around you as shadows stretch long and deep. The echo of your footsteps reverberates ominously, a reminder of your solitude in this dimly lit corridor. Water drips steadily from unseen crevices, each drop a soft punctuation in the silence that envelops you, while delicate spider webs sway slightly in the stale air, their silken strands glistening like forgotten treasures. The worn flagstone floor beneath your feet bears the weight of many wanderers before you, its surface cool and uneven, whispering tales of journeys both brave and weary.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-10-12T03:33:04.963199399Z",
+                "playerInput": "go north",
+                "gmResponse": "Abandoned Throne Room\nYou step into the abandoned throne room, where a massive stone throne looms like a forgotten monument to power and glory. Faded royal tapestries drape mournfully along the cracked marble walls, their once-vibrant colors now dulled by neglect and time. An unsettling cold draft sweeps through the chamber, stirring the ominous shadows that linger in every corner, while the skeletal figure slumped upon the throne seems to watch over the remnants of its lost kingdom. The air is thick with a sense of desolation, a chilling reminder of the grandeur that once filled this space and the ominous silence that now reigns.\nExits: south, north\nYou see: Skeleton King",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Abandoned Throne Room",
+                        "room_id": "throne_room"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-10-12T03:33:07.585928219Z",
+                "playerInput": "go east",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: EAST",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-10-12T03:33:16.831648606Z",
+                "playerInput": "look at the throne",
+                "gmResponse": "You approach the massive stone throne, its surface worn and rough from centuries of neglect. The throne towers over you, its imposing stature a stark reminder of the power that once resided here, while intricate carvings of forgotten symbols twist along its arms, now chipped and faded. The cold draft sends a shiver down your spine as you notice dust clinging to the cracks in the marble floor, hinting at the countless years this seat of authority has remained undisturbed.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent and detailed description of the throne, enhancing the player's understanding of the room's lore.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-10-12T03:33:19.890741365Z",
+                "playerInput": "go northwest",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: NORTHWEST",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-10-12T03:33:22.737387256Z",
+                "playerInput": "go northeast",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: NORTHEAST",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 11,
+            "step": {
+                "timestamp": "2025-10-12T03:33:28.691496390Z",
+                "playerInput": "go south",
+                "gmResponse": "Dark Corridor\nYou find yourself back in the narrow stone passage, its constricting walls amplifying the sound of your footsteps into a haunting symphony of echoes. The air is thick with humidity, punctuated by the rhythmic drip of water from unseen crevices, each drop resonating like a distant heartbeat in the oppressive silence. In the corners, fragile spider webs cling tenaciously, their shimmering strands catching the meager light and creating a ghostly tapestry that sways gently in the stale air. The worn flagstone floor beneath you shifts with every step, a testament to the countless souls who have traversed this passage, their stories fading into the shadows that envelop you.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 12,
+            "step": {
+                "timestamp": "2025-10-12T03:33:34.649093605Z",
+                "playerInput": "go east",
+                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury once more, where the air buzzes with an ever-present magical aura, wrapping around you like the whispers of long-forgotten secrets. Gleaming gold coins scatter across the stone floor, their reflections flickering in the soft shaft of light that pours down, illuminating the delicate dance of dust motes that swirl like tiny celestial beings in the stillness. Ornate treasure chests, each a testament to exquisite craftsmanship, stand proudly, their surfaces telling tales of opulence, while jeweled artifacts on pedestals bask in the glow, their vibrant colors shimmering against the shadows like promises of untold adventures. The very atmosphere hums with the weight of history, inviting you to delve deeper into its enchanting embrace.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Ancient Treasury",
+                        "room_id": "treasury"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 13,
+            "step": {
+                "timestamp": "2025-10-12T03:33:36.928055025Z",
+                "playerInput": "go northwest",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: NORTHWEST",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-10-12T03:33:43.956156602Z",
+                "playerInput": "look around",
+                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air vibrates with an electrifying magical aura, wrapping around you like a forgotten memory. Gleaming gold coins scatter across the stone floor, their surfaces reflecting the soft shaft of light that breaks through the shadows, setting dust motes aglow in a delicate waltz. Ornate treasure chests, proudly displaying intricate carvings that hint at the treasures within, stand like guardians of history, while jeweled artifacts on pedestals pulse with vibrant colors, their luster beckoning you into a world of lost opulence and whispered dreams. The atmosphere is thick with the echoes of treasure-seekers long gone, enveloping you in a sense of wonder and intrigue.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a detailed and vivid description of the Ancient Treasury, consistent with the expected outcome.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-10-12T03:33:46.009846324Z",
+                "playerInput": "go south",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: SOUTH",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        }
+    ],
+    "uniqueRoomsVisited": 3,
+    "roomNames": [
+        "Dark Corridor",
+        "Ancient Treasury",
+        "Abandoned Throne Room"
+    ]
+}

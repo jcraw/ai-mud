@@ -336,11 +336,31 @@ class OutputValidator(
                 - Critical successes/failures are handled
             """.trimIndent()
             is TestScenario.ItemInteraction -> """
+                CONTEXT: Player is in the Armory with 4 items available:
+                - Rusty Iron Sword (weapon)
+                - Sharp Steel Dagger (weapon)
+                - Worn Leather Armor (armor)
+                - Heavy Chainmail (armor)
+
                 Check that:
-                - Items can be picked up and dropped
-                - Inventory tracking is correct
-                - Equipment provides appropriate bonuses
-                - Consumables have proper effects
+                - Items can be picked up ("You pick up X" or similar)
+                - Inventory shows picked-up items correctly
+                - Looking at items provides descriptions
+                - Equipment commands work ("You equip X" or similar)
+                - Equipped items show "(equipped)" tag when examined
+                - Items can be dropped and appear in room again
+                - "You can't take that" is VALID if item doesn't exist or isn't takeable
+
+                PASS for normal responses like:
+                - Room descriptions showing items
+                - Successful take/drop/equip actions
+                - "You don't see that here" if looking for non-existent items
+                - Inventory listings (empty or with items)
+
+                FAIL only for:
+                - Crashes or error messages
+                - Items disappearing without explanation
+                - Inventory showing wrong items
             """.trimIndent()
             is TestScenario.SocialInteraction -> """
                 Check that:

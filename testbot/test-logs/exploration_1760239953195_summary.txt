@@ -1,0 +1,91 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: exploration
+        Description: Test room navigation, look commands, and description variability
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 15
+        - Passed: 15
+        - Failed: 0
+        - Pass Rate: 100%
+
+        Exploration Metrics:
+        - Unique Rooms Visited: 3 / 5 (target)
+        - Rooms: Dark Corridor, Ancient Treasury, Abandoned Throne Room
+
+        Timing:
+        - Start: 2025-10-12T03:32:33.201094246Z
+        - End: 2025-10-12T03:33:46.110289171Z
+        - Duration: 72.91s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: look at the throne
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: look around
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

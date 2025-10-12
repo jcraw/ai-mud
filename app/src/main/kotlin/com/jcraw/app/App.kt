@@ -245,6 +245,7 @@ class MudGame(
         when (intent) {
             is Intent.Move -> handleMove(intent.direction)
             is Intent.Look -> handleLook(intent.target)
+            is Intent.Search -> handleSearch(intent.target)
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
@@ -283,8 +284,20 @@ class MudGame(
 
     private fun handleLook(target: String?) {
         if (target == null) {
-            // Look at room
+            // Look at room - include ground items
             describeCurrentRoom()
+
+            // Also list pickupable items on the ground
+            val room = worldState.getCurrentRoom() ?: return
+            val groundItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+            if (groundItems.isNotEmpty()) {
+                println("\nItems on the ground:")
+                groundItems.forEach { item ->
+                    println("  - ${item.name}")
+                }
+            } else {
+                println("\nYou don't see any items here.")
+            }
         } else {
             // Look at specific entity
             val room = worldState.getCurrentRoom() ?: return
@@ -308,6 +321,57 @@ class MudGame(
                     println("You don't see that here.")
                 }
             }
+        }
+    }
+
+    private fun handleSearch(target: String?) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        println("\nYou search the area carefully${if (target != null) ", focusing on the $target" else ""}...")
+
+        // Perform a Wisdom (Perception) skill check to find hidden items
+        val result = skillCheckResolver.checkPlayer(
+            worldState.player,
+            com.jcraw.mud.core.StatType.WISDOM,
+            com.jcraw.mud.core.Difficulty.MEDIUM  // DC 15 for finding hidden items
+        )
+
+        // Display roll details
+        println("\nRolling Perception check...")
+        println("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+        if (result.isCriticalSuccess) {
+            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
+        } else if (result.isCriticalFailure) {
+            println("\n💀 CRITICAL FAILURE! (Natural 1)")
+        }
+
+        if (result.success) {
+            println("\n✅ Success!")
+
+            // Find hidden items in the room
+            val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+            val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+            if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
+                if (pickupableItems.isNotEmpty()) {
+                    println("You find the following items:")
+                    pickupableItems.forEach { item ->
+                        println("  - ${item.name}: ${item.description}")
+                    }
+                }
+                if (hiddenItems.isNotEmpty()) {
+                    println("\nYou also notice some interesting features:")
+                    hiddenItems.forEach { item ->
+                        println("  - ${item.name}: ${item.description}")
+                    }
+                }
+            } else {
+                println("You don't find anything hidden here.")
+            }
+        } else {
+            println("\n❌ Failure!")
+            println("You don't find anything of interest.")
         }
     }
 
@@ -359,12 +423,19 @@ class MudGame(
             }
 
         if (item == null) {
-            println("You don't see that here.")
+            // Not an item - check if it's scenery (room trait or entity)
+            val isScenery = room.traits.any { it.lowercase().contains(target.lowercase()) } ||
+                           room.entities.any { it.name.lowercase().contains(target.lowercase()) }
+            if (isScenery) {
+                println("That's part of the environment and can't be taken.")
+            } else {
+                println("You don't see that here.")
+            }
             return
         }
 
         if (!item.isPickupable) {
-            println("You can't take that.")
+            println("That's part of the environment and can't be taken.")
             return
         }
 
@@ -832,6 +903,7 @@ class MudGame(
             |
             |  Actions:
             |    look [target]        - Examine room or specific object
+            |    search [target]      - Search for hidden items (skill check)
             |    take/get <item>      - Pick up an item
             |    drop/put <item>      - Drop an item from inventory
             |    talk/speak <npc>     - Talk to an NPC

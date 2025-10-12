@@ -140,6 +140,7 @@ class GameServer(
         return when (intent) {
             is Intent.Move -> handleMove(playerId, playerState, intent.direction)
             is Intent.Look -> handleLook(playerId, playerState, intent.target)
+            is Intent.Search -> handleSearch(playerId, playerState, intent.target, currentRoom)
             is Intent.Attack -> handleAttack(playerId, playerState, intent.target)
             is Intent.Talk -> handleTalk(playerId, playerState, intent.target)
             is Intent.Take -> handleTake(playerId, playerState, intent.target, currentRoom)
@@ -220,7 +221,22 @@ class GameServer(
 
         return if (target == null) {
             val description = roomDescriptionGenerator.generateDescription(currentRoom)
-            Triple(description, worldState, null)
+
+            // Also list pickupable items on the ground
+            val groundItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+            val fullDescription = buildString {
+                append(description)
+                if (groundItems.isNotEmpty()) {
+                    append("\n\nItems on the ground:")
+                    groundItems.forEach { item ->
+                        append("\n  - ${item.name}")
+                    }
+                } else {
+                    append("\n\nYou don't see any items here.")
+                }
+            }
+
+            Triple(fullDescription, worldState, null)
         } else {
             // Look at specific entity
             val entity = currentRoom.entities.find { it.name.equals(target, ignoreCase = true) }
@@ -235,6 +251,64 @@ class GameServer(
                 Triple(response, worldState, null)
             }
         }
+    }
+
+    private fun handleSearch(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        target: String?,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val searchMessage = "You search the area carefully${if (target != null) ", focusing on the $target" else ""}..."
+
+        // Perform a Wisdom (Perception) skill check to find hidden items
+        val result = skillCheckResolver.checkPlayer(
+            playerState,
+            StatType.WISDOM,
+            Difficulty.MEDIUM  // DC 15 for finding hidden items
+        )
+
+        val description = buildString {
+            append("$searchMessage\n\n")
+            append("Rolling Perception check...\n")
+            append("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}\n")
+
+            if (result.isCriticalSuccess) {
+                append("\n🎲 CRITICAL SUCCESS! (Natural 20)\n")
+            } else if (result.isCriticalFailure) {
+                append("\n💀 CRITICAL FAILURE! (Natural 1)\n")
+            }
+
+            if (result.success) {
+                append("\n✅ Success!\n")
+
+                // Find items in the room
+                val hiddenItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+                val pickupableItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+                if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
+                    if (pickupableItems.isNotEmpty()) {
+                        append("You find the following items:\n")
+                        pickupableItems.forEach { item ->
+                            append("  - ${item.name}: ${item.description}\n")
+                        }
+                    }
+                    if (hiddenItems.isNotEmpty()) {
+                        append("\nYou also notice some interesting features:\n")
+                        hiddenItems.forEach { item ->
+                            append("  - ${item.name}: ${item.description}\n")
+                        }
+                    }
+                } else {
+                    append("You don't find anything hidden here.")
+                }
+            } else {
+                append("\n❌ Failure!\n")
+                append("You don't find anything of interest.")
+            }
+        }
+
+        return Triple(description, worldState, null)
     }
 
     private suspend fun handleAttack(
@@ -322,8 +396,17 @@ class GameServer(
             )
 
             Triple("You take the ${item.name}.", newWorldState, event)
+        } else if (item != null && !item.isPickupable) {
+            Triple("That's part of the environment and can't be taken.", worldState, null)
         } else {
-            Triple("You can't take that.", worldState, null)
+            // Not an item - check if it's scenery (room trait or entity)
+            val isScenery = currentRoom.traits.any { it.lowercase().contains(itemId.lowercase()) } ||
+                           currentRoom.entities.any { it.name.lowercase().contains(itemId.lowercase()) }
+            if (isScenery) {
+                Triple("That's part of the environment and can't be taken.", worldState, null)
+            } else {
+                Triple("You don't see that here.", worldState, null)
+            }
         }
     }
 
@@ -525,7 +608,7 @@ class GameServer(
     private fun getHelpText(): String = """
         === Commands ===
         Movement: north/south/east/west (or n/s/e/w)
-        Interaction: look [target], take <item>, drop <item>, talk <npc>
+        Interaction: look [target], search [target], take <item>, drop <item>, talk <npc>
         Combat: attack <npc>
         Equipment: equip <item>
         Consumables: use <item>

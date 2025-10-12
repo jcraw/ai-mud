@@ -23,6 +23,13 @@ sealed class Intent {
     data class Look(val target: String? = null) : Intent()
 
     /**
+     * Search for hidden items or secrets in the current room
+     * @param target Optional specific area to search (e.g., "moss", "walls")
+     */
+    @Serializable
+    data class Search(val target: String? = null) : Intent()
+
+    /**
      * Interact with a specific entity or object in the room
      * @param target The name/identifier of what to interact with
      */

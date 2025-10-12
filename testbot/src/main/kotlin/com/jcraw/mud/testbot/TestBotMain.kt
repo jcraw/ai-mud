@@ -39,15 +39,8 @@ fun main() = runBlocking {
     print("\nEnter choice (1-3) [default: 1]: ")
 
     val dungeonChoice = readLine()?.trim() ?: "1"
-    val worldState = when (dungeonChoice) {
-        "2" -> ProceduralDungeonBuilder.generateCrypt(5)
-        "3" -> ProceduralDungeonBuilder.generateCastle(5)
-        else -> SampleDungeon.createInitialWorldState()
-    }
 
-    println("\n✅ Dungeon loaded: ${worldState.rooms.size} rooms")
-
-    // Select scenario
+    // Select scenario first to determine starting room
     println("\nSelect test scenario:")
     println("  1. Exploration (${TestScenario.Exploration().maxSteps} steps)")
     println("  2. Combat (${TestScenario.Combat().maxSteps} steps)")
@@ -71,7 +64,21 @@ fun main() = runBlocking {
         else -> TestScenario.Exploration()
     }
 
-    println("\n✅ Scenario selected: ${scenario.name}")
+    // Determine starting room based on scenario
+    val startingRoomId = when (scenario) {
+        is TestScenario.ItemInteraction -> SampleDungeon.ARMORY_ROOM_ID
+        else -> SampleDungeon.STARTING_ROOM_ID
+    }
+
+    val worldState = when (dungeonChoice) {
+        "2" -> ProceduralDungeonBuilder.generateCrypt(5)
+        "3" -> ProceduralDungeonBuilder.generateCastle(5)
+        else -> SampleDungeon.createInitialWorldState(startingRoomId = startingRoomId)
+    }
+
+    println("\n✅ Dungeon loaded: ${worldState.rooms.size} rooms")
+    println("✅ Starting room: ${worldState.player.currentRoomId}")
+    println("✅ Scenario selected: ${scenario.name}")
     println("   ${scenario.description}")
 
     // Initialize LLM components

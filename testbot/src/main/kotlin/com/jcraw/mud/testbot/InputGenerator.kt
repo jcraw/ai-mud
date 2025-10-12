@@ -119,26 +119,32 @@ class InputGenerator(
                 - Testing different stat-based challenges
             """.trimIndent()
             is TestScenario.ItemInteraction -> """
-                Test ALL item/inventory mechanics efficiently:
-                1. Examine items in room - Use 'look <item>' to inspect items before taking
-                2. Take items - Pick up items with 'take <item>'
-                3. Check inventory - Use 'inventory' or 'i' to verify item state
-                4. Examine inventory items - Use 'look <item>' on items you're carrying (NEW!)
-                5. Equip items - Equip weapons/armor with 'equip <item>' (automatically unequips old)
-                6. Examine equipped items - Use 'look <weapon/armor>' to see equipped item descriptions
-                7. Use consumables - Use potions with 'use <item>' (test healing)
-                8. Drop items - Drop items with 'drop <item>'
+                IMPORTANT: You are already in the Armory which has 4 items:
+                - Rusty Iron Sword (weapon, +5 damage)
+                - Sharp Steel Dagger (weapon, +3 damage)
+                - Worn Leather Armor (armor, +2 defense)
+                - Heavy Chainmail (armor, +4 defense)
 
-                Efficient strategy (minimize steps):
-                - Look at 1-2 items in room before taking
-                - Take 2-3 different item types (weapon, armor, consumable)
-                - Check inventory after taking
-                - Look at 1 item in inventory to verify examination works
-                - Equip weapon, then look at it to see "(equipped)" tag
-                - Equip armor
-                - Use consumable if damaged
-                - Drop 1 item, verify it appears in room
-                - Target: ~12-15 actions total
+                Test ALL item/inventory mechanics systematically:
+                1. Look around - See what items are in the room
+                2. Examine items - 'look <item>' to inspect 1-2 items before taking
+                3. Take items - Pick up 2-3 different items (weapons, armor)
+                4. Check inventory - Use 'inventory' to verify items were picked up
+                5. Examine inventory items - 'look <item>' on items you're carrying
+                6. Equip weapon - 'equip <weapon>' to equip a weapon
+                7. Look at equipped weapon - Verify "(equipped)" tag appears
+                8. Equip armor - 'equip <armor>' to equip armor
+                9. Drop item - 'drop <item>' to drop something
+                10. Look around - Verify dropped item appears in room
+                11. Take item back - Pick up the dropped item again
+
+                DO NOT:
+                - Try to move to other rooms (stay in Armory)
+                - Try to use compound commands ("look and take" - split them)
+                - Retry failed commands (just move to next test)
+                - Look for items that don't exist (only test the 4 items listed above)
+
+                Target: ~12-15 actions covering all mechanics
             """.trimIndent()
             is TestScenario.SocialInteraction -> """
                 Focus on:

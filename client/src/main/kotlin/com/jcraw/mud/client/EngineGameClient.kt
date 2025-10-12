@@ -181,6 +181,7 @@ class EngineGameClient(
         when (intent) {
             is Intent.Move -> handleMove(intent.direction)
             is Intent.Look -> handleLook(intent.target)
+            is Intent.Search -> handleSearch(intent.target)
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
@@ -220,6 +221,22 @@ class EngineGameClient(
     private fun handleLook(target: String?) {
         if (target == null) {
             describeCurrentRoom()
+
+            // Also list pickupable items on the ground
+            val room = worldState.getCurrentRoom() ?: return
+            val groundItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+            if (groundItems.isNotEmpty()) {
+                val itemsList = buildString {
+                    appendLine()
+                    appendLine("Items on the ground:")
+                    groundItems.forEach { item ->
+                        appendLine("  - ${item.name}")
+                    }
+                }
+                emitEvent(GameEvent.Narrative(itemsList))
+            } else {
+                emitEvent(GameEvent.Narrative("\nYou don't see any items here."))
+            }
             return
         }
 
@@ -283,6 +300,65 @@ class EngineGameClient(
         }
     }
 
+    private fun handleSearch(target: String?) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        val searchMessage = "You search the area carefully${if (target != null) ", focusing on the $target" else ""}..."
+
+        // Perform a Wisdom (Perception) skill check to find hidden items
+        val result = skillCheckResolver.checkPlayer(
+            worldState.player,
+            StatType.WISDOM,
+            Difficulty.MEDIUM
+        )
+
+        val narrative = buildString {
+            appendLine(searchMessage)
+            appendLine()
+            appendLine("Rolling Perception check...")
+            appendLine("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+            appendLine()
+
+            if (result.isCriticalSuccess) {
+                appendLine("🎲 CRITICAL SUCCESS! (Natural 20)")
+            } else if (result.isCriticalFailure) {
+                appendLine("💀 CRITICAL FAILURE! (Natural 1)")
+            }
+
+            if (result.success) {
+                appendLine("✅ Success!")
+                appendLine()
+
+                // Find items in the room
+                val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+                val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+                if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
+                    if (pickupableItems.isNotEmpty()) {
+                        appendLine("You find the following items:")
+                        pickupableItems.forEach { item ->
+                            appendLine("  - ${item.name}: ${item.description}")
+                        }
+                    }
+                    if (hiddenItems.isNotEmpty()) {
+                        appendLine()
+                        appendLine("You also notice some interesting features:")
+                        hiddenItems.forEach { item ->
+                            appendLine("  - ${item.name}: ${item.description}")
+                        }
+                    }
+                } else {
+                    appendLine("You don't find anything hidden here.")
+                }
+            } else {
+                appendLine("❌ Failure!")
+                appendLine("You don't find anything of interest.")
+            }
+        }
+
+        emitEvent(GameEvent.Narrative(narrative))
+    }
+
     private fun handleInteract(target: String) {
         emitEvent(GameEvent.System("Interaction system not yet implemented. (Target: $target)", GameEvent.MessageLevel.INFO))
     }
@@ -333,12 +409,19 @@ class EngineGameClient(
             }
 
         if (item == null) {
-            emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.WARNING))
+            // Not an item - check if it's scenery (room trait or entity)
+            val isScenery = room.traits.any { it.lowercase().contains(target.lowercase()) } ||
+                           room.entities.any { it.name.lowercase().contains(target.lowercase()) }
+            if (isScenery) {
+                emitEvent(GameEvent.System("That's part of the environment and can't be taken.", GameEvent.MessageLevel.WARNING))
+            } else {
+                emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.WARNING))
+            }
             return
         }
 
         if (!item.isPickupable) {
-            emitEvent(GameEvent.System("You can't take that.", GameEvent.MessageLevel.WARNING))
+            emitEvent(GameEvent.System("That's part of the environment and can't be taken.", GameEvent.MessageLevel.WARNING))
             return
         }
 

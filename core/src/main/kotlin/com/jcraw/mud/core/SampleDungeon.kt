@@ -266,11 +266,15 @@ object SampleDungeon {
     /**
      * Creates initial world state with player at entrance
      */
-    fun createInitialWorldState(playerId: PlayerId = "player1", playerName: String = "Adventurer"): WorldState {
+    fun createInitialWorldState(
+        playerId: PlayerId = "player1",
+        playerName: String = "Adventurer",
+        startingRoomId: RoomId = STARTING_ROOM_ID
+    ): WorldState {
         val initialPlayer = PlayerState(
             id = playerId,
             name = playerName,
-            currentRoomId = STARTING_ROOM_ID,
+            currentRoomId = startingRoomId,
             health = 100,
             maxHealth = 100,
             stats = Stats(
@@ -288,4 +292,11 @@ object SampleDungeon {
             players = mapOf(playerId to initialPlayer)
         )
     }
+
+    // Room IDs for test scenarios
+    const val ARMORY_ROOM_ID = "armory"
+    const val TREASURY_ROOM_ID = "treasury"
+    const val CORRIDOR_ROOM_ID = "corridor"
+    const val THRONE_ROOM_ID = "throne_room"
+    const val SECRET_CHAMBER_ROOM_ID = "secret_chamber"
 }

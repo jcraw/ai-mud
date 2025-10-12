@@ -19,16 +19,39 @@ class IntentRecognizer(
      * If LLM is not available, falls back to simple pattern matching for basic commands.
      */
     suspend fun parseIntent(input: String, roomContext: String? = null): Intent {
+        // Split compound commands (e.g., "take sword and equip it" → "take sword")
+        val firstCommand = splitCompoundCommand(input)
+
         if (llmClient == null) {
-            return parseFallback(input)
+            return parseFallback(firstCommand)
         }
 
         return try {
-            parseLLM(input, roomContext)
+            parseLLM(firstCommand, roomContext)
         } catch (e: Exception) {
             // Fall back to simple parsing if LLM fails
-            parseFallback(input)
+            parseFallback(firstCommand)
         }
+    }
+
+    /**
+     * Split compound commands by taking only the first action.
+     * Handles "and", "then", commas, etc.
+     */
+    private fun splitCompoundCommand(input: String): String {
+        // Split on common conjunctions and punctuation
+        val separators = listOf(" and ", " then ", ", and ", ", then ", ",")
+
+        for (separator in separators) {
+            val parts = input.split(separator, ignoreCase = true, limit = 2)
+            if (parts.size > 1) {
+                // Return only the first part
+                return parts[0].trim()
+            }
+        }
+
+        // No compound detected, return as-is
+        return input
     }
 
     /**
@@ -58,6 +81,14 @@ class IntentRecognizer(
 You are a command parser for a text-based MUD (Multi-User Dungeon) game.
 Your job is to parse player input and determine their intent.
 
+IMPORTANT: If the player gives a compound command (multiple actions), split it into multiple intents.
+Return ONLY the FIRST intent. The system will process it, then parse the next part.
+
+Examples of compound commands to split:
+- "look around and take the sword" → First: look (no target)
+- "take sword and equip it" → First: take with target "sword"
+- "go north and attack the guard" → First: move with target "north"
+
 Parse the player's input and respond with a JSON object containing:
 - "intent": The type of intent (see list below)
 - "target": The target entity/direction/item (if applicable)
@@ -67,7 +98,7 @@ Valid intent types:
 - "move" - Move in a direction (requires "target" as direction: north/south/east/west/northeast/northwest/southeast/southwest/up/down or abbreviations: n/s/e/w/ne/nw/se/sw/u/d)
 - "look" - Look at room or specific entity (target is optional, null = look at room)
 - "examine" - Same as "look" - examine something in detail
-- "search" - Search the current room/area for hidden items or features (target optional)
+- "search" - Search the current room/area for hidden items using skill check (target optional: e.g., "moss", "walls")
 - "interact" - Interact with an object (requires target)
 - "inventory" - View player inventory (no target)
 - "take" - Pick up an item (requires target)
@@ -94,13 +125,14 @@ Important parsing rules:
 2. Extract the core action and target from rambling text
 3. "look around", "look around room", "look at the room" all map to look with no target
 4. "look at X", "examine X", "inspect X" map to look with target X
-5. "search", "search room", "search for items" all map to search (target optional)
-6. "move north", "go north", "n", "north", "head north" all map to move with target "north"
-7. "move northwest", "go northwest", "nw", "northwest" all map to move with target "northwest"
-8. "move north from throne room" → extract "north" as target
-9. "look north", "look to the north" → map to look with target "north" (directional look)
-9. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
-10. If player asks to look for/search for something, map to search intent
+5. "look around for items", "look for items to take" map to look with no target (lists ground items)
+6. "search", "search room", "search for hidden items", "look for hidden items" all map to search (triggers skill check)
+7. "search X" or "look for hidden items in X" map to search with target X
+8. "move north", "go north", "n", "north", "head north" all map to move with target "north"
+9. "move northwest", "go northwest", "nw", "northwest" all map to move with target "northwest"
+10. "move north from throne room" → extract "north" as target
+11. "look north", "look to the north" → map to look with target "north" (directional look)
+12. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
 
 Response format (JSON only, no markdown):
 {
@@ -164,7 +196,7 @@ Parse the player's intent.
                     }
                 }
                 "look", "examine" -> Intent.Look(target)
-                "search" -> Intent.Look(target) // For now, map search to look - we'll add Search intent later
+                "search" -> Intent.Search(target)
                 "interact" -> if (target != null) Intent.Interact(target) else Intent.Invalid("Interact with what?")
                 "inventory" -> Intent.Inventory
                 "take" -> if (target != null) Intent.Take(target) else Intent.Invalid("Take what?")
@@ -222,7 +254,7 @@ Parse the player's intent.
                 Intent.Move(direction)
             }
             "look", "l", "examine", "inspect" -> Intent.Look(args)
-            "search" -> Intent.Look(args)  // Map search to look for now
+            "search" -> Intent.Search(args)
             "interact" -> if (args.isNullOrBlank()) Intent.Invalid("Interact with what?") else Intent.Interact(args)
             "take", "get", "pickup", "pick" -> if (args.isNullOrBlank()) Intent.Invalid("Take what?") else Intent.Take(args)
             "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)

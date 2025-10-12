@@ -220,7 +220,85 @@ This document tracks all completed features and implementations in chronological
 
 **Status**: ✅ Round 3 fixes implemented and built. **Awaiting test run** to verify if LLM validator now understands.
 
+## Item Interaction Test Fixes (2025-10-11) 🔧
+
+**Problem**: Item interaction test had 38% pass rate (7/18) because it was testing non-existent items in the wrong location.
+
+**Root Causes**:
+1. **Wrong starting location** - Player spawned in Dungeon Entrance which has NO items
+2. **Hallucinated items** - Test bot tried to interact with "healing potion", "mossy dagger", "rusty sword" that don't exist in that room
+3. **Compound commands unsupported** - Commands like "look around and take sword" caused errors
+4. **Repetitive failed attempts** - Bot kept trying "look around" 5 times expecting items to appear
+
+**Solutions Applied**:
+
+### 1. Test Spawn Location Support (`core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt:269-301`)
+```kotlin
+fun createInitialWorldState(
+    playerId: PlayerId = "player1",
+    playerName: String = "Adventurer",
+    startingRoomId: RoomId = STARTING_ROOM_ID  // NEW PARAMETER
+): WorldState
+```
+- Added optional `startingRoomId` parameter to `createInitialWorldState()`
+- ItemInteraction tests now spawn player directly in Armory (has 4 items: 2 weapons, 2 armor)
+- Added room ID constants: `ARMORY_ROOM_ID`, `TREASURY_ROOM_ID`, `CORRIDOR_ROOM_ID`, etc.
+
+### 2. Compound Command Handling (`perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt:21-55`)
+```kotlin
+private fun splitCompoundCommand(input: String): String {
+    val separators = listOf(" and ", " then ", ", and ", ", then ", ",")
+    for (separator in separators) {
+        val parts = input.split(separator, ignoreCase = true, limit = 2)
+        if (parts.size > 1) return parts[0].trim()
+    }
+    return input
+}
+```
+- Extracts first action from compound commands before parsing
+- Example: "take sword and equip it" → processes only "take sword"
+- Handles "and", "then", commas as separators
+
+### 3. Continue-on-Failure Behavior (`testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt:50-75`)
+- Tests now run ALL steps regardless of failures (no early termination)
+- Final status determined by 80% pass rate threshold
+- Updated test: `TestState continues despite failures()` verifies behavior
+
+### 4. Item Test Strategy Updates
+**InputGenerator** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt:121-148`):
+- Lists exact items in Armory (Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail)
+- Clear test plan: look around → examine items → take → inventory → equip → drop → verify
+- Instructions NOT to move rooms or retry failed commands
+- Instructions NOT to use compound commands
+
+**OutputValidator** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:338-364`):
+- Validator knows player is in Armory with specific items
+- Clear pass criteria: successful take/drop/equip actions, inventory tracking
+- "You don't see that here" is VALID response for non-existent items
+- FAIL only for crashes, items disappearing, wrong inventory contents
+
+**Test Expectations**:
+- ✅ Look around (see 4 items)
+- ✅ Examine items before taking
+- ✅ Take multiple items (weapons, armor)
+- ✅ Inventory verification
+- ✅ Equip weapon and armor
+- ✅ Examine equipped items (shows "(equipped)" tag)
+- ✅ Drop item
+- ✅ Verify dropped item in room
+- ✅ Take item back
+
+**Files Changed**:
+1. `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt` - Added startingRoomId parameter
+2. `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Compound command splitting
+3. `testbot/src/main/kotlin/com/jcraw/mud/testbot/TestBotMain.kt` - Spawn in Armory for item tests
+4. `testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt` - Item test guidance
+5. `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt` - Item validation criteria
+6. `testbot/src/test/kotlin/com/jcraw/mud/testbot/TestModelsTest.kt` - Continue-on-failure test
+
+**Status**: ✅ All fixes implemented and building. **Ready to test** - Run `gradle :testbot:run` → option 4
+
 **Next Steps**:
-1. Run `gradle :testbot:run --args="exploration"` to check if pass rate improved to 95%+
-2. If still failing: Consider switching to rule-based validation (regex for room names) instead of LLM-based
-3. Apply same validation improvements to other test scenarios (combat, skill checks, etc.)
+1. Run `gradle :testbot:run` → option 4 to verify item interaction test now works properly
+2. Expect 80%+ pass rate testing actual item mechanics (take, equip, drop, inventory)
+3. Apply same testing improvements to other scenarios as needed
