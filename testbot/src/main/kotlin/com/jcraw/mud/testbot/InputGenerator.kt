@@ -89,17 +89,18 @@ class InputGenerator(
                     "No rooms visited yet."
                 }
                 """
-                Focus on:
-                - PRIORITY: Visit NEW rooms you haven't been to yet (target: 5 different rooms)
-                - Use directional movement (n/s/e/w, north/south/east/west)
-                - Try ALL available exits from a room before moving on
-                - Avoid revisiting the same room more than twice
-                - Look at objects occasionally, but prioritize exploration over examination
-                - Avoid looking at the same object multiple times
+                Test ALL exploration mechanics efficiently:
+                1. Room navigation - Move to new rooms (target: 5 different rooms)
+                2. Look commands - Use 'look' to get room descriptions and 'look <object>' to examine items/NPCs
+                3. Description variability - Revisit rooms occasionally to test that descriptions change
+
+                Efficient strategy:
+                - Visit new rooms using directional movement (n/s/e/w)
+                - Look at 1-2 objects/NPCs per room
+                - Revisit 1-2 rooms to test description variability
+                - Don't spend more than 2-3 actions per room
 
                 $roomsVisitedText
-
-                Strategy: Be breadth-first, not depth-first. Discover new areas!
             """.trimIndent()
             }
             is TestScenario.Combat -> """
