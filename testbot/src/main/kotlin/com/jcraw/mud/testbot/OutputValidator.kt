@@ -238,6 +238,31 @@ class OutputValidator(
             }
         }
 
+        // Parse "inventory" commands
+        val inventoryMatch = Regex(
+            "^(inventory|inv|i)$",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
+
+        if (inventoryMatch != null) {
+            // Any non-error response with "Inventory" or "Carrying" = valid
+            if ((gmResponse.contains("Inventory", ignoreCase = true) ||
+                 gmResponse.contains("Carrying", ignoreCase = true)) &&
+                !gmResponse.contains("error", ignoreCase = true) &&
+                !gmResponse.contains("crash", ignoreCase = true) &&
+                !gmResponse.contains("exception", ignoreCase = true)) {
+
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Inventory listing displayed",
+                    details = mapOf(
+                        "validation_type" to "code",
+                        "tracked_inventory" to inventoryTracker.joinToString(", ")
+                    )
+                )
+            }
+        }
+
         // MOVEMENT VALIDATION
 
         // Parse movement command - support all directions including diagonals

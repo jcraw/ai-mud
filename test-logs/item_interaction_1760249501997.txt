@@ -1,45 +1,5 @@
         ================================================================================
-        [2025-10-12T05:58:22.883004251Z]
-
-        Player: examine Rusty Iron Sword
-
-        Game Master:
-        An old iron sword, still sharp despite the rust
-
-        Validation: PASS
-Reason: [CODE] Description provided for 'Rusty Iron Sword'
-        ================================================================================
-        [2025-10-12T05:58:25.317353999Z]
-
-        Player: take Sharp Steel Dagger
-
-        Game Master:
-        You take the Sharp Steel Dagger.
-
-        Validation: PASS
-Reason: [CODE] Item 'Sharp Steel Dagger' successfully taken
-        ================================================================================
-        [2025-10-12T05:58:27.257806282Z]
-
-        Player: take Worn Leather Armor
-
-        Game Master:
-        You take the Worn Leather Armor.
-
-        Validation: PASS
-Reason: [CODE] Item 'Worn Leather Armor' successfully taken
-        ================================================================================
-        [2025-10-12T05:58:29.417340110Z]
-
-        Player: examine Heavy Chainmail
-
-        Game Master:
-        A suit of interlocking metal rings, heavy but protective
-
-        Validation: PASS
-Reason: [CODE] Description provided for 'Heavy Chainmail'
-        ================================================================================
-        [2025-10-12T05:58:32.011119396Z]
+        [2025-10-12T06:11:45.711910862Z]
 
         Player: take Rusty Iron Sword
 
@@ -49,20 +9,9 @@ Reason: [CODE] Description provided for 'Heavy Chainmail'
         Validation: PASS
 Reason: [CODE] Item 'Rusty Iron Sword' successfully taken
         ================================================================================
-        [2025-10-12T05:58:35.267029849Z]
+        [2025-10-12T06:11:49.227983438Z]
 
-        Player: inventory
-
-        Game Master:
-        Inventory:
-  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword
-
-        Validation: FAIL
-Reason: The inventory response does not include the Rusty Iron Sword, which is in the player's inventory.
-        ================================================================================
-        [2025-10-12T05:58:37.786034147Z]
-
-        Player: examine Sharp Steel Dagger
+        Player: look Sharp Steel Dagger
 
         Game Master:
         A well-balanced dagger with a keen edge
@@ -70,9 +19,19 @@ Reason: The inventory response does not include the Rusty Iron Sword, which is i
         Validation: PASS
 Reason: [CODE] Description provided for 'Sharp Steel Dagger'
         ================================================================================
-        [2025-10-12T05:58:40.617277341Z]
+        [2025-10-12T06:11:52.425635727Z]
 
-        Player: look at Heavy Chainmail
+        Player: take Worn Leather Armor
+
+        Game Master:
+        You take the Worn Leather Armor.
+
+        Validation: PASS
+Reason: [CODE] Item 'Worn Leather Armor' successfully taken
+        ================================================================================
+        [2025-10-12T06:11:55.554457671Z]
+
+        Player: look Heavy Chainmail
 
         Game Master:
         A suit of interlocking metal rings, heavy but protective
@@ -80,7 +39,48 @@ Reason: [CODE] Description provided for 'Sharp Steel Dagger'
         Validation: PASS
 Reason: [CODE] Description provided for 'Heavy Chainmail'
         ================================================================================
-        [2025-10-12T05:58:42.889621075Z]
+        [2025-10-12T06:11:58.592139522Z]
+
+        Player: take Sharp Steel Dagger
+
+        Game Master:
+        You take the Sharp Steel Dagger.
+
+        Validation: PASS
+Reason: [CODE] Item 'Sharp Steel Dagger' successfully taken
+        ================================================================================
+        [2025-10-12T06:12:01.403284740Z]
+
+        Player: inventory
+
+        Game Master:
+        Inventory:
+  Carrying: Rusty Iron Sword, Worn Leather Armor, Sharp Steel Dagger
+
+        Validation: PASS
+Reason: [CODE] Inventory listing displayed
+        ================================================================================
+        [2025-10-12T06:12:04.479219837Z]
+
+        Player: look Heavy Chainmail
+
+        Game Master:
+        A suit of interlocking metal rings, heavy but protective
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'Heavy Chainmail'
+        ================================================================================
+        [2025-10-12T06:12:07.257508863Z]
+
+        Player: examine Heavy Chainmail
+
+        Game Master:
+        A suit of interlocking metal rings, heavy but protective
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'Heavy Chainmail'
+        ================================================================================
+        [2025-10-12T06:12:10.666381746Z]
 
         Player: take Heavy Chainmail
 
@@ -90,28 +90,18 @@ Reason: [CODE] Description provided for 'Heavy Chainmail'
         Validation: PASS
 Reason: [CODE] Item 'Heavy Chainmail' successfully taken
         ================================================================================
-        [2025-10-12T05:58:45.280221494Z]
-
-        Player: examine Worn Leather Armor
-
-        Game Master:
-        Supple leather armor, worn but still protective
-
-        Validation: PASS
-Reason: [CODE] Description provided for 'Worn Leather Armor'
-        ================================================================================
-        [2025-10-12T05:58:48.949503791Z]
+        [2025-10-12T06:12:13.648351400Z]
 
         Player: inventory
 
         Game Master:
         Inventory:
-  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail
+  Carrying: Rusty Iron Sword, Worn Leather Armor, Sharp Steel Dagger, Heavy Chainmail
 
-        Validation: FAIL
-Reason: The GM response does not include the Heavy Chainmail in the inventory listing despite it being tracked as picked up.
+        Validation: PASS
+Reason: [CODE] Inventory listing displayed
         ================================================================================
-        [2025-10-12T05:58:51.299408068Z]
+        [2025-10-12T06:12:16.710493145Z]
 
         Player: examine Rusty Iron Sword
 
@@ -121,27 +111,17 @@ Reason: The GM response does not include the Heavy Chainmail in the inventory li
         Validation: PASS
 Reason: [CODE] Description provided for 'Rusty Iron Sword'
         ================================================================================
-        [2025-10-12T05:58:53.711495311Z]
+        [2025-10-12T06:12:19.664806200Z]
 
-        Player: take Heavy Chainmail
-
-        Game Master:
-        You can't take that.
-
-        Validation: PASS
-Reason: [CODE] Correctly rejected: 'Heavy Chainmail' not available
-        ================================================================================
-        [2025-10-12T05:58:56.070551464Z]
-
-        Player: examine Worn Leather Armor
+        Player: equip Rusty Iron Sword
 
         Game Master:
-        Supple leather armor, worn but still protective
+        You equip the Rusty Iron Sword (+5 damage).
 
         Validation: PASS
-Reason: [CODE] Description provided for 'Worn Leather Armor'
+Reason: [CODE] Item 'Rusty Iron Sword' successfully equipped
         ================================================================================
-        [2025-10-12T05:58:59.053900732Z]
+        [2025-10-12T06:12:22.459710067Z]
 
         Player: examine Sharp Steel Dagger
 
@@ -151,33 +131,52 @@ Reason: [CODE] Description provided for 'Worn Leather Armor'
         Validation: PASS
 Reason: [CODE] Description provided for 'Sharp Steel Dagger'
         ================================================================================
-        [2025-10-12T05:59:01.497686689Z]
+        [2025-10-12T06:12:25.392937676Z]
 
-        Player: take Rusty Iron Sword
+        Player: take Heavy Chainmail
 
         Game Master:
         You can't take that.
 
         Validation: PASS
-Reason: [CODE] Correctly rejected: 'Rusty Iron Sword' not available
+Reason: [CODE] Correctly rejected: 'Heavy Chainmail' not available
         ================================================================================
-        [2025-10-12T05:59:05.351511979Z]
+        [2025-10-12T06:12:28.045882140Z]
 
-        Player: inventory
-
-        Game Master:
-        Inventory:
-  Carrying: Sharp Steel Dagger, Worn Leather Armor, Rusty Iron Sword, Heavy Chainmail
-
-        Validation: FAIL
-Reason: The GM response lists items in the inventory that are not tracked as picked up by the player.
-        ================================================================================
-        [2025-10-12T05:59:08.291270879Z]
-
-        Player: examine Worn Leather Armor
+        Player: look Worn Leather Armor
 
         Game Master:
         Supple leather armor, worn but still protective
 
         Validation: PASS
 Reason: [CODE] Description provided for 'Worn Leather Armor'
+        ================================================================================
+        [2025-10-12T06:12:30.847454581Z]
+
+        Player: examine Rusty Iron Sword
+
+        Game Master:
+        An old iron sword, still sharp despite the rust (equipped)
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'Rusty Iron Sword'
+        ================================================================================
+        [2025-10-12T06:12:33.449762818Z]
+
+        Player: look Sharp Steel Dagger
+
+        Game Master:
+        A well-balanced dagger with a keen edge
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'Sharp Steel Dagger'
+        ================================================================================
+        [2025-10-12T06:12:36.233245903Z]
+
+        Player: take Heavy Chainmail
+
+        Game Master:
+        You can't take that.
+
+        Validation: PASS
+Reason: [CODE] Correctly rejected: 'Heavy Chainmail' not available
