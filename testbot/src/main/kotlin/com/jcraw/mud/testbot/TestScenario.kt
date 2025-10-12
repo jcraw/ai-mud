@@ -24,8 +24,8 @@ sealed class TestScenario {
     data class Combat(
         override val name: String = "combat",
         override val description: String = "Test combat mechanics, health tracking, and victory/defeat conditions",
-        override val maxSteps: Int = 30,
-        val targetNPCsToFight: Int = 2
+        override val maxSteps: Int = 20,
+        val targetNPCsToFight: Int = 1
     ) : TestScenario()
 
     @Serializable

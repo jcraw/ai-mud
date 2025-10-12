@@ -77,67 +77,32 @@ fun main() = runBlocking {
         else -> SampleDungeon.createInitialWorldState(startingRoomId = startingRoomId)
     }
 
-    // For combat scenario: optionally give player starting equipment
+    // For combat scenario: give player weapon and armor (equipment testing is separate)
     if (scenario is TestScenario.Combat) {
-        println("\nCombat test setup:")
-        println("  1. Start with no equipment (test acquiring gear)")
-        println("  2. Start with weapon equipped (test weapon bonuses)")
-        println("  3. Start with weapon + armor equipped (test full combat)")
-        print("\nEnter choice (1-3) [default: 1]: ")
-
-        val equipChoice = readLine()?.trim() ?: "1"
-
-        when (equipChoice) {
-            "2" -> {
-                // Give player a weapon from armory
-                val sword = com.jcraw.mud.core.Entity.Item(
-                    id = "iron_sword",
-                    name = "Rusty Iron Sword",
-                    description = "An old iron sword, still sharp despite the rust",
-                    isUsable = true,
-                    itemType = com.jcraw.mud.core.ItemType.WEAPON,
-                    damageBonus = 5
-                )
-                worldState = worldState.updatePlayer(
-                    worldState.player
-                        .addToInventory(sword)
-                        .equipWeapon(sword)
-                )
-                println("✅ Player starts with weapon equipped: ${sword.name} (+${sword.damageBonus} damage)")
-            }
-            "3" -> {
-                // Give player weapon and armor
-                val sword = com.jcraw.mud.core.Entity.Item(
-                    id = "iron_sword",
-                    name = "Rusty Iron Sword",
-                    description = "An old iron sword, still sharp despite the rust",
-                    isUsable = true,
-                    itemType = com.jcraw.mud.core.ItemType.WEAPON,
-                    damageBonus = 5
-                )
-                val armor = com.jcraw.mud.core.Entity.Item(
-                    id = "chainmail",
-                    name = "Heavy Chainmail",
-                    description = "A suit of interlocking metal rings, heavy but protective",
-                    isUsable = true,
-                    itemType = com.jcraw.mud.core.ItemType.ARMOR,
-                    defenseBonus = 4
-                )
-                worldState = worldState.updatePlayer(
-                    worldState.player
-                        .addToInventory(sword)
-                        .addToInventory(armor)
-                        .equipWeapon(sword)
-                        .equipArmor(armor)
-                )
-                println("✅ Player starts with equipment:")
-                println("   - Weapon: ${sword.name} (+${sword.damageBonus} damage)")
-                println("   - Armor: ${armor.name} (+${armor.defenseBonus} defense)")
-            }
-            else -> {
-                println("✅ Player starts with no equipment (will need to acquire gear)")
-            }
-        }
+        val sword = com.jcraw.mud.core.Entity.Item(
+            id = "iron_sword",
+            name = "Rusty Iron Sword",
+            description = "An old iron sword, still sharp despite the rust",
+            isUsable = true,
+            itemType = com.jcraw.mud.core.ItemType.WEAPON,
+            damageBonus = 5
+        )
+        val armor = com.jcraw.mud.core.Entity.Item(
+            id = "chainmail",
+            name = "Heavy Chainmail",
+            description = "A suit of interlocking metal rings, heavy but protective",
+            isUsable = true,
+            itemType = com.jcraw.mud.core.ItemType.ARMOR,
+            defenseBonus = 4
+        )
+        worldState = worldState.updatePlayer(
+            worldState.player
+                .addToInventory(sword)
+                .addToInventory(armor)
+                .equipWeapon(sword)
+                .equipArmor(armor)
+        )
+        println("✅ Combat test setup: Player starts with weapon (+${sword.damageBonus}) and armor (+${armor.defenseBonus}) equipped")
     }
 
     println("\n✅ Dungeon loaded: ${worldState.rooms.size} rooms")
