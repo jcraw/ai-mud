@@ -69,7 +69,7 @@ class CombatResolver {
         // Check if NPC died
         if (updatedCombat.npcHealth <= 0) {
             return CombatResult(
-                narrative = "You strike for $damage damage!",
+                narrative = "You strike for $damage damage! Your enemy has been defeated!",
                 newCombatState = null,  // Combat ends
                 playerDied = false,
                 npcDied = true,

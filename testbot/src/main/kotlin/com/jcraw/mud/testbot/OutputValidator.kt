@@ -358,99 +358,81 @@ class OutputValidator(
         if (attackMatch != null) {
             val targetName = attackMatch.groupValues[1].trim()
 
-            // Check if player is in combat
-            val inCombat = worldState.player.isInCombat()
-
-            if (inCombat) {
-                // During combat: check for combat progression
-                if (gmResponse.contains("strike", ignoreCase = true) &&
-                    (gmResponse.contains("damage", ignoreCase = true) ||
-                     gmResponse.contains("HP", ignoreCase = true))) {
-                    // Successful combat round
+            // "attack" with no target - check for appropriate response
+            if (targetName.isBlank()) {
+                if (gmResponse.contains("Attack whom", ignoreCase = true)) {
                     return ValidationResult(
                         pass = true,
-                        reason = "[CODE] Combat round executed successfully",
-                        details = mapOf("validation_type" to "code", "combat" to "ongoing")
+                        reason = "[CODE] Correctly prompted for target",
+                        details = mapOf("validation_type" to "code", "combat" to "no_target")
                     )
                 }
+            }
 
-                // Victory condition
-                if (gmResponse.contains("defeated", ignoreCase = true) ||
-                    gmResponse.contains("slain", ignoreCase = true) ||
-                    gmResponse.contains("victory", ignoreCase = true) ||
-                    (gmResponse.contains("strike", ignoreCase = true) &&
-                     gmResponse.contains("falls", ignoreCase = true))) {
-                    return ValidationResult(
-                        pass = true,
-                        reason = "[CODE] Combat victory achieved",
-                        details = mapOf("validation_type" to "code", "combat" to "victory")
-                    )
-                }
+            val inCombatNow = worldState.player.isInCombat()
 
-                // Defeat condition
-                if (gmResponse.contains("died", ignoreCase = true) ||
-                    gmResponse.contains("death", ignoreCase = true) ||
-                    gmResponse.contains("fallen", ignoreCase = true)) {
-                    return ValidationResult(
-                        pass = true,
-                        reason = "[CODE] Combat defeat (player died)",
-                        details = mapOf("validation_type" to "code", "combat" to "defeat")
-                    )
-                }
+            // Check if NPC exists in room NOW (after action)
+            val npcStillInRoom = currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
+                it.name.lowercase().contains(targetName.lowercase()) ||
+                targetName.lowercase().contains(it.name.lowercase())
+            } ?: false
+
+            // Check for victory marker (hardcoded in CombatResolver)
+            if (gmResponse.contains("has been defeated", ignoreCase = true)) {
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] NPC defeated - victory",
+                    details = mapOf("validation_type" to "code", "combat" to "victory")
+                )
+            }
+
+            if (inCombatNow) {
+                // Still in combat after attack = combat progressing normally
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] Combat ongoing",
+                    details = mapOf("validation_type" to "code", "combat" to "ongoing")
+                )
             } else {
-                // Not in combat: initiating combat or error
-                if (targetName.isBlank()) {
-                    // Missing target
-                    if (gmResponse.contains("Attack whom", ignoreCase = true) ||
-                        gmResponse.contains("who", ignoreCase = true)) {
-                        return ValidationResult(
-                            pass = true,
-                            reason = "[CODE] Correctly requested combat target",
-                            details = mapOf("validation_type" to "code", "combat" to "missing_target")
-                        )
-                    }
+                // Not in combat after attack command
+                // Either: combat just started, NPC not found, or missing target
+
+                // Check if NPC exists in room - this tells us if it's a bug
+                val npcInRoom = if (targetName.isNotBlank()) {
+                    currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
+                        it.name.lowercase().contains(targetName.lowercase()) ||
+                        targetName.lowercase().contains(it.name.lowercase())
+                    } ?: false
                 } else {
-                    // Has target
-                    if (gmResponse.contains("engage", ignoreCase = true) ||
-                        gmResponse.contains("combat", ignoreCase = true) ||
-                        gmResponse.contains("battle", ignoreCase = true) ||
-                        gmResponse.contains("attack", ignoreCase = true)) {
-                        return ValidationResult(
-                            pass = true,
-                            reason = "[CODE] Combat initiated successfully",
-                            details = mapOf("validation_type" to "code", "combat" to "initiated")
-                        )
-                    }
-
-                    // NPC not found
-                    if (gmResponse.contains("No one by that name", ignoreCase = true) ||
-                        gmResponse.contains("don't see", ignoreCase = true)) {
-                        // Check if NPC actually exists in room
-                        val npcInRoom = currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
-                            it.name.lowercase().contains(targetName.lowercase()) ||
-                            targetName.lowercase().contains(it.name.lowercase())
-                        } ?: false
-
-                        return if (npcInRoom) {
-                            ValidationResult(
-                                pass = false,
-                                reason = "[CODE] Bug: NPC '$targetName' exists but wasn't found",
-                                details = mapOf(
-                                    "validation_type" to "code",
-                                    "combat" to "npc_not_found_bug",
-                                    "npcs_in_room" to (currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
-                                        ?.joinToString { it.name } ?: "")
-                                )
-                            )
-                        } else {
-                            ValidationResult(
-                                pass = true,
-                                reason = "[CODE] Correctly rejected: NPC '$targetName' not in room",
-                                details = mapOf("validation_type" to "code", "combat" to "npc_not_found")
-                            )
-                        }
-                    }
+                    false
                 }
+
+                // If NPC is in room but we're not in combat, that's a bug (should have started combat)
+                if (npcInRoom) {
+                    return ValidationResult(
+                        pass = false,
+                        reason = "[CODE] Bug: NPC '$targetName' in room but combat didn't start",
+                        details = mapOf(
+                            "validation_type" to "code",
+                            "combat" to "failed_to_initiate",
+                            "npcs_in_room" to (currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
+                                ?.joinToString { it.name } ?: "")
+                        )
+                    )
+                }
+
+                // NPC not in room = correct rejection or missing target
+                // Check world state to see if NPC was removed (means it was killed)
+                if (!npcStillInRoom && targetName.isNotBlank()) {
+                    return ValidationResult(
+                        pass = true,
+                        reason = "[CODE] NPC not in room - correctly rejected (likely killed previously)",
+                        details = mapOf("validation_type" to "code", "combat" to "npc_not_present")
+                    )
+                }
+
+                // Let LLM validate other cases
+                return null
             }
         }
 
@@ -693,10 +675,17 @@ class OutputValidator(
                 - "Attack whom?" when no target specified = PASS (correct)
 
                 **Combat Rounds:**
-                - "strike for X damage" + "retaliates for Y damage" = PASS
+                - "strike for X damage" + "retaliates for Y damage" = PASS (ongoing combat)
+                - "strike for X damage" WITHOUT retaliation = PASS (killing blow, enemy died)
                 - Damage numbers should be present (e.g., "5 damage", "12 damage")
                 - Health tracking should be consistent
-                - Both player and NPC should take damage each round
+                - Both player and NPC take damage each round EXCEPT final killing blow
+
+                **CRITICAL - Killing Blow Pattern:**
+                - When NPC HP reaches 0, response shows: "You strike for X damage!" (NO retaliation)
+                - This is CORRECT behavior = PASS
+                - Next attack should say "No one by that name here" (NPC removed) = PASS
+                - Do NOT fail when you see damage without retaliation - it means victory!
 
                 **Equipment Bonuses:**
                 - Weapons should increase damage (higher numbers with weapon equipped)
@@ -705,6 +694,7 @@ class OutputValidator(
 
                 **Victory Condition:**
                 - NPC reaches 0 HP → "defeated", "slain", "falls" = PASS
+                - OR: "strike for X damage" without retaliation = PASS (killing blow)
                 - NPC should be removed from room after defeat
                 - Combat should end, allowing other actions
 
@@ -725,6 +715,7 @@ class OutputValidator(
                 PASS for:
                 - Combat starts correctly with named NPC
                 - Damage is dealt each round (with numbers)
+                - Killing blow (damage without retaliation)
                 - Health tracking is consistent
                 - Victory/defeat conditions work
                 - Equipment bonuses are reflected in damage

@@ -9,14 +9,14 @@
 
         Results:
         - Total Steps: 20
-        - Passed: 19
-        - Failed: 1
-        - Pass Rate: 95%
+        - Passed: 20
+        - Failed: 0
+        - Pass Rate: 100%
 
         Timing:
-        - Start: 2025-10-12T21:36:05.460672337Z
-        - End: 2025-10-12T21:37:09.954608618Z
-        - Duration: 64.49s
+        - Start: 2025-10-12T22:12:00.919335839Z
+        - End: 2025-10-12T22:12:51.652239479Z
+        - Duration: 50.73s
 
         ================================================================================
         STEP DETAILS
@@ -34,9 +34,9 @@ Step 3: ✓ PASS
 Input: attack Skeleton King
 Reason: Step completed successfully
 
-Step 4: ✗ FAIL
+Step 4: ✓ PASS
 Input: attack Skeleton King
-Reason: Combat did not initiate correctly; the player is not in combat despite attacking an NPC.
+Reason: Step completed successfully
 
 Step 5: ✓ PASS
 Input: attack Skeleton King
@@ -47,11 +47,11 @@ Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 7: ✓ PASS
-Input: attack Skeleton King
+Input: attack
 Reason: Step completed successfully
 
 Step 8: ✓ PASS
-Input: attack Skeleton King
+Input: attack
 Reason: Step completed successfully
 
 Step 9: ✓ PASS

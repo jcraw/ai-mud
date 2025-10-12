@@ -3,34 +3,20 @@
         "type": "com.jcraw.mud.testbot.TestScenario.Combat"
     },
     "totalSteps": 20,
-    "passedSteps": 19,
-    "failedSteps": 1,
+    "passedSteps": 20,
+    "failedSteps": 0,
     "finalStatus": "PASSED",
-    "startTime": "2025-10-12T21:36:05.460672337Z",
-    "endTime": "2025-10-12T21:37:09.954608618Z",
-    "duration": 64494,
+    "startTime": "2025-10-12T22:12:00.919335839Z",
+    "endTime": "2025-10-12T22:12:51.652239479Z",
+    "duration": 50733,
     "steps": [
         {
-            "timestamp": "2025-10-12T21:36:10.714329540Z",
+            "timestamp": "2025-10-12T22:12:03.388421454Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "You engage Skeleton King in combat!",
             "validationResult": {
                 "pass": true,
-                "reason": "Combat initiation is successful and coherent.",
-                "details": {
-                    "coherence": "pass",
-                    "consistency": "pass",
-                    "mechanics": "pass"
-                }
-            }
-        },
-        {
-            "timestamp": "2025-10-12T21:36:13.739924884Z",
-            "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 17 damage! The enemy retaliates for 10 damage!",
-            "validationResult": {
-                "pass": true,
-                "reason": "[CODE] Combat round executed successfully",
+                "reason": "[CODE] Combat ongoing",
                 "details": {
                     "validation_type": "code",
                     "combat": "ongoing"
@@ -38,12 +24,12 @@
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:16.998972236Z",
+            "timestamp": "2025-10-12T22:12:06.622834242Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 21 damage! The enemy retaliates for 3 damage!",
+            "gmResponse": "You strike for 16 damage! The enemy retaliates for 5 damage!",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Combat round executed successfully",
+                "reason": "[CODE] Combat ongoing",
                 "details": {
                     "validation_type": "code",
                     "combat": "ongoing"
@@ -51,224 +37,236 @@
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:22.223157097Z",
+            "timestamp": "2025-10-12T22:12:09.355410102Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 21 damage!",
+            "gmResponse": "You strike for 16 damage! The enemy retaliates for 8 damage!",
             "validationResult": {
-                "pass": false,
-                "reason": "Combat did not initiate correctly; the player is not in combat despite attacking an NPC.",
+                "pass": true,
+                "reason": "[CODE] Combat ongoing",
                 "details": {
-                    "coherence": "fail",
-                    "consistency": "pass",
-                    "mechanics": "fail"
+                    "validation_type": "code",
+                    "combat": "ongoing"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:24.939260516Z",
+            "timestamp": "2025-10-12T22:12:11.643202650Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "No one by that name here.",
+            "gmResponse": "You strike for 12 damage! The enemy retaliates for 5 damage!",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] Combat ongoing",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "ongoing"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:27.805778826Z",
+            "timestamp": "2025-10-12T22:12:14.434249857Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "No one by that name here.",
+            "gmResponse": "You strike for 22 damage! Your enemy has been defeated!",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC defeated - victory",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "victory"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:31.081770777Z",
+            "timestamp": "2025-10-12T22:12:17.192559409Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:34.234944821Z",
-            "playerInput": "attack Skeleton King",
-            "gmResponse": "No one by that name here.",
+            "timestamp": "2025-10-12T22:12:19.779098659Z",
+            "playerInput": "attack",
+            "gmResponse": "Attack whom?",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] Correctly prompted for target",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "no_target"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:38.611937387Z",
-            "playerInput": "attack Skeleton King",
-            "gmResponse": "No one by that name here.",
+            "timestamp": "2025-10-12T22:12:21.643517335Z",
+            "playerInput": "attack",
+            "gmResponse": "Attack whom?",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] Correctly prompted for target",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "no_target"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:41.211095283Z",
+            "timestamp": "2025-10-12T22:12:23.851677096Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "No one by that name here.",
+            "gmResponse": "Attack whom?",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:43.897306178Z",
+            "timestamp": "2025-10-12T22:12:26.235174619Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:47.117856834Z",
+            "timestamp": "2025-10-12T22:12:28.464182959Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:50.093790656Z",
+            "timestamp": "2025-10-12T22:12:30.807662774Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:52.728378759Z",
+            "timestamp": "2025-10-12T22:12:33.690284645Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:55.451660452Z",
+            "timestamp": "2025-10-12T22:12:36.448596957Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:36:57.886996172Z",
+            "timestamp": "2025-10-12T22:12:38.762761278Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:37:00.667820723Z",
+            "timestamp": "2025-10-12T22:12:41.493817537Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:37:03.411716317Z",
+            "timestamp": "2025-10-12T22:12:43.888333795Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:37:07.119819092Z",
+            "timestamp": "2025-10-12T22:12:46.417040298Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
                 }
             }
         },
         {
-            "timestamp": "2025-10-12T21:37:09.854255111Z",
+            "timestamp": "2025-10-12T22:12:49.049143180Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "No one by that name here.",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                 "details": {
                     "validation_type": "code",
-                    "combat": "npc_not_found"
+                    "combat": "npc_not_present"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T22:12:51.551904851Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "No one by that name here.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "npc_not_present"
                 }
             }
         }
@@ -277,16 +275,15 @@
         {
             "stepNumber": 1,
             "step": {
-                "timestamp": "2025-10-12T21:36:10.714329540Z",
+                "timestamp": "2025-10-12T22:12:03.388421454Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "You engage Skeleton King in combat!",
                 "validationResult": {
                     "pass": true,
-                    "reason": "Combat initiation is successful and coherent.",
+                    "reason": "[CODE] Combat ongoing",
                     "details": {
-                        "coherence": "pass",
-                        "consistency": "pass",
-                        "mechanics": "pass"
+                        "validation_type": "code",
+                        "combat": "ongoing"
                     }
                 }
             },
@@ -296,12 +293,12 @@
         {
             "stepNumber": 2,
             "step": {
-                "timestamp": "2025-10-12T21:36:13.739924884Z",
+                "timestamp": "2025-10-12T22:12:06.622834242Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 17 damage! The enemy retaliates for 10 damage!",
+                "gmResponse": "You strike for 16 damage! The enemy retaliates for 5 damage!",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Combat round executed successfully",
+                    "reason": "[CODE] Combat ongoing",
                     "details": {
                         "validation_type": "code",
                         "combat": "ongoing"
@@ -314,12 +311,12 @@
         {
             "stepNumber": 3,
             "step": {
-                "timestamp": "2025-10-12T21:36:16.998972236Z",
+                "timestamp": "2025-10-12T22:12:09.355410102Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 21 damage! The enemy retaliates for 3 damage!",
+                "gmResponse": "You strike for 16 damage! The enemy retaliates for 8 damage!",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Combat round executed successfully",
+                    "reason": "[CODE] Combat ongoing",
                     "details": {
                         "validation_type": "code",
                         "combat": "ongoing"
@@ -332,34 +329,33 @@
         {
             "stepNumber": 4,
             "step": {
-                "timestamp": "2025-10-12T21:36:22.223157097Z",
+                "timestamp": "2025-10-12T22:12:11.643202650Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 21 damage!",
+                "gmResponse": "You strike for 12 damage! The enemy retaliates for 5 damage!",
                 "validationResult": {
-                    "pass": false,
-                    "reason": "Combat did not initiate correctly; the player is not in combat despite attacking an NPC.",
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing",
                     "details": {
-                        "coherence": "fail",
-                        "consistency": "pass",
-                        "mechanics": "fail"
+                        "validation_type": "code",
+                        "combat": "ongoing"
                     }
                 }
             },
-            "passed": false,
-            "reason": "Combat did not initiate correctly; the player is not in combat despite attacking an NPC."
+            "passed": true,
+            "reason": "Step completed successfully"
         },
         {
             "stepNumber": 5,
             "step": {
-                "timestamp": "2025-10-12T21:36:24.939260516Z",
+                "timestamp": "2025-10-12T22:12:14.434249857Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "No one by that name here.",
+                "gmResponse": "You strike for 22 damage! Your enemy has been defeated!",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC defeated - victory",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "victory"
                     }
                 }
             },
@@ -369,15 +365,15 @@
         {
             "stepNumber": 6,
             "step": {
-                "timestamp": "2025-10-12T21:36:27.805778826Z",
+                "timestamp": "2025-10-12T22:12:17.192559409Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -387,15 +383,15 @@
         {
             "stepNumber": 7,
             "step": {
-                "timestamp": "2025-10-12T21:36:31.081770777Z",
-                "playerInput": "attack Skeleton King",
-                "gmResponse": "No one by that name here.",
+                "timestamp": "2025-10-12T22:12:19.779098659Z",
+                "playerInput": "attack",
+                "gmResponse": "Attack whom?",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] Correctly prompted for target",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "no_target"
                     }
                 }
             },
@@ -405,15 +401,15 @@
         {
             "stepNumber": 8,
             "step": {
-                "timestamp": "2025-10-12T21:36:34.234944821Z",
-                "playerInput": "attack Skeleton King",
-                "gmResponse": "No one by that name here.",
+                "timestamp": "2025-10-12T22:12:21.643517335Z",
+                "playerInput": "attack",
+                "gmResponse": "Attack whom?",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] Correctly prompted for target",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "no_target"
                     }
                 }
             },
@@ -423,15 +419,15 @@
         {
             "stepNumber": 9,
             "step": {
-                "timestamp": "2025-10-12T21:36:38.611937387Z",
+                "timestamp": "2025-10-12T22:12:23.851677096Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "No one by that name here.",
+                "gmResponse": "Attack whom?",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -441,15 +437,15 @@
         {
             "stepNumber": 10,
             "step": {
-                "timestamp": "2025-10-12T21:36:41.211095283Z",
+                "timestamp": "2025-10-12T22:12:26.235174619Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -459,15 +455,15 @@
         {
             "stepNumber": 11,
             "step": {
-                "timestamp": "2025-10-12T21:36:43.897306178Z",
+                "timestamp": "2025-10-12T22:12:28.464182959Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -477,15 +473,15 @@
         {
             "stepNumber": 12,
             "step": {
-                "timestamp": "2025-10-12T21:36:47.117856834Z",
+                "timestamp": "2025-10-12T22:12:30.807662774Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -495,15 +491,15 @@
         {
             "stepNumber": 13,
             "step": {
-                "timestamp": "2025-10-12T21:36:50.093790656Z",
+                "timestamp": "2025-10-12T22:12:33.690284645Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -513,15 +509,15 @@
         {
             "stepNumber": 14,
             "step": {
-                "timestamp": "2025-10-12T21:36:52.728378759Z",
+                "timestamp": "2025-10-12T22:12:36.448596957Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -531,15 +527,15 @@
         {
             "stepNumber": 15,
             "step": {
-                "timestamp": "2025-10-12T21:36:55.451660452Z",
+                "timestamp": "2025-10-12T22:12:38.762761278Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -549,15 +545,15 @@
         {
             "stepNumber": 16,
             "step": {
-                "timestamp": "2025-10-12T21:36:57.886996172Z",
+                "timestamp": "2025-10-12T22:12:41.493817537Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -567,15 +563,15 @@
         {
             "stepNumber": 17,
             "step": {
-                "timestamp": "2025-10-12T21:37:00.667820723Z",
+                "timestamp": "2025-10-12T22:12:43.888333795Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -585,15 +581,15 @@
         {
             "stepNumber": 18,
             "step": {
-                "timestamp": "2025-10-12T21:37:03.411716317Z",
+                "timestamp": "2025-10-12T22:12:46.417040298Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -603,15 +599,15 @@
         {
             "stepNumber": 19,
             "step": {
-                "timestamp": "2025-10-12T21:37:07.119819092Z",
+                "timestamp": "2025-10-12T22:12:49.049143180Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },
@@ -621,15 +617,15 @@
         {
             "stepNumber": 20,
             "step": {
-                "timestamp": "2025-10-12T21:37:09.854255111Z",
+                "timestamp": "2025-10-12T22:12:51.551904851Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "No one by that name here.",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Correctly rejected: NPC 'Skeleton King' not in room",
+                    "reason": "[CODE] NPC not in room - correctly rejected (likely killed previously)",
                     "details": {
                         "validation_type": "code",
-                        "combat": "npc_not_found"
+                        "combat": "npc_not_present"
                     }
                 }
             },

@@ -123,7 +123,7 @@ See `CLAUDE_GUIDELINES.md` for development principles:
 
 - **[CLAUDE.md](CLAUDE.md)** - Complete project overview, implementation status, and developer guide
 - **[CLAUDE_GUIDELINES.md](CLAUDE_GUIDELINES.md)** - Development principles and testing philosophy
-- **[docs/requirements.txt](docs/requirements/requirements.txt)** - Original vision and specifications
+- **[docs/requirements.txt](docs/requirements/requirements - mvp overall.txt)** - Original vision and specifications
 
 **Note**: `CLAUDE.md` is the primary source of truth for project status and architecture.
 
