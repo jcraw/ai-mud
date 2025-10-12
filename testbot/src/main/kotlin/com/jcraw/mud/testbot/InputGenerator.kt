@@ -95,10 +95,13 @@ class InputGenerator(
                 3. Description variability - Revisit rooms occasionally to test that descriptions change
 
                 Efficient strategy:
-                - Visit new rooms using directional movement (n/s/e/w)
+                - Visit new rooms using ALL directional movements (n/s/e/w/ne/nw/se/sw/up/down)
+                - Test FULL direction names (north, northwest) AND abbreviations (n, nw)
                 - Look at 1-2 objects/NPCs per room
                 - Revisit 1-2 rooms to test description variability
                 - Don't spend more than 2-3 actions per room
+
+                IMPORTANT: Test diagonal directions (northeast, northwest, southeast, southwest)!
 
                 $roomsVisitedText
             """.trimIndent()

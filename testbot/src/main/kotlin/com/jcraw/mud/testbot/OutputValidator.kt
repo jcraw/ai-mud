@@ -85,9 +85,11 @@ class OutputValidator(
         val currentRoomId = worldState.player.currentRoomId
         val currentRoom = worldState.getCurrentRoom()
 
-        // Parse movement command
-        val movementMatch = Regex("(?:go|move)\\s+(north|south|east|west|n|s|e|w)", RegexOption.IGNORE_CASE)
-            .find(playerInput)
+        // Parse movement command - support all directions including diagonals
+        val movementMatch = Regex(
+            "(?:go|move|^)\\s*(north|south|east|west|northeast|northwest|southeast|southwest|up|down|n|s|e|w|ne|nw|se|sw|u|d)(?:\\s|$)",
+            RegexOption.IGNORE_CASE
+        ).find(playerInput)
 
         if (movementMatch != null) {
             val directionStr = movementMatch.groupValues[1].lowercase()
@@ -96,6 +98,12 @@ class OutputValidator(
                 "south", "s" -> Direction.SOUTH
                 "east", "e" -> Direction.EAST
                 "west", "w" -> Direction.WEST
+                "northeast", "ne" -> Direction.NORTHEAST
+                "northwest", "nw" -> Direction.NORTHWEST
+                "southeast", "se" -> Direction.SOUTHEAST
+                "southwest", "sw" -> Direction.SOUTHWEST
+                "up", "u" -> Direction.UP
+                "down", "d" -> Direction.DOWN
                 else -> null
             }
 

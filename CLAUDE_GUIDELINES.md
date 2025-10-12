@@ -32,6 +32,7 @@
 
 ## Leveraging AI/LLM Strengths
 - Prefer semantic parsing via prompts over brittle regex/schemas.
+- Do not use regex as backups for the LLM, failure is better than masking an issue
 - Use natural language + flexible JSON-like structures.
 - Encourage agentic loops (ReAct style: reason–act–observe).
 - Retrieval-Augmented Generation (RAG) integration when useful.

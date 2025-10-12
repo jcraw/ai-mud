@@ -64,7 +64,7 @@ Parse the player's input and respond with a JSON object containing:
 - "reason": Brief explanation of your parsing (1 sentence)
 
 Valid intent types:
-- "move" - Move in a direction (requires "target" as direction: north/south/east/west/ne/nw/se/sw/up/down)
+- "move" - Move in a direction (requires "target" as direction: north/south/east/west/northeast/northwest/southeast/southwest/up/down or abbreviations: n/s/e/w/ne/nw/se/sw/u/d)
 - "look" - Look at room or specific entity (target is optional, null = look at room)
 - "examine" - Same as "look" - examine something in detail
 - "search" - Search the current room/area for hidden items or features (target optional)
@@ -95,9 +95,10 @@ Important parsing rules:
 3. "look around", "look around room", "look at the room" all map to look with no target
 4. "look at X", "examine X", "inspect X" map to look with target X
 5. "search", "search room", "search for items" all map to search (target optional)
-6. "move north", "go north", "n", "head north" all map to move with target "north"
-7. "move north from throne room" → extract "north" as target
-8. "look north", "look to the north" → map to look with target "north" (directional look)
+6. "move north", "go north", "n", "north", "head north" all map to move with target "north"
+7. "move northwest", "go northwest", "nw", "northwest" all map to move with target "northwest"
+8. "move north from throne room" → extract "north" as target
+9. "look north", "look to the north" → map to look with target "north" (directional look)
 9. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
 10. If player asks to look for/search for something, map to search intent
 

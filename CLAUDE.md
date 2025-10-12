@@ -216,53 +216,24 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Hybrid Code+LLM Validation Implemented (2025-10-11)
+## Current Status: Exploration Test Refactored (2025-10-11)
 
-**Problem Solved**: Exploration test was achieving **5/5 unique rooms (100% coverage)** but reporting as FAILED due to 5 false-positive LLM validation errors.
+**Problem Fixed**: Exploration test was only testing movement, not all exploration mechanics (look commands, description variability).
 
-**Solution Applied**: Hybrid validation approach in `OutputValidator.kt`:
-1. **Code-based validation (FIRST)** - Deterministic checks using actual game state metadata
-   - Validates movement commands by checking room IDs, exits, and response patterns
-   - Eliminates false positives from LLM misunderstanding game mechanics
-   - Fast, accurate, no API costs
-2. **LLM validation (FALLBACK)** - Subjective narrative quality checks
-   - Only runs when code validation can't make definitive determination
-   - Still useful for complex scenarios like dialogue quality, combat narration
+**Solution Applied**: Updated exploration scenario guidance in `InputGenerator.kt:92-104`:
+- Test ALL exploration mechanics efficiently: room navigation, look commands, and description variability
+- Balanced strategy: visit new rooms, examine 1-2 objects/NPCs per room, revisit rooms to test varying descriptions
+- Efficient approach: don't spend more than 2-3 actions per room to minimize API costs
 
-**Key Changes** (`testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt:28-163`):
-- Added `validateWithCode()` method that checks:
-  - Movement commands: Validates exit existence, room descriptions, rejection messages
-  - Room transitions: Uses actual `currentRoomId` from `WorldState`
-  - Response patterns: Detects "You can't go that way" vs room descriptions
-- Returns `ValidationResult` with `[CODE]` prefix to distinguish from LLM validation
-- Includes metadata like `room_id`, `room_name`, `validation_type` in details
-
-**How It Works**:
-```kotlin
-// Movement command detected: "go north"
-// Code checks:
-1. Was "north" in previous room's exits? (from last response)
-2. Got "You can't go that way"? → PASS if exit didn't exist, FAIL if it did
-3. Got room description header? → PASS (successful movement)
-4. Otherwise → defer to LLM validation
-```
-
-**Expected Results**:
-- ✅ Eliminate all 5 false positives (steps 1,4,5,11,13)
-- ✅ Faster validation (code checks run instantly)
-- ✅ Lower API costs (fewer LLM calls)
-- ✅ More reliable (deterministic instead of probabilistic)
-
-**Status**: ✅ Implementation complete and compiled. Ready for testing with `gradle :testbot:run --args="exploration"`
-
-**Previous Analysis** (see `test-logs/exploration_*` for old false positives):
-- Steps 1,4,13: LLM thought same room name = didn't move (actually: room descriptions = movement)
-- Steps 5,11: LLM confused by exit asymmetry (A→west→B, B→east→A)
+**Previous Implementation** (2025-10-11):
+- Hybrid Code+LLM validation in `OutputValidator.kt:28-163`
+- Code-based validation eliminates false positives for movement commands
+- LLM validation as fallback for subjective narrative quality
 
 ## Next Developer
 
 The GUI client with real engine integration, quest system, and automated testing are complete! Next priorities:
-1. **🧪 TEST HYBRID VALIDATION** - Run `gradle :testbot:run --args="exploration"` to verify 100% pass rate
+1. **🧪 TEST EXPLORATION** - Run `gradle :testbot:run --args="exploration"` to verify all exploration aspects are tested
 2. **Quest auto-tracking** - Automatically update quest progress as player performs actions (kill NPCs, collect items, explore rooms, etc.)
 3. **Expand code validation** (optional) - Add deterministic checks for combat, inventory, skill checks
 4. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
