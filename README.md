@@ -13,9 +13,11 @@ A text-based Multi-User Dungeon (MUD) game with dynamic LLM-generated content, p
 - ✅ **Consumables** - Use potions and items for healing
 - ✅ **Interactive Features** - Skill challenges on environment objects (locked chests, stuck doors, hidden items)
 - ✅ **Social Skills** - Persuade and intimidate NPCs with CHA checks
+- ✅ **Quest System** - Procedurally generated quests with **automatic progress tracking** as you play
 - ✅ **Procedural Generation** - 4 dungeon themes (Crypt, Castle, Cave, Temple) with dynamic layouts
 - ✅ **Persistence** - Save and load game state to/from JSON files
 - ✅ **Multi-User Architecture** - Foundation complete with PlayerId system and GameServer implementation
+- ✅ **GUI Client** - Compose Multiplatform desktop client with full game integration
 
 ## Quick Start
 
@@ -62,6 +64,8 @@ At startup, choose from:
 - `persuade <npc>` - Attempt to persuade an NPC (CHA check)
 - `intimidate <npc>` - Attempt to intimidate an NPC (CHA check)
 - `inventory/i` - View inventory and equipped items
+
+**Quests**: `quests/j`, `accept <id>`, `claim <id>`, `abandon <id>` (auto-tracks progress!)
 
 **Meta**: `save [name]`, `load [name]`, `help`, `quit`
 
@@ -119,12 +123,12 @@ See `CLAUDE_GUIDELINES.md` for development principles:
 
 - **[CLAUDE.md](CLAUDE.md)** - Complete project overview, implementation status, and developer guide
 - **[CLAUDE_GUIDELINES.md](CLAUDE_GUIDELINES.md)** - Development principles and testing philosophy
-- **[docs/requirements.txt](docs/requirements.txt)** - Original vision and specifications
+- **[docs/requirements.txt](docs/requirements/requirements.txt)** - Original vision and specifications
 
 **Note**: `CLAUDE.md` is the primary source of truth for project status and architecture.
 
 ## Current Status
 
-**Feature-complete single-player MVP** with combat, equipment, skills, procedural generation, persistence, and RAG memory. Multi-user server implemented but not yet wired to App.kt.
+**Feature-complete single-player MVP** with combat, equipment, skills, quest system with auto-tracking, procedural generation, persistence, RAG memory, and GUI client. Multi-user server fully operational in local mode.
 
 See `CLAUDE.md` for detailed implementation status and next steps.

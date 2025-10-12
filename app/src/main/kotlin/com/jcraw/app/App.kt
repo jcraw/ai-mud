@@ -16,6 +16,8 @@ import com.jcraw.mud.reasoning.SkillCheckResolver
 import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.reasoning.procedural.QuestGenerator
+import com.jcraw.mud.reasoning.QuestTracker
+import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.sophia.llm.OpenAIClient
@@ -170,6 +172,7 @@ class MudGame(
     private val persistenceManager = PersistenceManager()
     private val intentRecognizer = IntentRecognizer(llmClient)
     private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
+    private val questTracker = QuestTracker()
 
     fun start() {
         printWelcome()
@@ -269,6 +272,38 @@ class MudGame(
         }
     }
 
+    private fun trackQuests(action: QuestAction) {
+        val updatedPlayer = questTracker.updateQuestsAfterAction(
+            worldState.player,
+            worldState,
+            action
+        )
+
+        // Check if any quest objectives were completed
+        if (updatedPlayer != worldState.player) {
+            updatedPlayer.activeQuests.forEach { quest ->
+                val oldQuest = worldState.player.getQuest(quest.id)
+                if (oldQuest != null) {
+                    // Check for newly completed objectives
+                    quest.objectives.zip(oldQuest.objectives).forEach { (newObj, oldObj) ->
+                        if (newObj.isCompleted && !oldObj.isCompleted) {
+                            println("\n✓ Quest objective completed: ${newObj.description}")
+                        }
+                    }
+
+                    // Check if quest just completed
+                    if (quest.status == com.jcraw.mud.core.QuestStatus.COMPLETED &&
+                        oldQuest.status == com.jcraw.mud.core.QuestStatus.ACTIVE) {
+                        println("\n🎉 Quest completed: ${quest.title}")
+                        println("Use 'claim ${quest.id}' to collect your reward!")
+                    }
+                }
+            }
+
+            worldState = worldState.updatePlayer(updatedPlayer)
+        }
+    }
+
     private fun handleMove(direction: Direction) {
         val newState = worldState.movePlayer(direction)
 
@@ -279,6 +314,13 @@ class MudGame(
 
         worldState = newState
         println("You move ${direction.displayName}.")
+
+        // Track room exploration for quests
+        val room = worldState.getCurrentRoom()
+        if (room != null) {
+            trackQuests(QuestAction.VisitedRoom(room.id))
+        }
+
         describeCurrentRoom()
     }
 
@@ -447,6 +489,9 @@ class MudGame(
         if (newState != null) {
             worldState = newState
             println("You take the ${item.name}.")
+
+            // Track item collection for quests
+            trackQuests(QuestAction.CollectedItem(item.id))
         } else {
             println("Something went wrong.")
         }
@@ -509,6 +554,9 @@ class MudGame(
                 println("\n${npc.name} nods at you in acknowledgment.")
             }
         }
+
+        // Track NPC conversation for quests
+        trackQuests(QuestAction.TalkedToNPC(npc.id))
     }
 
     private fun handleAttack(target: String?) {
@@ -555,6 +603,9 @@ class MudGame(
                         // Remove NPC from room
                         if (endedCombat != null) {
                             worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
+
+                            // Track NPC kill for quests
+                            trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
                         }
                     }
                     result.playerDied -> {
@@ -742,6 +793,9 @@ class MudGame(
             // Mark feature as completed
             val updatedFeature = feature.copy(isCompleted = true)
             worldState = worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: worldState
+
+            // Track skill check for quests
+            trackQuests(QuestAction.UsedSkill(feature.id))
         } else {
             println("\n❌ Failure!")
             println(challenge.failureDescription)

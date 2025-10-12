@@ -23,6 +23,7 @@ class GameServer(
 ) {
     private val sessions = mutableMapOf<PlayerId, PlayerSession>()
     private val stateMutex = Mutex()
+    private val questTracker = QuestTracker()
 
     /**
      * Add a player session to the server
@@ -124,6 +125,43 @@ class GameServer(
     }
 
     /**
+     * Track quest progress and return notification messages
+     */
+    private fun trackQuests(playerState: PlayerState, action: QuestAction): Pair<PlayerState, String> {
+        val updatedPlayer = questTracker.updateQuestsAfterAction(
+            playerState,
+            worldState,
+            action
+        )
+
+        // Check if any quest objectives were completed
+        val notifications = buildString {
+            if (updatedPlayer != playerState) {
+                updatedPlayer.activeQuests.forEach { quest ->
+                    val oldQuest = playerState.getQuest(quest.id)
+                    if (oldQuest != null) {
+                        // Check for newly completed objectives
+                        quest.objectives.zip(oldQuest.objectives).forEach { (newObj, oldObj) ->
+                            if (newObj.isCompleted && !oldObj.isCompleted) {
+                                appendLine("\n✓ Quest objective completed: ${newObj.description}")
+                            }
+                        }
+
+                        // Check if quest just completed
+                        if (quest.status == QuestStatus.COMPLETED &&
+                            oldQuest.status == QuestStatus.ACTIVE) {
+                            appendLine("\n🎉 Quest completed: ${quest.title}")
+                            appendLine("Use 'claim ${quest.id}' to collect your reward!")
+                        }
+                    }
+                }
+            }
+        }
+
+        return Pair(updatedPlayer, notifications)
+    }
+
+    /**
      * Handle a specific intent and return response, new state, and optional event
      */
     private suspend fun handleIntent(
@@ -184,6 +222,14 @@ class GameServer(
             // Generate room description
             val description = roomDescriptionGenerator.generateDescription(newRoom)
 
+            // Track room exploration for quests
+            val (updatedPlayerAfterQuests, questNotifications) = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
+            val finalWorldState = if (updatedPlayerAfterQuests != newPlayerState) {
+                newWorldState.updatePlayer(updatedPlayerAfterQuests)
+            } else {
+                newWorldState
+            }
+
             // Create movement events
             val leaveEvent = GameEvent.PlayerMoved(
                 playerId = playerId,
@@ -206,7 +252,7 @@ class GameServer(
             broadcastEvent(leaveEvent)
             broadcastEvent(enterEvent)
 
-            Triple(description, newWorldState, null)
+            Triple(description + questNotifications, finalWorldState, null)
         } else {
             Triple("You can't go that way.", worldState, null)
         }
@@ -320,6 +366,7 @@ class GameServer(
 
         // If in combat, continue combat
         if (playerState.isInCombat()) {
+            val combat = playerState.activeCombat
             val result = combatResolver.executePlayerAttack(worldState, playerState)
             val updatedPlayer = playerState.updateCombat(result.newCombatState)
             val newWorldState = worldState.updatePlayer(updatedPlayer)
@@ -330,7 +377,20 @@ class GameServer(
                 if (result.playerDied) append("\nYou have been defeated!")
             }
 
-            return Triple(narrative, newWorldState, null)
+            // Track NPC kill for quests
+            val (updatedPlayerAfterQuests, questNotifications) = if (result.npcDied && combat != null) {
+                trackQuests(updatedPlayer, QuestAction.KilledNPC(combat.combatantNpcId))
+            } else {
+                Pair(updatedPlayer, "")
+            }
+
+            val finalWorldState = if (updatedPlayerAfterQuests != updatedPlayer) {
+                newWorldState.updatePlayer(updatedPlayerAfterQuests)
+            } else {
+                newWorldState
+            }
+
+            return Triple(narrative + questNotifications, finalWorldState, null)
         }
 
         // Initiate combat
@@ -367,7 +427,16 @@ class GameServer(
 
         return if (npc != null) {
             val dialogue = npcInteractionGenerator.generateDialogue(npc, playerState)
-            Triple(dialogue, worldState, null)
+
+            // Track NPC conversation for quests
+            val (updatedPlayer, questNotifications) = trackQuests(playerState, QuestAction.TalkedToNPC(npc.id))
+            val newWorldState = if (updatedPlayer != playerState) {
+                worldState.updatePlayer(updatedPlayer)
+            } else {
+                worldState
+            }
+
+            Triple(dialogue + questNotifications, newWorldState, null)
         } else {
             Triple("There's no one here by that name.", worldState, null)
         }
@@ -387,6 +456,14 @@ class GameServer(
             val updatedRoom = currentRoom.removeEntity(item.id)
             val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
 
+            // Track item collection for quests
+            val (updatedPlayerAfterQuests, questNotifications) = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
+            val finalWorldState = if (updatedPlayerAfterQuests != updatedPlayer) {
+                newWorldState.updatePlayer(updatedPlayerAfterQuests)
+            } else {
+                newWorldState
+            }
+
             val event = GameEvent.GenericAction(
                 playerId = playerId,
                 playerName = playerState.name,
@@ -395,7 +472,7 @@ class GameServer(
                 excludePlayer = playerId
             )
 
-            Triple("You take the ${item.name}.", newWorldState, event)
+            Triple("You take the ${item.name}." + questNotifications, finalWorldState, event)
         } else if (item != null && !item.isPickupable) {
             Triple("That's part of the environment and can't be taken.", worldState, null)
         } else {
@@ -512,7 +589,21 @@ class GameServer(
         val updatedFeature = if (result.success) feature.copy(isCompleted = true) else feature
         val updatedRoom = currentRoom.removeEntity(feature.id).addEntity(updatedFeature)
         val newWorldState = worldState.updateRoom(updatedRoom)
-        return Triple(description, newWorldState, null)
+
+        // Track skill check for quests
+        val (updatedPlayer, questNotifications) = if (result.success) {
+            trackQuests(playerState, QuestAction.UsedSkill(feature.id))
+        } else {
+            Pair(playerState, "")
+        }
+
+        val finalWorldState = if (updatedPlayer != playerState) {
+            newWorldState.updatePlayer(updatedPlayer)
+        } else {
+            newWorldState
+        }
+
+        return Triple(description + questNotifications, finalWorldState, null)
     }
 
     private fun handlePersuade(
