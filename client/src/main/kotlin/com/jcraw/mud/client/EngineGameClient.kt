@@ -20,7 +20,6 @@ import kotlinx.coroutines.runBlocking
  * Integrates with the existing MudGame logic but exposes it through the GameClient interface.
  */
 class EngineGameClient(
-    private val initialTemplate: CharacterTemplate,
     private val apiKey: String? = null,
     private val dungeonTheme: DungeonTheme = DungeonTheme.CRYPT,
     private val roomCount: Int = 10
@@ -71,12 +70,21 @@ class EngineGameClient(
             DungeonTheme.TEMPLE -> ProceduralDungeonBuilder.generateTemple(roomCount)
         }
 
-        // Initialize player with template
+        // Initialize player with default stats
         val playerState = PlayerState(
             id = "player_ui",
-            name = initialTemplate.name,
+            name = "Adventurer",
             currentRoomId = baseWorldState.rooms.values.first().id,
-            stats = initialTemplate.stats
+            health = 40,
+            maxHealth = 40,
+            stats = Stats(
+                strength = 10,      // Weak - below average
+                dexterity = 8,      // Clumsy
+                constitution = 10,  // Average
+                intelligence = 9,   // Not bright
+                wisdom = 8,         // Inexperienced
+                charisma = 9        // Unimpressive
+            )
         )
 
         worldState = baseWorldState.addPlayer(playerState)

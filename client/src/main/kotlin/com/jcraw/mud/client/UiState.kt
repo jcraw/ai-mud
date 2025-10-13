@@ -1,6 +1,5 @@
 package com.jcraw.mud.client
 
-import com.jcraw.mud.core.CharacterTemplate
 import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.core.PlayerState
 import kotlinx.datetime.Clock
@@ -10,8 +9,7 @@ import kotlinx.datetime.Clock
  * Follows unidirectional data flow pattern.
  */
 data class UiState(
-    val screen: Screen = Screen.CharacterSelection,
-    val selectedCharacter: CharacterTemplate? = null,
+    val screen: Screen = Screen.MainGame,
     val playerState: PlayerState? = null,
     val logEntries: List<LogEntry> = emptyList(),
     val inputHistory: List<String> = emptyList(),
@@ -21,7 +19,6 @@ data class UiState(
     val errorMessage: String? = null
 ) {
     sealed class Screen {
-        object CharacterSelection : Screen()
         object MainGame : Screen()
     }
 

@@ -275,15 +275,15 @@ object SampleDungeon {
             id = playerId,
             name = playerName,
             currentRoomId = startingRoomId,
-            health = 100,
-            maxHealth = 100,
+            health = 40,
+            maxHealth = 40,
             stats = Stats(
-                strength = 14,      // Above-average warrior
-                dexterity = 12,     // Moderately agile
-                constitution = 14,  // Hardy adventurer
-                intelligence = 13,  // Quick-thinking
-                wisdom = 11,        // Some experience
-                charisma = 10       // Average social skills
+                strength = 10,      // Weak - below average
+                dexterity = 8,      // Clumsy
+                constitution = 10,  // Average
+                intelligence = 9,   // Not bright
+                wisdom = 8,         // Inexperienced
+                charisma = 9        // Unimpressive
             )
         )
 

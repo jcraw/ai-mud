@@ -74,4 +74,25 @@ sealed class TestScenario {
         val targetQuestsToAccept: Int = 2,
         val targetQuestsToClaim: Int = 1
     ) : TestScenario()
+
+    @Serializable
+    data class BadPlaythrough(
+        override val name: String = "bad_playthrough",
+        override val description: String = "Play poorly: skip gear, rush combat, die to boss (validates difficulty)",
+        override val maxSteps: Int = 30
+    ) : TestScenario()
+
+    @Serializable
+    data class BruteForcePlaythrough(
+        override val name: String = "brute_force_playthrough",
+        override val description: String = "Explore all rooms, collect best gear, defeat boss through superior equipment",
+        override val maxSteps: Int = 50
+    ) : TestScenario()
+
+    @Serializable
+    data class SmartPlaythrough(
+        override val name: String = "smart_playthrough",
+        override val description: String = "Use persuasion/intimidation/skills to avoid difficult combat",
+        override val maxSteps: Int = 50
+    ) : TestScenario()
 }

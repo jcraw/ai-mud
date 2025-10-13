@@ -805,6 +805,94 @@ class OutputValidator(
                 - All mechanics work together
                 - Story and world remain consistent
             """.trimIndent()
+            is TestScenario.BadPlaythrough -> """
+                BAD PLAYTHROUGH VALIDATION (Expect player DEATH):
+
+                This scenario intentionally plays poorly to validate difficulty.
+
+                **Expected Behavior:**
+                - Player rushes to throne room WITHOUT gear
+                - Attacks Skeleton King (50 HP, STR 16) with base stats only (STR 14, no bonuses)
+                - Player should DIE in ~3-5 combat rounds
+                - Death message should appear ("You have died", "You fall", etc.)
+
+                **PASS Criteria:**
+                - Combat initiates correctly with Skeleton King
+                - Damage numbers are reasonable (player deals ~5-8 dmg, King deals ~8-12 dmg per round)
+                - Player health decreases each round
+                - Player reaches 0 HP and dies
+                - Death is narrated appropriately
+
+                **FAIL Criteria:**
+                - Player somehow wins without gear (game too easy - BUG!)
+                - Combat doesn't start
+                - No damage is dealt
+                - Player doesn't die after many rounds (difficulty too low)
+                - Crashes or errors
+
+                This validates the game is CHALLENGING and NOT trivially easy.
+            """.trimIndent()
+            is TestScenario.BruteForcePlaythrough -> """
+                BRUTE FORCE PLAYTHROUGH VALIDATION (Expect player VICTORY):
+
+                This scenario collects best gear and fights strategically.
+
+                **Expected Behavior:**
+                - Player visits armory, takes Rusty Iron Sword (+5 dmg) and Heavy Chainmail (+4 def)
+                - Player equips both items
+                - Player visits treasury, takes health potion
+                - Player fights Skeleton King WITH equipment bonuses
+                - Player should WIN in ~8-12 combat rounds
+                - Victory message should appear ("defeated", "slain", "falls")
+
+                **PASS Criteria:**
+                - All items collected successfully
+                - Equipment bonuses apply (higher damage output visible)
+                - Combat is longer but winnable with gear
+                - Player defeats Skeleton King
+                - Victory is narrated appropriately
+                - Player can explore after victory (throne room, secret chamber)
+
+                **FAIL Criteria:**
+                - Can't collect or equip items
+                - Equipment bonuses don't work (same damage as unarmed)
+                - Player dies even with full gear (game too hard - BUG!)
+                - Victory doesn't end combat properly
+                - Crashes or errors
+
+                This validates the game is BEATABLE with proper preparation.
+            """.trimIndent()
+            is TestScenario.SmartPlaythrough -> """
+                SMART PLAYTHROUGH VALIDATION (Expect SOCIAL VICTORY):
+
+                This scenario uses social skills and intelligence to avoid combat.
+
+                **Expected Behavior:**
+                - Player persuades Old Guard (Easy CHA check) for intel
+                - Player attempts to intimidate Skeleton King (Hard CHA check)
+                  - SUCCESS: King backs down, becomes non-hostile, NO combat!
+                  - FAILURE: Player falls back to minimal combat
+                - Player explores secret chamber
+                - Player passes skill checks (STR check on door, INT check on runes)
+                - Expected: 0-2 combat rounds total (social victory preferred)
+
+                **PASS Criteria:**
+                - Social checks work (persuade, intimidate)
+                - Success on intimidation prevents/ends combat
+                - Skill checks in secret chamber work correctly
+                - Multiple solution paths exist (not just combat)
+                - Minimal damage taken overall
+
+                **FAIL Criteria:**
+                - Social checks don't work
+                - Intimidation succeeds but combat continues anyway (BUG!)
+                - Can't access secret chamber
+                - Skill checks fail when stats are sufficient
+                - Forced into full combat despite social victory
+                - Crashes or errors
+
+                This validates MULTIPLE SOLUTION PATHS and non-combat gameplay.
+            """.trimIndent()
         }
 
         val expectedText = expectedOutcome?.let { "\nExpected outcome: $it" } ?: ""

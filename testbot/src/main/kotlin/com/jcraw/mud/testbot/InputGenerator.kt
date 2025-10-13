@@ -337,6 +337,153 @@ class InputGenerator(
                 Target: ~40 actions (includes quest work)
                 """.trimIndent()
             }
+            is TestScenario.BadPlaythrough -> {
+                val objectives = mapOf(
+                    "initial_look" to actionsTaken.any { it == "look" },
+                    "go_north_to_corridor" to actionsTaken.any { it in listOf("n", "north", "go north") },
+                    "skip_armory" to !actionsTaken.any { it in listOf("w", "west", "go west") },
+                    "skip_treasury" to !actionsTaken.any { it in listOf("e", "east", "go east") },
+                    "rush_to_throne" to actionsTaken.any { it.matches(Regex(".*north.*")) && actionsTaken.size >= 2 },
+                    "attack_skeleton_king_unarmed" to actionsTaken.any { it.contains("attack") && it.contains("skeleton") },
+                    "continue_combat_until_death" to (actionsTaken.count { it == "attack" } >= 3)
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                GOAL: Demonstrate poor gameplay and validate difficulty
+                EXPECTED OUTCOME: Player should DIE to Skeleton King (50 HP, hostile, strong)
+
+                MANDATORY BAD DECISIONS:
+                ✓ Completed (${completed.size}/7): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/7): ${remaining.joinToString(", ")}
+
+                BAD PLAYTHROUGH STRATEGY (play poorly on purpose):
+                1. initial_look - Quick look at entrance
+                2. go_north_to_corridor - Go north to Dark Corridor
+                3. skip_armory - DO NOT go west to armory (no weapons/armor!)
+                4. skip_treasury - DO NOT go east to treasury (no health potions!)
+                5. rush_to_throne - Go north again to throne room
+                6. attack_skeleton_king_unarmed - Attack Skeleton King WITHOUT gear
+                7. continue_combat_until_death - Keep attacking until you die
+
+                CRITICAL RULES:
+                - DO NOT collect any items
+                - DO NOT equip weapons or armor
+                - DO NOT use health potions (you don't have any!)
+                - Rush directly to throne room (entrance → corridor → throne)
+                - Fight Skeleton King with base stats only (STR 14, no bonuses)
+                - Expected: Player dies in ~3-5 combat rounds
+
+                This validates the game is NOT too easy - you should die without preparation.
+
+                Target: ~10-15 actions (quick death)
+                """.trimIndent()
+            }
+            is TestScenario.BruteForcePlaythrough -> {
+                val objectives = mapOf(
+                    "initial_look" to actionsTaken.any { it == "look" },
+                    "go_to_armory" to actionsTaken.any { it.matches(Regex(".*(west|armory).*")) },
+                    "take_best_weapon" to actionsTaken.any { it.contains("take") && it.contains("iron") },
+                    "take_best_armor" to actionsTaken.any { it.contains("take") && it.contains("chainmail") },
+                    "equip_weapon" to actionsTaken.any { it.contains("equip") && it.contains("sword") },
+                    "equip_armor" to actionsTaken.any { it.contains("equip") && it.contains("chainmail") },
+                    "go_to_treasury" to actionsTaken.any { it.matches(Regex(".*(east|treasury).*")) },
+                    "take_health_potion" to actionsTaken.any { it.contains("take") && it.contains("potion") },
+                    "go_to_throne_room" to actionsTaken.any { it.matches(Regex(".*throne.*")) },
+                    "attack_skeleton_king" to actionsTaken.any { it.contains("attack") && it.contains("skeleton") },
+                    "defeat_boss" to (actionsTaken.count { it == "attack" } >= 8) // Should take multiple rounds
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                GOAL: Complete dungeon through superior equipment and preparation
+                EXPECTED OUTCOME: Player DEFEATS Skeleton King with proper gear
+
+                MANDATORY PREPARATION:
+                ✓ Completed (${completed.size}/11): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/11): ${remaining.joinToString(", ")}
+
+                BRUTE FORCE STRATEGY (collect everything, fight with advantage):
+                1. initial_look - Look at entrance
+                2. go_to_armory - Go north, then west to armory
+                3. take_best_weapon - "take iron sword" (Rusty Iron Sword, +5 damage)
+                4. take_best_armor - "take chainmail" (Heavy Chainmail, +4 defense)
+                5. equip_weapon - "equip iron sword"
+                6. equip_armor - "equip chainmail"
+                7. go_to_treasury - Return to corridor, go east to treasury
+                8. take_health_potion - "take health potion" for backup
+                9. go_to_throne_room - Return to corridor, go north to throne room
+                10. attack_skeleton_king - "attack Skeleton King" with full gear
+                11. defeat_boss - Continue attacking until victory (weapon bonus makes it winnable)
+
+                CRITICAL RULES:
+                - ALWAYS collect and equip the BEST gear (Iron Sword +5, Chainmail +4)
+                - Take health potion as backup (use if HP drops below 30)
+                - Fight methodically - equipment bonuses should ensure victory
+                - Expected: Win in ~8-12 combat rounds with minimal risk
+
+                This validates the game is BEATABLE with proper preparation.
+
+                Path: entrance → corridor → armory → corridor → treasury → corridor → throne room
+
+                Target: ~25-35 actions (thorough preparation + combat)
+                """.trimIndent()
+            }
+            is TestScenario.SmartPlaythrough -> {
+                val objectives = mapOf(
+                    "initial_look" to actionsTaken.any { it == "look" },
+                    "talk_to_guard" to actionsTaken.any { it.contains("talk") && it.contains("guard") },
+                    "persuade_guard" to actionsTaken.any { it.contains("persuade") && it.contains("guard") },
+                    "explore_to_throne" to actionsTaken.any { it.matches(Regex(".*north.*")) },
+                    "attempt_intimidate_king" to actionsTaken.any { it.contains("intimidate") && it.contains("skeleton") },
+                    "avoid_or_minimize_combat" to (actionsTaken.count { it == "attack" } <= 2), // Minimal/no combat
+                    "explore_secret_chamber" to actionsTaken.any { it.matches(Regex(".*(secret|chamber).*")) || actionsTaken.count { it == "n" } >= 3 },
+                    "pass_strength_check" to actionsTaken.any { it.contains("check") && it.contains("door") },
+                    "pass_intelligence_check" to actionsTaken.any { it.contains("check") && it.contains("rune") }
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                GOAL: Complete dungeon through social skills and intelligence
+                EXPECTED OUTCOME: Bypass combat via intimidation/persuasion, explore safely
+
+                MANDATORY SMART TACTICS:
+                ✓ Completed (${completed.size}/9): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/9): ${remaining.joinToString(", ")}
+
+                SMART PLAYTHROUGH STRATEGY (use brains, not brawn):
+                1. initial_look - Look at entrance, identify Old Guard NPC
+                2. talk_to_guard - "talk old guard" for dialogue
+                3. persuade_guard - "persuade old guard" (Easy CHA check, gives intel about secret chamber)
+                4. explore_to_throne - Go north to corridor, then north to throne room
+                5. attempt_intimidate_king - "intimidate Skeleton King" (Hard CHA check)
+                   - SUCCESS: King backs down, becomes non-hostile, no combat needed!
+                   - FAILURE: Fall back to minimal combat (player has STR 14, might still win)
+                6. avoid_or_minimize_combat - Avoid fighting if possible, use intimidation first
+                7. explore_secret_chamber - Go north from throne room to secret chamber
+                8. pass_strength_check - "check stuck door" (Hard STR check, player has STR 14)
+                9. pass_intelligence_check - "check rune inscription" (Medium INT check, player has INT 13)
+
+                CRITICAL RULES:
+                - ALWAYS try social/skill approaches BEFORE combat
+                - Intimidate Skeleton King to avoid difficult fight (Hard CHA 10, DC ~15-20)
+                - If intimidation succeeds, King becomes passive - NO COMBAT!
+                - Explore secret chamber and pass skill checks to show versatility
+                - Expected: Complete with 0-2 combat rounds (social victory preferred)
+
+                This validates MULTIPLE SOLUTION PATHS exist - not just combat.
+
+                Path: entrance → corridor → throne room → (intimidate king) → secret chamber
+
+                Target: ~20-30 actions (social interactions + skill checks)
+                """.trimIndent()
+            }
         }
 
         return """

@@ -50,7 +50,10 @@ fun main() = runBlocking {
     println("  6. Quest Testing (${TestScenario.QuestTesting().maxSteps} steps)")
     println("  7. Exploratory (${TestScenario.Exploratory().maxSteps} steps)")
     println("  8. Full Playthrough (${TestScenario.FullPlaythrough().maxSteps} steps)")
-    print("\nEnter choice (1-8) [default: 1]: ")
+    println("  9. Bad Playthrough (${TestScenario.BadPlaythrough().maxSteps} steps) - die to boss")
+    println("  10. Brute Force Playthrough (${TestScenario.BruteForcePlaythrough().maxSteps} steps) - gear + combat")
+    println("  11. Smart Playthrough (${TestScenario.SmartPlaythrough().maxSteps} steps) - social + skills")
+    print("\nEnter choice (1-11) [default: 1]: ")
 
     val scenarioChoice = readLine()?.trim() ?: "1"
     val scenario = when (scenarioChoice) {
@@ -61,6 +64,9 @@ fun main() = runBlocking {
         "6" -> TestScenario.QuestTesting()
         "7" -> TestScenario.Exploratory()
         "8" -> TestScenario.FullPlaythrough()
+        "9" -> TestScenario.BadPlaythrough()
+        "10" -> TestScenario.BruteForcePlaythrough()
+        "11" -> TestScenario.SmartPlaythrough()
         else -> TestScenario.Exploration()
     }
 

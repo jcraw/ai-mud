@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.jcraw.mud.client.ui.CharacterSelectionScreen
 import com.jcraw.mud.client.ui.MainGameScreen
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import java.io.File
@@ -44,20 +43,10 @@ fun App() {
 
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            when (uiState.screen) {
-                is UiState.Screen.CharacterSelection -> {
-                    CharacterSelectionScreen(
-                        viewModel = viewModel,
-                        theme = uiState.theme
-                    )
-                }
-                is UiState.Screen.MainGame -> {
-                    MainGameScreen(
-                        viewModel = viewModel,
-                        uiState = uiState
-                    )
-                }
-            }
+            MainGameScreen(
+                viewModel = viewModel,
+                uiState = uiState
+            )
         }
     }
 }

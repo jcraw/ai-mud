@@ -1,6 +1,5 @@
 package com.jcraw.mud.client
 
-import com.jcraw.mud.core.CharacterTemplate
 import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.core.PlayerState
 import kotlinx.coroutines.flow.first
@@ -11,24 +10,11 @@ import org.junit.jupiter.api.Assertions.*
 class GameViewModelTest {
 
     @Test
-    fun `initial state is character selection screen`() = runTest {
+    fun `initial state starts main game directly`() = runTest {
         val viewModel = GameViewModel()
         val state = viewModel.uiState.first()
 
-        assertTrue(state.screen is UiState.Screen.CharacterSelection)
-        assertNull(state.selectedCharacter)
-        assertTrue(state.logEntries.isEmpty())
-    }
-
-    @Test
-    fun `selecting character transitions to main game screen`() = runTest {
-        val viewModel = GameViewModel()
-
-        viewModel.selectCharacter(CharacterTemplate.WARRIOR)
-
-        val state = viewModel.uiState.first()
         assertTrue(state.screen is UiState.Screen.MainGame)
-        assertEquals(CharacterTemplate.WARRIOR, state.selectedCharacter)
     }
 
     @Test

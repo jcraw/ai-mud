@@ -1,6 +1,5 @@
 package com.jcraw.mud.client
 
-import com.jcraw.mud.core.CharacterTemplate
 import com.jcraw.mud.core.GameClient
 import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
@@ -31,18 +30,20 @@ class GameViewModel(
                 }
             }
         }
+
+        // Auto-start the game without character selection
+        startGame()
     }
 
     /**
-     * Select a character template and start the game.
+     * Start the game directly without character selection.
      */
-    fun selectCharacter(template: CharacterTemplate) {
-        _uiState.update { it.copy(selectedCharacter = template, isLoading = true) }
+    private fun startGame() {
+        _uiState.update { it.copy(isLoading = true) }
 
-        // Create real game client with selected character
+        // Create real game client with default character
         try {
             gameClient = EngineGameClient(
-                initialTemplate = template,
                 apiKey = apiKey,
                 dungeonTheme = DungeonTheme.CRYPT, // Could be made selectable
                 roomCount = 10

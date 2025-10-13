@@ -1,0 +1,309 @@
+        ================================================================================
+        [2025-10-13T22:16:18.428004790Z]
+
+        Player: go north
+
+        Game Master:
+        Dark Corridor
+You find yourself in a narrow stone passage, its walls looming close as if to confine you in shadow. The echo of your footsteps reverberates ominously, mingling with the distant sound of water dripping, a rhythmic reminder of the passage's dampness. Spider webs cling in the corners, their silken threads glistening in the dim light, while the worn flagstone floor beneath your feet feels cool and uneven, bearing the weight of untold stories.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-10-13T22:16:26.480305254Z]
+
+        Player: go north
+
+        Game Master:
+        Abandoned Throne Room
+You step into the abandoned throne room, where a massive stone throne dominates the space, its formidable presence hinting at the power once held within these walls. Faded royal tapestries, now mere whispers of their former glory, hang limply from the stone, their colors dulled by time and neglect. The cracked marble floor groans subtly beneath your feet, and an unsettling cold draft sweeps through the room, carrying with it the faint scent of dust and decay. Ominous shadows flicker across the chamber, cast by a flickering source you cannot see, and your gaze is drawn to a skeleton slumped upon the throne, a silent sentinel of long-lost regality.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-10-13T22:16:34.326909881Z]
+
+        Player: look
+
+        Game Master:
+        Abandoned Throne Room
+You return to the abandoned throne room, where the air feels thick with the weight of forgotten history. The massive stone throne looms menacingly, its cold surface still bearing the imprints of a long-dead monarch’s reign, while faded royal tapestries droop like the spirits of those who once adorned it. The cracked marble floor resonates with each step you take, a mournful echo that seems to awaken the ominous shadows lurking in the corners. A chilling draft sneaks through the unseen passages, brushing against your skin like a ghostly caress, and the sight of the skeleton slumped upon the throne sends a shiver down your spine, a reminder of the power that once filled this now desolate domain.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: Combat initiated correctly, damage values are reasonable, and player died as expected.
+        ================================================================================
+        [2025-10-13T22:16:36.998033025Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You engage Skeleton King in combat!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-13T22:16:40.075528855Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 14 damage! The enemy retaliates for 9 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-13T22:16:42.614566926Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 7 damage! The enemy retaliates for 13 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-13T22:16:46.243827743Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 9 damage! The enemy retaliates for 10 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-13T22:16:48.666397310Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 16 damage! The enemy retaliates for 13 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-13T22:16:51.024333689Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 11 damage! Your enemy has been defeated!
+
+        Validation: PASS
+Reason: [CODE] NPC defeated - victory
+        ================================================================================
+        [2025-10-13T22:16:53.230243349Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:16:55.676570036Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:16:58.440099927Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:01.255990992Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:04.077584493Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:06.233947273Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:08.804150887Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:11.026543441Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:13.354078581Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:15.868689857Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:18.984559573Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:22.674060995Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:24.936260034Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:27.240768441Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:29.800363216Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:32.225406771Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:34.895016879Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:38.940104391Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:41.765665152Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:44.485046949Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)
+        ================================================================================
+        [2025-10-13T22:17:47.496061661Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        No one by that name here.
+
+        Validation: PASS
+Reason: [CODE] NPC not in room - correctly rejected (likely killed previously)

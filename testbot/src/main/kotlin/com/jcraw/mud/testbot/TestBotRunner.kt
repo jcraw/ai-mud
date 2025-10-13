@@ -221,7 +221,55 @@ class TestBotRunner(
             println("Rooms: ${report.roomNames.joinToString(", ")}")
         }
 
-        println("Duration: ${report.duration / 1000.0}s")
+        // Add playthrough metrics for playthrough scenarios
+        when (report.scenario) {
+            is TestScenario.BadPlaythrough -> {
+                println("\n📊 Playthrough Metrics:")
+                println("  Damage Taken: ${report.damageTaken}")
+                println("  NPCs Killed: ${report.npcsKilled}")
+                println("  Player Died: ${if (report.playerDied) "✅ YES (as expected)" else "❌ NO (game too easy!)"}")
+                println("  Rooms Visited: ${report.uniqueRoomsVisited} (${report.roomNames.joinToString(", ")})")
+                if (!report.playerDied) {
+                    println("\n⚠️  WARNING: Player should die without gear! Difficulty may be too low.")
+                }
+            }
+            is TestScenario.BruteForcePlaythrough -> {
+                println("\n📊 Playthrough Metrics:")
+                println("  Damage Taken: ${report.damageTaken}")
+                println("  NPCs Killed: ${report.npcsKilled} ${if (report.npcsKilled > 0) "✅" else "❌"}")
+                println("  Skill Checks Passed: ${report.skillChecksPassed}")
+                println("  Player Died: ${if (!report.playerDied) "✅ NO (victory!)" else "❌ YES (should win with gear!)"}")
+                println("  Rooms Visited: ${report.uniqueRoomsVisited} (${report.roomNames.joinToString(", ")})")
+                if (report.playerDied) {
+                    println("\n⚠️  WARNING: Player should win with proper gear! Difficulty may be too high.")
+                }
+            }
+            is TestScenario.SmartPlaythrough -> {
+                println("\n📊 Playthrough Metrics:")
+                println("  Damage Taken: ${report.damageTaken} ${if (report.damageTaken < 20) "✅ (minimal)" else "⚠️ (high)"}")
+                println("  NPCs Killed: ${report.npcsKilled} ${if (report.npcsKilled == 0) "✅ (non-lethal!)" else "⚠️"}")
+                println("  Skill Checks Passed: ${report.skillChecksPassed}")
+                println("  Social Checks Passed: ${report.socialChecksPassed} ${if (report.socialChecksPassed > 0) "✅" else "❌"}")
+                println("  Player Died: ${if (!report.playerDied) "✅ NO" else "❌ YES"}")
+                println("  Rooms Visited: ${report.uniqueRoomsVisited} (${report.roomNames.joinToString(", ")})")
+                if (report.socialChecksPassed == 0) {
+                    println("\n⚠️  WARNING: No social checks passed! Multiple solution paths may not be working.")
+                }
+            }
+            else -> {
+                // For other scenarios, just show basic metrics if available
+                if (report.damageTaken > 0 || report.npcsKilled > 0 || report.skillChecksPassed > 0 || report.socialChecksPassed > 0) {
+                    println("\n📊 Metrics:")
+                    if (report.damageTaken > 0) println("  Damage Taken: ${report.damageTaken}")
+                    if (report.npcsKilled > 0) println("  NPCs Killed: ${report.npcsKilled}")
+                    if (report.skillChecksPassed > 0) println("  Skill Checks Passed: ${report.skillChecksPassed}")
+                    if (report.socialChecksPassed > 0) println("  Social Checks Passed: ${report.socialChecksPassed}")
+                    if (report.playerDied) println("  Player Died: YES")
+                }
+            }
+        }
+
+        println("\nDuration: ${report.duration / 1000.0}s")
         println("=".repeat(60))
     }
 }

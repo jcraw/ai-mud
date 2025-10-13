@@ -1,0 +1,61 @@
+Upgraded Testing Dungeon Requirements for V2
+Overview
+
+Purpose: Create a short, challenging dungeon for testing core mechanics (exploration, combat, skills, loot, interactions). It should be beatable but require strategic use of found items, clues, and skills to overcome obstacles and the boss. Not trivial—players must explore thoroughly, manage resources, and think creatively.
+Length: 6 rooms total (including start and boss room). Graph structure: Linear with optional branches for secrets/gear.
+Difficulty: Balanced for new characters (low skills/stats). Success relies on finding/using gear, potions, clues rather than raw power. Include risks like traps (skill checks) and enemies (combat).
+Integration: Build on existing MVP room graph. Use existing systems for movement ("go north"), look (dynamic LLM descriptions), search/interact, combat, loot.
+Persistence: Store dungeon state in DB (rooms, contents, player position). Procedural elements minimal—hardcode room traits/contents for consistency in testing.
+Win Condition: Defeat the boss to exit/complete dungeon. Narrate victory with LLM (e.g., "You emerge victorious, treasure in hand.").
+
+Room Structure
+
+Room Data Model: Extend existing Room class if needed: id (String), traits (List<String> for LLM prompts, e.g., "dim cavern, echoing walls"), exits (Map<Direction, RoomId>), contents (List<Entity> for enemies, items, interactables).
+Layout (Graph):
+
+Room 1 (Start/Entrance): Safe hub. Traits: "ancient stone archway, faint torchlight". Exits: North to Room 2. Contents: None (player starts here).
+Room 2 (Hallway): Minor challenge. Traits: "narrow corridor, hidden alcove". Exits: North to Room 3, East to Room 4 (secret branch). Contents: Weak enemy (goblin; low HP, basic attack). Trap (spike pit; Acrobatics check to avoid).
+Room 3 (Puzzle Room): Interaction-focused. Traits: "riddle-inscribed chamber, locked chest". Exits: North to Room 5. Contents: Interactable chest (requires Intelligence check or key from Room 4; contains potion and clue scroll for boss weakness).
+Room 4 (Secret Side Room): Optional, rewards exploration. Traits: "dusty alcove, forgotten relics". Exits: West back to Room 2. Contents: Gear item (rusty sword; +damage modifier), potion (health restore).
+Room 5 (Guard Room): Combat-heavy. Traits: "guarded antechamber, bloodstained floor". Exits: North to Room 6. Contents: Two enemies (goblin + orc; staggered difficulty). Lootable corpse with minor coins/potion.
+Room 6 (Boss Room): Climax. Traits: "throne room, shadowy throne". Exits: None (victory ends). Contents: Boss enemy (e.g., Goblin King; high HP, strong attacks, weakness to fire if clue used).
+
+
+
+Key Mechanics Upgrades/Integrations
+
+Exploration & Interactions:
+
+"Look" regenerates variable LLM descriptions using traits + history (e.g., "The dim cavern feels more oppressive after your battle.").
+"Search" or "Examine" triggers skill checks (e.g., Perception for hidden items/clues). Success: Reveal contents (gear, potions, clues). Failure: Narrate miss or trigger trap.
+Clues: Scroll in Room 3 hints boss weakness (e.g., "The king fears flames—use fire potion."). LLM incorporates into narrations if player reads it.
+
+
+Gear & Items:
+
+Findable Items: Rusty Sword (Room 4; equip for +2 attack mod), Health Potion (x2; Room 3/5; consume to restore HP), Fire Potion (Room 4 secret; throwable for boss damage bonus if weakness exploited).
+Equipping/Using: Commands like "Equip sword" or "Drink potion". Update player state (inventory, active gear). Modifiers apply to rolls (e.g., sword boosts combat d20).
+Inventory: Limit to 5 slots for challenge (encourage choices).
+
+
+Combat & Boss:
+
+Enemies: Use Entity class with stats (HP, attack/defense). Goblin (easy: 10 HP, d6 attack), Orc (medium: 15 HP, d8 attack), Boss (hard: 30 HP, d10 attack; weakness halves damage taken if fire used).
+Boss Fight: Turn-based. Player must use found items (e.g., fire potion for crit damage) or clue (unlocks "Exploit weakness" action). Without: Prolonged fight with high failure risk. LLM narrates vividly (e.g., "The king roars as flames engulf him.").
+Defeat: Loot boss (rare item, coins). Corpse decays after 5 turns.
+
+
+Challenges & Balance:
+
+Traps: 1-2 per dungeon (e.g., pit in Room 2; d20 + Acrobatics vs DC 10; failure: HP loss).
+Resource Management: Limited potions; no auto-heal. Encourage stealth/diplomacy alternatives (e.g., "Sneak past goblin" via Stealth check).
+Failure States: Death resets to start (with partial XP retention). Narrate deaths engagingly.
+
+
+
+Implementation Notes
+
+LLM Prompts: Enhance for variability/coherence (e.g., "Describe [room traits] uniquely, incorporating [player history] and [clue if read].").
+Testing: Ensure dungeon completable in 10-20 actions. Test paths: Direct (hard boss fight), Full exploration (easier with gear/clue).
+Modularity: Hardcode rooms in a config file/DB table for easy tweaks. No proc-gen yet—focus on fixed for V2 testing.
+UI: Update narration panel to show room descriptions, combat logs. Inventory/stats panels reflect changes real-time.

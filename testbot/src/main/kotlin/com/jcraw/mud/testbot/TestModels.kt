@@ -109,7 +109,13 @@ data class TestReport(
     val steps: List<TestStep>,
     val results: List<StepResult>,
     val uniqueRoomsVisited: Int = 0,
-    val roomNames: List<String> = emptyList()
+    val roomNames: List<String> = emptyList(),
+    // Playthrough metrics
+    val damageTaken: Int = 0,
+    val npcsKilled: Int = 0,
+    val skillChecksPassed: Int = 0,
+    val socialChecksPassed: Int = 0,
+    val playerDied: Boolean = false
 ) {
     companion object {
         fun fromTestState(state: TestState, startTime: Instant, endTime: Instant): TestReport {
@@ -118,6 +124,13 @@ data class TestReport(
 
             // Extract unique rooms for exploration scenario
             val roomNames = extractRoomsFromSteps(state.steps)
+
+            // Calculate playthrough metrics
+            val damageTaken = calculateDamageTaken(state.steps)
+            val npcsKilled = countNPCsKilled(state.steps)
+            val skillChecksPassed = countSkillChecksPassed(state.steps)
+            val socialChecksPassed = countSocialChecksPassed(state.steps)
+            val playerDied = checkPlayerDied(state.steps)
 
             return TestReport(
                 scenario = state.scenario,
@@ -131,7 +144,12 @@ data class TestReport(
                 steps = state.steps,
                 results = state.results,
                 uniqueRoomsVisited = roomNames.size,
-                roomNames = roomNames.toList()
+                roomNames = roomNames.toList(),
+                damageTaken = damageTaken,
+                npcsKilled = npcsKilled,
+                skillChecksPassed = skillChecksPassed,
+                socialChecksPassed = socialChecksPassed,
+                playerDied = playerDied
             )
         }
 
@@ -154,6 +172,97 @@ data class TestReport(
             }
 
             return roomNames
+        }
+
+        /**
+         * Calculate total damage taken by player during playthrough.
+         */
+        private fun calculateDamageTaken(steps: List<TestStep>): Int {
+            var totalDamage = 0
+            val damagePattern = Regex("(?:retaliates|strikes|hits|deals).+?(\\d+)\\s+damage", RegexOption.IGNORE_CASE)
+
+            for (step in steps) {
+                // Look for NPC damage to player (retaliation)
+                if (step.gmResponse.contains("retaliate", ignoreCase = true)) {
+                    val match = damagePattern.find(step.gmResponse)
+                    if (match != null) {
+                        totalDamage += match.groupValues[1].toIntOrNull() ?: 0
+                    }
+                }
+            }
+
+            return totalDamage
+        }
+
+        /**
+         * Count NPCs killed during playthrough.
+         */
+        private fun countNPCsKilled(steps: List<TestStep>): Int {
+            var killCount = 0
+
+            for (step in steps) {
+                // Look for kill/defeat messages
+                if (step.gmResponse.contains("has been defeated", ignoreCase = true) ||
+                    step.gmResponse.contains("slain", ignoreCase = true) ||
+                    step.gmResponse.contains("falls dead", ignoreCase = true)) {
+                    killCount++
+                }
+            }
+
+            return killCount
+        }
+
+        /**
+         * Count successful skill checks during playthrough.
+         */
+        private fun countSkillChecksPassed(steps: List<TestStep>): Int {
+            var checkCount = 0
+
+            for (step in steps) {
+                // Check if this was a "check" command that succeeded
+                if (step.playerInput.startsWith("check", ignoreCase = true) &&
+                    (step.gmResponse.contains("Success!", ignoreCase = true) ||
+                     step.gmResponse.contains("succeed", ignoreCase = true))) {
+                    checkCount++
+                }
+            }
+
+            return checkCount
+        }
+
+        /**
+         * Count successful social checks (persuade/intimidate) during playthrough.
+         */
+        private fun countSocialChecksPassed(steps: List<TestStep>): Int {
+            var socialCount = 0
+
+            for (step in steps) {
+                // Check if this was a social command that succeeded
+                if ((step.playerInput.contains("persuade", ignoreCase = true) ||
+                     step.playerInput.contains("intimidate", ignoreCase = true)) &&
+                    (step.gmResponse.contains("Success!", ignoreCase = true) ||
+                     step.gmResponse.contains("succeed", ignoreCase = true))) {
+                    socialCount++
+                }
+            }
+
+            return socialCount
+        }
+
+        /**
+         * Check if player died during playthrough.
+         */
+        private fun checkPlayerDied(steps: List<TestStep>): Boolean {
+            for (step in steps) {
+                if (step.gmResponse.contains("You have died", ignoreCase = true) ||
+                    step.gmResponse.contains("You fall", ignoreCase = true) ||
+                    step.gmResponse.contains("You are dead", ignoreCase = true) ||
+                    step.gmResponse.contains("death", ignoreCase = true) &&
+                    step.gmResponse.contains("you", ignoreCase = true)) {
+                    return true
+                }
+            }
+            return false
         }
     }
 }

@@ -62,15 +62,15 @@ class ProceduralDungeonBuilder(
             id = playerId,
             name = "Adventurer",
             currentRoomId = entranceId,
-            health = 100,
-            maxHealth = 100,
+            health = 40,
+            maxHealth = 40,
             stats = Stats(
-                strength = 14,
-                dexterity = 12,
-                constitution = 14,
-                intelligence = 13,
-                wisdom = 11,
-                charisma = 10
+                strength = 10,      // Weak - below average
+                dexterity = 8,      // Clumsy
+                constitution = 10,  // Average
+                intelligence = 9,   // Not bright
+                wisdom = 8,         // Inexperienced
+                charisma = 9        // Unimpressive
             )
         )
 
