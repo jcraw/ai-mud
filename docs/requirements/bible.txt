@@ -35,7 +35,6 @@ Core Ruleset: Similar to D&D (classes, stats, combat turns, magic), but skill-fo
 Differences from D&D:
 
 Progression: Skills increase with use (XP added on successful actions), no fixed class levels initially. Stats (e.g., strength, intelligence) increase via XP or items.
-Classes: Simplified (e.g., Warrior, Mage, Rogue) as starting templates; evolve via skills.
 Combat: Turn-based, optional (alternatives via stealth/diplomacy).
 Magic: Mana-based, unlocked via skills; failures on rolls.
 Alignments/Races: Abstract placeholders; implement as modifiers later.

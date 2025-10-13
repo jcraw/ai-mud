@@ -185,6 +185,7 @@ class EngineGameClient(
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
+            is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Attack -> handleAttack(intent.target)
@@ -434,6 +435,39 @@ class EngineGameClient(
             emitEvent(GameEvent.Narrative("You take the ${item.name}."))
         } else {
             emitEvent(GameEvent.System("Something went wrong.", GameEvent.MessageLevel.ERROR))
+        }
+    }
+
+    private fun handleTakeAll() {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find all pickupable items in the room
+        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+        if (items.isEmpty()) {
+            emitEvent(GameEvent.System("There are no items to take here.", GameEvent.MessageLevel.INFO))
+            return
+        }
+
+        var takenCount = 0
+        var currentState = worldState
+
+        items.forEach { item ->
+            val newState = currentState
+                .removeEntityFromRoom(room.id, item.id)
+                ?.updatePlayer(currentState.player.addToInventory(item))
+
+            if (newState != null) {
+                currentState = newState
+                takenCount++
+                emitEvent(GameEvent.Narrative("You take the ${item.name}."))
+            }
+        }
+
+        worldState = currentState
+
+        if (takenCount > 0) {
+            emitEvent(GameEvent.Narrative("Picked up $takenCount ${if (takenCount == 1) "item" else "items"}."))
         }
     }
 
