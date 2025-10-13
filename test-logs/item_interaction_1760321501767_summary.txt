@@ -5,18 +5,18 @@
         Scenario: item_interaction
         Description: Test examine (room+inventory), pickup, inventory, equip, use, and drop mechanics
 
-        Status: FAILED
+        Status: PASSED
 
         Results:
         - Total Steps: 18
-        - Passed: 14
-        - Failed: 4
-        - Pass Rate: 77%
+        - Passed: 16
+        - Failed: 2
+        - Pass Rate: 88%
 
         Timing:
-        - Start: 2025-10-12T23:42:34.979860972Z
-        - End: 2025-10-12T23:43:43.645938749Z
-        - Duration: 68.67s
+        - Start: 2025-10-13T02:11:41.769156898Z
+        - End: 2025-10-13T02:12:44.576534656Z
+        - Duration: 62.81s
 
         ================================================================================
         STEP DETAILS
@@ -50,25 +50,25 @@ Step 7: ✓ PASS
 Input: equip Worn Leather Armor
 Reason: Step completed successfully
 
-Step 8: ✗ FAIL
+Step 8: ✓ PASS
 Input: drop sharp steel dagger
-Reason: The response indicates that the player does not have the Sharp Steel Dagger, despite it being equipped and therefore should be in the player's inventory.
+Reason: Step completed successfully
 
 Step 9: ✓ PASS
-Input: take rusty iron sword
+Input: take sharp steel dagger
 Reason: Step completed successfully
 
 Step 10: ✗ FAIL
-Input: get all
-Reason: The player attempted to use the 'get all' command, but the response indicates an unknown command instead of picking up the items in the room.
+Input: look
+Reason: Input generation error: Failed to parse HTTP response: the server prematurely closed the connection
 
 Step 11: ✓ PASS
-Input: look heavy chainmail
+Input: get all
 Reason: Step completed successfully
 
-Step 12: ✗ FAIL
-Input: look
-Reason: The player did not see all items in the Forgotten Armory despite them being present in the room.
+Step 12: ✓ PASS
+Input: look rusty iron sword
+Reason: Step completed successfully
 
 Step 13: ✓ PASS
 Input: look heavy chainmail
@@ -78,16 +78,16 @@ Step 14: ✓ PASS
 Input: look heavy chainmail
 Reason: Step completed successfully
 
-Step 15: ✓ PASS
-Input: look heavy chainmail
+Step 15: ✗ FAIL
+Input: look
+Reason: The GM response did not list the available items in the room, which is expected when the player inputs 'look'.
+
+Step 16: ✓ PASS
+Input: look rusty iron sword
 Reason: Step completed successfully
 
-Step 16: ✗ FAIL
-Input: look
-Reason: The player input 'look' did not return the expected items available in the Forgotten Armory, indicating a bug.
-
 Step 17: ✓ PASS
-Input: look heavy chainmail
+Input: take rusty iron sword
 Reason: Step completed successfully
 
 Step 18: ✓ PASS
