@@ -47,44 +47,10 @@ fun main() {
 
     println()
 
-    // Ask user if they want sample or procedural dungeon
-    println("Select dungeon type:")
-    println("  1. Sample Dungeon (handcrafted, 6 rooms)")
-    println("  2. Procedural Crypt (ancient tombs)")
-    println("  3. Procedural Castle (ruined fortress)")
-    println("  4. Procedural Cave (dark caverns)")
-    println("  5. Procedural Temple (forgotten shrine)")
-    print("\nEnter choice (1-5) [default: 1]: ")
-
-    val choice = readLine()?.trim() ?: "1"
-
-    // Generate world state based on choice
-    val (worldState, dungeonTheme) = when (choice) {
-        "2" -> {
-            print("Number of rooms [default: 10]: ")
-            val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCrypt(roomCount) to DungeonTheme.CRYPT
-        }
-        "3" -> {
-            print("Number of rooms [default: 10]: ")
-            val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCastle(roomCount) to DungeonTheme.CASTLE
-        }
-        "4" -> {
-            print("Number of rooms [default: 10]: ")
-            val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateCave(roomCount) to DungeonTheme.CAVE
-        }
-        "5" -> {
-            print("Number of rooms [default: 10]: ")
-            val roomCount = readLine()?.toIntOrNull() ?: 10
-            ProceduralDungeonBuilder.generateTemple(roomCount) to DungeonTheme.TEMPLE
-        }
-        else -> {
-            println("Using Sample Dungeon")
-            SampleDungeon.createInitialWorldState() to DungeonTheme.CRYPT // Sample uses crypt theme
-        }
-    }
+    // Always use Sample Dungeon (same as test bot)
+    println("Loading Sample Dungeon (handcrafted, 6 rooms)...")
+    val worldState = SampleDungeon.createInitialWorldState()
+    val dungeonTheme = DungeonTheme.CRYPT // Sample uses crypt theme
 
     // Generate initial quests
     val questGenerator = QuestGenerator()
@@ -306,6 +272,47 @@ class MudGame(
     }
 
     private fun handleMove(direction: Direction) {
+        // Check if in combat - must flee first
+        if (worldState.player.isInCombat()) {
+            println("\nYou attempt to flee from combat...")
+
+            val result = combatResolver.attemptFlee(worldState)
+            println(result.narrative)
+
+            if (result.playerFled) {
+                // Flee successful - update state and move
+                worldState = worldState.updatePlayer(worldState.player.endCombat())
+
+                val newState = worldState.movePlayer(direction)
+                if (newState == null) {
+                    println("You can't go that way.")
+                    return
+                }
+
+                worldState = newState
+                println("You move ${direction.displayName}.")
+
+                // Track room exploration for quests
+                val room = worldState.getCurrentRoom()
+                if (room != null) {
+                    trackQuests(QuestAction.VisitedRoom(room.id))
+                }
+
+                describeCurrentRoom()
+            } else if (result.playerDied) {
+                // Player died trying to flee
+                running = false
+            } else {
+                // Failed to flee - update combat state and stay in place
+                if (result.newCombatState != null) {
+                    worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                }
+                describeCurrentRoom()
+            }
+            return
+        }
+
+        // Normal movement (not in combat)
         val newState = worldState.movePlayer(direction)
 
         if (newState == null) {

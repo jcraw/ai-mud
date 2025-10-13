@@ -72,6 +72,36 @@ class InMemoryGameEngine(
     }
 
     private suspend fun handleMove(direction: Direction): String {
+        // Check if in combat - must flee first
+        if (worldState.player.isInCombat()) {
+            val result = combatResolver.attemptFlee(worldState)
+
+            return if (result.playerFled) {
+                // Flee successful - update state and move
+                worldState = worldState.updatePlayer(worldState.player.endCombat())
+
+                val newState = worldState.movePlayer(direction)
+                if (newState != null) {
+                    worldState = newState
+                    val room = worldState.getCurrentRoom()!!
+                    "${result.narrative}\nYou move ${direction.displayName}.\n${buildRoomDescription(room)}"
+                } else {
+                    "${result.narrative}\nYou can't go that way."
+                }
+            } else if (result.playerDied) {
+                // Player died trying to flee
+                running = false
+                result.narrative
+            } else {
+                // Failed to flee - update combat state and stay in place
+                if (result.newCombatState != null) {
+                    worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                }
+                result.narrative
+            }
+        }
+
+        // Normal movement (not in combat)
         val newState = worldState.movePlayer(direction)
         return if (newState != null) {
             worldState = newState

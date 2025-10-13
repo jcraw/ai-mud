@@ -111,7 +111,14 @@ data class PlayerState(
 
     fun updateCombat(newCombatState: CombatState?): PlayerState = copy(activeCombat = newCombatState)
 
-    fun endCombat(): PlayerState = copy(activeCombat = null)
+    fun endCombat(): PlayerState {
+        // Preserve health from combat state when ending combat
+        val combatHealth = activeCombat?.playerHealth ?: health
+        return copy(
+            activeCombat = null,
+            health = combatHealth
+        )
+    }
 
     // Quest management
     fun addQuest(quest: Quest): PlayerState = copy(activeQuests = activeQuests + quest)

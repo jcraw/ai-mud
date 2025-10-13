@@ -212,6 +212,76 @@ class GameServer(
         playerState: PlayerState,
         direction: Direction
     ): Triple<String, WorldState, GameEvent?> {
+        // Check if in combat - must flee first
+        if (playerState.isInCombat()) {
+            val result = combatResolver.attemptFlee(worldState, playerState)
+
+            return if (result.playerFled) {
+                // Flee successful - update state and move
+                val playerAfterFlee = playerState.endCombat()
+                val worldAfterFlee = worldState.updatePlayer(playerAfterFlee)
+
+                val oldRoomId = playerAfterFlee.currentRoomId
+                val newWorldState = worldAfterFlee.movePlayer(playerId, direction)
+
+                if (newWorldState != null) {
+                    val newPlayerState = newWorldState.getPlayer(playerId)!!
+                    val newRoomId = newPlayerState.currentRoomId
+                    val newRoom = newWorldState.getRoom(newRoomId)!!
+
+                    // Generate room description
+                    val description = roomDescriptionGenerator.generateDescription(newRoom)
+
+                    // Track room exploration for quests
+                    val (updatedPlayerAfterQuests, questNotifications) = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
+                    val finalWorldState = if (updatedPlayerAfterQuests != newPlayerState) {
+                        newWorldState.updatePlayer(updatedPlayerAfterQuests)
+                    } else {
+                        newWorldState
+                    }
+
+                    // Create movement events
+                    val leaveEvent = GameEvent.PlayerMoved(
+                        playerId = playerId,
+                        playerName = playerAfterFlee.name,
+                        fromRoomId = oldRoomId,
+                        toRoomId = newRoomId,
+                        direction = direction.name.lowercase(),
+                        roomId = oldRoomId,
+                        excludePlayer = playerId
+                    )
+
+                    val enterEvent = GameEvent.PlayerJoined(
+                        playerId = playerId,
+                        playerName = playerAfterFlee.name,
+                        roomId = newRoomId,
+                        excludePlayer = playerId
+                    )
+
+                    // Broadcast both events
+                    broadcastEvent(leaveEvent)
+                    broadcastEvent(enterEvent)
+
+                    Triple(result.narrative + "\nYou move ${direction.displayName}.\n" + description + questNotifications, finalWorldState, null)
+                } else {
+                    Triple(result.narrative + "\nBut there's nowhere to go in that direction!", worldAfterFlee, null)
+                }
+            } else if (result.playerDied) {
+                // Player died trying to flee
+                val updatedPlayer = playerState.endCombat()
+                Triple(result.narrative, worldState.updatePlayer(updatedPlayer), null)
+            } else {
+                // Failed to flee - update combat state and stay in place
+                val updatedPlayer = if (result.newCombatState != null) {
+                    playerState.updateCombat(result.newCombatState)
+                } else {
+                    playerState
+                }
+                Triple(result.narrative, worldState.updatePlayer(updatedPlayer), null)
+            }
+        }
+
+        // Normal movement (not in combat)
         val oldRoomId = playerState.currentRoomId
         val newWorldState = worldState.movePlayer(playerId, direction)
 

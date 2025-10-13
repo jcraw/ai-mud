@@ -105,12 +105,12 @@ Valid intent types:
 - "take_all" - Pick up all items in the room (no target, triggered by "take all", "get all", "take everything", etc.)
 - "drop" - Drop an item (requires target)
 - "talk" - Talk to an NPC (requires target)
-- "attack" - Attack an NPC or continue combat (target optional if in combat)
-- "equip" - Equip a weapon or armor (requires target)
-- "use" - Use/consume an item (requires target)
-- "check" - Perform a skill check on a feature (requires target)
-- "persuade" - Persuade an NPC (requires target)
-- "intimidate" - Intimidate an NPC (requires target)
+- "attack" - Attack an NPC or continue combat (target optional if in combat, extract ANY identifying word from NPC name)
+- "equip" - Equip a weapon or armor (requires target, extract ANY identifying word from item name)
+- "use" - Use/consume an item (requires target, extract ANY identifying word from item name)
+- "check" - Perform a skill check on a feature (requires target, extract ANY identifying word)
+- "persuade" - Persuade an NPC (requires target, extract ANY identifying word from NPC name)
+- "intimidate" - Intimidate an NPC (requires target, extract ANY identifying word from NPC name)
 - "save" - Save game (target is save name, defaults to "quicksave")
 - "load" - Load game (target is save name, defaults to "quicksave")
 - "quests" - View quest journal (no target)
@@ -134,6 +134,9 @@ Important parsing rules:
 10. "move north from throne room" → extract "north" as target
 11. "look north", "look to the north" → map to look with target "north" (directional look)
 12. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
+13. PARTIAL NAMES: "attack king" when NPC is "skeleton king" → extract "king", "take sword" when item is "rusty sword" → extract "sword"
+14. For attack/talk/persuade/intimidate with NPCs, extract ANY word from the player's input that could identify the NPC
+15. For equip/use/take/drop with items, extract ANY word from the player's input that could identify the item
 
 Response format (JSON only, no markdown):
 {

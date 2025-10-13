@@ -62,13 +62,8 @@ class EngineGameClient(
         sceneryGenerator = SceneryDescriptionGenerator(llmClient)
         questGenerator = QuestGenerator()
 
-        // Generate world based on theme
-        val baseWorldState = when (dungeonTheme) {
-            DungeonTheme.CRYPT -> ProceduralDungeonBuilder.generateCrypt(roomCount)
-            DungeonTheme.CASTLE -> ProceduralDungeonBuilder.generateCastle(roomCount)
-            DungeonTheme.CAVE -> ProceduralDungeonBuilder.generateCave(roomCount)
-            DungeonTheme.TEMPLE -> ProceduralDungeonBuilder.generateTemple(roomCount)
-        }
+        // Always use Sample Dungeon (same as test bot)
+        val baseWorldState = SampleDungeon.createInitialWorldState()
 
         // Initialize player with default stats
         val playerState = PlayerState(
@@ -215,6 +210,58 @@ class EngineGameClient(
     }
 
     private fun handleMove(direction: Direction) {
+        // Check if in combat - must flee first
+        if (worldState.player.isInCombat()) {
+            emitEvent(GameEvent.Narrative("\nYou attempt to flee from combat..."))
+
+            val result = combatResolver.attemptFlee(worldState)
+            emitEvent(GameEvent.Combat(result.narrative))
+
+            if (result.playerFled) {
+                // Flee successful - update state and move
+                worldState = worldState.updatePlayer(worldState.player.endCombat())
+
+                val newState = worldState.movePlayer(direction)
+                if (newState == null) {
+                    emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
+                    return
+                }
+
+                worldState = newState
+                emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
+
+                // Update status
+                emitEvent(GameEvent.StatusUpdate(
+                    hp = worldState.player.health,
+                    maxHp = worldState.player.maxHealth
+                ))
+
+                describeCurrentRoom()
+            } else if (result.playerDied) {
+                // Player died trying to flee
+                running = false
+                emitEvent(GameEvent.StatusUpdate(
+                    hp = 0,
+                    maxHp = worldState.player.maxHealth
+                ))
+            } else {
+                // Failed to flee - update combat state and stay in place
+                if (result.newCombatState != null) {
+                    worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                }
+
+                // Update status
+                emitEvent(GameEvent.StatusUpdate(
+                    hp = worldState.player.activeCombat?.playerHealth,
+                    maxHp = worldState.player.maxHealth
+                ))
+
+                describeCurrentRoom()
+            }
+            return
+        }
+
+        // Normal movement (not in combat)
         val newState = worldState.movePlayer(direction)
 
         if (newState == null) {
