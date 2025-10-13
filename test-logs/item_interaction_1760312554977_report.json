@@ -1,0 +1,602 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.ItemInteraction"
+    },
+    "totalSteps": 18,
+    "passedSteps": 14,
+    "failedSteps": 4,
+    "finalStatus": "FAILED",
+    "startTime": "2025-10-12T23:42:34.979860972Z",
+    "endTime": "2025-10-12T23:43:43.645938749Z",
+    "duration": 68666,
+    "steps": [
+        {
+            "timestamp": "2025-10-12T23:42:38.393338218Z",
+            "playerInput": "look Rusty Iron Sword",
+            "gmResponse": "An old iron sword, still sharp despite the rust",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Rusty Iron Sword",
+                    "description_length": "47"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:44.445645450Z",
+            "playerInput": "look",
+            "gmResponse": "Forgotten Armory\nYou step into the Forgotten Armory, where rusty weapon racks lean precariously against the walls, relics of a time when valor rang through these halls. Tarnished armor stands loom like ghostly sentinels, their once-polished surfaces now dulled by neglect. The air is thick with the pungent scent of old leather and metal, mingling with the musty aroma of dust. Cobwebs drape over the shields like shrouds, while ancient battle standards hang limply from the ceiling, whispering tales of glory long past.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent and detailed description of the Forgotten Armory and lists the items present in the room, which aligns with the expected outcome.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:47.552228569Z",
+            "playerInput": "take Sharp Steel Dagger",
+            "gmResponse": "You take the Sharp Steel Dagger.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Sharp Steel Dagger' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Sharp Steel Dagger"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:50.699733917Z",
+            "playerInput": "take Worn Leather Armor",
+            "gmResponse": "You take the Worn Leather Armor.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Worn Leather Armor' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:53.224704531Z",
+            "playerInput": "inventory",
+            "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Inventory listing displayed",
+                "details": {
+                    "validation_type": "code",
+                    "tracked_inventory": "sharp steel dagger, worn leather armor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:55.951043792Z",
+            "playerInput": "equip Sharp Steel Dagger",
+            "gmResponse": "You equip the Sharp Steel Dagger (+3 damage).",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Sharp Steel Dagger' successfully equipped",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Sharp Steel Dagger"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:42:58.376118242Z",
+            "playerInput": "equip Worn Leather Armor",
+            "gmResponse": "You equip the Worn Leather Armor (+2 defense).",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'Worn Leather Armor' successfully equipped",
+                "details": {
+                    "validation_type": "code",
+                    "item": "Worn Leather Armor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:02.891020712Z",
+            "playerInput": "drop sharp steel dagger",
+            "gmResponse": "You don't have that.",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response indicates that the player does not have the Sharp Steel Dagger, despite it being equipped and therefore should be in the player's inventory.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "fail",
+                    "mechanics": "fail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:05.948334064Z",
+            "playerInput": "take rusty iron sword",
+            "gmResponse": "You take the Rusty Iron Sword.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'rusty iron sword' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "rusty iron sword"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:10.986095676Z",
+            "playerInput": "get all",
+            "gmResponse": "Unknown command: get all. Type 'help' for available commands.",
+            "validationResult": {
+                "pass": false,
+                "reason": "The player attempted to use the 'get all' command, but the response indicates an unknown command instead of picking up the items in the room.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:13.966083392Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:21.991384773Z",
+            "playerInput": "look",
+            "gmResponse": "Forgotten Armory\nYou find yourself enveloped in the Forgotten Armory, where rusty weapon racks sag under the weight of time, their iron bones creaking softly. The tarnished armor stands rise like forgotten guardians, their surfaces etched with the memories of battles fought and lost. A heavy scent of old leather and corroded metal fills the air, entwined with the musty breath of disuse. Shadows gather in the corners, where cobwebs cling to shields, their delicate threads weaving a tapestry of neglect, while ancient battle standards dangle overhead, their colors faded yet still echoing the valiant cries of yesteryear.\nExits: east\nYou see: Heavy Chainmail",
+            "validationResult": {
+                "pass": false,
+                "reason": "The player did not see all items in the Forgotten Armory despite them being present in the room.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "fail",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:24.224040609Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:27.205923297Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:29.738391461Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:38.896374780Z",
+            "playerInput": "look",
+            "gmResponse": "Forgotten Armory\nYou step deeper into the Forgotten Armory, the air thick with the ghosts of past glories and defeats. Rusty weapon racks lean heavily against crumbling walls, their once formidable blades now dulled and forgotten. Tarnished armor stands loom like silent witnesses, their surfaces mottled with age, while the musty scent of old leather and corroded metal envelops you in a suffocating embrace. Cobwebs drape over shields like spectral veils, and above, ancient battle standards sway gently, their faded colors a haunting reminder of heroic tales that echo faintly through the shadows.\nExits: east\nYou see: Heavy Chainmail",
+            "validationResult": {
+                "pass": false,
+                "reason": "The player input 'look' did not return the expected items available in the Forgotten Armory, indicating a bug.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:41.050464762Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-10-12T23:43:43.545625730Z",
+            "playerInput": "look heavy chainmail",
+            "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'heavy chainmail'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "heavy chainmail",
+                    "description_length": "56"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-10-12T23:42:38.393338218Z",
+                "playerInput": "look Rusty Iron Sword",
+                "gmResponse": "An old iron sword, still sharp despite the rust",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'Rusty Iron Sword'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Rusty Iron Sword",
+                        "description_length": "47"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-10-12T23:42:44.445645450Z",
+                "playerInput": "look",
+                "gmResponse": "Forgotten Armory\nYou step into the Forgotten Armory, where rusty weapon racks lean precariously against the walls, relics of a time when valor rang through these halls. Tarnished armor stands loom like ghostly sentinels, their once-polished surfaces now dulled by neglect. The air is thick with the pungent scent of old leather and metal, mingling with the musty aroma of dust. Cobwebs drape over the shields like shrouds, while ancient battle standards hang limply from the ceiling, whispering tales of glory long past.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent and detailed description of the Forgotten Armory and lists the items present in the room, which aligns with the expected outcome.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-10-12T23:42:47.552228569Z",
+                "playerInput": "take Sharp Steel Dagger",
+                "gmResponse": "You take the Sharp Steel Dagger.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Sharp Steel Dagger' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Sharp Steel Dagger"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-10-12T23:42:50.699733917Z",
+                "playerInput": "take Worn Leather Armor",
+                "gmResponse": "You take the Worn Leather Armor.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Worn Leather Armor' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-10-12T23:42:53.224704531Z",
+                "playerInput": "inventory",
+                "gmResponse": "Inventory:\n  Carrying: Sharp Steel Dagger, Worn Leather Armor",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Inventory listing displayed",
+                    "details": {
+                        "validation_type": "code",
+                        "tracked_inventory": "sharp steel dagger, worn leather armor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-10-12T23:42:55.951043792Z",
+                "playerInput": "equip Sharp Steel Dagger",
+                "gmResponse": "You equip the Sharp Steel Dagger (+3 damage).",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Sharp Steel Dagger' successfully equipped",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Sharp Steel Dagger"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-10-12T23:42:58.376118242Z",
+                "playerInput": "equip Worn Leather Armor",
+                "gmResponse": "You equip the Worn Leather Armor (+2 defense).",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'Worn Leather Armor' successfully equipped",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "Worn Leather Armor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-10-12T23:43:02.891020712Z",
+                "playerInput": "drop sharp steel dagger",
+                "gmResponse": "You don't have that.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response indicates that the player does not have the Sharp Steel Dagger, despite it being equipped and therefore should be in the player's inventory.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "fail",
+                        "mechanics": "fail"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The response indicates that the player does not have the Sharp Steel Dagger, despite it being equipped and therefore should be in the player's inventory."
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-10-12T23:43:05.948334064Z",
+                "playerInput": "take rusty iron sword",
+                "gmResponse": "You take the Rusty Iron Sword.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'rusty iron sword' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "rusty iron sword"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-10-12T23:43:10.986095676Z",
+                "playerInput": "get all",
+                "gmResponse": "Unknown command: get all. Type 'help' for available commands.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The player attempted to use the 'get all' command, but the response indicates an unknown command instead of picking up the items in the room.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The player attempted to use the 'get all' command, but the response indicates an unknown command instead of picking up the items in the room."
+        },
+        {
+            "stepNumber": 11,
+            "step": {
+                "timestamp": "2025-10-12T23:43:13.966083392Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 12,
+            "step": {
+                "timestamp": "2025-10-12T23:43:21.991384773Z",
+                "playerInput": "look",
+                "gmResponse": "Forgotten Armory\nYou find yourself enveloped in the Forgotten Armory, where rusty weapon racks sag under the weight of time, their iron bones creaking softly. The tarnished armor stands rise like forgotten guardians, their surfaces etched with the memories of battles fought and lost. A heavy scent of old leather and corroded metal fills the air, entwined with the musty breath of disuse. Shadows gather in the corners, where cobwebs cling to shields, their delicate threads weaving a tapestry of neglect, while ancient battle standards dangle overhead, their colors faded yet still echoing the valiant cries of yesteryear.\nExits: east\nYou see: Heavy Chainmail",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The player did not see all items in the Forgotten Armory despite them being present in the room.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "fail",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The player did not see all items in the Forgotten Armory despite them being present in the room."
+        },
+        {
+            "stepNumber": 13,
+            "step": {
+                "timestamp": "2025-10-12T23:43:24.224040609Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-10-12T23:43:27.205923297Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-10-12T23:43:29.738391461Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 16,
+            "step": {
+                "timestamp": "2025-10-12T23:43:38.896374780Z",
+                "playerInput": "look",
+                "gmResponse": "Forgotten Armory\nYou step deeper into the Forgotten Armory, the air thick with the ghosts of past glories and defeats. Rusty weapon racks lean heavily against crumbling walls, their once formidable blades now dulled and forgotten. Tarnished armor stands loom like silent witnesses, their surfaces mottled with age, while the musty scent of old leather and corroded metal envelops you in a suffocating embrace. Cobwebs drape over shields like spectral veils, and above, ancient battle standards sway gently, their faded colors a haunting reminder of heroic tales that echo faintly through the shadows.\nExits: east\nYou see: Heavy Chainmail",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The player input 'look' did not return the expected items available in the Forgotten Armory, indicating a bug.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "The player input 'look' did not return the expected items available in the Forgotten Armory, indicating a bug."
+        },
+        {
+            "stepNumber": 17,
+            "step": {
+                "timestamp": "2025-10-12T23:43:41.050464762Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 18,
+            "step": {
+                "timestamp": "2025-10-12T23:43:43.545625730Z",
+                "playerInput": "look heavy chainmail",
+                "gmResponse": "A suit of interlocking metal rings, heavy but protective",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'heavy chainmail'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "heavy chainmail",
+                        "description_length": "56"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        }
+    ],
+    "uniqueRoomsVisited": 1,
+    "roomNames": [
+        "Forgotten Armory"
+    ]
+}

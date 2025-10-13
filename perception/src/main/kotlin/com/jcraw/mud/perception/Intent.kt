@@ -44,10 +44,16 @@ sealed class Intent {
 
     /**
      * Pick up an item from the current room
-     * @param target The name/identifier of the item to pick up
+     * @param target The name/identifier of the item to pick up, or "all" to take all items
      */
     @Serializable
     data class Take(val target: String) : Intent()
+
+    /**
+     * Pick up all items from the current room
+     */
+    @Serializable
+    data object TakeAll : Intent()
 
     /**
      * Drop an item from inventory into the current room

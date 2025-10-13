@@ -102,6 +102,7 @@ Valid intent types:
 - "interact" - Interact with an object (requires target)
 - "inventory" - View player inventory (no target)
 - "take" - Pick up an item (requires target)
+- "take_all" - Pick up all items in the room (no target, triggered by "take all", "get all", "take everything", etc.)
 - "drop" - Drop an item (requires target)
 - "talk" - Talk to an NPC (requires target)
 - "attack" - Attack an NPC or continue combat (target optional if in combat)
@@ -200,6 +201,7 @@ Parse the player's intent.
                 "interact" -> if (target != null) Intent.Interact(target) else Intent.Invalid("Interact with what?")
                 "inventory" -> Intent.Inventory
                 "take" -> if (target != null) Intent.Take(target) else Intent.Invalid("Take what?")
+                "take_all" -> Intent.TakeAll
                 "drop" -> if (target != null) Intent.Drop(target) else Intent.Invalid("Drop what?")
                 "talk" -> if (target != null) Intent.Talk(target) else Intent.Invalid("Talk to whom?")
                 "attack" -> Intent.Attack(target)
@@ -256,7 +258,15 @@ Parse the player's intent.
             "look", "l", "examine", "inspect" -> Intent.Look(args)
             "search" -> Intent.Search(args)
             "interact" -> if (args.isNullOrBlank()) Intent.Invalid("Interact with what?") else Intent.Interact(args)
-            "take", "get", "pickup", "pick" -> if (args.isNullOrBlank()) Intent.Invalid("Take what?") else Intent.Take(args)
+            "take", "get", "pickup", "pick" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Take what?")
+                } else if (args.lowercase() == "all" || args.lowercase() == "everything") {
+                    Intent.TakeAll
+                } else {
+                    Intent.Take(args)
+                }
+            }
             "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)
             "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
             "attack", "kill", "fight", "hit" -> Intent.Attack(args)

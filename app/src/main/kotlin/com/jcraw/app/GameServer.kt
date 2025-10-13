@@ -182,6 +182,7 @@ class GameServer(
             is Intent.Attack -> handleAttack(playerId, playerState, intent.target)
             is Intent.Talk -> handleTalk(playerId, playerState, intent.target)
             is Intent.Take -> handleTake(playerId, playerState, intent.target, currentRoom)
+            is Intent.TakeAll -> handleTakeAll(playerId, playerState, currentRoom)
             is Intent.Drop -> handleDrop(playerId, playerState, intent.target, currentRoom)
             is Intent.Equip -> handleEquip(playerId, playerState, intent.target)
             is Intent.Use -> handleUse(playerId, playerState, intent.target)
@@ -266,23 +267,9 @@ class GameServer(
         val currentRoom = worldState.getCurrentRoom(playerId)!!
 
         return if (target == null) {
+            // Room description generator should handle all room contents
             val description = roomDescriptionGenerator.generateDescription(currentRoom)
-
-            // Also list pickupable items on the ground
-            val groundItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
-            val fullDescription = buildString {
-                append(description)
-                if (groundItems.isNotEmpty()) {
-                    append("\n\nItems on the ground:")
-                    groundItems.forEach { item ->
-                        append("\n  - ${item.name}")
-                    }
-                } else {
-                    append("\n\nYou don't see any items here.")
-                }
-            }
-
-            Triple(fullDescription, worldState, null)
+            Triple(description, worldState, null)
         } else {
             // Look at specific entity
             val entity = currentRoom.entities.find { it.name.equals(target, ignoreCase = true) }
@@ -487,16 +474,83 @@ class GameServer(
         }
     }
 
+    private fun handleTakeAll(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        val items = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+        return if (items.isEmpty()) {
+            Triple("There are no items to take here.", worldState, null)
+        } else {
+            var currentPlayer = playerState
+            var currentRoom = currentRoom
+            val takenItems = mutableListOf<String>()
+            var allQuestNotifications = ""
+
+            items.forEach { item ->
+                currentPlayer = currentPlayer.addToInventory(item)
+                currentRoom = currentRoom.removeEntity(item.id)
+                takenItems.add(item.name)
+
+                // Track item collection for quests
+                val (updatedPlayer, questNotifications) = trackQuests(currentPlayer, QuestAction.CollectedItem(item.id))
+                currentPlayer = updatedPlayer
+                allQuestNotifications += questNotifications
+            }
+
+            val newWorldState = worldState.updatePlayer(currentPlayer).updateRoom(currentRoom)
+
+            val message = buildString {
+                takenItems.forEach { append("You take the $it.\n") }
+                append("\nYou took ${items.size} item${if (items.size > 1) "s" else ""}.")
+                append(allQuestNotifications)
+            }
+
+            val event = GameEvent.GenericAction(
+                playerId = playerId,
+                playerName = playerState.name,
+                actionDescription = "picks up all items",
+                roomId = currentRoom.id,
+                excludePlayer = playerId
+            )
+
+            Triple(message, newWorldState, event)
+        }
+    }
+
     private fun handleDrop(
         playerId: PlayerId,
         playerState: PlayerState,
         itemId: String,
         currentRoom: Room
     ): Triple<String, WorldState, GameEvent?> {
-        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+        // First check inventory
+        var item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+        var isEquippedWeapon = false
+        var isEquippedArmor = false
+
+        // Check equipped weapon
+        if (item == null && playerState.equippedWeapon != null &&
+            playerState.equippedWeapon!!.name.equals(itemId, ignoreCase = true)) {
+            item = playerState.equippedWeapon
+            isEquippedWeapon = true
+        }
+
+        // Check equipped armor
+        if (item == null && playerState.equippedArmor != null &&
+            playerState.equippedArmor!!.name.equals(itemId, ignoreCase = true)) {
+            item = playerState.equippedArmor
+            isEquippedArmor = true
+        }
 
         return if (item != null) {
-            val updatedPlayer = playerState.removeFromInventory(item.id)
+            val updatedPlayer = when {
+                isEquippedWeapon -> playerState.copy(equippedWeapon = null)
+                isEquippedArmor -> playerState.copy(equippedArmor = null)
+                else -> playerState.removeFromInventory(item.id)
+            }
             val updatedRoom = currentRoom.addEntity(item)
             val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
 

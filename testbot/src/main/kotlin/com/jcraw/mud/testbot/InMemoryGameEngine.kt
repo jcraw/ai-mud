@@ -55,6 +55,7 @@ class InMemoryGameEngine(
             is Intent.Look -> handleLook(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
+            is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Attack -> handleAttack(intent.target)
@@ -167,15 +168,69 @@ class InMemoryGameEngine(
         }
     }
 
+    private fun handleTakeAll(): String {
+        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+        return if (items.isEmpty()) {
+            "There are no items to take here."
+        } else {
+            var currentState = worldState
+            val takenItems = mutableListOf<String>()
+
+            items.forEach { item ->
+                val newState = currentState.removeEntityFromRoom(room.id, item.id)
+                    ?.updatePlayer(currentState.player.addToInventory(item))
+                if (newState != null) {
+                    currentState = newState
+                    takenItems.add(item.name)
+                }
+            }
+
+            worldState = currentState
+            buildString {
+                takenItems.forEach { append("You take the $it.\n") }
+                append("You took ${takenItems.size} item${if (takenItems.size > 1) "s" else ""}.")
+            }
+        }
+    }
+
     private fun handleDrop(target: String): String {
         val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val item = worldState.player.inventory.find {
+
+        // Check inventory first
+        var item = worldState.player.inventory.find {
             it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase())
+        }
+        var isEquippedWeapon = false
+        var isEquippedArmor = false
+
+        // Check equipped weapon
+        if (item == null && worldState.player.equippedWeapon != null) {
+            val weapon = worldState.player.equippedWeapon!!
+            if (weapon.name.lowercase().contains(target.lowercase()) || weapon.id.lowercase().contains(target.lowercase())) {
+                item = weapon
+                isEquippedWeapon = true
+            }
+        }
+
+        // Check equipped armor
+        if (item == null && worldState.player.equippedArmor != null) {
+            val armor = worldState.player.equippedArmor!!
+            if (armor.name.lowercase().contains(target.lowercase()) || armor.id.lowercase().contains(target.lowercase())) {
+                item = armor
+                isEquippedArmor = true
+            }
         }
 
         return if (item != null) {
-            val newState = worldState.updatePlayer(worldState.player.removeFromInventory(item.id))
-                .addEntityToRoom(room.id, item)
+            val updatedPlayer = when {
+                isEquippedWeapon -> worldState.player.copy(equippedWeapon = null)
+                isEquippedArmor -> worldState.player.copy(equippedArmor = null)
+                else -> worldState.player.removeFromInventory(item.id)
+            }
+
+            val newState = worldState.updatePlayer(updatedPlayer).addEntityToRoom(room.id, item)
             if (newState != null) {
                 worldState = newState
                 "You drop the ${item.name}."

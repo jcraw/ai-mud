@@ -46,11 +46,18 @@ class InputGenerator(
             IMPORTANT: You are ALREADY in the game. Look at the "Current game state" to see where you are.
             Do NOT try to "enter" or "start" the game - you're already playing!
 
+            CRITICAL RULES TO AVOID REDUNDANCY:
+            1. Read "Actions taken so far" list carefully - do NOT repeat actions
+            2. Follow the "Remaining" objectives list - test ONLY what hasn't been completed
+            3. Each action should test something NEW - no duplicate tests
+            4. The test objectives are MANDATORY, not optional suggestions
+            5. Move systematically through the test plan - don't jump around randomly
+
             Generate a single player command that:
-            1. Is appropriate for the current scenario and game state
+            1. Tests the NEXT uncompleted objective from the scenario guidance
             2. Uses valid game commands (look, go/move/n/s/e/w, take, attack, talk, equip, use, check, etc.)
-            3. Tests game mechanics relevant to this scenario
-            4. Varies from previous inputs to explore different code paths
+            3. Has NOT been done before (check "Actions taken so far" list)
+            4. Makes progress toward completing ALL mandatory test cases
 
             Respond with JSON in this format:
             {
@@ -66,12 +73,18 @@ class InputGenerator(
         recentHistory: List<TestStep>,
         currentContext: String
     ): String {
+        // Extract all actions taken so far
+        val actionsTaken = recentHistory.map { it.playerInput.lowercase() }
+
         val historyText = if (recentHistory.isEmpty()) {
             "No previous actions yet."
         } else {
-            recentHistory.takeLast(3).joinToString("\n") { step ->
+            // Show ALL actions taken (condensed) + last 3 detailed
+            val allActions = "Actions taken so far (${recentHistory.size}): ${actionsTaken.joinToString(", ")}"
+            val recentDetailed = recentHistory.takeLast(3).joinToString("\n") { step ->
                 "Player: ${step.playerInput}\nGM: ${step.gmResponse.take(200)}"
             }
+            "$allActions\n\nRecent details:\n$recentDetailed"
         }
 
         // Track unique rooms visited for exploration scenario
@@ -84,100 +97,198 @@ class InputGenerator(
         val scenarioGuidance = when (scenario) {
             is TestScenario.Exploration -> {
                 val roomsVisitedText = if (roomsVisited.isNotEmpty()) {
-                    "Rooms visited so far: ${roomsVisited.joinToString(", ")}"
+                    "Rooms visited so far (${roomsVisited.size}): ${roomsVisited.joinToString(", ")}"
                 } else {
                     "No rooms visited yet."
                 }
+
+                val objectives = mapOf(
+                    "initial_look" to actionsTaken.any { it == "look" },
+                    "move_north" to actionsTaken.any { it in listOf("n", "north", "go north") },
+                    "move_south" to actionsTaken.any { it in listOf("s", "south", "go south") },
+                    "move_east" to actionsTaken.any { it in listOf("e", "east", "go east") },
+                    "move_west" to actionsTaken.any { it in listOf("w", "west", "go west") },
+                    "examine_object" to actionsTaken.any { it.matches(Regex("look .+")) },
+                    "revisit_room" to (roomsVisited.size >= 3 && actionsTaken.count { it.matches(Regex("[nsew]|north|south|east|west")) } > roomsVisited.size),
+                    "test_full_name" to actionsTaken.any { it in listOf("north", "south", "east", "west") },
+                    "visit_5_rooms" to (roomsVisited.size >= 5)
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
                 """
                 Test ALL exploration mechanics efficiently:
-                1. Room navigation - Move to new rooms (target: 5 different rooms)
-                2. Look commands - Use 'look' to get room descriptions and 'look <object>' to examine items/NPCs
-                3. Description variability - Revisit rooms occasionally to test that descriptions change
 
-                Efficient strategy:
-                - Visit new rooms using ALL directional movements (n/s/e/w/ne/nw/se/sw/up/down)
-                - Test FULL direction names (north, northwest) AND abbreviations (n, nw)
-                - Look at 1-2 objects/NPCs per room
-                - Revisit 1-2 rooms to test description variability
-                - Don't spend more than 2-3 actions per room
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/9): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/9): ${remaining.joinToString(", ")}
 
-                IMPORTANT: Test diagonal directions (northeast, northwest, southeast, southwest)!
+                Test plan (do ONLY what's remaining):
+                1. initial_look - Use 'look' to see starting room
+                2. move_north - Go north using 'n' or 'north'
+                3. move_south - Go south using 's' or 'south'
+                4. move_east - Go east using 'e' or 'east'
+                5. move_west - Go west using 'w' or 'west'
+                6. examine_object - Use 'look <object>' to examine items/NPCs
+                7. revisit_room - Return to a previous room to test description variability
+                8. test_full_name - Use full direction names (e.g., 'north' instead of 'n')
+                9. visit_5_rooms - Explore until you've visited 5 different rooms
+
+                CRITICAL RULES:
+                - DO NOT repeat 'look' in the same room multiple times
+                - DO NOT examine the same object twice
+                - Move to NEW rooms that haven't been visited yet
+                - Only revisit rooms ONCE to test variability
 
                 $roomsVisitedText
-            """.trimIndent()
+                Target: ~15 actions to visit 5 rooms and test all mechanics
+                """.trimIndent()
             }
-            is TestScenario.Combat -> """
-                FOCUS: Test combat mechanics ONLY. Equipment testing is in the item interaction scenario.
+            is TestScenario.Combat -> {
+                val objectives = mapOf(
+                    "look_around" to actionsTaken.any { it == "look" },
+                    "initiate_combat" to actionsTaken.any { it.contains("attack") && it.contains("skeleton") },
+                    "attack_in_combat" to (actionsTaken.count { it == "attack" || it.contains("attack") } >= 3),
+                    "observe_victory" to (actionsTaken.size >= 10) // Approximate - should have multiple rounds
+                )
 
-                You start in throne room with Skeleton King (60 HP, hostile). You have weapon + armor equipped.
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
 
-                Combat test steps (target: ~10-15 actions):
-                1. Look around - Confirm NPC is present
-                2. Attack named NPC - 'attack Skeleton King' to initiate combat
-                3. Continue attacking - Use 'attack' repeatedly until combat ends
-                4. Observe each round - Player attacks, NPC counterattacks
+                """
+                FOCUS: Test combat mechanics ONLY. You start in throne room with Skeleton King (60 HP, hostile).
 
-                Combat mechanics being tested:
-                - Combat initiation with named NPC
-                - Turn-based combat (player turn → NPC turn)
-                - Damage calculation (weapon + STR modifier)
-                - Armor defense reducing damage taken
-                - Health decreasing each round
-                - Victory condition (NPC dies at 0 HP, removed from room)
-                - Defeat condition (player dies at 0 HP, game ends)
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/4): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/4): ${remaining.joinToString(", ")}
 
-                DO NOT:
-                - Try to equip/unequip items (item test handles this)
-                - Search for items or move to other rooms (waste of steps)
-                - Try to flee or talk during combat
-                - Use consumables unless health critical (<20%)
+                Test plan (do ONLY what's remaining):
+                1. look_around - Use 'look' to confirm NPC is present
+                2. initiate_combat - 'attack Skeleton King' to start combat
+                3. attack_in_combat - Keep using 'attack' until combat ends
+                4. observe_victory - Continue until NPC dies or player dies
 
-                STRATEGY:
-                - Use exact NPC name to start combat: "attack Skeleton King"
-                - Just use "attack" once combat starts
-                - Keep attacking until victory or defeat
-                - This is a pure combat mechanics test - keep it simple!
-            """.trimIndent()
-            is TestScenario.SkillChecks -> """
-                Focus on:
-                - Finding interactive features
-                - Attempting skill checks (check <feature>)
-                - Testing different stat-based challenges
-            """.trimIndent()
-            is TestScenario.ItemInteraction -> """
+                CRITICAL RULES:
+                - DO NOT repeat 'look' multiple times
+                - DO NOT try to equip/unequip items
+                - DO NOT move to other rooms
+                - After initiating combat, just keep attacking until it ends
+
+                Target: ~10-15 actions total
+                """.trimIndent()
+            }
+            is TestScenario.SkillChecks -> {
+                val objectives = mapOf(
+                    "look_for_features" to actionsTaken.any { it == "look" },
+                    "move_to_features" to actionsTaken.any { it.matches(Regex("[nsew]|north|south|east|west")) },
+                    "attempt_str_check" to actionsTaken.any { it.startsWith("check ") },
+                    "attempt_dex_check" to (actionsTaken.count { it.startsWith("check ") } >= 2),
+                    "attempt_different_checks" to (actionsTaken.count { it.startsWith("check ") } >= 4)
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/5): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/5): ${remaining.joinToString(", ")}
+
+                Test plan:
+                1. look_for_features - Use 'look' to find interactive features
+                2. move_to_features - Explore rooms to find features
+                3. attempt_str_check - Try 'check <feature>' on something
+                4. attempt_dex_check - Try another skill check
+                5. attempt_different_checks - Test 4+ different features/checks
+
+                CRITICAL: DO NOT repeat the same 'check' command on the same feature
+
+                Target: ~25 actions (explore + 4+ checks)
+                """.trimIndent()
+            }
+            is TestScenario.ItemInteraction -> {
+                // Track what's been tested so far
+                val objectives = mapOf(
+                    "look_room" to (actionsTaken.any { it.contains("look") && !it.contains("look ") }),
+                    "examine_item_before_taking" to actionsTaken.any { it.matches(Regex(".*look .+")) },
+                    "take_items" to (actionsTaken.count { it.startsWith("take ") || it.startsWith("get ") } >= 2),
+                    "check_inventory" to (actionsTaken.any { it.contains("inventory") || it == "i" }),
+                    "equip_weapon" to actionsTaken.any { it.matches(Regex(".*(equip|wield).*(sword|dagger).*")) },
+                    "equip_armor" to actionsTaken.any { it.matches(Regex(".*(equip|wear).*(armor|chainmail).*")) },
+                    "drop_item" to actionsTaken.any { it.startsWith("drop ") },
+                    "take_dropped_item_back" to (actionsTaken.count { it.startsWith("take ") || it.startsWith("get ") } >= 3),
+                    "test_get_all" to (actionsTaken.any { it.contains("all") || it.contains("everything") }),
+                    "test_partial_names" to (actionsTaken.any { it.matches(Regex(".*(sword|dagger|armor|mail)")) && !it.contains("Rusty") && !it.contains("Sharp") })
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
                 IMPORTANT: You are already in the Armory which has 4 items:
                 - Rusty Iron Sword (weapon, +5 damage)
                 - Sharp Steel Dagger (weapon, +3 damage)
                 - Worn Leather Armor (armor, +2 defense)
                 - Heavy Chainmail (armor, +4 defense)
 
-                Test ALL item/inventory mechanics systematically:
-                1. Look around - See what items are in the room
-                2. Examine items - 'look <item>' to inspect 1-2 items before taking
-                3. Take items - Pick up 2-3 different items (weapons, armor)
-                4. Check inventory - Use 'inventory' to verify items were picked up
-                5. Examine inventory items - 'look <item>' on items you're carrying
-                6. Equip weapon - 'equip <weapon>' to equip a weapon
-                7. Look at equipped weapon - Verify "(equipped)" tag appears
-                8. Equip armor - 'equip <armor>' to equip armor
-                9. Drop item - 'drop <item>' to drop something
-                10. Look around - Verify dropped item appears in room
-                11. Take item back - Pick up the dropped item again
+                MANDATORY TEST OBJECTIVES (must complete ALL):
+                ✓ Completed (${completed.size}/10): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/10): ${remaining.joinToString(", ")}
 
-                DO NOT:
-                - Try to move to other rooms (stay in Armory)
-                - Try to use compound commands ("look and take" - split them)
-                - Retry failed commands (just move to next test)
-                - Look for items that don't exist (only test the 4 items listed above)
+                Test plan (do ONLY what's remaining):
+                1. look_room - Use 'look' alone to see room contents
+                2. examine_item_before_taking - 'look <item>' to inspect an item (do once)
+                3. take_items - Pick up 2-3 different items with 'take <item>' or 'get <item>'
+                4. check_inventory - Use 'inventory' or 'i' to verify
+                5. equip_weapon - 'equip <weapon>' to equip a weapon
+                6. equip_armor - 'equip <armor>' to equip armor
+                7. drop_item - 'drop <item>' to drop something
+                8. take_dropped_item_back - 'take <item>' to pick up the dropped item
+                9. test_get_all - Try "get all", "take everything", or similar
+                10. test_partial_names - Use "get sword" for "Rusty Iron Sword" or "get mail" for "Heavy Chainmail"
 
-                Target: ~12-15 actions covering all mechanics
-            """.trimIndent()
-            is TestScenario.SocialInteraction -> """
-                Focus on:
-                - Talking to NPCs
-                - Persuading NPCs
-                - Intimidating NPCs
-            """.trimIndent()
+                CRITICAL RULES:
+                - DO NOT repeat completed objectives
+                - DO NOT move to other rooms
+                - DO NOT retry failed commands
+                - DO NOT examine the same item multiple times
+                - Pick the NEXT uncompleted objective from the list
+
+                Target: Complete all 10 objectives in ~15 actions
+                """.trimIndent()
+            }
+            is TestScenario.SocialInteraction -> {
+                val objectives = mapOf(
+                    "look_for_npcs" to actionsTaken.any { it == "look" },
+                    "move_to_npcs" to actionsTaken.any { it.matches(Regex("[nsew]|north|south|east|west")) },
+                    "talk_to_npc" to actionsTaken.any { it.startsWith("talk ") },
+                    "persuade_npc" to (actionsTaken.any { it.contains("persuade") || it.contains("convince") }),
+                    "intimidate_npc" to (actionsTaken.any { it.contains("intimidate") || it.contains("threaten") }),
+                    "talk_to_2nd_npc" to (actionsTaken.count { it.startsWith("talk ") } >= 2)
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/6): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/6): ${remaining.joinToString(", ")}
+
+                Test plan:
+                1. look_for_npcs - Use 'look' to find NPCs
+                2. move_to_npcs - Explore to find NPCs if needed
+                3. talk_to_npc - Use 'talk <npc>' to start dialogue
+                4. persuade_npc - Try 'persuade <npc>' for CHA check
+                5. intimidate_npc - Try 'intimidate <npc>' for CHA check
+                6. talk_to_2nd_npc - Talk to a different NPC
+
+                CRITICAL: DO NOT talk to the same NPC repeatedly
+
+                Target: ~15 actions
+                """.trimIndent()
+            }
             is TestScenario.Exploratory -> """
                 Try anything:
                 - Random combinations
@@ -193,14 +304,39 @@ class InputGenerator(
                 - Talk to friendly NPCs for information
                 - Work toward reaching the end of the dungeon
             """.trimIndent()
-            is TestScenario.QuestTesting -> """
-                Focus on:
-                - Viewing quests (quests, journal, j)
-                - Accepting available quests (accept <quest_id>)
-                - Completing quest objectives (kill NPCs, collect items, explore rooms, talk to NPCs, use skills)
-                - Claiming completed quest rewards (claim <quest_id>)
-                - Testing abandon functionality (abandon <quest_id>)
-            """.trimIndent()
+            is TestScenario.QuestTesting -> {
+                val objectives = mapOf(
+                    "view_quests" to actionsTaken.any { it in listOf("quests", "journal", "j") },
+                    "accept_quest_1" to actionsTaken.any { it.startsWith("accept ") },
+                    "work_on_objectives" to (actionsTaken.any { it.contains("attack") || it.contains("take") || it.matches(Regex("[nsew]")) || it.startsWith("talk ") || it.startsWith("check ") }),
+                    "check_progress" to (actionsTaken.count { it in listOf("quests", "journal", "j") } >= 2),
+                    "accept_quest_2" to (actionsTaken.count { it.startsWith("accept ") } >= 2),
+                    "claim_reward" to actionsTaken.any { it.startsWith("claim ") },
+                    "test_abandon" to actionsTaken.any { it.startsWith("abandon ") }
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/7): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/7): ${remaining.joinToString(", ")}
+
+                Test plan:
+                1. view_quests - Use 'quests', 'journal', or 'j' to see available quests
+                2. accept_quest_1 - Use 'accept <quest_id>' to accept a quest
+                3. work_on_objectives - Complete objectives (kill, collect, explore, talk, check)
+                4. check_progress - Check 'quests' again to see progress/completion
+                5. accept_quest_2 - Accept a second quest
+                6. claim_reward - Use 'claim <quest_id>' when a quest is complete
+                7. test_abandon - Use 'abandon <quest_id>' to test abandoning a quest
+
+                CRITICAL: DO NOT view quests repeatedly without making progress
+
+                Target: ~40 actions (includes quest work)
+                """.trimIndent()
+            }
         }
 
         return """

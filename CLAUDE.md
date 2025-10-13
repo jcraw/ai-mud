@@ -149,7 +149,7 @@ Memory (store for RAG)
 
 ### Available Commands
 - **Movement**: `n/s/e/w`, `north/south/east/west`, `go <direction>`
-- **Interaction**: `look [target]`, `take/get <item>`, `drop <item>`, `talk <npc>`, `inventory/i`
+- **Interaction**: `look [target]`, `take/get <item>`, `take all/get all`, `drop <item>` (works with equipped items), `talk <npc>`, `inventory/i`
 - **Combat**: `attack/kill/fight/hit <npc>` to start/continue combat
 - **Equipment**: `equip/wield/wear <item>` to equip weapons or armor
 - **Consumables**: `use/consume/drink/eat <item>` to use healing potions
@@ -228,33 +228,36 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Combat Narration Improvements (2025-10-12)
+## Current Status: Item Interaction Fixes (2025-10-12)
 
-**Feature Complete**: Combat narration now uses equipment-aware, concise descriptions!
+**Feature Complete**: Fixed item interaction bugs identified in test bot validation!
 
-**Improvements Made** (`CombatNarrator.kt`):
+**Bug Fixes**:
 
-1. **Equipment-Aware Narration**:
-   - LLM prompts include player's equipped weapon (or "bare fists" if unarmed)
-   - Prompts include armor and STR/DEX stats for better combat context
-   - Fallback narratives properly handle unarmed vs armed combat
-   - No more generic "blade" references when player has no weapon
+1. **Drop Equipped Items**:
+   - `drop` command now works with equipped weapons and armor
+   - Automatically unequips items when dropped
+   - Implemented in App.kt, GameServer.kt, and InMemoryGameEngine.kt
 
-2. **Shorter, Line-Separated Text**:
-   - Reduced max tokens from 150 to 80 for more concise responses
-   - Each attack now on separate line (player attack, then enemy counter)
-   - Combat descriptions now 1-2 SHORT sentences per action
-   - Improved readability in combat log
+2. **"Take All" / "Get All" Command**:
+   - Added new `Intent.TakeAll` intent type
+   - Recognizes "take all", "get all", "take everything" commands
+   - Picks up all pickupable items in the room at once
+   - Shows individual item pickups and summary count
 
-3. **Better Prompting**:
-   - Explicit instructions to use actual equipped gear
-   - Clear formatting requirements (line breaks between attacks)
-   - More focused, atmospheric combat descriptions
+3. **Room Description Consistency**:
+   - Removed redundant item listings in `look` command
+   - Room descriptions now correctly show all entities consistently
+   - Fixed issue where items disappeared from room listing after operations
 
 **Files Modified**:
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt` - Equipment-aware prompts, shorter output, line-separated attacks
+- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Added TakeAll intent
+- `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Added take_all parsing
+- `app/src/main/kotlin/com/jcraw/app/App.kt` - Fixed drop, added handleTakeAll, fixed handleLook
+- `app/src/main/kotlin/com/jcraw/app/GameServer.kt` - Fixed drop, added handleTakeAll, fixed handleLook
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt` - Fixed drop, added handleTakeAll
 
-**Result**: Combat text is now punchier, more accurate, and easier to read!
+**Result**: All item interaction test bot scenarios should now pass!
 
 ## Next Developer
 

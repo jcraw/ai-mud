@@ -252,6 +252,7 @@ class MudGame(
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
+            is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Attack -> handleAttack(intent.target)
@@ -326,20 +327,8 @@ class MudGame(
 
     private fun handleLook(target: String?) {
         if (target == null) {
-            // Look at room - include ground items
+            // Look at room - describeCurrentRoom already shows all entities including items
             describeCurrentRoom()
-
-            // Also list pickupable items on the ground
-            val room = worldState.getCurrentRoom() ?: return
-            val groundItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
-            if (groundItems.isNotEmpty()) {
-                println("\nItems on the ground:")
-                groundItems.forEach { item ->
-                    println("  - ${item.name}")
-                }
-            } else {
-                println("\nYou don't see any items here.")
-            }
         } else {
             // Look at specific entity
             val room = worldState.getCurrentRoom() ?: return
@@ -497,13 +486,71 @@ class MudGame(
         }
     }
 
+    private fun handleTakeAll() {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find all pickupable items in the room
+        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+        if (items.isEmpty()) {
+            println("There are no items to take here.")
+            return
+        }
+
+        var takenCount = 0
+        var currentState = worldState
+
+        items.forEach { item ->
+            val newState = currentState
+                .removeEntityFromRoom(room.id, item.id)
+                ?.updatePlayer(currentState.player.addToInventory(item))
+
+            if (newState != null) {
+                currentState = newState
+                println("You take the ${item.name}.")
+                takenCount++
+            }
+        }
+
+        worldState = currentState
+
+        if (takenCount > 0) {
+            println("\nYou took $takenCount item${if (takenCount > 1) "s" else ""}.")
+
+            // Track item collection for quests
+            items.forEach { item ->
+                trackQuests(QuestAction.CollectedItem(item.id))
+            }
+        }
+    }
+
     private fun handleDrop(target: String) {
         val room = worldState.getCurrentRoom() ?: return
 
         // Find the item in inventory
-        val item = worldState.player.inventory.find { invItem ->
+        var item = worldState.player.inventory.find { invItem ->
             invItem.name.lowercase().contains(target.lowercase()) ||
             invItem.id.lowercase().contains(target.lowercase())
+        }
+
+        // Check if item is equipped weapon
+        var isEquippedWeapon = false
+        if (item == null && worldState.player.equippedWeapon != null) {
+            if (worldState.player.equippedWeapon!!.name.lowercase().contains(target.lowercase()) ||
+                worldState.player.equippedWeapon!!.id.lowercase().contains(target.lowercase())) {
+                item = worldState.player.equippedWeapon
+                isEquippedWeapon = true
+            }
+        }
+
+        // Check if item is equipped armor
+        var isEquippedArmor = false
+        if (item == null && worldState.player.equippedArmor != null) {
+            if (worldState.player.equippedArmor!!.name.lowercase().contains(target.lowercase()) ||
+                worldState.player.equippedArmor!!.id.lowercase().contains(target.lowercase())) {
+                item = worldState.player.equippedArmor
+                isEquippedArmor = true
+            }
         }
 
         if (item == null) {
@@ -511,9 +558,15 @@ class MudGame(
             return
         }
 
-        // Remove from inventory and add to room
+        // Unequip if needed and add to room
+        val updatedPlayer = when {
+            isEquippedWeapon -> worldState.player.copy(equippedWeapon = null)
+            isEquippedArmor -> worldState.player.copy(equippedArmor = null)
+            else -> worldState.player.removeFromInventory(item.id)
+        }
+
         val newState = worldState
-            .updatePlayer(worldState.player.removeFromInventory(item.id))
+            .updatePlayer(updatedPlayer)
             .addEntityToRoom(room.id, item)
 
         if (newState != null) {
