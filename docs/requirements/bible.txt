@@ -1,0 +1,151 @@
+Game Bible: AI-Powered Text-Based RPG (Iteration 1 and Future Plans)
+Overview
+This game revives text-based multiplayer online dungeons (MUDs) from the early internet era, adapted for the early AI/LLM supremacy age. It functions as a flexible, dynamic tabletop RPG similar to Dungeons & Dragons (D&D) or Pathfinder, where players roleplay in a rule-bound universe. Players receive narrated outcomes via text (spoken or written in future iterations), with high flexibility to attempt any imaginable action. The core leverages LLMs for interpretation and narration, combined with code for structured mechanics like dice rolls.
+
+Primary Goal: Provide an immersive, endlessly expandable personal RPG experience blending 4X elements (eXplore, eXpand, eXploit, eXterminate) at a personal scale.
+Platform: Android app (Kotlin, Jetpack Compose UI, MVVM architecture with consolidated state objects instead of multiple observables). Min API 24. UI follows 8dp baseline grid for spacing, with 4dp increments for fine adjustments. Gradle uses Kotlin KTS files.
+Interaction: Text-only input via Compose TextField (e.g., chat-like interface for commands/actions). UI includes panels for stats, inventory, narration display, and dialogue.
+Multiplayer: Asynchronous (async sessions via server polling or WebSockets; could simulate slow real-time). Players share persistent worlds but act independently or in coordinated turns.
+Tech Stack:
+
+Backend: Kotlin/Spring Boot server (e.g., on AWS/Heroku, scalable via Kubernetes).
+Databases: SQL (e.g., PostgreSQL for structured data like player stats, skills, inventories, world state; Room/SQLite for local caching). Vector DB (e.g., Pinecone/FAISS) for semantic embeddings of lore, environments, NPCs for quick retrieval.
+LLM Integration: API (e.g., Grok/OpenAI) for action parsing, narration, NPC dialogue, procedural generation.
+RNG: Code-based (true random via Kotlin Random class), not LLM-predicted.
+
+
+Development Approach: Build on existing MVP for iterative upgrades. Start simple (basic features), modular codebase for easy tweaks/expansions. Abstract systems (e.g., skills, lore) to add details later without core changes.
+Testing: JUnit for units (skills, rolls, loot); Espresso for UI; MockK for LLM/DB mocks; simulated playtests for end-to-end flows.
+Iterations:
+
+Iteration 1 (Current Focus): Basic implementation of all core features. Simple dungeons, minimal lore, basic 4X integration.
+Future Iterations: Expand to biomes, voice input/output, complex lore (races, alignments), deeper crafting/tech trees, real-time multiplayer, advanced procedural gen, mobile/web cross-platform.
+
+
+
+Theme and Setting
+
+Theme: Dark sword and sorcery fantasy (grim, magical worlds with peril, ancient evils, moral ambiguity).
+Lore Abstraction: Modular and pluggable. Load from config files/DB at runtime. Interfaces for entities like Race (attributes: bonuses, restrictions), Alignment (behavior modifiers). Details (e.g., specific races like elves/dwarves, alignments like chaotic evil) added later via DB updates without code changes.
+World Generation: Procedural via LLM + code. Iteration 1: Simple dungeons (grid-based rooms/corridors). Future: Biomes (forests, mountains), open worlds, dynamic events.
+
+Rules and Mechanics (D&D-Inspired with Modifications)
+
+Core Ruleset: Similar to D&D (classes, stats, combat turns, magic), but skill-focused progression. No hard D&D IP usage; custom abstractions.
+Differences from D&D:
+
+Progression: Skills increase with use (XP added on successful actions), no fixed class levels initially. Stats (e.g., strength, intelligence) increase via XP or items.
+Classes: Simplified (e.g., Warrior, Mage, Rogue) as starting templates; evolve via skills.
+Combat: Turn-based, optional (alternatives via stealth/diplomacy).
+Magic: Mana-based, unlocked via skills; failures on rolls.
+Alignments/Races: Abstract placeholders; implement as modifiers later.
+
+
+Skill System: Abstract and modular (e.g., base Skill class with level, XP, use_handler). Levels to 100+ (no hard caps; diminishing returns for balance in future). On cap, unlock stronger versions (e.g., "Swordsmanship" -> "Master Swordsmanship" with higher damage/crits) or new related skills (e.g., "Fire Magic" -> "Inferno Magic").
+
+Examples: Swordsmanship (levels in combat), Acrobatics (for flips/maneuvers), Diplomacy (for NPC talks), Stealth (bypassing fights).
+Modularity: Interface-based; tweak params (e.g., XP rates) via config without affecting other code.
+
+
+Action Handling Pipeline:
+
+Player text input (e.g., "I want to do a backflip over the goblin").
+LLM parses intent (classifies action type, extracts params).
+Query DB: Relevant skills (e.g., Acrobatics level), environment (room hazards), entity states.
+Feasibility check: Code evaluates possibility (e.g., skill thresholds).
+If needed, code-based dice roll (e.g., d20 + modifiers via Kotlin Random).
+LLM generates outcome narration (success/fail branches, flavored by context).
+Update state (e.g., XP gain, world changes) in DB.
+
+
+Dice Rolls: Always code-executed for reliability (e.g., d20, d6). Types: Combat (attack/defense), Skill checks (success thresholds), Loot drops.
+Freeform Flexibility: Players can attempt anything imaginable. LLM interprets creatively, but enforces rules (e.g., impossible actions fail narratively).
+
+4X Elements (Personal Scale Integration)
+Blend with RPG core for player-driven progression. All optional paths; e.g., pacifist play via diplomacy/exploration.
+
+eXplore:
+
+Procedural generation: LLM creates dynamic content on-the-fly (descriptions, quests, mysteries, stories).
+Iteration 1: Simple dungeons (e.g., 5-10 rooms via code algo like binary space partitioning; populated with mobs/traps/treasures).
+Commands: "Scout north", "Travel east" reveal areas, trigger encounters.
+Persistence: Store chunks in SQL (nodes/edges); embeddings in vector DB for semantic queries (e.g., "hidden secrets").
+Future: Biomes, open maps, global mysteries.
+
+
+eXpand:
+
+Personal power growth: Endless progression without caps.
+Mechanics: Skills/stats level via use/XP; gear upgrades via loot/crafting; riches accumulation (coins/loot sales); levels as milestones unlocking perks.
+Balance: Diminishing returns on high levels (configurable).
+Future: Territory claiming, NPC recruitment, base building.
+
+
+eXploit:
+
+Simple resource gathering/crafting.
+Gathering: Commands like "Mine rock" (skill check + roll; yields resources e.g., ore, wood, herbs).
+Crafting: Recipes in DB (e.g., combine ore + wood -> sword; requires skill, tools, roll).
+Modularity: Basic tables now; future tech trees, complex recipes.
+UI: Display resources/inventory in state panels.
+
+
+eXterminate:
+
+Optional combat: Fight mobs via commands (e.g., "Attack goblin").
+Alternatives: Stealth ("Sneak past"), Diplomacy ("Negotiate with orc") – LLM evaluates via skills/rolls.
+Future: Sieges, wars, AI-driven conflicts.
+
+
+
+Combat and Loot
+
+Combat Mechanics:
+
+Turn-based: Player action -> Mob response -> Narration.
+Flavor Text: LLM-generated based on weapon (e.g., "rusty sword slashes"), situation (e.g., "in dim cavern"), room (e.g., "echoing off stone walls"), mob state.
+Rolls: Code d20 + mods (skills, gear).
+
+
+Loot:
+
+On defeat: Generate corpse entity (temp DB object) lootable via "Loot corpse".
+Contents: Coins (lore-based currency, e.g., gold/silver; RNG amount based on mob level).
+Random Loot: Rare (5-10% chance; not Diablo-heavy). Tables in DB (e.g., weapons, potions via rarity).
+Corpse Decay: Timer (e.g., 10 turns; configurable) before despawn.
+UI: Narrate loot transfer; update inventory display.
+
+
+
+NPCs and Dialogue
+
+NPC System: Entities with DB-stored states (location, knowledge, behaviors).
+
+Knowledge: Pulled from vector DB embeddings (local lore, quests, areas).
+Dialogue: LLM-driven conversations (player input -> response gen, chained for trees).
+Behaviors: Reactive to player actions (e.g., friendly if diplomacied).
+
+
+Examples: Innkeeper shares quest hints; Guard blocks paths unless persuaded.
+Future: Faction systems, deep personalities.
+
+Persistence and State Management
+
+World State: Persistent across sessions/multiplayer. SQL for structured (stats, inventories); Vector DB for unstructured (lore embeddings, procedural descriptions).
+GameState Object: Consolidated data class in MVVM (holds player stats, skills, inventory, current room, narration queue, UI flags like dialogue mode).
+Saving: Auto-save on actions; cloud sync via server.
+
+UI and User Experience
+
+Layout: Chat interface for input/narration; Side panels for stats (skills/levels), inventory, map (text-based minimap for dungeons).
+Display: Narration in scrolling text; Highlight successes/fails.
+Accessibility: Text-only; Future voice via SpeechRecognizer.
+MVP Upgrades: Integrate dungeon gen, 4X mechanics, freeform actions into existing core loop.
+
+Future Iteration Mentions
+
+Iteration 2: Add biomes, voice hybrid, basic lore (races/alignments), deeper crafting.
+Iteration 3: Real-time multiplayer, advanced procedural gen (e.g., AI-driven stories), cross-platform.
+Long-Term: Infinite worlds, modding support, community-shared lore, VR integration.
+
+This bible serves as the foundational spec. All development aligns here; expansions build modularly.
