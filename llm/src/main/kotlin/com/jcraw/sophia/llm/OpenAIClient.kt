@@ -40,7 +40,16 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
         println("   Max tokens: $maxTokens")
         println("   Temperature: $actualTemperature${if (actualTemperature != temperature) " (forced to 1.0 for GPT-5)" else ""}")
         println("   System prompt: ${systemPrompt.take(100)}...")
-        println("   User context: ${userContext.take(100)}...")
+
+        // Show both start and end of user context to see the player command
+        if (userContext.length <= 200) {
+            println("   User context: $userContext")
+        } else {
+            val contextStart = userContext.take(100)
+            val contextEnd = userContext.takeLast(100)
+            println("   User context (start): $contextStart...")
+            println("   User context (end): ...$contextEnd")
+        }
 
         val messages = listOf(
             OpenAIMessage("system", systemPrompt),
@@ -94,7 +103,13 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
     override suspend fun createEmbedding(text: String, model: String): List<Double> {
         println("🔢 OpenAI Embedding API call starting...")
         println("   Model: $model")
-        println("   Text: ${text.take(100)}...")
+
+        // Show text intelligently based on length
+        if (text.length <= 200) {
+            println("   Text: $text")
+        } else {
+            println("   Text (${text.length} chars): ${text.take(150)}...")
+        }
 
         val request = OpenAIEmbeddingRequest(
             model = model,

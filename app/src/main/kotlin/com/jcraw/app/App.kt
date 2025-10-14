@@ -301,7 +301,17 @@ class MudGame(
                 describeCurrentRoom()
             } else if (result.playerDied) {
                 // Player died trying to flee
-                running = false
+                println("\nYou have been defeated! Game over.")
+                println("\nPress any key to play again...")
+                readLine()  // Wait for any input
+
+                // Restart the game
+                worldState = initialWorldState
+                println("\n" + "=" * 60)
+                println("  Restarting Adventure...")
+                println("=" * 60)
+                printWelcome()
+                describeCurrentRoom()
             } else {
                 // Failed to flee - update combat state and stay in place
                 if (result.newCombatState != null) {
@@ -670,7 +680,16 @@ class MudGame(
                     }
                     result.playerDied -> {
                         println("\nYou have been defeated! Game over.")
-                        running = false
+                        println("\nPress any key to play again...")
+                        readLine()  // Wait for any input
+
+                        // Restart the game
+                        worldState = initialWorldState
+                        println("\n" + "=" * 60)
+                        println("  Restarting Adventure...")
+                        println("=" * 60)
+                        printWelcome()
+                        describeCurrentRoom()
                     }
                     result.playerFled -> {
                         println("\nYou have fled from combat.")

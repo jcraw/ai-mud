@@ -28,6 +28,7 @@ For complete documentation, see:
 
 ### Game Features ✅
 - **Combat system**: Turn-based with STR modifiers, weapon bonuses, armor defense
+- **Death & respawn**: "Press any key to play again" prompt with full game restart
 - **Equipment system**: Weapons (+damage) and armor (+defense)
 - **Consumables**: Healing potions and other usable items
 - **Skill checks**: D&D-style (d20 + modifier vs DC) with all 6 stats
@@ -228,36 +229,30 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Item Interaction Fixes (2025-10-12)
+## Current Status: Death & Respawn System (2025-10-13)
 
-**Feature Complete**: Fixed item interaction bugs identified in test bot validation!
+**Feature Complete**: Added death and respawn system with game restart!
 
-**Bug Fixes**:
+**New Features**:
 
-1. **Drop Equipped Items**:
-   - `drop` command now works with equipped weapons and armor
-   - Automatically unequips items when dropped
-   - Implemented in App.kt, GameServer.kt, and InMemoryGameEngine.kt
+1. **Death & Respawn**:
+   - When player is defeated (HP reaches 0), displays "You have been defeated! Game over."
+   - Prompts "Press any key to play again..." and waits for input
+   - Restarts the game with fresh world state after any key press
+   - Handles death in both regular combat and flee attempts
+   - Implemented in `app/src/main/kotlin/com/jcraw/app/App.kt`
 
-2. **"Take All" / "Get All" Command**:
-   - Added new `Intent.TakeAll` intent type
-   - Recognizes "take all", "get all", "take everything" commands
-   - Picks up all pickupable items in the room at once
-   - Shows individual item pickups and summary count
-
-3. **Room Description Consistency**:
-   - Removed redundant item listings in `look` command
-   - Room descriptions now correctly show all entities consistently
-   - Fixed issue where items disappeared from room listing after operations
+2. **Better LLM Logging**:
+   - Shows both start and end of long prompts to see actual player commands
+   - Short prompts (≤200 chars) display in full
+   - Long prompts show first 100 and last 100 characters
+   - Improved logging in `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt`
 
 **Files Modified**:
-- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Added TakeAll intent
-- `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Added take_all parsing
-- `app/src/main/kotlin/com/jcraw/app/App.kt` - Fixed drop, added handleTakeAll, fixed handleLook
-- `app/src/main/kotlin/com/jcraw/app/GameServer.kt` - Fixed drop, added handleTakeAll, fixed handleLook
-- `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt` - Fixed drop, added handleTakeAll
+- `app/src/main/kotlin/com/jcraw/app/App.kt` - Added death/respawn handling (lines 302-314, 671-683)
+- `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt` - Improved prompt logging
 
-**Result**: All item interaction test bot scenarios should now pass!
+**Previous Session (2025-10-12)**: Fixed item interaction bugs (drop equipped items, take all command, room description consistency)
 
 ## Next Developer
 
