@@ -1,0 +1,227 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 50
+        - Passed: 18
+        - Failed: 32
+        - Pass Rate: 36%
+
+        Timing:
+        - Start: 2025-10-14T04:15:46.936022152Z
+        - End: 2025-10-14T04:22:41.635125802Z
+        - Duration: 414.70s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: equip iron sword
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: equip chainmail
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: take health potion
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: continue attacking Skeleton King
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: continue attacking Skeleton King
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: continue attacking Skeleton King
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: continue attacking skeleton king
+Reason: Step completed successfully
+
+Step 16: ✗ FAIL
+Input: go to throne room
+Reason: The response indicates an unknown command when the player attempts to go to the throne room, which should be a valid action.
+
+Step 17: ✗ FAIL
+Input: use health potion
+Reason: Player cannot use health potion, which should be allowed.
+
+Step 18: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response indicates that the player is trying to attack a non-existent entity, which is inconsistent with the expected game state where the Skeleton King should be present.
+
+Step 19: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response does not acknowledge the player's action of attacking the Skeleton King and instead returns an irrelevant message.
+
+Step 20: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as indicated by the GM response.
+
+Step 21: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 23: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as expected, indicating a potential issue with combat mechanics.
+
+Step 24: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response does not acknowledge the existence of the Skeleton King, which is critical for the combat scenario.
+
+Step 25: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as indicated by the response 'No one by that name here.'
+
+Step 26: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as expected; the game does not recognize the entity.
+
+Step 27: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game incorrectly states 'No one by that name here.' when the player is attempting to attack the Skeleton King, indicating a failure in combat mechanics.
+
+Step 28: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game does not recognize the Skeleton King, preventing the player from attacking or defeating it.
+
+Step 29: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as indicated by the repeated response 'No one by that name here.'
+
+Step 30: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as it is not present in the current room.
+
+Step 31: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game does not recognize the Skeleton King, which prevents the player from engaging in combat.
+
+Step 32: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response indicates that the player cannot attack the Skeleton King, which contradicts the expected behavior of engaging in combat.
+
+Step 33: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as it is not recognized in the game state.
+
+Step 34: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the skeleton king, indicating a potential issue with combat mechanics or room state.
+
+Step 35: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response indicates that the player cannot attack the Skeleton King, which is inconsistent with the expected gameplay where the player should be able to engage in combat after collecting gear.
+
+Step 36: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response does not recognize the Skeleton King, which indicates a failure in the combat mechanics.
+
+Step 37: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as it is not present, preventing progress.
+
+Step 38: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as indicated by the repeated response of 'No one by that name here.'
+
+Step 39: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response indicates that the Skeleton King is not present, which contradicts the expected outcome of defeating him after collecting gear.
+
+Step 40: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King, indicating a potential bug in combat mechanics.
+
+Step 41: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as it is not recognized by the game.
+
+Step 42: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player is unable to attack the Skeleton King due to a lack of recognition of the entity, preventing combat.
+
+Step 43: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game does not recognize the Skeleton King as an entity to attack, preventing the player from completing the objective.
+
+Step 44: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game response indicates that the Skeleton King is not present, which contradicts the expected outcome of defeating him.
+
+Step 45: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: Player cannot attack the Skeleton King as it is not recognized in the current context.
+
+Step 46: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 47: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game response indicates that the Skeleton King is not present, preventing the player from engaging in combat.
+
+Step 48: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The game does not recognize the Skeleton King as a valid target for combat, preventing the player from engaging in the expected fight.
+
+Step 49: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response does not acknowledge the player's input to attack the Skeleton King, indicating a potential issue with combat mechanics or entity recognition.
+
+Step 50: ✗ FAIL
+Input: continue attacking skeleton king
+Reason: The response indicates that the player cannot attack the Skeleton King because it is not recognized, which suggests a failure in the combat system.
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

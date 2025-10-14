@@ -8,6 +8,11 @@ application {
     mainClass.set("com.jcraw.mud.testbot.TestBotMainKt")
 }
 
+// Enable stdin for gradle run task (needed for test scripts)
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":llm"))
