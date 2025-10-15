@@ -140,11 +140,11 @@ Integration tests verify that multiple modules work together correctly. They use
 ```kotlin
 // app/src/test/kotlin/com/jcraw/app/integration/
 
-CombatIntegrationTest.kt              // Full combat with equipment
-ItemInteractionIntegrationTest.kt     // Complete item workflow
+CombatIntegrationTest.kt              // Full combat with equipment ✅
+ItemInteractionIntegrationTest.kt     // Complete item workflow ✅
 SkillCheckIntegrationTest.kt          // All 6 stat checks
 SocialInteractionIntegrationTest.kt   // Persuade/intimidate flows
-QuestIntegrationTest.kt               // Quest lifecycle + auto-tracking
+QuestIntegrationTest.kt               // Quest lifecycle + auto-tracking ✅
 NavigationIntegrationTest.kt          // Natural language navigation
 SaveLoadIntegrationTest.kt            // Persistence roundtrip
 ProceduralDungeonIntegrationTest.kt   // All 4 dungeon themes
@@ -400,10 +400,10 @@ class QuestIntegrationTest {
 | Shell Script | New Test File | Module | Type | Status |
 |-------------|---------------|--------|------|--------|
 | `test_combat.sh` | `CombatIntegrationTest.kt` | app | Integration | ✅ Complete (7 tests) |
-| `test_items.sh` | `ItemInteractionIntegrationTest.kt` | app | Integration | ⏳ Pending |
+| `test_items.sh` | `ItemInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
 | `test_skill_checks.sh` | `SkillCheckIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_social.sh` | `SocialInteractionIntegrationTest.kt` | app | Integration | ⏳ Pending |
-| `test_quests.sh` | `QuestIntegrationTest.kt` | app | Integration | ⏳ Pending |
+| `test_quests.sh` | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) |
 | `test_save_load.sh` | `SaveLoadIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_game.sh` | `FullGameplayIntegrationTest.kt` | app | Integration | ⏳ Pending |
@@ -594,8 +594,27 @@ Focus: Replace shell script tests with proper integration tests
   - Defeated NPC removed from room
   - Player can flee from combat
   - Combat progresses through multiple rounds
-- [ ] `ItemInteractionIntegrationTest.kt` - Complete item workflow
-- [ ] `QuestIntegrationTest.kt` - Quest acceptance → completion → claim
+- ✅ `ItemInteractionIntegrationTest.kt` - **13 tests, all passing** ✅
+  - Take single/all items
+  - Drop items (including equipped)
+  - Equip weapons and armor
+  - Weapon swapping
+  - Use consumables (in and out of combat)
+  - Healing potion mechanics
+  - Non-pickupable items
+  - Inventory display
+- ✅ `QuestIntegrationTest.kt` - **11 tests, all passing** ✅
+  - Quest acceptance
+  - Kill objective auto-tracking
+  - Collect objective auto-tracking
+  - Explore objective auto-tracking
+  - Talk objective auto-tracking
+  - Skill check objective auto-tracking
+  - Deliver objective (documented, pending implementation)
+  - Multi-objective quest completion
+  - Reward claiming
+  - Quest log display
+  - Quest abandonment
 - [ ] `SkillCheckIntegrationTest.kt` - All 6 stat checks
 - [ ] `SocialInteractionIntegrationTest.kt` - Persuade/intimidate flows
 

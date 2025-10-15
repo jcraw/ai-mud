@@ -8,8 +8,8 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~169 (across all modules)**
-- ✅ **Phase 2 Progress: 2/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests)**
+- ✅ **Total Unit/Integration Tests: ~180 (across all modules)**
+- ✅ **Phase 2 Progress: 3/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests)**
 
 ---
 
@@ -52,7 +52,7 @@ Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/a
   - Combat end (player death, NPC death, flee)
   - NPC removal after defeat
 
-- ✅ `ItemInteractionIntegrationTest.kt` (replaces `test_items.sh`) - **13 tests**
+- ✅ `ItemInteractionIntegrationTest.kt` (replaces `test_items.sh`) - **13 tests, all passing**
   - Take single/all items
   - Drop items (including equipped)
   - Equip weapons and armor
@@ -62,11 +62,18 @@ Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/a
   - Non-pickupable items
   - Inventory display
 
-- [ ] `QuestIntegrationTest.kt` (replaces `test_quests.sh`)
+- ✅ `QuestIntegrationTest.kt` (replaces `test_quests.sh`) - **11 tests, all passing**
   - Quest acceptance
-  - Objective auto-tracking (all 6 types)
-  - Quest completion
+  - Kill objective auto-tracking
+  - Collect objective auto-tracking
+  - Explore objective auto-tracking
+  - Talk objective auto-tracking
+  - Skill check objective auto-tracking
+  - Deliver objective (documented, pending implementation)
+  - Multi-objective quest completion
   - Reward claiming
+  - Quest log display
+  - Quest abandonment
 
 - [ ] `SkillCheckIntegrationTest.kt` (replaces `test_skill_checks.sh`)
   - All 6 stat checks (STR, DEX, CON, INT, WIS, CHA)
