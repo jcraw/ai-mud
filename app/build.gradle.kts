@@ -25,6 +25,8 @@ dependencies {
     implementation(project(":llm"))
     implementation(project(":utils"))
     implementation(libs.bundles.kotlinxEcosystem)
+    testImplementation(kotlin("test"))
+    testImplementation(project(":testbot"))
 }
 
 application {
