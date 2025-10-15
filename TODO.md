@@ -8,8 +8,8 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~194 (across all modules)**
-- ✅ **Phase 2 Progress: 4/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests)**
+- ✅ **Total Unit/Integration Tests: ~207 (across all modules)**
+- ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)**
 
 ---
 
@@ -39,8 +39,8 @@ Created 82 new behavioral tests covering core systems:
   - Damage calculations, equipment modifiers
   - Combat flow, stat bonuses, flee mechanics
 
-#### Phase 2: Integration Tests (2-3 days) - IN PROGRESS
-Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
+#### Phase 2: Integration Tests - ✅ COMPLETE
+Replaced shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
 
 **Pre-requisite:**
 - ✅ Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors (COMPLETE - removed outdated test, added test dependencies)
@@ -82,11 +82,14 @@ Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/a
   - Stat modifier effects
   - Multiple sequential checks
 
-- [ ] `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
-  - Talk to NPCs
-  - Persuasion checks
-  - Intimidation checks
-  - NPC dialogue generation
+- ✅ `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`) - **13 tests, all passing**
+  - Talk to NPCs (friendly and hostile)
+  - Persuasion checks (success/failure)
+  - Intimidation checks (success/failure)
+  - Difficulty levels (easy vs hard)
+  - Cannot persuade/intimidate same NPC twice
+  - CHA modifier effects on success rates
+  - Multiple NPCs independently
 
 #### Phase 3: Complex Integration (2-3 days) - MEDIUM PRIORITY
 Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:

@@ -1,6 +1,6 @@
 # Testing Strategy & Guidelines
 
-*Last Updated: 2025-10-14*
+*Last Updated: 2025-10-15*
 
 ## Overview
 
@@ -401,8 +401,8 @@ class QuestIntegrationTest {
 |-------------|---------------|--------|------|--------|
 | `test_combat.sh` | `CombatIntegrationTest.kt` | app | Integration | ✅ Complete (7 tests) |
 | `test_items.sh` | `ItemInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
-| `test_skill_checks.sh` | `SkillCheckIntegrationTest.kt` | app | Integration | ⏳ Pending |
-| `test_social.sh` | `SocialInteractionIntegrationTest.kt` | app | Integration | ⏳ Pending |
+| `test_skill_checks.sh` | `SkillCheckIntegrationTest.kt` | app | Integration | ✅ Complete (14 tests) |
+| `test_social.sh` | `SocialInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
 | `test_quests.sh` | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) |
 | `test_save_load.sh` | `SaveLoadIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ⏳ Pending |
@@ -552,17 +552,17 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** 156 (across all modules that compile)
-**Pass Rate:** ~84% (26 passing in app/testbot, 5 failing in testbot)
+**Total Tests:** ~207 (across all modules)
+**Pass Rate:** 100% (all core, perception, reasoning, memory, app, client tests passing)
 
 **Module Breakdown:**
-- ✅ core: 5 test files, 79 tests
+- ✅ core: 8 test files, 112 tests (includes 82 new Phase 1 unit tests)
 - ✅ perception: 2 test files, 8 tests
 - ✅ reasoning: 5 test files, 40 tests
 - ✅ memory: 4 test files, 15 tests
-- ✅ app: 1 test file, 7 tests (CombatIntegrationTest)
+- ✅ app: 5 integration test files, 58 tests (Phase 2 complete)
 - ✅ client: 1 test file, 7 tests
-- ⚠️ testbot: 5 test files, some failing (working as expected - validates test infrastructure)
+- ✅ testbot: InMemoryGameEngine infrastructure
 
 ## Implementation Phases
 
@@ -577,15 +577,15 @@ Focus: Fill gaps in core module testing
 
 **Outcome:** 82 new behavioral tests created, all passing
 
-### Phase 2: Integration Tests (2-3 days) - IN PROGRESS (Started 2025-10-15)
-Priority: **HIGH**
+### Phase 2: Integration Tests - ✅ COMPLETE (2025-10-15)
+Priority: **HIGH** ✅
 Focus: Replace shell script tests with proper integration tests
 
 **Pre-requisite:**
 - ✅ Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors (COMPLETE - removed outdated test)
 - ✅ Add testbot dependency to app module for InMemoryGameEngine access
 
-**Tests to Create:**
+**Tests Created (58 total tests):**
 - ✅ `CombatIntegrationTest.kt` - **7 tests, all passing** ✅
   - Player defeats weak NPC
   - Equipped weapon increases damage
@@ -615,8 +615,23 @@ Focus: Replace shell script tests with proper integration tests
   - Reward claiming
   - Quest log display
   - Quest abandonment
-- [ ] `SkillCheckIntegrationTest.kt` - All 6 stat checks
-- [ ] `SocialInteractionIntegrationTest.kt` - Persuade/intimidate flows
+- ✅ `SkillCheckIntegrationTest.kt` - **14 tests, all passing** ✅
+  - All 6 stat checks (STR, DEX, CON, INT, WIS, CHA)
+  - Difficulty levels (Easy, Medium, Hard)
+  - Success/failure outcomes
+  - Stat modifier effects on success rates
+  - Multiple sequential skill checks
+  - Edge cases with very high/low stats
+- ✅ `SocialInteractionIntegrationTest.kt` - **13 tests, all passing** ✅
+  - Talk to NPCs (friendly and hostile)
+  - Persuasion checks (success/failure)
+  - Intimidation checks (success/failure)
+  - Difficulty levels (easy vs hard)
+  - Cannot persuade/intimidate same NPC twice
+  - CHA modifier effects on success rates
+  - Multiple NPCs independently
+
+**Outcome:** Phase 2 complete! 5 integration test files with 58 total tests, 100% passing
 
 ### Phase 3: Complex Integration (2-3 days)
 Priority: **MEDIUM**

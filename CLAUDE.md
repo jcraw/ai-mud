@@ -61,9 +61,9 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~194 tests** across all modules (including 7 UI tests, 45 integration tests)
+- **Comprehensive tests**: **~207 tests** across all modules (including 7 UI tests, 58 integration tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
-  - **Phase 2 In Progress**: 4/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests)
+  - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -220,7 +220,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~194 tests** across modules (Phase 1 complete, Phase 2 nearly complete - 4/5 integration tests done)
+- **All modules building** - **~207 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -233,9 +233,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Phase 2 Testing In Progress (2025-10-15)
+## Current Status: Phase 2 Testing Complete! (2025-10-15)
 
-**Latest Session**: Phase 2 integration tests - skill check system complete
+**Latest Session**: Phase 2 integration tests - social interaction system complete
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -244,7 +244,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - ✅ Created `CombatResolverTest.kt` - 14 tests for combat damage and flow
 - **Total: 82 new behavioral tests, all passing**
 
-**Phase 2 Testing Migration - IN PROGRESS** 🔄
+**Phase 2 Testing Migration - COMPLETE** ✅
 - ✅ Fixed app module test compilation (removed outdated GameServerTest, added dependencies)
 - ✅ Created `CombatIntegrationTest.kt` - **7 tests, all passing**
   - Player defeats weak NPC in combat
@@ -282,11 +282,19 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
   - Stat modifier effects on success rates
   - Multiple sequential skill checks
   - Edge cases with very high/low stats
-- **Progress: 4/5 integration tests complete (45 total integration tests)**
+- ✅ Created `SocialInteractionIntegrationTest.kt` - **13 tests, all passing**
+  - Talk to NPCs (friendly and hostile)
+  - Persuasion checks (success/failure)
+  - Intimidation checks (success/failure)
+  - Difficulty levels (easy vs hard)
+  - Cannot persuade/intimidate same NPC twice
+  - CHA modifier effects on success rates
+  - Multiple NPCs independently
+- **Progress: 5/5 integration tests complete (58 total integration tests)**
 
 **Major Achievements**:
 - ✅ All automated tests: **100% pass rate**
-- ✅ Phase 2 integration tests: **4/5 complete (45 tests total)**
+- ✅ Phase 2 integration tests: **5/5 COMPLETE (58 tests total)**
 - ✅ BUG-001 (combat state desync): **FIXED**
 - ✅ BUG-002 (social checks): **FIXED**
 - ✅ BUG-003 (death/respawn): **FIXED**
@@ -334,7 +342,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, and **Phase 1 testing migration** are complete!
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, and **Phase 1 & Phase 2 testing migration** are complete!
 
 **Testing Status**:
 - ✅ **Phase 1 Complete**: 82 new unit tests created
@@ -342,29 +350,23 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Inventory system (19 tests)
   - World state navigation (33 tests)
   - Combat resolver (14 tests)
-- 🔄 **Phase 2 In Progress**: 4/5 integration tests complete
+- ✅ **Phase 2 Complete**: 5/5 integration tests complete
   - ✅ CombatIntegrationTest (7 tests) - replaces `test_combat.sh`
   - ✅ ItemInteractionIntegrationTest (13 tests) - replaces `test_items.sh`
   - ✅ QuestIntegrationTest (11 tests) - replaces `test_quests.sh`
   - ✅ SkillCheckIntegrationTest (14 tests) - replaces `test_skill_checks.sh`
-  - ⏳ SocialInteractionIntegrationTest - pending
+  - ✅ SocialInteractionIntegrationTest (13 tests) - replaces `test_social.sh`
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~194 tests** across all modules
+- **Total: ~207 tests** across all modules
 
 **All Known Bugs Resolved!** 🎉
 
 **Next Priorities**:
 
-1. **Testing Migration - Phase 2** (HIGH PRIORITY - NEXT):
-   - ✅ Pre-requisite: Fix app module test compilation (COMPLETE)
-   - ✅ `CombatIntegrationTest.kt` - 7 tests (COMPLETE)
-   - ✅ `ItemInteractionIntegrationTest.kt` - 13 tests (COMPLETE)
-   - ✅ `QuestIntegrationTest.kt` - 11 tests (COMPLETE)
-   - ✅ `SkillCheckIntegrationTest.kt` - 14 tests (COMPLETE)
-   - Create remaining integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
-     - `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
+1. **Testing Migration - Phase 3** (MEDIUM PRIORITY - NEXT):
+   - Complex integration tests for save/load, procedural generation, navigation, and full gameplay
    - See **[TESTING.md](docs/TESTING.md)** for complete plan and **[TODO.md](TODO.md)** for tasks
 
 2. **Feature work**:
