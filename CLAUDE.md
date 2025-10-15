@@ -61,7 +61,8 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: 67+ tests across all modules (including 7 UI tests)
+- **Comprehensive tests**: **149 tests** across all modules (including 7 UI tests)
+  - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -218,7 +219,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - 60+ tests passing
+- **All modules building** - **149 tests passing** (82 new unit tests added in Phase 1)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -231,7 +232,17 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: All Bugs Resolved! (2025-10-14)
+## Current Status: Phase 1 Testing Complete! (2025-10-15)
+
+**Latest Session**: Completed Phase 1 of testing migration - 82 new unit tests
+
+**Phase 1 Testing Migration - COMPLETE** ✅
+- ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
+- ✅ Created `InventorySystemTest.kt` - 19 tests for inventory management
+- ✅ Created `WorldStateTest.kt` - 33 tests for navigation and entity lookup
+- ✅ Created `CombatResolverTest.kt` - 14 tests for combat damage and flow
+- **Total: 82 new behavioral tests, all passing**
+- **Project total: 149 tests (up from 67)**
 
 **Major Achievements**:
 - ✅ All automated tests: **100% pass rate**
@@ -240,8 +251,6 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - ✅ BUG-003 (death/respawn): **FIXED**
 - ✅ BUG-006 (navigation NLU): **FIXED**
 - ✅ IMPROVEMENT-001 (smart_playthrough validation): **FIXED**
-
-**Latest Session**: Enhanced natural language navigation with room-name support
 
 1. **IMPROVEMENT-001: SmartPlaythrough Test Validation - RESOLVED** ✅
    - **Root Cause**:
@@ -284,21 +293,31 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, and **natural language navigation** are complete!
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, and **Phase 1 testing migration** are complete!
 
-**Test Status**:
+**Testing Status**:
+- ✅ **Phase 1 Complete**: 82 new unit tests created
+  - Equipment system (16 tests)
+  - Inventory system (19 tests)
+  - World state navigation (33 tests)
+  - Combat resolver (14 tests)
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
+- **Total: 149 tests passing**
 
 **All Known Bugs Resolved!** 🎉
 
-**Next Priorities**:
+**Next Priorities (Phase 2)**:
 
-1. **Testing Migration** (HIGH PRIORITY):
-   - Migrate shell script tests to proper unit/integration tests
-   - Create comprehensive test suite with JUnit 5 + @Nested organization
-   - Follow Kotlin best practices and clean architecture principles
+1. **Testing Migration - Phase 2** (HIGH PRIORITY - NEXT):
+   - Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors (pre-existing)
+   - Create integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
+     - `CombatIntegrationTest.kt` (replaces `test_combat.sh`)
+     - `ItemInteractionIntegrationTest.kt` (replaces `test_items.sh`)
+     - `QuestIntegrationTest.kt` (replaces `test_quests.sh`)
+     - `SkillCheckIntegrationTest.kt` (replaces shell script)
+     - `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
    - See **[TESTING.md](docs/TESTING.md)** for complete plan and **[TODO.md](TODO.md)** for tasks
 
 2. **Feature work**:

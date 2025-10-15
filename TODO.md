@@ -1,6 +1,6 @@
 # TODO List
 
-*Last Updated: 2025-10-14*
+*Last Updated: 2025-10-15*
 
 ## Current Status
 
@@ -8,6 +8,7 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
+- ✅ **Total Project Tests: 149 (67 existing + 82 new)**
 
 ---
 
@@ -18,37 +19,32 @@
 **Description:** Migrate shell script tests to proper unit/integration tests following Kotlin best practices
 **Documentation:** [TESTING.md](docs/TESTING.md)
 
-#### Phase 1: Core Unit Tests (1-2 days) - HIGH PRIORITY
-Fill gaps in core module testing:
+#### Phase 1: Core Unit Tests - ✅ COMPLETE
+Created 82 new behavioral tests covering core systems:
 
-- [ ] `core/src/test/kotlin/com/jcraw/mud/core/EquipmentSystemTest.kt`
-  - Test equip/unequip weapons
-  - Test equip/unequip armor
-  - Test equipment restrictions
-  - Test equipped item removal from inventory
+- ✅ `core/src/test/kotlin/com/jcraw/mud/core/EquipmentSystemTest.kt` **(16 tests)**
+  - Equipment swapping, bonus calculations, immutability
+  - Weapon and armor equip/unequip mechanics
 
-- [ ] `core/src/test/kotlin/com/jcraw/mud/core/InventorySystemTest.kt`
-  - Test add/remove items
-  - Test find item by ID/name
-  - Test inventory capacity (if applicable)
-  - Test item stacking/quantity
+- ✅ `core/src/test/kotlin/com/jcraw/mud/core/InventorySystemTest.kt` **(19 tests)**
+  - Add/remove/find items, lifecycle tests
+  - Immutability and state consistency
 
-- [ ] `core/src/test/kotlin/com/jcraw/mud/core/WorldStateTest.kt`
-  - Test room navigation
-  - Test entity lookup
-  - Test room/entity relationships
-  - Test world state mutations
+- ✅ `core/src/test/kotlin/com/jcraw/mud/core/WorldStateTest.kt` **(33 tests)**
+  - Room navigation, player management
+  - Entity operations, immutability tests
 
-- [ ] `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/CombatResolverTest.kt`
-  - Test damage calculation with STR modifier
-  - Test weapon damage bonus
-  - Test armor defense reduction
-  - Test turn order
-  - Test combat end conditions
+- ✅ `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/CombatResolverTest.kt` **(14 tests)**
+  - Damage calculations, equipment modifiers
+  - Combat flow, stat bonuses, flee mechanics
 
-#### Phase 2: Integration Tests (2-3 days) - HIGH PRIORITY
+#### Phase 2: Integration Tests (2-3 days) - HIGH PRIORITY (NEXT)
 Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
 
+**Pre-requisite:**
+- [ ] Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors (pre-existing)
+
+**Integration Tests:**
 - [ ] `CombatIntegrationTest.kt` (replaces `test_combat.sh`)
   - Basic combat flow
   - Equipment modifiers (weapons/armor)

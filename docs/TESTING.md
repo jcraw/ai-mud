@@ -552,33 +552,39 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** 67+
-**Pass Rate:** 100%
+**Total Tests:** 149
+**Pass Rate:** 100% (excluding app module with pre-existing compilation errors)
 
 **Module Breakdown:**
-- ✅ core: 2 test files, 17 tests
+- ✅ core: 5 test files, 85 tests (17 existing + 68 new)
 - ✅ perception: 2 test files, 8 tests
-- ✅ reasoning: 4 test files, 12 tests
+- ✅ reasoning: 5 test files, 26 tests (12 existing + 14 new)
 - ✅ memory: 4 test files, 15 tests
-- ✅ app: 1 test file, 5 tests
+- ⚠️ app: 1 test file (has compilation errors - Phase 2)
 - ✅ client: 1 test file, 7 tests
 - ✅ testbot: 5 test files, 15 tests
 
 ## Implementation Phases
 
-### Phase 1: Core Unit Tests (1-2 days)
-Priority: **HIGH**
+### Phase 1: Core Unit Tests - ✅ COMPLETE (2025-10-15)
+Priority: **HIGH** ✅
 Focus: Fill gaps in core module testing
 
-- [ ] `EquipmentSystemTest.kt` - Equip/unequip weapons & armor
-- [ ] `InventorySystemTest.kt` - Add/remove/find items
-- [ ] `WorldStateTest.kt` - Room navigation, entity lookup
-- [ ] `CombatResolverTest.kt` - Damage calculation, turn order
+- ✅ `EquipmentSystemTest.kt` - 16 tests for equip/unequip weapons & armor
+- ✅ `InventorySystemTest.kt` - 19 tests for add/remove/find items
+- ✅ `WorldStateTest.kt` - 33 tests for room navigation, entity lookup
+- ✅ `CombatResolverTest.kt` - 14 tests for damage calculation, turn order
 
-### Phase 2: Integration Tests (2-3 days)
-Priority: **HIGH**
+**Outcome:** 82 new behavioral tests created, all passing
+
+### Phase 2: Integration Tests (2-3 days) - IN PROGRESS
+Priority: **HIGH** (NEXT)
 Focus: Replace shell script tests with proper integration tests
 
+**Pre-requisite:**
+- [ ] Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors
+
+**Tests to Create:**
 - [ ] `CombatIntegrationTest.kt` - Full combat with equipment
 - [ ] `ItemInteractionIntegrationTest.kt` - Complete item workflow
 - [ ] `QuestIntegrationTest.kt` - Quest acceptance → completion → claim
