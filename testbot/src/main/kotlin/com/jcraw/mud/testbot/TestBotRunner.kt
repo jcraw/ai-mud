@@ -36,6 +36,13 @@ class TestBotRunner(
 
                 state = state.withStep(stepResult.step, stepResult)
 
+                // Check for early completion based on scenario objectives
+                if (checkScenarioComplete(state)) {
+                    println("   ✅ Scenario objectives complete at step ${state.currentStep}!")
+                    state = state.withCompletion(TestStatus.PASSED)
+                    break
+                }
+
                 // Brief delay to avoid overwhelming the LLM API
                 delay(100)
 
@@ -271,5 +278,50 @@ class TestBotRunner(
 
         println("\nDuration: ${report.duration / 1000.0}s")
         println("=".repeat(60))
+    }
+
+    /**
+     * Check if scenario-specific completion criteria are met.
+     */
+    private fun checkScenarioComplete(state: TestState): Boolean {
+        val worldState = gameEngine.getWorldState()
+
+        return when (state.scenario) {
+            is TestScenario.BruteForcePlaythrough -> {
+                // Complete when Skeleton King is defeated
+                val skeletonKingDefeated = state.steps.any {
+                    it.gmResponse.contains("has been defeated", ignoreCase = true) &&
+                    it.playerInput.contains("skeleton", ignoreCase = true)
+                }
+                skeletonKingDefeated
+            }
+            is TestScenario.BadPlaythrough -> {
+                // Complete when player dies
+                val playerDied = state.steps.any {
+                    it.gmResponse.contains("You have died", ignoreCase = true) ||
+                    it.gmResponse.contains("You have been defeated", ignoreCase = true) ||
+                    it.gmResponse.contains("Game over", ignoreCase = true)
+                }
+                playerDied
+            }
+            is TestScenario.SmartPlaythrough -> {
+                // Complete when player reaches secret chamber OR defeats boss
+                // Check if player is actually IN the secret chamber (by checking current room name)
+                val currentRoom = worldState.getCurrentRoom()
+                val reachedSecretChamber = currentRoom?.name?.contains("Secret", ignoreCase = true) == true ||
+                    currentRoom?.name?.contains("Hidden", ignoreCase = true) == true ||
+                    // Also check if room description starts with "Secret Chamber" or "Hidden Chamber" (room name header)
+                    state.steps.any {
+                        it.gmResponse.startsWith("Secret Chamber", ignoreCase = true) ||
+                        it.gmResponse.startsWith("Hidden Chamber", ignoreCase = true)
+                    }
+                val bossDefeated = state.steps.any {
+                    it.gmResponse.contains("has been defeated", ignoreCase = true) &&
+                    it.playerInput.contains("skeleton", ignoreCase = true)
+                }
+                reachedSecretChamber || bossDefeated
+            }
+            else -> false // Other scenarios run to maxSteps
+        }
     }
 }

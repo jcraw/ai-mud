@@ -2,6 +2,9 @@ package com.jcraw.mud.reasoning.procedural
 
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.Stats
+import com.jcraw.mud.core.SkillChallenge
+import com.jcraw.mud.core.StatType
+import com.jcraw.mud.core.Difficulty
 import kotlin.random.Random
 
 /**
@@ -31,6 +34,14 @@ class NPCGenerator(
         val stats = generateStatsForPowerLevel(powerLevel)
         val (health, maxHealth) = calculateHealthForPowerLevel(powerLevel, stats.constitution)
 
+        // Hostile NPCs can be intimidated (and sometimes persuaded at lower levels)
+        val (persuasion, intimidation) = createSocialChallenges(
+            npcName = name,
+            powerLevel = powerLevel,
+            includePersuasion = powerLevel <= 2,  // Weaker enemies can be persuaded
+            includeIntimidation = true            // All hostile enemies can be intimidated
+        )
+
         return Entity.NPC(
             id = id,
             name = name,
@@ -38,7 +49,9 @@ class NPCGenerator(
             isHostile = true,
             health = health,
             maxHealth = maxHealth,
-            stats = stats
+            stats = stats,
+            persuasionChallenge = persuasion,
+            intimidationChallenge = intimidation
         )
     }
 
@@ -59,6 +72,14 @@ class NPCGenerator(
         val stats = generateStatsForPowerLevel(powerLevel)
         val (health, maxHealth) = calculateHealthForPowerLevel(powerLevel, stats.constitution)
 
+        // Friendly NPCs can be persuaded
+        val (persuasion, intimidation) = createSocialChallenges(
+            npcName = name,
+            powerLevel = powerLevel,
+            includePersuasion = true,   // Friendly NPCs can be persuaded
+            includeIntimidation = false // Don't intimidate friendly NPCs
+        )
+
         return Entity.NPC(
             id = id,
             name = name,
@@ -66,7 +87,9 @@ class NPCGenerator(
             isHostile = false,
             health = health,
             maxHealth = maxHealth,
-            stats = stats
+            stats = stats,
+            persuasionChallenge = persuasion,
+            intimidationChallenge = intimidation
         )
     }
 
@@ -86,6 +109,47 @@ class NPCGenerator(
             wisdom = random.nextInt(baseStatMin, baseStatMax + 1),
             charisma = random.nextInt(baseStatMin, baseStatMax + 1)
         )
+    }
+
+    /**
+     * Create social challenges based on power level
+     * Returns pair of (persuasionChallenge, intimidationChallenge)
+     */
+    private fun createSocialChallenges(
+        npcName: String,
+        powerLevel: Int,
+        includePersuasion: Boolean,
+        includeIntimidation: Boolean
+    ): Pair<SkillChallenge?, SkillChallenge?> {
+        // Difficulty scales with power level
+        val difficulty = when (powerLevel) {
+            1 -> Difficulty.EASY          // DC 10
+            2 -> Difficulty.MEDIUM        // DC 15
+            3 -> Difficulty.HARD          // DC 20
+            else -> Difficulty.VERY_HARD  // DC 25 for bosses
+        }
+
+        val persuasion = if (includePersuasion) {
+            SkillChallenge(
+                statType = StatType.CHARISMA,
+                difficulty = difficulty,
+                description = "Attempt to persuade $npcName through charm and reason",
+                successDescription = "Your words strike a chord. $npcName is persuaded.",
+                failureDescription = "Your attempt at persuasion falls flat. $npcName is unmoved."
+            )
+        } else null
+
+        val intimidation = if (includeIntimidation) {
+            SkillChallenge(
+                statType = StatType.CHARISMA,
+                difficulty = difficulty,
+                description = "Attempt to intimidate $npcName through force of will",
+                successDescription = "Your intimidating presence works. $npcName backs down.",
+                failureDescription = "Your attempt at intimidation fails. $npcName is unimpressed."
+            )
+        } else null
+
+        return Pair(persuasion, intimidation)
     }
 
     /**
@@ -116,6 +180,14 @@ class NPCGenerator(
 
         val (health, maxHealth) = calculateHealthForPowerLevel(4, stats.constitution)
 
+        // Bosses have BOTH social challenges for multiple solution paths
+        val (persuasion, intimidation) = createSocialChallenges(
+            npcName = name,
+            powerLevel = 4,  // Boss level
+            includePersuasion = true,   // Can be persuaded (very hard)
+            includeIntimidation = true  // Can be intimidated (very hard)
+        )
+
         return Entity.NPC(
             id = id,
             name = name,
@@ -123,7 +195,9 @@ class NPCGenerator(
             isHostile = true,
             health = health,
             maxHealth = maxHealth,
-            stats = stats
+            stats = stats,
+            persuasionChallenge = persuasion,
+            intimidationChallenge = intimidation
         )
     }
 

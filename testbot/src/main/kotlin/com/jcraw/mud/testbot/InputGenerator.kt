@@ -382,18 +382,47 @@ class InputGenerator(
                 """.trimIndent()
             }
             is TestScenario.BruteForcePlaythrough -> {
+                // Track based on SUCCESSFUL completion (check responses, not just inputs)
                 val objectives = mapOf(
                     "initial_look" to actionsTaken.any { it == "look" },
-                    "go_to_armory" to actionsTaken.any { it.matches(Regex(".*(west|armory).*")) },
-                    "take_best_weapon" to actionsTaken.any { it.contains("take") && it.contains("iron") },
-                    "take_best_armor" to actionsTaken.any { it.contains("take") && it.contains("chainmail") },
-                    "equip_weapon" to actionsTaken.any { it.contains("equip") && it.contains("sword") },
-                    "equip_armor" to actionsTaken.any { it.contains("equip") && it.contains("chainmail") },
-                    "go_to_treasury" to actionsTaken.any { it.matches(Regex(".*(east|treasury).*")) },
-                    "take_health_potion" to actionsTaken.any { it.contains("take") && it.contains("potion") },
-                    "go_to_throne_room" to actionsTaken.any { it.matches(Regex(".*throne.*")) },
-                    "attack_skeleton_king" to actionsTaken.any { it.contains("attack") && it.contains("skeleton") },
-                    "defeat_boss" to (actionsTaken.count { it == "attack" } >= 8) // Should take multiple rounds
+                    "go_to_armory" to recentHistory.any {
+                        it.gmResponse.contains("Forgotten Armory", ignoreCase = true) ||
+                        it.gmResponse.contains("Armory", ignoreCase = true)
+                    },
+                    "take_best_weapon" to recentHistory.any {
+                        it.playerInput.contains("take") && it.playerInput.contains("iron") &&
+                        it.gmResponse.contains("You take", ignoreCase = true)
+                    },
+                    "take_best_armor" to recentHistory.any {
+                        it.playerInput.contains("take") && it.playerInput.contains("chainmail") &&
+                        it.gmResponse.contains("You take", ignoreCase = true)
+                    },
+                    "equip_weapon" to recentHistory.any {
+                        it.playerInput.contains("equip") && it.playerInput.contains("sword") &&
+                        it.gmResponse.contains("You equip", ignoreCase = true)
+                    },
+                    "equip_armor" to recentHistory.any {
+                        it.playerInput.contains("equip") && it.playerInput.contains("chainmail") &&
+                        it.gmResponse.contains("You equip", ignoreCase = true)
+                    },
+                    "go_to_treasury" to recentHistory.any {
+                        it.gmResponse.contains("Ancient Treasury", ignoreCase = true) ||
+                        it.gmResponse.contains("Treasury", ignoreCase = true)
+                    },
+                    "take_health_potion" to recentHistory.any {
+                        it.playerInput.contains("take") && it.playerInput.contains("potion") &&
+                        it.gmResponse.contains("You take", ignoreCase = true)
+                    },
+                    "go_to_throne_room" to recentHistory.any {
+                        it.gmResponse.contains("Throne Room", ignoreCase = true)
+                    },
+                    "attack_skeleton_king" to recentHistory.any {
+                        it.playerInput.contains("attack") && it.playerInput.contains("skeleton") &&
+                        it.gmResponse.contains("combat", ignoreCase = true)
+                    },
+                    "defeat_boss" to recentHistory.any {
+                        it.gmResponse.contains("has been defeated", ignoreCase = true)
+                    }
                 )
 
                 val completed = objectives.filter { it.value }.keys
@@ -409,36 +438,44 @@ class InputGenerator(
 
                 BRUTE FORCE STRATEGY (collect everything, fight with advantage):
                 1. initial_look - Look at entrance
-                2. go_to_armory - Go north, then west to armory
+                2. go_to_armory - Go north to corridor, then west to armory
                 3. take_best_weapon - "take iron sword" (Rusty Iron Sword, +5 damage)
                 4. take_best_armor - "take chainmail" (Heavy Chainmail, +4 defense)
                 5. equip_weapon - "equip iron sword"
                 6. equip_armor - "equip chainmail"
-                7. go_to_treasury - Return to corridor, go east to treasury
-                8. take_health_potion - "take health potion" for backup
-                9. go_to_throne_room - Return to corridor, go north to throne room
+                7. go_to_treasury - Go east back to corridor, then east AGAIN to treasury (MANDATORY!)
+                8. take_health_potion - "take health potion" for backup (MUST be in treasury room!)
+                9. go_to_throne_room - Go west to corridor, then north to throne room
                 10. attack_skeleton_king - "attack Skeleton King" with full gear
                 11. defeat_boss - Continue attacking until victory (weapon bonus makes it winnable)
 
                 CRITICAL RULES:
                 - ALWAYS collect and equip the BEST gear (Iron Sword +5, Chainmail +4)
-                - Take health potion as backup (use if HP drops below 30)
+                - MUST visit treasury room - health potion is ONLY in treasury, NOT in corridor!
+                - Do NOT try to take health potion unless you see "Ancient Treasury" in room description
+                - Navigation: armory → east → corridor → east → treasury
                 - Fight methodically - equipment bonuses should ensure victory
-                - Expected: Win in ~8-12 combat rounds with minimal risk
+                - Expected: Win in ~5-8 combat rounds with minimal risk
 
                 This validates the game is BEATABLE with proper preparation.
 
-                Path: entrance → corridor → armory → corridor → treasury → corridor → throne room
+                EXACT Path: entrance → north → corridor → west → armory → east → corridor → east → treasury → west → corridor → north → throne room
 
                 Target: ~25-35 actions (thorough preparation + combat)
                 """.trimIndent()
             }
             is TestScenario.SmartPlaythrough -> {
+                // Track room progression for navigation-aware objectives
+                val inThroneRoom = recentHistory.any {
+                    it.gmResponse.contains("Throne Room", ignoreCase = true)
+                }
+
                 val objectives = mapOf(
                     "initial_look" to actionsTaken.any { it == "look" },
                     "talk_to_guard" to actionsTaken.any { it.contains("talk") && it.contains("guard") },
                     "persuade_guard" to actionsTaken.any { it.contains("persuade") && it.contains("guard") },
-                    "explore_to_throne" to actionsTaken.any { it.matches(Regex(".*north.*")) },
+                    "go_to_corridor" to recentHistory.any { it.gmResponse.contains("Dark Corridor", ignoreCase = true) },
+                    "go_to_throne_room" to inThroneRoom,
                     "attempt_intimidate_king" to actionsTaken.any { it.contains("intimidate") && it.contains("skeleton") },
                     "avoid_or_minimize_combat" to (actionsTaken.count { it == "attack" } <= 2), // Minimal/no combat
                     "explore_secret_chamber" to actionsTaken.any { it.matches(Regex(".*(secret|chamber).*")) || actionsTaken.count { it == "n" } >= 3 },
@@ -454,26 +491,31 @@ class InputGenerator(
                 EXPECTED OUTCOME: Bypass combat via intimidation/persuasion, explore safely
 
                 MANDATORY SMART TACTICS:
-                ✓ Completed (${completed.size}/9): ${completed.joinToString(", ")}
-                ✗ Remaining (${remaining.size}/9): ${remaining.joinToString(", ")}
+                ✓ Completed (${completed.size}/10): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/10): ${remaining.joinToString(", ")}
 
                 SMART PLAYTHROUGH STRATEGY (use brains, not brawn):
                 1. initial_look - Look at entrance, identify Old Guard NPC
                 2. talk_to_guard - "talk old guard" for dialogue
                 3. persuade_guard - "persuade old guard" (Easy CHA check, gives intel about secret chamber)
-                4. explore_to_throne - Go north to corridor, then north to throne room
-                5. attempt_intimidate_king - "intimidate Skeleton King" (Hard CHA check)
+                   - NOTE: This can FAIL due to dice roll - that's OK! Mechanics still work.
+                4. go_to_corridor - Go north from entrance to Dark Corridor
+                5. go_to_throne_room - Go north from corridor to throne room where Skeleton King is
+                6. attempt_intimidate_king - "intimidate Skeleton King" (Hard CHA check)
+                   - CRITICAL: MUST be in throne room FIRST (step 5) before intimidating!
                    - SUCCESS: King backs down, becomes non-hostile, no combat needed!
                    - FAILURE: Fall back to minimal combat (player has STR 14, might still win)
-                6. avoid_or_minimize_combat - Avoid fighting if possible, use intimidation first
-                7. explore_secret_chamber - Go north from throne room to secret chamber
-                8. pass_strength_check - "check stuck door" (Hard STR check, player has STR 14)
-                9. pass_intelligence_check - "check rune inscription" (Medium INT check, player has INT 13)
+                7. avoid_or_minimize_combat - Avoid fighting if possible, use intimidation first
+                8. explore_secret_chamber - Go north from throne room to secret chamber
+                9. pass_strength_check - "check stuck door" (Hard STR check, player has STR 14)
+                10. pass_intelligence_check - "check rune inscription" (Medium INT check, player has INT 13)
 
                 CRITICAL RULES:
                 - ALWAYS try social/skill approaches BEFORE combat
+                - MUST navigate to throne room BEFORE intimidating Skeleton King!
                 - Intimidate Skeleton King to avoid difficult fight (Hard CHA 10, DC ~15-20)
                 - If intimidation succeeds, King becomes passive - NO COMBAT!
+                - Dice rolls can fail - don't give up if persuasion/intimidation fails!
                 - Explore secret chamber and pass skill checks to show versatility
                 - Expected: Complete with 0-2 combat rounds (social victory preferred)
 

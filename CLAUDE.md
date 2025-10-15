@@ -229,40 +229,75 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Death & Respawn System (2025-10-13)
+## Current Status: Test Framework Improvements (2025-10-14)
 
-**Feature Complete**: Added death and respawn system with game restart!
+**Major Achievements**:
+- ✅ Brute force playthrough: **100% pass rate**
+- ✅ BUG-001 (combat state desync): **FIXED**
+- ✅ BUG-002 (social checks): **FIXED** (awaiting test)
+- ✅ BUG-003 (death/respawn): **FIXED** (awaiting test)
+- ✅ IMPROVEMENT-001 (smart_playthrough validation): **FIXED** (awaiting test)
 
-**New Features**:
+**Latest Session**: Fixed SmartPlaythrough test validator and input generator
 
-1. **Death & Respawn**:
-   - When player is defeated (HP reaches 0), displays "You have been defeated! Game over."
-   - Prompts "Press any key to play again..." and waits for input
-   - Restarts the game with fresh world state after any key press
-   - Handles death in both regular combat and flee attempts
-   - Implemented in `app/src/main/kotlin/com/jcraw/app/App.kt`
+1. **IMPROVEMENT-001: SmartPlaythrough Test Validation - RESOLVED** ✅
+   - **Root Cause**:
+     - Validator expected all social checks to succeed, didn't account for dice roll failures
+     - Input generator tried to intimidate Skeleton King before navigating to throne room
+   - **Fix**:
+     - Updated OutputValidator.kt criteria to recognize dice roll failures as valid behavior
+     - Updated InputGenerator.kt strategy to navigate to throne room before intimidating
+   - **Files Modified**:
+     - `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt`
+     - `testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt`
 
-2. **Better LLM Logging**:
-   - Shows both start and end of long prompts to see actual player commands
-   - Short prompts (≤200 chars) display in full
-   - Long prompts show first 100 and last 100 characters
-   - Improved logging in `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt`
+2. **BUG-002: Social Checks Non-Functional - RESOLVED** ✅ (previous session)
+   - **Root Cause**: Procedural NPC generator wasn't setting social challenge properties
+   - **Fix**: Added `createSocialChallenges()` function that scales difficulty with NPC power level
+   - All NPCs now support appropriate social interactions
+   - Skeleton King defeatable via combat, persuasion (DC 25), or intimidation (DC 25)
 
-**Files Modified**:
-- `app/src/main/kotlin/com/jcraw/app/App.kt` - Added death/respawn handling (lines 302-314, 671-683)
-- `llm/src/main/kotlin/com/jcraw/sophia/llm/OpenAIClient.kt` - Improved prompt logging
+3. **BUG-003: Death/Respawn - RESOLVED** ✅ (previous session)
+   - **Root Cause**: Test bot continued playing after player death
+   - **Fix**: Early termination logic handles BadPlaythrough scenario
+   - Test detects player death and terminates with PASSED status
 
-**Previous Session (2025-10-12)**: Fixed item interaction bugs (drop equipped items, take all command, room description consistency)
+**Test Results**:
+- Brute force playthrough: **100% pass rate (17/17 steps)** ✅
+- Expected after testing: bad_playthrough **100%**, smart_playthrough **significantly improved**
+
+**Previous Session (2025-10-14 earlier)**: Fixed BUG-001, BUG-002, BUG-003
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, combat test validation, and combat narration improvements are complete!
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, and social interaction system are complete!
+
+**Test Status (Before Verification)**:
+- ✅ brute_force_playthrough: **100% pass rate (17/17)** - VERIFIED
+- 🔄 bad_playthrough: **87% (7/8)** → Expected **100% (8/8)** after fixes
+- 🔄 smart_playthrough: **71% (5/7)** → Expected **90%+ (6-7/7)** after fixes
+
+**Fixes Applied This Session**:
+1. ✅ BUG-001 (combat desync) - VERIFIED FIXED (100% brute force)
+2. ✅ BUG-002 (social checks) - FIXED, awaiting verification
+3. ✅ BUG-003 (death/respawn) - FIXED, awaiting verification
+4. ✅ IMPROVEMENT-001 (smart test validation) - FIXED, awaiting verification
 
 **Next Priorities**:
 
-1. **Deliver quest objectives** - Implement DeliverItem quest objective tracking (currently not implemented)
-2. **Fix unit tests** (optional) - Update GameServerTest to fix compilation errors with deprecated APIs
-3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-4. **Persistent vector storage** (optional) - Save/load embeddings to disk
+1. **IMMEDIATE: Verify fixes** - Run remaining tests to confirm all fixes work:
+   ```bash
+   ./test_bad_playthrough.sh        # Expected: 100% (was 87%)
+   ./test_smart_playthrough.sh      # Expected: 90%+ (was 71%)
+   ```
 
-See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history.
+2. **After verification, next bug fixes**:
+   - **BUG-004** - Enable potion use in combat (healing currently broken)
+   - **BUG-005** - Implement feature skill checks (STR/INT checks not triggering)
+   - **BUG-006** - Improve NLU for navigation ("go to throne room" fails)
+
+3. **Feature work**:
+   - **Deliver quest objectives** - Implement DeliverItem quest objective tracking
+   - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+
+See [Implementation Log](docs/IMPLEMENTATION_LOG.md) for full feature history and [BUGS.md](docs/BUGS.md) for detailed bug status.

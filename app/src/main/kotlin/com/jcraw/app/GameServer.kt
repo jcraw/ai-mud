@@ -673,13 +673,63 @@ class GameServer(
 
         return if (item != null && item.isConsumable) {
             val oldHealth = playerState.health
-            val updatedPlayer = playerState.useConsumable(item)
-            val newWorldState = worldState.updatePlayer(updatedPlayer)
+            val inCombat = playerState.isInCombat()
+
+            // Consume the item and heal
+            var updatedPlayer = playerState.useConsumable(item)
             val healedAmount = updatedPlayer.health - oldHealth
-            Triple("You use the ${item.name}. (+$healedAmount HP)", newWorldState, null)
+
+            val message = buildString {
+                if (healedAmount > 0) {
+                    append("You consume the ${item.name} and restore $healedAmount HP.\n")
+                    append("Current health: ${updatedPlayer.health}/${updatedPlayer.maxHealth}")
+                } else {
+                    append("You consume the ${item.name}, but you're already at full health.")
+                }
+
+                // If in combat, the NPC gets a free attack (using an item consumes your turn)
+                if (inCombat) {
+                    val combat = playerState.activeCombat!!
+                    val currentRoom = worldState.getCurrentRoom(playerId)
+                    val npc = currentRoom?.entities?.filterIsInstance<Entity.NPC>()
+                        ?.find { it.id == combat.combatantNpcId }
+
+                    if (npc != null) {
+                        // Calculate NPC damage
+                        val npcDamage = calculateNpcDamage(npc, updatedPlayer)
+                        val afterNpcAttack = combat.applyNpcDamage(npcDamage)
+
+                        append("\n\nThe enemy strikes back for $npcDamage damage while you drink!")
+
+                        // Check if player died
+                        if (afterNpcAttack.playerHealth <= 0) {
+                            append("\n\nYou have been defeated!")
+                            updatedPlayer = updatedPlayer.endCombat()
+                        } else {
+                            // Update combat state with new health
+                            updatedPlayer = updatedPlayer.updateCombat(afterNpcAttack)
+                        }
+                    }
+                }
+            }
+
+            val newWorldState = worldState.updatePlayer(updatedPlayer)
+            Triple(message, newWorldState, null)
         } else {
             Triple("You can't use that.", worldState, null)
         }
+    }
+
+    /**
+     * Calculate damage dealt by NPC attack (helper for potion use during combat).
+     * Base damage + STR modifier - player armor defense.
+     */
+    private fun calculateNpcDamage(npc: Entity.NPC, player: PlayerState): Int {
+        // Base damage 3-12 + STR modifier - armor defense
+        val baseDamage = kotlin.random.Random.nextInt(3, 13)
+        val strModifier = npc.stats.strModifier()
+        val armorDefense = player.getArmorDefenseBonus()
+        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
     }
 
     private fun handleCheck(
@@ -688,8 +738,25 @@ class GameServer(
         targetId: String,
         currentRoom: Room
     ): Triple<String, WorldState, GameEvent?> {
+        // Normalize target for matching (replace underscores with spaces)
+        val normalizedTarget = targetId.lowercase().replace("_", " ")
+
+        // Find the feature in the room with flexible matching
         val feature = currentRoom.entities.filterIsInstance<Entity.Feature>()
-            .find { it.name.equals(targetId, ignoreCase = true) }
+            .find { entity ->
+                val normalizedName = entity.name.lowercase()
+                val normalizedId = entity.id.lowercase().replace("_", " ")
+
+                // Check if target matches name or ID (with underscore normalization)
+                normalizedName.contains(normalizedTarget) ||
+                normalizedId.contains(normalizedTarget) ||
+                normalizedTarget.contains(normalizedName) ||
+                normalizedTarget.contains(normalizedId) ||
+                // Also check if all words in target appear in name/id (any order)
+                normalizedTarget.split(" ").all { word ->
+                    normalizedName.contains(word) || normalizedId.contains(word)
+                }
+            }
 
         if (feature == null || feature.skillChallenge == null) {
             return Triple("There's nothing here to check.", worldState, null)

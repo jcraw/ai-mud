@@ -800,14 +800,53 @@ class MudGame(
         when (item.itemType) {
             ItemType.CONSUMABLE -> {
                 val oldHealth = worldState.player.health
+                val inCombat = worldState.player.isInCombat()
+
+                // Consume the item and heal
                 worldState = worldState.updatePlayer(worldState.player.useConsumable(item))
                 val healedAmount = worldState.player.health - oldHealth
 
                 if (healedAmount > 0) {
-                    println("You consume the ${item.name} and restore $healedAmount HP.")
+                    println("\nYou consume the ${item.name} and restore $healedAmount HP.")
                     println("Current health: ${worldState.player.health}/${worldState.player.maxHealth}")
                 } else {
-                    println("You consume the ${item.name}, but you're already at full health.")
+                    println("\nYou consume the ${item.name}, but you're already at full health.")
+                }
+
+                // If in combat, the NPC gets a free attack (using an item consumes your turn)
+                if (inCombat) {
+                    val combat = worldState.player.activeCombat!!
+                    val room = worldState.getCurrentRoom() ?: return
+                    val npc = room.entities.filterIsInstance<Entity.NPC>()
+                        .find { it.id == combat.combatantNpcId }
+
+                    if (npc != null) {
+                        // Calculate NPC damage
+                        val npcDamage = calculateNpcDamage(npc)
+                        val afterNpcAttack = combat.applyNpcDamage(npcDamage)
+
+                        println("\nThe enemy strikes back for $npcDamage damage while you drink!")
+
+                        // Check if player died
+                        if (afterNpcAttack.playerHealth <= 0) {
+                            worldState = worldState.updatePlayer(worldState.player.endCombat())
+                            println("\nYou have been defeated! Game over.")
+                            println("\nPress any key to play again...")
+                            readLine()  // Wait for any input
+
+                            // Restart the game
+                            worldState = initialWorldState
+                            println("\n" + "=" * 60)
+                            println("  Restarting Adventure...")
+                            println("=" * 60)
+                            printWelcome()
+                            describeCurrentRoom()
+                        } else {
+                            // Update combat state with new health
+                            worldState = worldState.updatePlayer(worldState.player.updateCombat(afterNpcAttack))
+                            describeCurrentRoom()  // Show updated combat status
+                        }
+                    }
                 }
             }
             ItemType.WEAPON -> {
@@ -819,14 +858,39 @@ class MudGame(
         }
     }
 
+    /**
+     * Calculate damage dealt by NPC attack (helper for potion use during combat).
+     * Base damage + STR modifier - player armor defense.
+     */
+    private fun calculateNpcDamage(npc: Entity.NPC): Int {
+        // Base damage 3-12 + STR modifier - armor defense
+        val baseDamage = kotlin.random.Random.nextInt(3, 13)
+        val strModifier = npc.stats.strModifier()
+        val armorDefense = worldState.player.getArmorDefenseBonus()
+        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
+    }
+
     private fun handleCheck(target: String) {
         val room = worldState.getCurrentRoom() ?: return
 
-        // Find the feature in the room
+        // Normalize target for matching (replace underscores with spaces)
+        val normalizedTarget = target.lowercase().replace("_", " ")
+
+        // Find the feature in the room with flexible matching
         val feature = room.entities.filterIsInstance<Entity.Feature>()
             .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
+                val normalizedName = entity.name.lowercase()
+                val normalizedId = entity.id.lowercase().replace("_", " ")
+
+                // Check if target matches name or ID (with underscore normalization)
+                normalizedName.contains(normalizedTarget) ||
+                normalizedId.contains(normalizedTarget) ||
+                normalizedTarget.contains(normalizedName) ||
+                normalizedTarget.contains(normalizedId) ||
+                // Also check if all words in target appear in name/id (any order)
+                normalizedTarget.split(" ").all { word ->
+                    normalizedName.contains(word) || normalizedId.contains(word)
+                }
             }
 
         if (feature == null) {
