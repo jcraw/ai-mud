@@ -2,21 +2,21 @@
     "scenario": {
         "type": "com.jcraw.mud.testbot.TestScenario.BruteForcePlaythrough"
     },
-    "totalSteps": 19,
-    "passedSteps": 19,
+    "totalSteps": 17,
+    "passedSteps": 17,
     "failedSteps": 0,
     "finalStatus": "PASSED",
-    "startTime": "2025-10-15T01:49:39.912547294Z",
-    "endTime": "2025-10-15T01:51:02.748791668Z",
-    "duration": 82836,
+    "startTime": "2025-10-15T03:36:11.134627440Z",
+    "endTime": "2025-10-15T03:37:29.491446642Z",
+    "duration": 78357,
     "steps": [
         {
-            "timestamp": "2025-10-15T01:49:47.938513523Z",
+            "timestamp": "2025-10-15T03:36:19.144734271Z",
             "playerInput": "look",
-            "gmResponse": "Dungeon Entrance\nYou find yourself standing before a crumbling stone archway, its edges worn smooth by the passage of time. The damp, moss-covered walls breathe an earthy musk, mingling with the musty air that clings to your skin. Flickering torchlight illuminates the intricate ancient runes carved into the doorframe, casting ethereal shadows that seem to whisper secrets of a forgotten era. A sense of foreboding hangs in the air, as if the very stones are alive with stories waiting to be uncovered.\nExits: north\nYou see: Old Guard",
+            "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway that looms like a forgotten sentinel guarding the entrance to the dungeon beyond. Moss clings to the damp walls, its vibrant green a stark contrast to the dull gray of the stones. Flickering torchlight dances erratically, illuminating ancient runes carved deep into the doorframe, their meanings lost to time. The musty air fills your lungs, thick with the scent of earth and decay, whispering secrets of long-forgotten prisoners.\nExits: north\nYou see: Old Guard",
             "validationResult": {
                 "pass": true,
-                "reason": "The response provides a coherent and detailed description of the Dungeon Entrance, including available exits and visible entities, which aligns with MUD conventions.",
+                "reason": "The response provides a coherent and descriptive overview of the Dungeon Entrance, adhering to MUD conventions.",
                 "details": {
                     "coherence": "pass",
                     "consistency": "pass",
@@ -25,9 +25,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:49:54.642672143Z",
+            "timestamp": "2025-10-15T03:36:26.607084075Z",
             "playerInput": "go north",
-            "gmResponse": "Dark Corridor\nYou step into a narrow stone passage where the walls seem to lean in, closing off the world beyond. The echo of your footsteps reverberates hauntingly, mingling with the rhythmic drip of water from unseen crevices. In the dim light, you catch glimpses of spider webs draped in the corners, their delicate strands shimmering like gossamer in the shadows. The worn flagstone floor beneath your feet is cool and uneven, whispering the tales of countless travelers who once tread this path.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "gmResponse": "Dark Corridor\nYou step into a narrow stone passage that seems to constrict around you, as if the walls themselves are alive and watching. Your footsteps echo ominously, mingling with the distant sound of dripping water that punctuates the stillness like a heartbeat. In the corners, spider webs hang like delicate veils, their silken threads glistening in the dim light, while the worn flagstone floor beneath your feet tells tales of countless travelers who have tread this path before you. The air is cold and damp, carrying a musty odor that envelops you, hinting at the secrets this corridor keeps hidden in its shadows.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -42,9 +42,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:00.945245765Z",
+            "timestamp": "2025-10-15T03:36:34.796745589Z",
             "playerInput": "go west",
-            "gmResponse": "Forgotten Armory\nYou enter the Forgotten Armory, a realm steeped in the echoes of valor and sacrifice. Rusty weapon racks sag beneath the weight of long-forgotten blades, while tarnished armor stands loom like silent sentinels, their surfaces mottled and worn. The smell of old leather and metal fills the air, mingling with the musty scent of dust that has settled into every crevice. Cobwebs drape lazily over the shields, their once-gleaming surfaces now dulled by time, and ancient battle standards hang limply from the walls, their faded colors whispering tales of glories lost to the ages.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+            "gmResponse": "Forgotten Armory\nYou find yourself in a forgotten armory, where the air is thick with the scent of old leather and the metallic tang of rust. Rusty weapon racks lean at precarious angles, their once-proud blades dulled and tarnished, while armor stands loom like specters in the half-light, draped in tarnished metal that whispers of past glories. Cobwebs drape over shields, their delicate strands shimmering like ghostly veils, and ancient battle standards hang limply on the walls, their colors faded but still telling tales of fierce valor and long-lost battles. The atmosphere is heavy with the weight of history, every breath a reminder of the warriors who once called this place home.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Forgotten Armory'",
@@ -59,7 +59,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:03.527124156Z",
+            "timestamp": "2025-10-15T03:36:37.541632644Z",
             "playerInput": "take iron sword",
             "gmResponse": "You take the Rusty Iron Sword.",
             "validationResult": {
@@ -72,7 +72,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:06.667733033Z",
+            "timestamp": "2025-10-15T03:36:40.141516220Z",
             "playerInput": "take chainmail",
             "gmResponse": "You take the Heavy Chainmail.",
             "validationResult": {
@@ -85,7 +85,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:09.467373819Z",
+            "timestamp": "2025-10-15T03:36:43.202729733Z",
             "playerInput": "equip iron sword",
             "gmResponse": "You equip the Rusty Iron Sword (+5 damage).",
             "validationResult": {
@@ -98,7 +98,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:12.080571439Z",
+            "timestamp": "2025-10-15T03:36:45.627443306Z",
             "playerInput": "equip chainmail",
             "gmResponse": "You equip the Heavy Chainmail (+4 defense).",
             "validationResult": {
@@ -111,9 +111,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:18.621364710Z",
+            "timestamp": "2025-10-15T03:36:52.268691934Z",
             "playerInput": "go east",
-            "gmResponse": "Dark Corridor\nYou step deeper into the dark corridor, where the narrow stone passage constricts around you like a serpent coiling its prey. The echo of your footsteps creates a haunting symphony, each sound swallowed by the damp, musty air that clings to your skin. Soft drips of water punctuate the stillness, a reminder of the unseen depths that lie beyond, while spider webs in the corners glisten faintly, their intricate patterns a testament to the passage of time. The worn flagstone floor shifts beneath your feet, each stone a reminder of the countless souls who have traversed this shadowy path before you.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "gmResponse": "Dark Corridor\nYou step cautiously into the narrow stone passage, its walls seeming to close in around you, lending an oppressive weight to the air. Your footsteps create an unsettling echo that reverberates through the corridor, harmonizing with the incessant dripping of water that fills the silence, each drop a reminder of the dampness that clings to the stones. In the corners, spider webs drape like forgotten tapestries, their fragile threads glistening in the dim light, while the worn flagstone floor beneath you bears the imprints of bygone wanderers, each groove a testament to the passage of time. A chill seeps into your bones, the musty scent of age and abandonment wrapping around you like a shroud, hinting at the mysteries that linger just beyond the reach of your sight.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -128,9 +128,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:24.546059844Z",
+            "timestamp": "2025-10-15T03:36:58.495280595Z",
             "playerInput": "go east",
-            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, a realm where opulence and history intertwine. Gleaming gold coins scatter across the stone floor, their bright surfaces catching the light like a myriad of stars fallen to earth. Ornate treasure chests, adorned with intricate carvings, stand sentinel against the walls, while jeweled artifacts rest upon pedestals, their vibrant colors shimmering as if alive. A magical aura hums in the air, intertwining with the dust motes that dance gracefully in a shaft of light, illuminating the treasures that have long awaited a worthy hand.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air is thick with a palpable magical aura that crackles with unspent energy. Gleaming gold coins scatter across the floor, their reflective surfaces winking in the shafts of light that filter through the dust motes dancing in the air like tiny fairies. Ornate treasure chests, their surfaces adorned with intricate carvings, sit majestically in the corners, while jeweled artifacts on pedestals shimmer with colors that seem to pulse with life. A sense of wonder envelops you, mingled with the faintest hint of danger, as if the treasures here hold secrets yet to be unveiled.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
@@ -145,7 +145,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:27.536942066Z",
+            "timestamp": "2025-10-15T03:37:01.036811774Z",
             "playerInput": "take health potion",
             "gmResponse": "You take the Red Health Potion.",
             "validationResult": {
@@ -158,39 +158,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:30.048971804Z",
-            "playerInput": "go north",
-            "gmResponse": "You can't go that way.",
-            "validationResult": {
-                "pass": true,
-                "reason": "[CODE] Correctly rejected invalid direction: NORTH",
-                "details": {
-                    "validation_type": "code",
-                    "coherence": "pass",
-                    "consistency": "pass",
-                    "mechanics": "pass"
-                }
-            }
-        },
-        {
-            "timestamp": "2025-10-15T01:50:32.418031326Z",
-            "playerInput": "go north",
-            "gmResponse": "You can't go that way.",
-            "validationResult": {
-                "pass": true,
-                "reason": "[CODE] Correctly rejected invalid direction: NORTH",
-                "details": {
-                    "validation_type": "code",
-                    "coherence": "pass",
-                    "consistency": "pass",
-                    "mechanics": "pass"
-                }
-            }
-        },
-        {
-            "timestamp": "2025-10-15T01:50:39.162858263Z",
+            "timestamp": "2025-10-15T03:37:08.296596500Z",
             "playerInput": "go west",
-            "gmResponse": "Dark Corridor\nYou step further into the dark corridor, where the narrow stone passage constricts around you, suffocating in its embrace. The sound of your footsteps echoes ominously, each step colliding with the damp air, as if the shadows themselves are listening intently. Drips of water patter softly against the cold ground, creating a rhythm that punctuates the silence, while spider webs cling in the corners, their fragile strands shimmering like forgotten dreams. The worn flagstone floor shifts beneath you, a mosaic of stories etched into the stone, whispering of the many who have dared to traverse this gloom-laden path.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "gmResponse": "Dark Corridor\nYou step into the narrow stone passage, the walls closing in around you, suffocating in their weight. The echo of your footsteps creates a haunting rhythm, punctuated by the relentless drip of water from unseen crevices, each drop resonating like a distant sigh. In the corners, spider webs dangle like ghostly veils, their gossamer threads shimmering faintly in the gloom, while the worn flagstone floor is marked with the history of countless souls who have traversed this path. A chill seeps into your bones, the musty air swirling around you, thick with the scent of damp stone and shadowy secrets waiting to be uncovered.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -205,9 +175,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:44.983927297Z",
+            "timestamp": "2025-10-15T03:37:14.556823703Z",
             "playerInput": "go north",
-            "gmResponse": "Abandoned Throne Room\nYou step into the Abandoned Throne Room, where a massive stone throne looms at the far end, draped in tattered remnants of faded royal tapestries that flutter weakly in the cold draft. The cracked marble floor beneath your feet echoes with the weight of forgotten authority, while ominous shadows stretch and flicker in the dim light, giving life to the skeletal figure slumped upon the throne. Here, the air is thick with an unsettling chill, as if the very essence of regal despair lingers, whispering tales of a legacy now lost to time.\nExits: south, north\nYou see: Skeleton King",
+            "gmResponse": "Abandoned Throne Room\nYou enter the Abandoned Throne Room, where a massive stone throne looms at the far end, its imposing presence softened only by the dust of ages. The faded royal tapestries hanging limply on the walls whisper tales of lost regality, their once-vibrant colors now muted to shadows of memory. A cold draft sweeps through the room, stirring the still air and carrying with it the scent of mildew, as ominous shadows creep across the cracked marble floor, twisting around the skeletal figure slumped upon the throne, a grim reminder of power long forfeited. You feel a chill settle in your bones, as if the very stones themselves hold their breath, awaiting the return of a forgotten king.\nExits: south, north\nYou see: Skeleton King",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
@@ -222,7 +192,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:48.351031355Z",
+            "timestamp": "2025-10-15T03:37:17.186754332Z",
             "playerInput": "attack Skeleton King",
             "gmResponse": "You engage Skeleton King in combat!",
             "validationResult": {
@@ -235,9 +205,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:53.197021391Z",
+            "timestamp": "2025-10-15T03:37:20.314801441Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 20 damage! The enemy retaliates for 4 damage!",
+            "gmResponse": "You strike for 15 damage! The enemy retaliates for 7 damage!",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Combat ongoing",
@@ -248,9 +218,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:56.614148177Z",
+            "timestamp": "2025-10-15T03:37:23.046505352Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 15 damage! The enemy retaliates for 5 damage!",
+            "gmResponse": "You strike for 10 damage! The enemy retaliates for 6 damage!",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Combat ongoing",
@@ -261,9 +231,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:50:59.535278851Z",
+            "timestamp": "2025-10-15T03:37:26.391953918Z",
             "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 12 damage! The enemy retaliates for 4 damage!",
+            "gmResponse": "You strike for 12 damage! The enemy retaliates for 10 damage!",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Combat ongoing",
@@ -274,9 +244,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:02.748493478Z",
-            "playerInput": "attack Skeleton King",
-            "gmResponse": "You strike for 12 damage! Your enemy has been defeated!",
+            "timestamp": "2025-10-15T03:37:29.491128583Z",
+            "playerInput": "attack skeleton king",
+            "gmResponse": "You strike for 19 damage! Your enemy has been defeated!",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] NPC defeated - victory",
@@ -291,12 +261,12 @@
         {
             "stepNumber": 1,
             "step": {
-                "timestamp": "2025-10-15T01:49:47.938513523Z",
+                "timestamp": "2025-10-15T03:36:19.144734271Z",
                 "playerInput": "look",
-                "gmResponse": "Dungeon Entrance\nYou find yourself standing before a crumbling stone archway, its edges worn smooth by the passage of time. The damp, moss-covered walls breathe an earthy musk, mingling with the musty air that clings to your skin. Flickering torchlight illuminates the intricate ancient runes carved into the doorframe, casting ethereal shadows that seem to whisper secrets of a forgotten era. A sense of foreboding hangs in the air, as if the very stones are alive with stories waiting to be uncovered.\nExits: north\nYou see: Old Guard",
+                "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway that looms like a forgotten sentinel guarding the entrance to the dungeon beyond. Moss clings to the damp walls, its vibrant green a stark contrast to the dull gray of the stones. Flickering torchlight dances erratically, illuminating ancient runes carved deep into the doorframe, their meanings lost to time. The musty air fills your lungs, thick with the scent of earth and decay, whispering secrets of long-forgotten prisoners.\nExits: north\nYou see: Old Guard",
                 "validationResult": {
                     "pass": true,
-                    "reason": "The response provides a coherent and detailed description of the Dungeon Entrance, including available exits and visible entities, which aligns with MUD conventions.",
+                    "reason": "The response provides a coherent and descriptive overview of the Dungeon Entrance, adhering to MUD conventions.",
                     "details": {
                         "coherence": "pass",
                         "consistency": "pass",
@@ -310,9 +280,9 @@
         {
             "stepNumber": 2,
             "step": {
-                "timestamp": "2025-10-15T01:49:54.642672143Z",
+                "timestamp": "2025-10-15T03:36:26.607084075Z",
                 "playerInput": "go north",
-                "gmResponse": "Dark Corridor\nYou step into a narrow stone passage where the walls seem to lean in, closing off the world beyond. The echo of your footsteps reverberates hauntingly, mingling with the rhythmic drip of water from unseen crevices. In the dim light, you catch glimpses of spider webs draped in the corners, their delicate strands shimmering like gossamer in the shadows. The worn flagstone floor beneath your feet is cool and uneven, whispering the tales of countless travelers who once tread this path.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "gmResponse": "Dark Corridor\nYou step into a narrow stone passage that seems to constrict around you, as if the walls themselves are alive and watching. Your footsteps echo ominously, mingling with the distant sound of dripping water that punctuates the stillness like a heartbeat. In the corners, spider webs hang like delicate veils, their silken threads glistening in the dim light, while the worn flagstone floor beneath your feet tells tales of countless travelers who have tread this path before you. The air is cold and damp, carrying a musty odor that envelops you, hinting at the secrets this corridor keeps hidden in its shadows.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -332,9 +302,9 @@
         {
             "stepNumber": 3,
             "step": {
-                "timestamp": "2025-10-15T01:50:00.945245765Z",
+                "timestamp": "2025-10-15T03:36:34.796745589Z",
                 "playerInput": "go west",
-                "gmResponse": "Forgotten Armory\nYou enter the Forgotten Armory, a realm steeped in the echoes of valor and sacrifice. Rusty weapon racks sag beneath the weight of long-forgotten blades, while tarnished armor stands loom like silent sentinels, their surfaces mottled and worn. The smell of old leather and metal fills the air, mingling with the musty scent of dust that has settled into every crevice. Cobwebs drape lazily over the shields, their once-gleaming surfaces now dulled by time, and ancient battle standards hang limply from the walls, their faded colors whispering tales of glories lost to the ages.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+                "gmResponse": "Forgotten Armory\nYou find yourself in a forgotten armory, where the air is thick with the scent of old leather and the metallic tang of rust. Rusty weapon racks lean at precarious angles, their once-proud blades dulled and tarnished, while armor stands loom like specters in the half-light, draped in tarnished metal that whispers of past glories. Cobwebs drape over shields, their delicate strands shimmering like ghostly veils, and ancient battle standards hang limply on the walls, their colors faded but still telling tales of fierce valor and long-lost battles. The atmosphere is heavy with the weight of history, every breath a reminder of the warriors who once called this place home.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Forgotten Armory'",
@@ -354,7 +324,7 @@
         {
             "stepNumber": 4,
             "step": {
-                "timestamp": "2025-10-15T01:50:03.527124156Z",
+                "timestamp": "2025-10-15T03:36:37.541632644Z",
                 "playerInput": "take iron sword",
                 "gmResponse": "You take the Rusty Iron Sword.",
                 "validationResult": {
@@ -372,7 +342,7 @@
         {
             "stepNumber": 5,
             "step": {
-                "timestamp": "2025-10-15T01:50:06.667733033Z",
+                "timestamp": "2025-10-15T03:36:40.141516220Z",
                 "playerInput": "take chainmail",
                 "gmResponse": "You take the Heavy Chainmail.",
                 "validationResult": {
@@ -390,7 +360,7 @@
         {
             "stepNumber": 6,
             "step": {
-                "timestamp": "2025-10-15T01:50:09.467373819Z",
+                "timestamp": "2025-10-15T03:36:43.202729733Z",
                 "playerInput": "equip iron sword",
                 "gmResponse": "You equip the Rusty Iron Sword (+5 damage).",
                 "validationResult": {
@@ -408,7 +378,7 @@
         {
             "stepNumber": 7,
             "step": {
-                "timestamp": "2025-10-15T01:50:12.080571439Z",
+                "timestamp": "2025-10-15T03:36:45.627443306Z",
                 "playerInput": "equip chainmail",
                 "gmResponse": "You equip the Heavy Chainmail (+4 defense).",
                 "validationResult": {
@@ -426,9 +396,9 @@
         {
             "stepNumber": 8,
             "step": {
-                "timestamp": "2025-10-15T01:50:18.621364710Z",
+                "timestamp": "2025-10-15T03:36:52.268691934Z",
                 "playerInput": "go east",
-                "gmResponse": "Dark Corridor\nYou step deeper into the dark corridor, where the narrow stone passage constricts around you like a serpent coiling its prey. The echo of your footsteps creates a haunting symphony, each sound swallowed by the damp, musty air that clings to your skin. Soft drips of water punctuate the stillness, a reminder of the unseen depths that lie beyond, while spider webs in the corners glisten faintly, their intricate patterns a testament to the passage of time. The worn flagstone floor shifts beneath your feet, each stone a reminder of the countless souls who have traversed this shadowy path before you.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "gmResponse": "Dark Corridor\nYou step cautiously into the narrow stone passage, its walls seeming to close in around you, lending an oppressive weight to the air. Your footsteps create an unsettling echo that reverberates through the corridor, harmonizing with the incessant dripping of water that fills the silence, each drop a reminder of the dampness that clings to the stones. In the corners, spider webs drape like forgotten tapestries, their fragile threads glistening in the dim light, while the worn flagstone floor beneath you bears the imprints of bygone wanderers, each groove a testament to the passage of time. A chill seeps into your bones, the musty scent of age and abandonment wrapping around you like a shroud, hinting at the mysteries that linger just beyond the reach of your sight.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -448,9 +418,9 @@
         {
             "stepNumber": 9,
             "step": {
-                "timestamp": "2025-10-15T01:50:24.546059844Z",
+                "timestamp": "2025-10-15T03:36:58.495280595Z",
                 "playerInput": "go east",
-                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, a realm where opulence and history intertwine. Gleaming gold coins scatter across the stone floor, their bright surfaces catching the light like a myriad of stars fallen to earth. Ornate treasure chests, adorned with intricate carvings, stand sentinel against the walls, while jeweled artifacts rest upon pedestals, their vibrant colors shimmering as if alive. A magical aura hums in the air, intertwining with the dust motes that dance gracefully in a shaft of light, illuminating the treasures that have long awaited a worthy hand.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air is thick with a palpable magical aura that crackles with unspent energy. Gleaming gold coins scatter across the floor, their reflective surfaces winking in the shafts of light that filter through the dust motes dancing in the air like tiny fairies. Ornate treasure chests, their surfaces adorned with intricate carvings, sit majestically in the corners, while jeweled artifacts on pedestals shimmer with colors that seem to pulse with life. A sense of wonder envelops you, mingled with the faintest hint of danger, as if the treasures here hold secrets yet to be unveiled.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
@@ -470,7 +440,7 @@
         {
             "stepNumber": 10,
             "step": {
-                "timestamp": "2025-10-15T01:50:27.536942066Z",
+                "timestamp": "2025-10-15T03:37:01.036811774Z",
                 "playerInput": "take health potion",
                 "gmResponse": "You take the Red Health Potion.",
                 "validationResult": {
@@ -488,49 +458,9 @@
         {
             "stepNumber": 11,
             "step": {
-                "timestamp": "2025-10-15T01:50:30.048971804Z",
-                "playerInput": "go north",
-                "gmResponse": "You can't go that way.",
-                "validationResult": {
-                    "pass": true,
-                    "reason": "[CODE] Correctly rejected invalid direction: NORTH",
-                    "details": {
-                        "validation_type": "code",
-                        "coherence": "pass",
-                        "consistency": "pass",
-                        "mechanics": "pass"
-                    }
-                }
-            },
-            "passed": true,
-            "reason": "Step completed successfully"
-        },
-        {
-            "stepNumber": 12,
-            "step": {
-                "timestamp": "2025-10-15T01:50:32.418031326Z",
-                "playerInput": "go north",
-                "gmResponse": "You can't go that way.",
-                "validationResult": {
-                    "pass": true,
-                    "reason": "[CODE] Correctly rejected invalid direction: NORTH",
-                    "details": {
-                        "validation_type": "code",
-                        "coherence": "pass",
-                        "consistency": "pass",
-                        "mechanics": "pass"
-                    }
-                }
-            },
-            "passed": true,
-            "reason": "Step completed successfully"
-        },
-        {
-            "stepNumber": 13,
-            "step": {
-                "timestamp": "2025-10-15T01:50:39.162858263Z",
+                "timestamp": "2025-10-15T03:37:08.296596500Z",
                 "playerInput": "go west",
-                "gmResponse": "Dark Corridor\nYou step further into the dark corridor, where the narrow stone passage constricts around you, suffocating in its embrace. The sound of your footsteps echoes ominously, each step colliding with the damp air, as if the shadows themselves are listening intently. Drips of water patter softly against the cold ground, creating a rhythm that punctuates the silence, while spider webs cling in the corners, their fragile strands shimmering like forgotten dreams. The worn flagstone floor shifts beneath you, a mosaic of stories etched into the stone, whispering of the many who have dared to traverse this gloom-laden path.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "gmResponse": "Dark Corridor\nYou step into the narrow stone passage, the walls closing in around you, suffocating in their weight. The echo of your footsteps creates a haunting rhythm, punctuated by the relentless drip of water from unseen crevices, each drop resonating like a distant sigh. In the corners, spider webs dangle like ghostly veils, their gossamer threads shimmering faintly in the gloom, while the worn flagstone floor is marked with the history of countless souls who have traversed this path. A chill seeps into your bones, the musty air swirling around you, thick with the scent of damp stone and shadowy secrets waiting to be uncovered.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -548,11 +478,11 @@
             "reason": "Step completed successfully"
         },
         {
-            "stepNumber": 14,
+            "stepNumber": 12,
             "step": {
-                "timestamp": "2025-10-15T01:50:44.983927297Z",
+                "timestamp": "2025-10-15T03:37:14.556823703Z",
                 "playerInput": "go north",
-                "gmResponse": "Abandoned Throne Room\nYou step into the Abandoned Throne Room, where a massive stone throne looms at the far end, draped in tattered remnants of faded royal tapestries that flutter weakly in the cold draft. The cracked marble floor beneath your feet echoes with the weight of forgotten authority, while ominous shadows stretch and flicker in the dim light, giving life to the skeletal figure slumped upon the throne. Here, the air is thick with an unsettling chill, as if the very essence of regal despair lingers, whispering tales of a legacy now lost to time.\nExits: south, north\nYou see: Skeleton King",
+                "gmResponse": "Abandoned Throne Room\nYou enter the Abandoned Throne Room, where a massive stone throne looms at the far end, its imposing presence softened only by the dust of ages. The faded royal tapestries hanging limply on the walls whisper tales of lost regality, their once-vibrant colors now muted to shadows of memory. A cold draft sweeps through the room, stirring the still air and carrying with it the scent of mildew, as ominous shadows creep across the cracked marble floor, twisting around the skeletal figure slumped upon the throne, a grim reminder of power long forfeited. You feel a chill settle in your bones, as if the very stones themselves hold their breath, awaiting the return of a forgotten king.\nExits: south, north\nYou see: Skeleton King",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
@@ -570,9 +500,9 @@
             "reason": "Step completed successfully"
         },
         {
-            "stepNumber": 15,
+            "stepNumber": 13,
             "step": {
-                "timestamp": "2025-10-15T01:50:48.351031355Z",
+                "timestamp": "2025-10-15T03:37:17.186754332Z",
                 "playerInput": "attack Skeleton King",
                 "gmResponse": "You engage Skeleton King in combat!",
                 "validationResult": {
@@ -588,11 +518,47 @@
             "reason": "Step completed successfully"
         },
         {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-10-15T03:37:20.314801441Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You strike for 15 damage! The enemy retaliates for 7 damage!",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "ongoing"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-10-15T03:37:23.046505352Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You strike for 10 damage! The enemy retaliates for 6 damage!",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "ongoing"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
             "stepNumber": 16,
             "step": {
-                "timestamp": "2025-10-15T01:50:53.197021391Z",
+                "timestamp": "2025-10-15T03:37:26.391953918Z",
                 "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 20 damage! The enemy retaliates for 4 damage!",
+                "gmResponse": "You strike for 12 damage! The enemy retaliates for 10 damage!",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Combat ongoing",
@@ -608,45 +574,9 @@
         {
             "stepNumber": 17,
             "step": {
-                "timestamp": "2025-10-15T01:50:56.614148177Z",
-                "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 15 damage! The enemy retaliates for 5 damage!",
-                "validationResult": {
-                    "pass": true,
-                    "reason": "[CODE] Combat ongoing",
-                    "details": {
-                        "validation_type": "code",
-                        "combat": "ongoing"
-                    }
-                }
-            },
-            "passed": true,
-            "reason": "Step completed successfully"
-        },
-        {
-            "stepNumber": 18,
-            "step": {
-                "timestamp": "2025-10-15T01:50:59.535278851Z",
-                "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 12 damage! The enemy retaliates for 4 damage!",
-                "validationResult": {
-                    "pass": true,
-                    "reason": "[CODE] Combat ongoing",
-                    "details": {
-                        "validation_type": "code",
-                        "combat": "ongoing"
-                    }
-                }
-            },
-            "passed": true,
-            "reason": "Step completed successfully"
-        },
-        {
-            "stepNumber": 19,
-            "step": {
-                "timestamp": "2025-10-15T01:51:02.748493478Z",
-                "playerInput": "attack Skeleton King",
-                "gmResponse": "You strike for 12 damage! Your enemy has been defeated!",
+                "timestamp": "2025-10-15T03:37:29.491128583Z",
+                "playerInput": "attack skeleton king",
+                "gmResponse": "You strike for 19 damage! Your enemy has been defeated!",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] NPC defeated - victory",
@@ -668,6 +598,6 @@
         "Ancient Treasury",
         "Abandoned Throne Room"
     ],
-    "damageTaken": 13,
+    "damageTaken": 23,
     "npcsKilled": 1
 }

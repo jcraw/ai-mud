@@ -36,7 +36,8 @@ class InMemoryGameEngine(
 
         val room = worldState.getCurrentRoom()
         val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-        val intent = intentRecognizer.parseIntent(input, roomContext)
+        val exitsWithNames = room?.let { buildExitsWithNames(it) }
+        val intent = intentRecognizer.parseIntent(input, roomContext, exitsWithNames)
         return processIntent(intent)
     }
 
@@ -470,5 +471,19 @@ class InMemoryGameEngine(
         } else ""
 
         return "${room.name}\n$description$exits$entities"
+    }
+
+    /**
+     * Build a map of exits with their destination room names for navigation parsing.
+     */
+    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room): Map<Direction, String> {
+        return room.exits.mapNotNull { (direction, roomId) ->
+            val destRoom = worldState.rooms[roomId]
+            if (destRoom != null) {
+                direction to destRoom.name
+            } else {
+                null
+            }
+        }.toMap()
     }
 }

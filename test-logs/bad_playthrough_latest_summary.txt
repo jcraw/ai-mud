@@ -8,15 +8,15 @@
         Status: PASSED
 
         Results:
-        - Total Steps: 7
-        - Passed: 6
+        - Total Steps: 9
+        - Passed: 8
         - Failed: 1
-        - Pass Rate: 85%
+        - Pass Rate: 88%
 
         Timing:
-        - Start: 2025-10-15T01:49:04.927583971Z
-        - End: 2025-10-15T01:49:39.160814444Z
-        - Duration: 34.23s
+        - Start: 2025-10-15T03:35:11.643046684Z
+        - End: 2025-10-15T03:36:10.429737364Z
+        - Duration: 58.79s
 
         ================================================================================
         STEP DETAILS
@@ -39,14 +39,22 @@ Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 5: ✓ PASS
-Input: attack Skeleton King
+Input: attack skeleton king
 Reason: Step completed successfully
 
 Step 6: ✓ PASS
 Input: attack skeleton king
 Reason: Step completed successfully
 
-Step 7: ✗ FAIL
+Step 7: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 9: ✗ FAIL
 Input: attack skeleton king
 Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
 

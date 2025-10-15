@@ -6,28 +6,28 @@
     "passedSteps": 7,
     "failedSteps": 0,
     "finalStatus": "PASSED",
-    "startTime": "2025-10-15T01:51:03.426565837Z",
-    "endTime": "2025-10-15T01:51:40.206144402Z",
-    "duration": 36780,
+    "startTime": "2025-10-15T03:37:30.246383478Z",
+    "endTime": "2025-10-15T03:38:06.756613868Z",
+    "duration": 36510,
     "steps": [
         {
-            "timestamp": "2025-10-15T01:51:11.687820395Z",
-            "playerInput": "look at entrance",
-            "gmResponse": "You examine the dungeon entrance closely, noting the crumbling stone archway that frames it. The once-grand structure shows signs of age and decay, with jagged edges and the moss that clings to it giving the impression that nature is gradually reclaiming this place. The flickering torchlight casts eerie shadows across the entrance, inviting yet ominous, as the ancient runes carved into the doorframe seem to murmur secrets of long-lost tales.",
+            "timestamp": "2025-10-15T03:37:36.458826044Z",
+            "playerInput": "look around",
+            "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway, its edges worn and weathered, hinting at the passage of time. Moss-covered walls cling to the remnants of the past, their dampness seeping into the musty air that surrounds you. Flickering torchlight dances across the surface, illuminating ancient runes carved deep into the doorframe, each one whispering secrets of a long-forgotten era. An eerie stillness envelops the space, as if the very stones are holding their breath, waiting for you to make the next move.\nExits: north\nYou see: Old Guard",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Description provided for 'entrance'",
+                "reason": "[CODE] Description provided for 'around'",
                 "details": {
                     "validation_type": "code",
-                    "item": "entrance",
-                    "description_length": "445"
+                    "item": "around",
+                    "description_length": "557"
                 }
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:15.825320727Z",
+            "timestamp": "2025-10-15T03:37:41.663291207Z",
             "playerInput": "talk to old guard",
-            "gmResponse": "Old Guard says: \"\"Ah, a weary soul has come to brave the shadows, I see. I've seen better days myself, but your presence brings a flicker of hope. Care to share a tale or seek guidance before you venture inside?\"\"",
+            "gmResponse": "Old Guard says: \"\"Well met, traveler! You have the look of someone who’s faced the wilds. Though I bear my wounds, I am still steadfast at this post. If you're seeking passage, let me know how I can assist you.\"\"",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] NPC dialogue generated for 'old guard' (talk is conversation, not a check)",
@@ -40,24 +40,24 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:18.534851183Z",
+            "timestamp": "2025-10-15T03:37:44.365164577Z",
             "playerInput": "persuade old guard",
-            "gmResponse": "Success! The Old Guard smiles warmly. 'Ah, a polite adventurer! Let me tell you - there's a hidden passage in the secret chamber beyond the throne room. Look for the stone door and you'll find ancient treasures beyond!'",
+            "gmResponse": "Failed! The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'",
             "validationResult": {
                 "pass": true,
-                "reason": "[CODE] Persuasion check succeeded on 'old guard' (dice roll won)",
+                "reason": "[CODE] Persuasion check failed on 'old guard' (dice roll lost, mechanics work)",
                 "details": {
                     "validation_type": "code",
                     "npc": "old guard",
-                    "check_result": "success",
+                    "check_result": "failed",
                     "npc_in_room": "true"
                 }
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:24.218744858Z",
+            "timestamp": "2025-10-15T03:37:50.215694333Z",
             "playerInput": "go north",
-            "gmResponse": "Dark Corridor\nYou step into a narrow stone passage, the walls closing in around you with a suffocating embrace. Echoing footsteps reverberate off the damp surfaces, mingling with the steady drip of water that punctuates the heavy silence. Shadowy corners are adorned with intricate spider webs, their delicate threads glistening faintly in the flickering light. The worn flagstone floor beneath your feet feels cool and uneven, each step stirring the musty air that carries the weight of forgotten stories.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "gmResponse": "Dark Corridor\nYou step cautiously into a narrow stone passage, the walls rising high and enclosing you in a chilly embrace. The echoing footsteps of your own tread mingle with the distant sounds of dripping water, creating a haunting symphony that reverberates through the darkness. In the corners, spider webs cling like forgotten memories, their silken threads glistening in the faint light, while the worn flagstone floor beneath your feet tells tales of countless travelers who've come before you. A musty scent clings to the air, thick with the weight of time and secrets long kept.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -72,9 +72,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:30.475032392Z",
+            "timestamp": "2025-10-15T03:37:57.378038220Z",
             "playerInput": "go north",
-            "gmResponse": "Abandoned Throne Room\nYou step into the abandoned throne room, where a massive stone throne looms like a ghost of authority, its once-proud contours now draped in the dust of neglect. Faded royal tapestries cling to the walls, their vibrant colors drained into muted shadows that ripple in the dim light cast by an unseen source. The cracked marble floor, littered with fragments of forgotten grandeur, sends a chill through your bones as a cold draft whispers from unseen passages, carrying with it a sense of foreboding. In the corner of your eye, a skeleton slumps on the throne, an eerie reminder of power lost to time, while ominous shadows stretch and twist, inviting both reverence and dread.\nExits: south, north\nYou see: Skeleton King",
+            "gmResponse": "Abandoned Throne Room\nYou enter the abandoned throne room, where an imposing stone throne looms in the center, its massive form draped in shadows and dust. Faded royal tapestries hang lifelessly from the walls, their once-vibrant colors now dulled by time, whispering stories of glory and despair. The cracked marble floor beneath your feet feels icy, as a cold draft slips through unseen passages, carrying with it the scent of forgotten power and lingering dread. In the flickering light, the eerie sight of a skeleton slumped on the throne sends a chill down your spine, a grim reminder of the once-mighty presence that ruled here.\nExits: south, north\nYou see: Skeleton King",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
@@ -89,7 +89,7 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:34.080946583Z",
+            "timestamp": "2025-10-15T03:38:00.475120233Z",
             "playerInput": "intimidate Skeleton King",
             "gmResponse": "Failed! The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies.",
             "validationResult": {
@@ -104,9 +104,9 @@
             }
         },
         {
-            "timestamp": "2025-10-15T01:51:40.205572672Z",
+            "timestamp": "2025-10-15T03:38:06.756209048Z",
             "playerInput": "go north",
-            "gmResponse": "Hidden Chamber\nYou step into a hidden chamber where mysteriously lit crystal formations rise from the ground like ethereal guardians, their soft glow bathing the space in otherworldly hues. Ancient magical circles etched into the stone floor pulse with a faint rhythm, echoing the hum of arcane energy that fills the air. Floating symbols drift lazily above you, their intricate designs shimmering and shifting, as if alive with secrets waiting to be unveiled. A portal-like shimmer shimmers in the far wall, beckoning you with the promise of untold destinies, while the atmosphere crackles with the anticipation of ancient magic stirring once more.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
+            "gmResponse": "Hidden Chamber\nYou step into a hidden chamber that pulses with an otherworldly glow, the mysteriously lit crystal formations casting ethereal reflections on the ancient walls. Intricate magical circles, etched deep into the cool stone floor, whisper secrets of arcane rituals long forgotten, while floating symbols swirl above like lost thoughts drifting in the air. A low hum vibrates through the room, resonating with a palpable energy that tingles against your skin. In the far wall, a portal-like shimmer beckons, rippling like the surface of a hidden lake, inviting curiosity and caution in equal measure.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
             "validationResult": {
                 "pass": true,
                 "reason": "[CODE] Movement succeeded: entered room 'Hidden Chamber'",
@@ -125,16 +125,16 @@
         {
             "stepNumber": 1,
             "step": {
-                "timestamp": "2025-10-15T01:51:11.687820395Z",
-                "playerInput": "look at entrance",
-                "gmResponse": "You examine the dungeon entrance closely, noting the crumbling stone archway that frames it. The once-grand structure shows signs of age and decay, with jagged edges and the moss that clings to it giving the impression that nature is gradually reclaiming this place. The flickering torchlight casts eerie shadows across the entrance, inviting yet ominous, as the ancient runes carved into the doorframe seem to murmur secrets of long-lost tales.",
+                "timestamp": "2025-10-15T03:37:36.458826044Z",
+                "playerInput": "look around",
+                "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway, its edges worn and weathered, hinting at the passage of time. Moss-covered walls cling to the remnants of the past, their dampness seeping into the musty air that surrounds you. Flickering torchlight dances across the surface, illuminating ancient runes carved deep into the doorframe, each one whispering secrets of a long-forgotten era. An eerie stillness envelops the space, as if the very stones are holding their breath, waiting for you to make the next move.\nExits: north\nYou see: Old Guard",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Description provided for 'entrance'",
+                    "reason": "[CODE] Description provided for 'around'",
                     "details": {
                         "validation_type": "code",
-                        "item": "entrance",
-                        "description_length": "445"
+                        "item": "around",
+                        "description_length": "557"
                     }
                 }
             },
@@ -144,9 +144,9 @@
         {
             "stepNumber": 2,
             "step": {
-                "timestamp": "2025-10-15T01:51:15.825320727Z",
+                "timestamp": "2025-10-15T03:37:41.663291207Z",
                 "playerInput": "talk to old guard",
-                "gmResponse": "Old Guard says: \"\"Ah, a weary soul has come to brave the shadows, I see. I've seen better days myself, but your presence brings a flicker of hope. Care to share a tale or seek guidance before you venture inside?\"\"",
+                "gmResponse": "Old Guard says: \"\"Well met, traveler! You have the look of someone who’s faced the wilds. Though I bear my wounds, I am still steadfast at this post. If you're seeking passage, let me know how I can assist you.\"\"",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] NPC dialogue generated for 'old guard' (talk is conversation, not a check)",
@@ -164,16 +164,16 @@
         {
             "stepNumber": 3,
             "step": {
-                "timestamp": "2025-10-15T01:51:18.534851183Z",
+                "timestamp": "2025-10-15T03:37:44.365164577Z",
                 "playerInput": "persuade old guard",
-                "gmResponse": "Success! The Old Guard smiles warmly. 'Ah, a polite adventurer! Let me tell you - there's a hidden passage in the secret chamber beyond the throne room. Look for the stone door and you'll find ancient treasures beyond!'",
+                "gmResponse": "Failed! The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'",
                 "validationResult": {
                     "pass": true,
-                    "reason": "[CODE] Persuasion check succeeded on 'old guard' (dice roll won)",
+                    "reason": "[CODE] Persuasion check failed on 'old guard' (dice roll lost, mechanics work)",
                     "details": {
                         "validation_type": "code",
                         "npc": "old guard",
-                        "check_result": "success",
+                        "check_result": "failed",
                         "npc_in_room": "true"
                     }
                 }
@@ -184,9 +184,9 @@
         {
             "stepNumber": 4,
             "step": {
-                "timestamp": "2025-10-15T01:51:24.218744858Z",
+                "timestamp": "2025-10-15T03:37:50.215694333Z",
                 "playerInput": "go north",
-                "gmResponse": "Dark Corridor\nYou step into a narrow stone passage, the walls closing in around you with a suffocating embrace. Echoing footsteps reverberate off the damp surfaces, mingling with the steady drip of water that punctuates the heavy silence. Shadowy corners are adorned with intricate spider webs, their delicate threads glistening faintly in the flickering light. The worn flagstone floor beneath your feet feels cool and uneven, each step stirring the musty air that carries the weight of forgotten stories.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "gmResponse": "Dark Corridor\nYou step cautiously into a narrow stone passage, the walls rising high and enclosing you in a chilly embrace. The echoing footsteps of your own tread mingle with the distant sounds of dripping water, creating a haunting symphony that reverberates through the darkness. In the corners, spider webs cling like forgotten memories, their silken threads glistening in the faint light, while the worn flagstone floor beneath your feet tells tales of countless travelers who've come before you. A musty scent clings to the air, thick with the weight of time and secrets long kept.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
@@ -206,9 +206,9 @@
         {
             "stepNumber": 5,
             "step": {
-                "timestamp": "2025-10-15T01:51:30.475032392Z",
+                "timestamp": "2025-10-15T03:37:57.378038220Z",
                 "playerInput": "go north",
-                "gmResponse": "Abandoned Throne Room\nYou step into the abandoned throne room, where a massive stone throne looms like a ghost of authority, its once-proud contours now draped in the dust of neglect. Faded royal tapestries cling to the walls, their vibrant colors drained into muted shadows that ripple in the dim light cast by an unseen source. The cracked marble floor, littered with fragments of forgotten grandeur, sends a chill through your bones as a cold draft whispers from unseen passages, carrying with it a sense of foreboding. In the corner of your eye, a skeleton slumps on the throne, an eerie reminder of power lost to time, while ominous shadows stretch and twist, inviting both reverence and dread.\nExits: south, north\nYou see: Skeleton King",
+                "gmResponse": "Abandoned Throne Room\nYou enter the abandoned throne room, where an imposing stone throne looms in the center, its massive form draped in shadows and dust. Faded royal tapestries hang lifelessly from the walls, their once-vibrant colors now dulled by time, whispering stories of glory and despair. The cracked marble floor beneath your feet feels icy, as a cold draft slips through unseen passages, carrying with it the scent of forgotten power and lingering dread. In the flickering light, the eerie sight of a skeleton slumped on the throne sends a chill down your spine, a grim reminder of the once-mighty presence that ruled here.\nExits: south, north\nYou see: Skeleton King",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
@@ -228,7 +228,7 @@
         {
             "stepNumber": 6,
             "step": {
-                "timestamp": "2025-10-15T01:51:34.080946583Z",
+                "timestamp": "2025-10-15T03:38:00.475120233Z",
                 "playerInput": "intimidate Skeleton King",
                 "gmResponse": "Failed! The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies.",
                 "validationResult": {
@@ -248,9 +248,9 @@
         {
             "stepNumber": 7,
             "step": {
-                "timestamp": "2025-10-15T01:51:40.205572672Z",
+                "timestamp": "2025-10-15T03:38:06.756209048Z",
                 "playerInput": "go north",
-                "gmResponse": "Hidden Chamber\nYou step into a hidden chamber where mysteriously lit crystal formations rise from the ground like ethereal guardians, their soft glow bathing the space in otherworldly hues. Ancient magical circles etched into the stone floor pulse with a faint rhythm, echoing the hum of arcane energy that fills the air. Floating symbols drift lazily above you, their intricate designs shimmering and shifting, as if alive with secrets waiting to be unveiled. A portal-like shimmer shimmers in the far wall, beckoning you with the promise of untold destinies, while the atmosphere crackles with the anticipation of ancient magic stirring once more.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
+                "gmResponse": "Hidden Chamber\nYou step into a hidden chamber that pulses with an otherworldly glow, the mysteriously lit crystal formations casting ethereal reflections on the ancient walls. Intricate magical circles, etched deep into the cool stone floor, whisper secrets of arcane rituals long forgotten, while floating symbols swirl above like lost thoughts drifting in the air. A low hum vibrates through the room, resonating with a palpable energy that tingles against your skin. In the far wall, a portal-like shimmer beckons, rippling like the surface of a hidden lake, inviting curiosity and caution in equal measure.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
                 "validationResult": {
                     "pass": true,
                     "reason": "[CODE] Movement succeeded: entered room 'Hidden Chamber'",
@@ -268,11 +268,11 @@
             "reason": "Step completed successfully"
         }
     ],
-    "uniqueRoomsVisited": 3,
+    "uniqueRoomsVisited": 4,
     "roomNames": [
+        "Dungeon Entrance",
         "Dark Corridor",
         "Abandoned Throne Room",
         "Hidden Chamber"
-    ],
-    "socialChecksPassed": 1
+    ]
 }

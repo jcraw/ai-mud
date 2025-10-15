@@ -17,8 +17,16 @@ class IntentRecognizer(
      * Parse natural language input into a structured Intent.
      *
      * If LLM is not available, falls back to simple pattern matching for basic commands.
+     *
+     * @param input The player's text input
+     * @param roomContext Optional room context description
+     * @param exitsWithNames Map of available exits to their destination room names (for navigation)
      */
-    suspend fun parseIntent(input: String, roomContext: String? = null): Intent {
+    suspend fun parseIntent(
+        input: String,
+        roomContext: String? = null,
+        exitsWithNames: Map<Direction, String>? = null
+    ): Intent {
         // Split compound commands (e.g., "take sword and equip it" → "take sword")
         val firstCommand = splitCompoundCommand(input)
 
@@ -27,7 +35,7 @@ class IntentRecognizer(
         }
 
         return try {
-            parseLLM(firstCommand, roomContext)
+            parseLLM(firstCommand, roomContext, exitsWithNames)
         } catch (e: Exception) {
             // Fall back to simple parsing if LLM fails
             parseFallback(firstCommand)
@@ -57,9 +65,13 @@ class IntentRecognizer(
     /**
      * Use LLM to parse the player's input into a structured Intent.
      */
-    private suspend fun parseLLM(input: String, roomContext: String?): Intent {
+    private suspend fun parseLLM(
+        input: String,
+        roomContext: String?,
+        exitsWithNames: Map<Direction, String>?
+    ): Intent {
         val systemPrompt = buildSystemPrompt()
-        val userPrompt = buildUserPrompt(input, roomContext)
+        val userPrompt = buildUserPrompt(input, roomContext, exitsWithNames)
 
         val response = llmClient!!.chatCompletion(
             modelId = "gpt-4o-mini",  // Cost-effective model for parsing
@@ -132,11 +144,15 @@ Important parsing rules:
 8. "move north", "go north", "n", "north", "head north" all map to move with target "north"
 9. "move northwest", "go northwest", "nw", "northwest" all map to move with target "northwest"
 10. "move north from throne room" → extract "north" as target
-11. "look north", "look to the north" → map to look with target "north" (directional look)
-12. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
-13. PARTIAL NAMES: "attack king" when NPC is "skeleton king" → extract "king", "take sword" when item is "rusty sword" → extract "sword"
-14. For attack/talk/persuade/intimidate with NPCs, extract ANY word from the player's input that could identify the NPC
-15. For equip/use/take/drop with items, extract ANY word from the player's input that could identify the item
+11. ROOM-NAME NAVIGATION: If player says "go to [room name]" and room name matches an exit destination, determine the direction
+    - Example: Player says "go to throne room" and exits show "north -> Throne Room" → return move with target "north"
+    - Example: Player says "go to the crypt" and exits show "east -> Crypt Entrance" → return move with target "east"
+    - Match room names flexibly: "throne", "throne room", "the throne room" should all match "Throne Room"
+12. "look north", "look to the north" → map to look with target "north" (directional look)
+13. Scenery items (walls, floor, ground, ceiling, throne, formations, etc.) are valid look targets
+14. PARTIAL NAMES: "attack king" when NPC is "skeleton king" → extract "king", "take sword" when item is "rusty sword" → extract "sword"
+15. For attack/talk/persuade/intimidate with NPCs, extract ANY word from the player's input that could identify the NPC
+16. For equip/use/take/drop with items, extract ANY word from the player's input that could identify the item
 
 Response format (JSON only, no markdown):
 {
@@ -150,22 +166,28 @@ Response format (JSON only, no markdown):
     /**
      * Build the user prompt with the player's input and optional context.
      */
-    private fun buildUserPrompt(input: String, roomContext: String?): String {
-        return if (roomContext != null) {
-            """
-Current room context: $roomContext
+    private fun buildUserPrompt(
+        input: String,
+        roomContext: String?,
+        exitsWithNames: Map<Direction, String>?
+    ): String {
+        val parts = mutableListOf<String>()
 
-Player input: "$input"
-
-Parse the player's intent.
-            """.trimIndent()
-        } else {
-            """
-Player input: "$input"
-
-Parse the player's intent.
-            """.trimIndent()
+        if (roomContext != null) {
+            parts.add("Current room context: $roomContext")
         }
+
+        if (!exitsWithNames.isNullOrEmpty()) {
+            val exitsText = exitsWithNames.entries.joinToString("\n") { (dir, name) ->
+                "  ${dir.displayName} -> $name"
+            }
+            parts.add("Available exits:\n$exitsText")
+        }
+
+        parts.add("Player input: \"$input\"")
+        parts.add("Parse the player's intent.")
+
+        return parts.joinToString("\n\n")
     }
 
     /**

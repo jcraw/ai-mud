@@ -8,15 +8,15 @@
         Status: PASSED
 
         Results:
-        - Total Steps: 19
-        - Passed: 19
+        - Total Steps: 17
+        - Passed: 17
         - Failed: 0
         - Pass Rate: 100%
 
         Timing:
-        - Start: 2025-10-15T01:49:39.912547294Z
-        - End: 2025-10-15T01:51:02.748791668Z
-        - Duration: 82.84s
+        - Start: 2025-10-15T03:36:11.134627440Z
+        - End: 2025-10-15T03:37:29.491446642Z
+        - Duration: 78.36s
 
         ================================================================================
         STEP DETAILS
@@ -63,7 +63,7 @@ Input: take health potion
 Reason: Step completed successfully
 
 Step 11: ✓ PASS
-Input: go north
+Input: go west
 Reason: Step completed successfully
 
 Step 12: ✓ PASS
@@ -71,11 +71,11 @@ Input: go north
 Reason: Step completed successfully
 
 Step 13: ✓ PASS
-Input: go west
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 14: ✓ PASS
-Input: go north
+Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 15: ✓ PASS
@@ -87,15 +87,7 @@ Input: attack Skeleton King
 Reason: Step completed successfully
 
 Step 17: ✓ PASS
-Input: attack Skeleton King
-Reason: Step completed successfully
-
-Step 18: ✓ PASS
-Input: attack Skeleton King
-Reason: Step completed successfully
-
-Step 19: ✓ PASS
-Input: attack Skeleton King
+Input: attack skeleton king
 Reason: Step completed successfully
 
         ================================================================================

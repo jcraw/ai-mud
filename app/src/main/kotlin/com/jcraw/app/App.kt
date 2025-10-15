@@ -152,8 +152,9 @@ class MudGame(
 
             val room = worldState.getCurrentRoom()
             val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
+            val exitsWithNames = room?.let { buildExitsWithNames(it) }
             val intent = runBlocking {
-                intentRecognizer.parseIntent(input, roomContext)
+                intentRecognizer.parseIntent(input, roomContext, exitsWithNames)
             }
             processIntent(intent)
         }
@@ -269,6 +270,20 @@ class MudGame(
 
             worldState = worldState.updatePlayer(updatedPlayer)
         }
+    }
+
+    /**
+     * Build a map of exits with their destination room names for navigation parsing.
+     */
+    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room): Map<Direction, String> {
+        return room.exits.mapNotNull { (direction, roomId) ->
+            val destRoom = worldState.rooms[roomId]
+            if (destRoom != null) {
+                direction to destRoom.name
+            } else {
+                null
+            }
+        }.toMap()
     }
 
     private fun handleMove(direction: Direction) {
@@ -1371,7 +1386,8 @@ class MultiUserGame(
             // Parse intent using LLM
             val room = gameServer.getWorldState().getCurrentRoom(session.playerId)
             val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-            val intent = intentRecognizer.parseIntent(input.trim(), roomContext)
+            val exitsWithNames = room?.let { buildExitsWithNames(it, gameServer.getWorldState()) }
+            val intent = intentRecognizer.parseIntent(input.trim(), roomContext, exitsWithNames)
 
             // Check for quit
             if (intent is Intent.Quit) {
@@ -1385,6 +1401,20 @@ class MultiUserGame(
             val response = gameServer.processIntent(session.playerId, intent)
             session.sendMessage(response)
         }
+    }
+
+    /**
+     * Build a map of exits with their destination room names for navigation parsing.
+     */
+    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room, worldState: WorldState): Map<Direction, String> {
+        return room.exits.mapNotNull { (direction, roomId) ->
+            val destRoom = worldState.rooms[roomId]
+            if (destRoom != null) {
+                direction to destRoom.name
+            } else {
+                null
+            }
+        }.toMap()
     }
 
     private fun createFallbackMemoryManager(): MemoryManager {

@@ -103,8 +103,9 @@ class EngineGameClient(
         // Parse intent
         val room = worldState.getCurrentRoom()
         val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
+        val exitsWithNames = room?.let { buildExitsWithNames(it) }
         val intent = runBlocking {
-            intentRecognizer.parseIntent(text, roomContext)
+            intentRecognizer.parseIntent(text, roomContext, exitsWithNames)
         }
 
         // Process intent
@@ -124,6 +125,20 @@ class EngineGameClient(
         runBlocking {
             _events.emit(event)
         }
+    }
+
+    /**
+     * Build a map of exits with their destination room names for navigation parsing.
+     */
+    private fun buildExitsWithNames(room: Room): Map<Direction, String> {
+        return room.exits.mapNotNull { (direction, roomId) ->
+            val destRoom = worldState.rooms[roomId]
+            if (destRoom != null) {
+                direction to destRoom.name
+            } else {
+                null
+            }
+        }.toMap()
     }
 
     private fun describeCurrentRoom() {
