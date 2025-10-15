@@ -1,0 +1,79 @@
+        ================================================================================
+        [2025-10-15T01:49:10.059052522Z]
+
+        Player: go north
+
+        Game Master:
+        Dark Corridor
+You find yourself in a narrow stone passage, where the air feels cool and damp against your skin. The worn flagstone floor beneath your feet echoes with each step, the sound bouncing off the walls and mingling with the distant drip of water, creating a haunting melody. In the shadows, spider webs cling to the corners, their silken threads shimmering faintly in the dim light, a testament to the stillness that pervades this forgotten corridor.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-10-15T01:49:17.261273652Z]
+
+        Player: go north
+
+        Game Master:
+        Abandoned Throne Room
+You enter the abandoned throne room, where a massive stone throne looms at the center, a relic of power now draped in an unsettling stillness. Faded royal tapestries hang limply from the walls, their once-vibrant colors dulled by time, whispering tales of glory long forgotten. The cracked marble floor, littered with dust and debris, sends a chill through the air, as an ominous draft dances in from unseen passages, carrying echoes of the past. In a haunting tableau, a skeleton slumps motionless upon the throne, its empty gaze fixed on the shadows that creep across the chamber, as if guarding the remnants of a lost kingdom.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-10-15T01:49:26.520996098Z]
+
+        Player: look
+
+        Game Master:
+        Abandoned Throne Room
+You stand in the abandoned throne room, where the massive stone throne dominates the space, a formidable reminder of authority now surrendered to decay. Faded royal tapestries hang like ghostly figures from the walls, their intricate designs barely visible beneath layers of dust, while the cracked marble floor beneath your feet feels both cold and unforgiving. Ominous shadows flicker in the corners, sentinels of a forgotten era, as a chilling draft snakes through the chamber, carrying with it whispers of long-lost secrets. There, upon the throne, a skeleton slumps in eternal vigil, its hollow sockets seemingly surveying the remnants of a kingdom swallowed by time.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: The combat initiated correctly with the Skeleton King, and the damage dealt was reasonable, leading to the player's death as expected.
+        ================================================================================
+        [2025-10-15T01:49:29.628137987Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You engage Skeleton King in combat!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-15T01:49:33.666752267Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You strike for 7 damage! The enemy retaliates for 13 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-15T01:49:36.379368455Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 15 damage! The enemy retaliates for 13 damage!
+
+        Validation: PASS
+Reason: [CODE] Combat ongoing
+        ================================================================================
+        [2025-10-15T01:49:39.060034205Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You strike for 5 damage! The enemy retaliates for 15 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
