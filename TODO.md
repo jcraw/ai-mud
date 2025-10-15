@@ -8,8 +8,8 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~180 (across all modules)**
-- ✅ **Phase 2 Progress: 3/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests)**
+- ✅ **Total Unit/Integration Tests: ~194 (across all modules)**
+- ✅ **Phase 2 Progress: 4/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests)**
 
 ---
 
@@ -75,10 +75,12 @@ Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/a
   - Quest log display
   - Quest abandonment
 
-- [ ] `SkillCheckIntegrationTest.kt` (replaces `test_skill_checks.sh`)
+- ✅ `SkillCheckIntegrationTest.kt` (replaces `test_skill_checks.sh`) - **14 tests, all passing**
   - All 6 stat checks (STR, DEX, CON, INT, WIS, CHA)
   - Difficulty levels (Easy, Medium, Hard)
   - Success/failure outcomes
+  - Stat modifier effects
+  - Multiple sequential checks
 
 - [ ] `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
   - Talk to NPCs

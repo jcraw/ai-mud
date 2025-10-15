@@ -61,9 +61,9 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~180 tests** across all modules (including 7 UI tests, 31 integration tests)
+- **Comprehensive tests**: **~194 tests** across all modules (including 7 UI tests, 45 integration tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
-  - **Phase 2 In Progress**: 3/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests)
+  - **Phase 2 In Progress**: 4/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -220,7 +220,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~180 tests** across modules (Phase 1 complete, Phase 2 in progress)
+- **All modules building** - **~194 tests** across modules (Phase 1 complete, Phase 2 nearly complete - 4/5 integration tests done)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -235,7 +235,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Current Status: Phase 2 Testing In Progress (2025-10-15)
 
-**Latest Session**: Phase 2 integration tests - quest system complete
+**Latest Session**: Phase 2 integration tests - skill check system complete
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -275,11 +275,18 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
   - Multi-objective quest completion
   - Reward claiming
   - Quest log display
-- **Progress: 3/5 integration tests complete (31 total integration tests)**
+- ✅ Created `SkillCheckIntegrationTest.kt` - **14 tests, all passing**
+  - All 6 stat types (STR, DEX, CON, INT, WIS, CHA)
+  - Difficulty levels (Easy, Medium, Hard)
+  - Success and failure outcomes
+  - Stat modifier effects on success rates
+  - Multiple sequential skill checks
+  - Edge cases with very high/low stats
+- **Progress: 4/5 integration tests complete (45 total integration tests)**
 
 **Major Achievements**:
 - ✅ All automated tests: **100% pass rate**
-- ✅ Phase 2 integration tests: **3/5 complete (31 tests total)**
+- ✅ Phase 2 integration tests: **4/5 complete (45 tests total)**
 - ✅ BUG-001 (combat state desync): **FIXED**
 - ✅ BUG-002 (social checks): **FIXED**
 - ✅ BUG-003 (death/respawn): **FIXED**
@@ -335,16 +342,16 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Inventory system (19 tests)
   - World state navigation (33 tests)
   - Combat resolver (14 tests)
-- 🔄 **Phase 2 In Progress**: 3/5 integration tests complete
+- 🔄 **Phase 2 In Progress**: 4/5 integration tests complete
   - ✅ CombatIntegrationTest (7 tests) - replaces `test_combat.sh`
   - ✅ ItemInteractionIntegrationTest (13 tests) - replaces `test_items.sh`
   - ✅ QuestIntegrationTest (11 tests) - replaces `test_quests.sh`
-  - ⏳ SkillCheckIntegrationTest - pending
+  - ✅ SkillCheckIntegrationTest (14 tests) - replaces `test_skill_checks.sh`
   - ⏳ SocialInteractionIntegrationTest - pending
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~180 tests** across all modules
+- **Total: ~194 tests** across all modules
 
 **All Known Bugs Resolved!** 🎉
 
@@ -355,8 +362,8 @@ The GUI client with real engine integration, quest system with auto-tracking, au
    - ✅ `CombatIntegrationTest.kt` - 7 tests (COMPLETE)
    - ✅ `ItemInteractionIntegrationTest.kt` - 13 tests (COMPLETE)
    - ✅ `QuestIntegrationTest.kt` - 11 tests (COMPLETE)
+   - ✅ `SkillCheckIntegrationTest.kt` - 14 tests (COMPLETE)
    - Create remaining integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
-     - `SkillCheckIntegrationTest.kt` (replaces shell script)
      - `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
    - See **[TESTING.md](docs/TESTING.md)** for complete plan and **[TODO.md](TODO.md)** for tasks
 
