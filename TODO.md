@@ -11,15 +11,120 @@
 
 ---
 
-## Next Up - Active Bug Fixes
+## Next Up - Testing Migration & Improvement
 
-### 🟡 BUG-006: Improve Natural Language Navigation
-**Priority:** MEDIUM
-**Description:** "go to throne room" doesn't work, only "go north" works.
-**Files:**
-- `perception/` module - NLU intent parsing
+### 🔵 TESTING-001: Comprehensive Test Suite Implementation
+**Priority:** HIGH
+**Description:** Migrate shell script tests to proper unit/integration tests following Kotlin best practices
+**Documentation:** [TESTING.md](docs/TESTING.md)
 
-**Details:** See [BUGS.md#BUG-006](docs/BUGS.md#bug-006-navigation-command-parser-issue)
+#### Phase 1: Core Unit Tests (1-2 days) - HIGH PRIORITY
+Fill gaps in core module testing:
+
+- [ ] `core/src/test/kotlin/com/jcraw/mud/core/EquipmentSystemTest.kt`
+  - Test equip/unequip weapons
+  - Test equip/unequip armor
+  - Test equipment restrictions
+  - Test equipped item removal from inventory
+
+- [ ] `core/src/test/kotlin/com/jcraw/mud/core/InventorySystemTest.kt`
+  - Test add/remove items
+  - Test find item by ID/name
+  - Test inventory capacity (if applicable)
+  - Test item stacking/quantity
+
+- [ ] `core/src/test/kotlin/com/jcraw/mud/core/WorldStateTest.kt`
+  - Test room navigation
+  - Test entity lookup
+  - Test room/entity relationships
+  - Test world state mutations
+
+- [ ] `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/CombatResolverTest.kt`
+  - Test damage calculation with STR modifier
+  - Test weapon damage bonus
+  - Test armor defense reduction
+  - Test turn order
+  - Test combat end conditions
+
+#### Phase 2: Integration Tests (2-3 days) - HIGH PRIORITY
+Replace shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
+
+- [ ] `CombatIntegrationTest.kt` (replaces `test_combat.sh`)
+  - Basic combat flow
+  - Equipment modifiers (weapons/armor)
+  - Combat end (player death, NPC death)
+  - Loot drops
+
+- [ ] `ItemInteractionIntegrationTest.kt` (replaces `test_items.sh`)
+  - Take/get items
+  - Drop items
+  - Equip items
+  - Use consumables
+  - Take all/get all
+
+- [ ] `QuestIntegrationTest.kt` (replaces `test_quests.sh`)
+  - Quest acceptance
+  - Objective auto-tracking (all 6 types)
+  - Quest completion
+  - Reward claiming
+
+- [ ] `SkillCheckIntegrationTest.kt` (replaces `test_skill_checks.sh`)
+  - All 6 stat checks (STR, DEX, CON, INT, WIS, CHA)
+  - Difficulty levels (Easy, Medium, Hard)
+  - Success/failure outcomes
+
+- [ ] `SocialInteractionIntegrationTest.kt` (replaces `test_social.sh`)
+  - Talk to NPCs
+  - Persuasion checks
+  - Intimidation checks
+  - NPC dialogue generation
+
+#### Phase 3: Complex Integration (2-3 days) - MEDIUM PRIORITY
+Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
+
+- [ ] `SaveLoadIntegrationTest.kt` (replaces `test_save_load.sh`)
+  - Save game state
+  - Load game state
+  - Persistence roundtrip
+  - Save file format validation
+
+- [ ] `ProceduralDungeonIntegrationTest.kt` (replaces `test_procedural.sh`)
+  - All 4 dungeon themes (Crypt, Castle, Cave, Temple)
+  - Room connectivity
+  - NPC generation
+  - Item distribution
+  - Quest generation
+
+- [ ] `NavigationIntegrationTest.kt` (replaces `test_exits_debug.sh`)
+  - Directional navigation (n/s/e/w)
+  - Natural language navigation ("go to throne room")
+  - Invalid direction handling
+  - Exit validation
+
+- [ ] `FullGameplayIntegrationTest.kt` (replaces `test_game.sh`)
+  - Complete game loop
+  - Multiple systems working together
+  - End-to-end gameplay scenario
+
+#### Phase 4: Bot Test Migration (1-2 days) - LOW PRIORITY
+Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
+
+- [ ] `BruteForcePlaythroughTest.kt` (replaces `test_brute_force_playthrough.sh`)
+- [ ] `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`)
+- [ ] `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`)
+- [ ] `AllPlaythroughsTest.kt` (replaces `test_all_playthroughs.sh`)
+- [ ] Delete shell scripts after verification
+
+**Files to Create/Modify:**
+- See [TESTING.md](docs/TESTING.md) for complete file list and examples
+- All new test files use JUnit 5, @Nested classes, mocked LLM clients
+- Follow patterns in existing tests (SocialInteractionTest.kt, QuestSystemTest.kt)
+
+**Success Criteria:**
+- All shell script functionality migrated to unit/integration tests
+- `gradle test` runs entire suite successfully
+- Test suite completes in <2 minutes (excluding E2E bot tests)
+- Shell scripts can be safely deleted
 
 ---
 

@@ -67,9 +67,10 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Deliver quest objectives** - Implement the DeliverItem quest objective type
-2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+1. **Testing migration** - Migrate shell script tests to proper unit/integration tests (see [TESTING.md](docs/TESTING.md) and [TODO.md](TODO.md))
+2. **Deliver quest objectives** - Implement the DeliverItem quest objective type
+3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+4. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
 ## Commands
 
@@ -226,6 +227,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Getting Started](docs/GETTING_STARTED.md)** - Setup, commands, gameplay walkthrough
 - **[Client UI](docs/CLIENT_UI.md)** - GUI client documentation and usage
 - **[Architecture](docs/ARCHITECTURE.md)** - Module structure, data flow, file locations
+- **[Testing Strategy](docs/TESTING.md)** - Comprehensive testing guide, test organization, migration plan
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
@@ -293,12 +295,18 @@ The GUI client with real engine integration, quest system with auto-tracking, au
 
 **Next Priorities**:
 
-1. **Feature work**:
+1. **Testing Migration** (HIGH PRIORITY):
+   - Migrate shell script tests to proper unit/integration tests
+   - Create comprehensive test suite with JUnit 5 + @Nested organization
+   - Follow Kotlin best practices and clean architecture principles
+   - See **[TESTING.md](docs/TESTING.md)** for complete plan and **[TODO.md](TODO.md)** for tasks
+
+2. **Feature work**:
    - **Deliver quest objectives** - Implement DeliverItem quest objective tracking
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
    - **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
-2. **Polish & Enhancement Ideas**:
+3. **Polish & Enhancement Ideas**:
    - More quest objective types (Escort, Defend, Craft, etc.)
    - Character progression system (leveling, skill trees)
    - More dungeon themes and procedural variations
