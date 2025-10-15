@@ -5,11 +5,11 @@
 
 This document tracks known bugs discovered through automated testing. Bugs are prioritized by severity and impact on gameplay.
 
-## Medium Priority
+## Resolved Bugs
 
-### BUG-006: Navigation Command Parser Issue
+### BUG-006: Navigation Command Parser Issue ✅ RESOLVED
 **Severity:** MEDIUM
-**Status:** Open
+**Status:** RESOLVED (2025-10-14)
 **Discovered:** 2025-10-13 (brute_force_playthrough test)
 
 **Symptoms:**
@@ -17,19 +17,19 @@ This document tracks known bugs discovered through automated testing. Bugs are p
 - Natural language navigation fails
 - Simple `go north` works as workaround
 
-**Reproduction:**
-1. Be in room with throne room to the north
-2. Command `go to throne room` (fails)
-3. Command `go north` (works)
+**Resolution:**
+Enhanced IntentRecognizer to support room-name navigation:
+1. Added `exitsWithNames` parameter to `parseIntent()` - maps exits to destination room names
+2. Updated LLM system prompt with rule 11: "ROOM-NAME NAVIGATION" to match player input like "go to throne room" with available exits
+3. Updated all parseIntent callers (MudGame, MultiUserGame, EngineGameClient, InMemoryGameEngine) to build and pass exit information
 
-**Test Evidence:**
-- Step 16: "go to throne room" returns unknown command ✗
+**Files Modified:**
+- `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt`
+- `app/src/main/kotlin/com/jcraw/app/App.kt`
+- `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt`
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt`
 
-**Suspected Locations:**
-- `perception/` module - Natural language intent parsing for navigation
-- Intent recognition may be too strict
-
-**Impact:** Minor UX issue. Simple directional commands work, but reduces natural language immersion.
+**Impact:** Improved natural language navigation. Players can now use commands like "go to throne room" in addition to directional commands.
 
 ---
 
@@ -44,7 +44,7 @@ This document tracks known bugs discovered through automated testing. Bugs are p
 | smart_playthrough | **100% (7/7)** | ✅ |
 
 **Remaining Known Issues:**
-- BUG-006: Navigation NLU (minor UX polish)
+- None! All discovered bugs have been resolved. 🎉
 
 ---
 

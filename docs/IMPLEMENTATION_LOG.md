@@ -475,3 +475,10 @@ appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put pla
 **Build Status**: ✅ `gradle :reasoning:build` and `gradle :app:installDist` successful
 
 **Status**: ✅ **COMPLETE** - Combat narration is now concise, accurate, and equipment-aware
+
+## Natural Language Navigation (2025-10-14) 🧭
+✅ **Room-name navigation support** - Commands like "go to throne room" now work
+✅ **IntentRecognizer enhanced** - Accepts exit mappings and matches room names to directions
+✅ **All clients updated** - Console, GUI, multi-user, and test bot support natural language navigation
+
+**Examples**: "go to throne room", "head to armory", "go to the crypt" all work seamlessly alongside directional commands ("go north", "n", etc.)

@@ -1,0 +1,34 @@
+Reusing configuration cache.
+> Task :llm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :reasoning:processResources NO-SOURCE
+> Task :memory:processResources NO-SOURCE
+> Task :reasoning:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :reasoning:processTestResources NO-SOURCE
+> Task :memory:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:processResources NO-SOURCE
+> Task :llm:processResources NO-SOURCE
+> Task :core:compileKotlin UP-TO-DATE
+> Task :core:compileJava NO-SOURCE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar UP-TO-DATE
+> Task :llm:compileKotlin UP-TO-DATE
+> Task :llm:compileJava NO-SOURCE
+> Task :llm:classes UP-TO-DATE
+> Task :llm:jar UP-TO-DATE
+> Task :memory:compileKotlin UP-TO-DATE
+> Task :memory:compileJava NO-SOURCE
+> Task :memory:classes UP-TO-DATE
+> Task :memory:jar UP-TO-DATE
+> Task :reasoning:compileKotlin UP-TO-DATE
+> Task :reasoning:compileJava NO-SOURCE
+> Task :reasoning:classes UP-TO-DATE
+> Task :reasoning:jar UP-TO-DATE
+> Task :reasoning:compileTestKotlin UP-TO-DATE
+> Task :reasoning:compileTestJava NO-SOURCE
+> Task :reasoning:testClasses UP-TO-DATE
+> Task :reasoning:test UP-TO-DATE
+
+BUILD SUCCESSFUL in 522ms
+10 actionable tasks: 10 up-to-date
+Configuration cache entry reused.

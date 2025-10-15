@@ -108,6 +108,7 @@ gradle :memory:test
 ./test_combat.sh    # Combat system
 ./test_items.sh     # Item/equipment system
 ./test_procedural.sh # Procedural generation
+./test_social.sh     # LLM-powered social interaction
 ```
 
 ## Project Guidelines
