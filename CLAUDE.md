@@ -61,11 +61,11 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~280 tests** across all modules (including 7 UI tests, 128 integration tests, 3 E2E scenario tests)
+- **Comprehensive tests**: **~286 tests** across all modules (including 7 UI tests, 128 integration tests, 9 E2E scenario tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
-  - **Phase 4 In Progress**: 1/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests)
+  - **Phase 4 In Progress**: 3/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -222,7 +222,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~280 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 in progress - 1/4 E2E tests done)
+- **All modules building** - **~286 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 in progress - 3/4 E2E tests done)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -235,9 +235,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Phase 4 Testing Started (2025-10-15)
+## Current Status: Phase 4 Testing In Progress (2025-10-15)
 
-**Latest Session**: Phase 4 bot scenario tests - 1/4 COMPLETE (BruteForcePlaythroughTest created with 3 E2E tests)
+**Latest Session**: Phase 4 bot scenario tests - 3/4 COMPLETE (BadPlaythroughTest created with 3 E2E tests)
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -399,15 +399,15 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - ✅ ProceduralDungeonIntegrationTest (21 tests) - replaces `test_procedural.sh`
   - ✅ NavigationIntegrationTest (21 tests) - replaces `test_exits_debug.sh`
   - ✅ FullGameplayIntegrationTest (15 tests) - replaces `test_game.sh`
-- 🔄 **Phase 4 In Progress**: 1/4 bot scenario tests complete
+- 🔄 **Phase 4 In Progress**: 3/4 bot scenario tests complete
   - ✅ BruteForcePlaythroughTest (3 tests) - replaces `test_brute_force_playthrough.sh`
-  - ⏳ SmartPlaythroughTest - pending
-  - ⏳ BadPlaythroughTest - pending
+  - ✅ SmartPlaythroughTest (3 tests) - replaces `test_smart_playthrough.sh`
+  - ✅ BadPlaythroughTest (3 tests) - replaces `test_bad_playthrough.sh`
   - ⏳ AllPlaythroughsTest - pending
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~280 tests** across all modules (including 3 new E2E scenario tests)
+- **Total: ~286 tests** across all modules (including 9 new E2E scenario tests)
 
 **All Known Bugs Resolved!** 🎉
 

@@ -8,10 +8,10 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Tests: ~280 (across all modules)**
+- ✅ **Total Tests: ~286 (across all modules)**
 - ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE**
 - ✅ **Phase 3 Progress: 4/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)**
-- 🔄 **Phase 4 Progress: 1/4 E2E scenario tests COMPLETE (BruteForcePlaythroughTest - 3 tests)**
+- 🔄 **Phase 4 Progress: 3/4 E2E scenario tests COMPLETE (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests)**
 
 ---
 
@@ -138,8 +138,14 @@ Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
   - Bot completes brute force playthrough by collecting gear and defeating boss
   - Bot explores multiple rooms looking for gear
   - Bot takes damage but survives with equipment
-- [ ] `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`)
-- [ ] `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`)
+- ✅ `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`) - **3 tests**
+  - Bot completes smart playthrough using social skills and intelligence
+  - Bot attempts social interactions before resorting to combat
+  - Bot explores secret areas and completes skill checks
+- ✅ `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`) - **3 tests**
+  - Bot rushes to boss and dies without gear
+  - Bot reaches boss room quickly without collecting gear
+  - Bot takes fatal damage from boss encounter
 - [ ] `AllPlaythroughsTest.kt` (replaces `test_all_playthroughs.sh`)
 - [ ] Delete shell scripts after verification
 

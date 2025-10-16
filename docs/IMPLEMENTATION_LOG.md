@@ -535,3 +535,123 @@ appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put pla
 **Status**: ✅ **COMPLETE** - All 21 tests passing, replaces `test_procedural.sh`
 
 **Phase 3 Progress**: 2/4 integration tests complete (SaveLoadIntegrationTest, ProceduralDungeonIntegrationTest)
+
+## Smart Playthrough E2E Test (2025-10-15) 🎮
+
+**Feature**: End-to-end scenario test for smart playthrough using social skills and intelligence
+
+✅ **SmartPlaythroughTest.kt** - 3 tests validating non-combat gameplay strategies
+  - File: `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/SmartPlaythroughTest.kt`
+  - Replaces: `test_smart_playthrough.sh` shell script
+
+**Test Coverage**:
+
+### Complete Playthrough (1 test)
+- ✅ Bot completes smart playthrough using social skills and intelligence
+  - Uses persuasion/intimidation to minimize combat
+  - Explores dungeon safely through social interaction
+  - Validates 70%+ pass rate (allows for skill check RNG)
+  - Ensures minimal combat rounds (≤5 preferred)
+  - Verifies multi-room exploration
+
+### Social Skills Priority (1 test)
+- ✅ Bot prioritizes social skills over combat
+  - Attempts persuasion/intimidation before fighting
+  - Achieves minimal combat through diplomacy
+  - Validates ≤10 combat rounds across playthrough
+  - Tests non-violent problem-solving
+
+### Navigation & Puzzles (1 test)
+- ✅ Bot navigates and solves environmental puzzles
+  - Explores secret areas and hidden rooms
+  - Completes skill checks (STR, INT, etc.)
+  - Validates multi-room exploration (≥3 rooms)
+  - Tests strategic navigation decisions
+
+**Scenario Description**:
+The Smart Playthrough scenario tests the player's ability to complete dungeons through:
+- **Social interactions**: Persuading NPCs for information, intimidating enemies to avoid combat
+- **Skill checks**: Using STR/INT/WIS checks to solve environmental challenges
+- **Strategic thinking**: Finding alternate solutions beyond direct combat
+- **Exploration**: Discovering secret chambers and hidden areas
+
+**Expected Behavior**:
+- Talk to Old Guard and attempt persuasion (Easy CHA check)
+- Navigate to throne room
+- Attempt to intimidate Skeleton King (Hard CHA check)
+  - Success: King backs down, no combat required
+  - Failure: Minimal combat with fallback strategy
+- Explore secret chamber
+- Pass environmental skill checks (STR door check, INT rune check)
+- Complete dungeon with 0-2 combat rounds (ideal) or minimal combat
+
+**Testing Methodology**:
+- Uses LLM-powered TestBotRunner for autonomous decision-making
+- Procedurally generated Crypt dungeon with deterministic seeds
+- InMemoryGameEngine for headless gameplay simulation
+- Validates social interaction mechanics, skill check system, and multiple solution paths
+
+**Status**: ✅ **COMPLETE** - All 3 tests implemented, validates smart/social gameplay strategies
+
+**Phase 4 Progress**: 2/4 E2E scenario tests complete (BruteForcePlaythroughTest, SmartPlaythroughTest)
+
+## Bad Playthrough E2E Test (2025-10-15) 💀
+
+**Feature**: End-to-end scenario test for bad playthrough validating game difficulty
+
+✅ **BadPlaythroughTest.kt** - 3 tests validating difficulty tuning and death mechanics
+  - File: `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/BadPlaythroughTest.kt`
+  - Replaces: `test_bad_playthrough.sh` shell script
+
+**Test Coverage**:
+
+### Player Death Validation (1 test)
+- ✅ Bot rushes to boss and dies without gear
+  - Navigates to boss quickly without preparation
+  - Engages boss without equipment
+  - Player dies (validates difficulty tuning)
+  - Test passes when death occurs (expected outcome)
+  - Verifies damage taken before death
+
+### Quick Boss Rush (1 test)
+- ✅ Bot reaches boss room quickly without collecting gear
+  - Completes objective within 30 steps
+  - Skips exploration and item collection
+  - Rushes directly to boss encounter
+  - Validates combat engagement occurs
+  - Confirms player death outcome
+
+### Lethal Damage (1 test)
+- ✅ Bot takes fatal damage from boss encounter
+  - Player takes significant damage (≥20 HP)
+  - Validates boss is challenging without gear
+  - Player kills few or no NPCs before dying (≤2)
+  - Confirms proper death mechanics
+  - Tests game balance without equipment
+
+**Scenario Description**:
+The Bad Playthrough scenario tests that the game has proper difficulty tuning by:
+- **Rushing the boss**: Player navigates to throne room without preparation
+- **Skipping gear**: No weapons or armor collected
+- **Dying to boss**: Skeleton King defeats unprepared player
+- **Validating difficulty**: Death confirms boss is appropriately challenging
+
+**Expected Behavior**:
+- Player spawns in entrance
+- Navigate to throne room (skipping gear rooms)
+- Attack Skeleton King without equipment
+- Take 20+ damage during combat
+- Player health reaches 0
+- Death screen appears
+- Test PASSES (death is the expected outcome)
+
+**Testing Methodology**:
+- Uses LLM-powered TestBotRunner with "bad strategy" instructions
+- Procedurally generated Crypt dungeon with deterministic seeds
+- InMemoryGameEngine for headless gameplay simulation
+- Validates death mechanics, damage calculation, and difficulty balance
+- PASS status when player dies (opposite of normal success criteria)
+
+**Status**: ✅ **COMPLETE** - All 3 tests implemented, validates difficulty tuning and death mechanics
+
+**Phase 4 Progress**: 3/4 E2E scenario tests complete (BruteForcePlaythroughTest, SmartPlaythroughTest, BadPlaythroughTest)
