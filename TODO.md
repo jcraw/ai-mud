@@ -8,9 +8,10 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~277 (across all modules)**
+- ✅ **Total Tests: ~280 (across all modules)**
 - ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE**
 - ✅ **Phase 3 Progress: 4/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)**
+- 🔄 **Phase 4 Progress: 1/4 E2E scenario tests COMPLETE (BruteForcePlaythroughTest - 3 tests)**
 
 ---
 
@@ -133,7 +134,10 @@ Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
 #### Phase 4: Bot Test Migration (1-2 days) - LOW PRIORITY
 Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
 
-- [ ] `BruteForcePlaythroughTest.kt` (replaces `test_brute_force_playthrough.sh`)
+- ✅ `BruteForcePlaythroughTest.kt` (replaces `test_brute_force_playthrough.sh`) - **3 tests**
+  - Bot completes brute force playthrough by collecting gear and defeating boss
+  - Bot explores multiple rooms looking for gear
+  - Bot takes damage but survives with equipment
 - [ ] `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`)
 - [ ] `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`)
 - [ ] `AllPlaythroughsTest.kt` (replaces `test_all_playthroughs.sh`)

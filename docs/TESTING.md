@@ -408,7 +408,7 @@ class QuestIntegrationTest {
 | `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) |
 | `test_game.sh` | `FullGameplayIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_exits_debug.sh` | `NavigationIntegrationTest.kt` | app | Integration | ⏳ Pending |
-| `test_brute_force_playthrough.sh` | `BruteForcePlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
+| `test_brute_force_playthrough.sh` | `BruteForcePlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) |
 | `test_smart_playthrough.sh` | `SmartPlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
 | `test_bad_playthrough.sh` | `BadPlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
 | `test_all_playthroughs.sh` | `AllPlaythroughsTest.kt` | testbot | E2E | ⏳ Pending |
@@ -665,11 +665,16 @@ Focus: Advanced workflows and persistence
 Priority: **LOW**
 Focus: Migrate shell script E2E tests to testbot
 
-- [ ] `BruteForcePlaythroughTest.kt` - Combat-focused playthrough
+- ✅ `BruteForcePlaythroughTest.kt` - **3 tests, combat-focused playthrough** ✅
+  - Bot completes brute force playthrough by collecting gear and defeating boss
+  - Bot explores multiple rooms looking for gear
+  - Bot takes damage but survives with equipment
 - [ ] `SmartPlaythroughTest.kt` - Strategic playthrough
 - [ ] `BadPlaythroughTest.kt` - Death/failure scenarios
 - [ ] `AllPlaythroughsTest.kt` - Suite runner
 - [ ] Delete shell scripts after verification
+
+**Progress:** 1/4 tests complete (3 E2E tests)
 
 ## Best Practices Summary
 
