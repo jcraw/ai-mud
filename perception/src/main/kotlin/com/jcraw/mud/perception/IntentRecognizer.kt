@@ -116,6 +116,7 @@ Valid intent types:
 - "take" - Pick up an item (requires target)
 - "take_all" - Pick up all items in the room (no target, triggered by "take all", "get all", "take everything", etc.)
 - "drop" - Drop an item (requires target)
+- "give" - Give an item to an NPC (requires "target" for item and "npc_target" for NPC, e.g., "give sword to guard")
 - "talk" - Talk to an NPC (requires target)
 - "attack" - Attack an NPC or continue combat (target optional if in combat, extract ANY identifying word from NPC name)
 - "equip" - Equip a weapon or armor (requires target, extract ANY identifying word from item name)
@@ -208,9 +209,11 @@ Response format (JSON only, no markdown):
             // Manual JSON parsing to avoid needing serialization on Intent classes
             val intentMatch = Regex(""""intent"\s*:\s*"([^"]+)"""").find(jsonText)
             val targetMatch = Regex(""""target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
+            val npcTargetMatch = Regex(""""npc_target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
 
             val intentType = intentMatch?.groupValues?.get(1) ?: return Intent.Invalid("Unknown command")
             val target = targetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val npcTarget = npcTargetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
 
             return when (intentType.lowercase()) {
                 "move" -> {
@@ -228,6 +231,15 @@ Response format (JSON only, no markdown):
                 "take" -> if (target != null) Intent.Take(target) else Intent.Invalid("Take what?")
                 "take_all" -> Intent.TakeAll
                 "drop" -> if (target != null) Intent.Drop(target) else Intent.Invalid("Drop what?")
+                "give" -> {
+                    if (target != null && npcTarget != null) {
+                        Intent.Give(target, npcTarget)
+                    } else if (target == null) {
+                        Intent.Invalid("Give what?")
+                    } else {
+                        Intent.Invalid("Give to whom?")
+                    }
+                }
                 "talk" -> if (target != null) Intent.Talk(target) else Intent.Invalid("Talk to whom?")
                 "attack" -> Intent.Attack(target)
                 "equip" -> if (target != null) Intent.Equip(target) else Intent.Invalid("Equip what?")
@@ -293,6 +305,19 @@ Response format (JSON only, no markdown):
                 }
             }
             "drop", "put" -> if (args.isNullOrBlank()) Intent.Invalid("Drop what?") else Intent.Drop(args)
+            "give", "deliver" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Give what?")
+                } else {
+                    // Parse "give [item] to [npc]" or "give [item] [npc]"
+                    val parts = args.split(Regex("\\s+to\\s+|\\s+"), limit = 2)
+                    if (parts.size < 2) {
+                        Intent.Invalid("Give to whom?")
+                    } else {
+                        Intent.Give(parts[0].trim(), parts[1].trim())
+                    }
+                }
+            }
             "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
             "attack", "kill", "fight", "hit" -> Intent.Attack(args)
             "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)

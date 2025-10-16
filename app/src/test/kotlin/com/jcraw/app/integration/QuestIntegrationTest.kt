@@ -333,14 +333,15 @@ class QuestIntegrationTest {
         val world = createTestWorld(player = player, npc = npc)
         val engine = InMemoryGameEngine(world)
 
-        // Note: DeliverItem tracking is not yet implemented in the system
-        // This test documents the expected behavior
-        // TODO: Implement deliver tracking in QuestTracker when ready
+        // Give the letter to the captain
+        val response = engine.processInput("give letter to captain")
+        assertTrue(response.contains("give", ignoreCase = true) || response.contains("captain", ignoreCase = true))
 
-        // For now, just verify quest is active
+        // Quest objective should be completed
         val activeQuest = engine.getWorldState().player.activeQuests.find { it.id == "deliver_quest" }
         assertNotNull(activeQuest)
-        assertEquals(QuestStatus.ACTIVE, activeQuest.status)
+        assertTrue(activeQuest.objectives[0].isCompleted, "Deliver objective should be completed")
+        assertEquals(QuestStatus.COMPLETED, activeQuest.status, "Quest should auto-complete")
     }
 
     @Test

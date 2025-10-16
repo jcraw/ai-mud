@@ -221,6 +221,7 @@ class MudGame(
             is Intent.Take -> handleTake(intent.target)
             is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
+            is Intent.Give -> handleGive(intent.itemTarget, intent.npcTarget)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Attack -> handleAttack(intent.target)
             is Intent.Equip -> handleEquip(intent.target)
@@ -607,6 +608,42 @@ class MudGame(
         } else {
             println("Something went wrong.")
         }
+    }
+
+    private fun handleGive(itemTarget: String, npcTarget: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the item in inventory
+        val item = worldState.player.inventory.find { invItem ->
+            invItem.name.lowercase().contains(itemTarget.lowercase()) ||
+            invItem.id.lowercase().contains(itemTarget.lowercase())
+        }
+
+        if (item == null) {
+            println("You don't have that item.")
+            return
+        }
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                entity.id.lowercase().contains(npcTarget.lowercase())
+            }
+
+        if (npc == null) {
+            println("There's no one here by that name.")
+            return
+        }
+
+        // Remove item from inventory
+        val updatedPlayer = worldState.player.removeFromInventory(item.id)
+        worldState = worldState.updatePlayer(updatedPlayer)
+
+        println("You give the ${item.name} to ${npc.name}.")
+
+        // Track delivery for quests
+        trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
     }
 
     private fun handleTalk(target: String) {
@@ -1118,6 +1155,7 @@ class MudGame(
             |    search [target]      - Search for hidden items (skill check)
             |    take/get <item>      - Pick up an item
             |    drop/put <item>      - Drop an item from inventory
+            |    give <item> to <npc> - Give an item to an NPC
             |    talk/speak <npc>     - Talk to an NPC
             |    attack/fight <npc>   - Attack an NPC or continue combat
             |    equip/wield <item>   - Equip a weapon or armor from inventory

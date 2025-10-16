@@ -184,6 +184,7 @@ class GameServer(
             is Intent.Take -> handleTake(playerId, playerState, intent.target, currentRoom)
             is Intent.TakeAll -> handleTakeAll(playerId, playerState, currentRoom)
             is Intent.Drop -> handleDrop(playerId, playerState, intent.target, currentRoom)
+            is Intent.Give -> handleGive(playerId, playerState, intent.itemTarget, intent.npcTarget, currentRoom)
             is Intent.Equip -> handleEquip(playerId, playerState, intent.target)
             is Intent.Use -> handleUse(playerId, playerState, intent.target)
             is Intent.Check -> handleCheck(playerId, playerState, intent.target, currentRoom)
@@ -638,6 +639,52 @@ class GameServer(
         }
     }
 
+    private fun handleGive(
+        playerId: PlayerId,
+        playerState: PlayerState,
+        itemTarget: String,
+        npcTarget: String,
+        currentRoom: Room
+    ): Triple<String, WorldState, GameEvent?> {
+        // Find the item in inventory
+        val item = playerState.inventory.find { invItem ->
+            invItem.name.lowercase().contains(itemTarget.lowercase()) ||
+            invItem.id.lowercase().contains(itemTarget.lowercase())
+        }
+
+        if (item == null) {
+            return Triple("You don't have that item.", worldState, null)
+        }
+
+        // Find the NPC in the room
+        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                entity.id.lowercase().contains(npcTarget.lowercase())
+            }
+
+        if (npc == null) {
+            return Triple("There's no one here by that name.", worldState, null)
+        }
+
+        // Remove item from inventory
+        val updatedPlayer = playerState.removeFromInventory(item.id)
+
+        // Track delivery for quests
+        val (playerAfterQuests, questNotifications) = trackQuests(updatedPlayer, QuestAction.DeliveredItem(item.id, npc.id))
+        val newWorldState = worldState.updatePlayer(playerAfterQuests)
+
+        val event = GameEvent.GenericAction(
+            playerId = playerId,
+            playerName = playerState.name,
+            actionDescription = "gives ${item.name} to ${npc.name}",
+            roomId = currentRoom.id,
+            excludePlayer = playerId
+        )
+
+        Triple("You give the ${item.name} to ${npc.name}." + questNotifications, newWorldState, event)
+    }
+
     private fun handleEquip(
         playerId: PlayerId,
         playerState: PlayerState,
@@ -890,7 +937,7 @@ class GameServer(
     private fun getHelpText(): String = """
         === Commands ===
         Movement: north/south/east/west (or n/s/e/w)
-        Interaction: look [target], search [target], take <item>, drop <item>, talk <npc>
+        Interaction: look [target], search [target], take <item>, drop <item>, give <item> to <npc>, talk <npc>
         Combat: attack <npc>
         Equipment: equip <item>
         Consumables: use <item>

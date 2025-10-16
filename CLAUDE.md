@@ -71,10 +71,9 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Deliver quest objectives** - Implement the DeliverItem quest objective type
-2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
-4. **Shell script cleanup** (optional) - Delete old shell script tests now that all tests are migrated
+1. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+2. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+3. **Shell script cleanup** (optional) - Delete old shell script tests now that all tests are migrated
 
 ## Commands
 
@@ -155,7 +154,7 @@ Memory (store for RAG)
 
 ### Available Commands
 - **Movement**: `n/s/e/w`, `north/south/east/west`, `go <direction>`, `go to <room name>` (natural language navigation!)
-- **Interaction**: `look [target]`, `take/get <item>`, `take all/get all`, `drop <item>` (works with equipped items), `talk <npc>`, `inventory/i`
+- **Interaction**: `look [target]`, `take/get <item>`, `take all/get all`, `drop <item>` (works with equipped items), `give <item> to <npc>`, `talk <npc>`, `inventory/i`
 - **Combat**: `attack/kill/fight/hit <npc>` to start/continue combat
 - **Equipment**: `equip/wield/wear <item>` to equip weapons or armor
 - **Consumables**: `use/consume/drink/eat <item>` to use healing potions
@@ -190,7 +189,7 @@ Quest objectives automatically track progress as you play:
 - **Explore objectives** - Track when you enter rooms
 - **Talk objectives** - Track when you talk to NPCs
 - **UseSkill objectives** - Track when you successfully complete skill checks
-- **Deliver objectives** - Not yet implemented
+- **Deliver objectives** - Track when you give items to NPCs using `give <item> to <npc>`
 
 When an objective completes, you'll see: `✓ Quest objective completed: <description>`
 When all objectives complete, you'll see: `🎉 Quest completed: <title>`
@@ -273,7 +272,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
   - Explore objective auto-tracking
   - Talk objective auto-tracking
   - Skill check objective auto-tracking
-  - Deliver objective (documented, pending implementation)
+  - **Deliver objective auto-tracking** (fully implemented with `give` command)
   - Multi-objective quest completion
   - Reward claiming
   - Quest log display
@@ -434,7 +433,6 @@ The GUI client with real engine integration, quest system with auto-tracking, au
 **Next Priorities**:
 
 1. **Feature work**:
-   - **Deliver quest objectives** - Implement DeliverItem quest objective tracking
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
    - **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 

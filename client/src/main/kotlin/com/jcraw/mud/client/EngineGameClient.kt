@@ -205,6 +205,7 @@ class EngineGameClient(
             is Intent.Take -> handleTake(intent.target)
             is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
+            is Intent.Give -> handleGive(intent.itemTarget, intent.npcTarget)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Attack -> handleAttack(intent.target)
             is Intent.Equip -> handleEquip(intent.target)
@@ -564,6 +565,39 @@ class EngineGameClient(
         } else {
             emitEvent(GameEvent.System("Something went wrong.", GameEvent.MessageLevel.ERROR))
         }
+    }
+
+    private fun handleGive(itemTarget: String, npcTarget: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the item in inventory
+        val item = worldState.player.inventory.find { invItem ->
+            invItem.name.lowercase().contains(itemTarget.lowercase()) ||
+            invItem.id.lowercase().contains(itemTarget.lowercase())
+        }
+
+        if (item == null) {
+            emitEvent(GameEvent.System("You don't have that item.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                entity.id.lowercase().contains(npcTarget.lowercase())
+            }
+
+        if (npc == null) {
+            emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Remove item from inventory
+        val updatedPlayer = worldState.player.removeFromInventory(item.id)
+        worldState = worldState.updatePlayer(updatedPlayer)
+
+        emitEvent(GameEvent.Narrative("You give the ${item.name} to ${npc.name}."))
     }
 
     private fun handleTalk(target: String) {

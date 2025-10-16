@@ -63,6 +63,14 @@ sealed class Intent {
     data class Drop(val target: String) : Intent()
 
     /**
+     * Give an item to an NPC
+     * @param itemTarget The name/identifier of the item to give
+     * @param npcTarget The name/identifier of the NPC to give the item to
+     */
+    @Serializable
+    data class Give(val itemTarget: String, val npcTarget: String) : Intent()
+
+    /**
      * Talk to an NPC
      * @param target The name/identifier of the NPC to talk to
      */
