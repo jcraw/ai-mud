@@ -61,20 +61,20 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~286 tests** across all modules (including 7 UI tests, 128 integration tests, 9 E2E scenario tests)
+- **Comprehensive tests**: **~298 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
-  - **Phase 4 In Progress**: 3/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests)
+  - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
 
 Priority tasks:
-1. **Testing migration - Phase 4** (Optional) - Migrate bot shell script tests to proper unit tests (see [TESTING.md](docs/TESTING.md) and [TODO.md](TODO.md))
-2. **Deliver quest objectives** - Implement the DeliverItem quest objective type
-3. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-4. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+1. **Deliver quest objectives** - Implement the DeliverItem quest objective type
+2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+4. **Shell script cleanup** (optional) - Delete old shell script tests now that all tests are migrated
 
 ## Commands
 
@@ -222,7 +222,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~286 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 in progress - 3/4 E2E tests done)
+- **All modules building** - **~298 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 complete - 4/4 E2E tests done)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -235,9 +235,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Phase 4 Testing In Progress (2025-10-15)
+## Current Status: All Testing Migration Complete (2025-10-15)
 
-**Latest Session**: Phase 4 bot scenario tests - 3/4 COMPLETE (BadPlaythroughTest created with 3 E2E tests)
+**Latest Session**: Phase 4 bot scenario tests - 4/4 COMPLETE (AllPlaythroughsTest created with 3 E2E tests)
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -328,11 +328,31 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
   - Complete playthroughs (full dungeon exploration, realistic gameplay session, procedural dungeon)
 - **Progress: 4/4 integration tests complete (70 additional tests)**
 
+**Phase 4 Testing Migration - COMPLETE** ✅
+- ✅ Created `BruteForcePlaythroughTest.kt` - **3 tests, all passing**
+  - Bot completes brute force playthrough by collecting gear and defeating boss
+  - Bot explores multiple rooms looking for gear
+  - Bot takes damage but survives with equipment
+- ✅ Created `SmartPlaythroughTest.kt` - **3 tests, all passing**
+  - Bot completes smart playthrough using social skills and intelligence
+  - Bot attempts social interactions before resorting to combat
+  - Bot explores secret areas and completes skill checks
+- ✅ Created `BadPlaythroughTest.kt` - **3 tests, all passing**
+  - Bot rushes to boss and dies without gear
+  - Bot reaches boss room quickly without collecting gear
+  - Bot takes fatal damage from boss encounter
+- ✅ Created `AllPlaythroughsTest.kt` - **3 tests, all passing**
+  - All three playthrough scenarios complete successfully
+  - Game balance validation (bad player dies, good players win)
+  - Multiple solution paths exist and are viable
+- **Progress: 4/4 E2E scenario tests complete (12 additional tests)**
+
 **Major Achievements**:
 - ✅ All automated tests: **100% pass rate**
 - ✅ Phase 1 unit tests: **COMPLETE (82 tests total)**
 - ✅ Phase 2 integration tests: **5/5 COMPLETE (58 tests total)**
 - ✅ Phase 3 integration tests: **4/4 COMPLETE (70 tests total)**
+- ✅ Phase 4 E2E scenario tests: **4/4 COMPLETE (12 tests total)**
 - ✅ BUG-001 (combat state desync): **FIXED**
 - ✅ BUG-002 (social checks): **FIXED**
 - ✅ BUG-003 (death/respawn): **FIXED**
@@ -380,7 +400,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **Phase 1, Phase 2, & Phase 3 testing migration complete**! All core integration tests are now in place.
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION COMPLETE**! 🎉
 
 **Testing Status**:
 - ✅ **Phase 1 Complete**: 82 new unit tests created
@@ -399,28 +419,27 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - ✅ ProceduralDungeonIntegrationTest (21 tests) - replaces `test_procedural.sh`
   - ✅ NavigationIntegrationTest (21 tests) - replaces `test_exits_debug.sh`
   - ✅ FullGameplayIntegrationTest (15 tests) - replaces `test_game.sh`
-- 🔄 **Phase 4 In Progress**: 3/4 bot scenario tests complete
+- ✅ **Phase 4 Complete**: 4/4 E2E scenario tests complete
   - ✅ BruteForcePlaythroughTest (3 tests) - replaces `test_brute_force_playthrough.sh`
   - ✅ SmartPlaythroughTest (3 tests) - replaces `test_smart_playthrough.sh`
   - ✅ BadPlaythroughTest (3 tests) - replaces `test_bad_playthrough.sh`
-  - ⏳ AllPlaythroughsTest - pending
+  - ✅ AllPlaythroughsTest (3 tests) - replaces `test_all_playthroughs.sh`
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~286 tests** across all modules (including 9 new E2E scenario tests)
+- **Total: ~298 tests** across all modules (including 12 new E2E scenario tests)
 
 **All Known Bugs Resolved!** 🎉
 
 **Next Priorities**:
 
-1. **Testing Migration - Phase 4** (LOW PRIORITY - Optional):
-   - Migrate bot test shell scripts to proper unit tests
-   - See **[TESTING.md](docs/TESTING.md)** for complete plan and **[TODO.md](TODO.md)** for tasks
-
-2. **Feature work**:
+1. **Feature work**:
    - **Deliver quest objectives** - Implement DeliverItem quest objective tracking
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
    - **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+
+2. **Testing cleanup** (optional):
+   - Delete old shell script tests (now that all tests are migrated to proper unit tests)
 
 3. **Polish & Enhancement Ideas**:
    - More quest objective types (Escort, Defend, Craft, etc.)
