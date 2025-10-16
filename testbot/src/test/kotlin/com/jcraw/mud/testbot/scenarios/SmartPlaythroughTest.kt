@@ -61,7 +61,7 @@ class SmartPlaythroughTest {
             // ARRANGE: Create procedural Crypt dungeon
             val dungeonSize = 5
             val worldState = ProceduralDungeonBuilder.generateCrypt(
-                numberOfRooms = dungeonSize,
+                roomCount = dungeonSize,
                 seed = 42424 // Deterministic generation for reproducibility
             )
 

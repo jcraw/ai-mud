@@ -212,8 +212,8 @@ class AllPlaythroughsTest {
     ): TestReport {
         // Create dungeon
         val worldState = ProceduralDungeonBuilder.generateCrypt(
-            numberOfRooms = dungeonSize,
-            seed = dungeonSeed
+            roomCount = dungeonSize,
+            seed = dungeonSeed.toLong()
         )
 
         // Initialize LLM components

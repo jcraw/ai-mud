@@ -113,6 +113,7 @@ data class TestReport(
     // Playthrough metrics
     val damageTaken: Int = 0,
     val npcsKilled: Int = 0,
+    val combatRounds: Int = 0,
     val skillChecksPassed: Int = 0,
     val socialChecksPassed: Int = 0,
     val playerDied: Boolean = false
@@ -128,6 +129,7 @@ data class TestReport(
             // Calculate playthrough metrics
             val damageTaken = calculateDamageTaken(state.steps)
             val npcsKilled = countNPCsKilled(state.steps)
+            val combatRounds = countCombatRounds(state.steps)
             val skillChecksPassed = countSkillChecksPassed(state.steps)
             val socialChecksPassed = countSocialChecksPassed(state.steps)
             val playerDied = checkPlayerDied(state.steps)
@@ -147,6 +149,7 @@ data class TestReport(
                 roomNames = roomNames.toList(),
                 damageTaken = damageTaken,
                 npcsKilled = npcsKilled,
+                combatRounds = combatRounds,
                 skillChecksPassed = skillChecksPassed,
                 socialChecksPassed = socialChecksPassed,
                 playerDied = playerDied
@@ -210,6 +213,33 @@ data class TestReport(
             }
 
             return killCount
+        }
+
+        /**
+         * Count combat rounds (attack actions) during playthrough.
+         */
+        private fun countCombatRounds(steps: List<TestStep>): Int {
+            var roundCount = 0
+
+            for (step in steps) {
+                // Count attack commands and combat-related responses
+                if (step.playerInput.contains("attack", ignoreCase = true) ||
+                    step.playerInput.contains("fight", ignoreCase = true) ||
+                    step.playerInput.contains("hit", ignoreCase = true) ||
+                    step.playerInput.contains("kill", ignoreCase = true)) {
+                    // Verify it was actually a combat action (look for damage or combat keywords)
+                    if (step.gmResponse.contains("damage", ignoreCase = true) ||
+                        step.gmResponse.contains("hit", ignoreCase = true) ||
+                        step.gmResponse.contains("strike", ignoreCase = true) ||
+                        step.gmResponse.contains("attack", ignoreCase = true) ||
+                        step.gmResponse.contains("combat", ignoreCase = true) ||
+                        step.gmResponse.contains("retaliate", ignoreCase = true)) {
+                        roundCount++
+                    }
+                }
+            }
+
+            return roundCount
         }
 
         /**

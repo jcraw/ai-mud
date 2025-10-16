@@ -59,7 +59,7 @@ class BadPlaythroughTest {
             // ARRANGE: Create procedural Crypt dungeon
             val dungeonSize = 5
             val worldState = ProceduralDungeonBuilder.generateCrypt(
-                numberOfRooms = dungeonSize,
+                roomCount = dungeonSize,
                 seed = 66666 // Deterministic generation for reproducibility
             )
 

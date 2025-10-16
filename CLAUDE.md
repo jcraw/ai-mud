@@ -67,6 +67,7 @@ For complete documentation, see:
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
   - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
+- **TestReport metrics**: Tracks playthrough metrics including combat rounds, damage taken, NPCs killed, skill/social checks passed, player death, and room exploration for game balance validation
 
 ## What's Next
 
