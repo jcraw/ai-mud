@@ -405,7 +405,7 @@ class QuestIntegrationTest {
 | `test_social.sh` | `SocialInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
 | `test_quests.sh` | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) |
 | `test_save_load.sh` | `SaveLoadIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
-| `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ⏳ Pending |
+| `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) |
 | `test_game.sh` | `FullGameplayIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_exits_debug.sh` | `NavigationIntegrationTest.kt` | app | Integration | ⏳ Pending |
 | `test_brute_force_playthrough.sh` | `BruteForcePlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
@@ -552,7 +552,7 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** ~220 (across all modules)
+**Total Tests:** ~241 (across all modules)
 **Pass Rate:** 100% (all core, perception, reasoning, memory, app, client tests passing)
 
 **Module Breakdown:**
@@ -560,7 +560,7 @@ We don't aim for line coverage metrics. Instead, we aim for:
 - ✅ perception: 2 test files, 8 tests
 - ✅ reasoning: 5 test files, 40 tests
 - ✅ memory: 4 test files, 15 tests
-- ✅ app: 6 integration test files, 71 tests (Phase 2 complete, Phase 3: 1/4 complete)
+- ✅ app: 7 integration test files, 92 tests (Phase 2 complete, Phase 3: 2/4 complete)
 - ✅ client: 1 test file, 7 tests
 - ✅ testbot: InMemoryGameEngine infrastructure
 
@@ -649,11 +649,17 @@ Focus: Advanced workflows and persistence
   - Delete save files
   - Combat state preservation
   - Room connections preservation
-- [ ] `ProceduralDungeonIntegrationTest.kt` - All themes generate correctly
+- ✅ `ProceduralDungeonIntegrationTest.kt` - **21 tests, all passing** ✅
+  - All 4 dungeon themes (Crypt, Castle, Cave, Temple)
+  - Room connectivity (reachability, bidirectional, navigation)
+  - NPC generation (boss, hostile, friendly NPCs)
+  - Item distribution (weapons, armor, consumables)
+  - Quest generation (all types based on dungeon state)
+  - Deterministic generation with seeds
 - [ ] `NavigationIntegrationTest.kt` - Natural language navigation
 - [ ] `FullGameplayIntegrationTest.kt` - Complete playthrough
 
-**Progress:** 1/4 tests complete
+**Progress:** 2/4 tests complete
 
 ### Phase 4: Bot Migration (1-2 days)
 Priority: **LOW**

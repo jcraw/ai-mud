@@ -482,3 +482,56 @@ appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put pla
 ✅ **All clients updated** - Console, GUI, multi-user, and test bot support natural language navigation
 
 **Examples**: "go to throne room", "head to armory", "go to the crypt" all work seamlessly alongside directional commands ("go north", "n", etc.)
+
+## Procedural Dungeon Integration Tests (2025-10-15) 🧪
+
+**Feature**: Comprehensive integration testing for procedural dungeon generation
+
+✅ **ProceduralDungeonIntegrationTest.kt** - 21 tests covering all aspects of procedural generation
+  - File: `app/src/test/kotlin/com/jcraw/app/integration/ProceduralDungeonIntegrationTest.kt`
+  - Replaces: `test_procedural.sh` shell script
+
+**Test Coverage**:
+
+### Theme Generation (4 tests)
+- ✅ Crypt theme generates complete dungeon with theme-appropriate traits
+- ✅ Castle theme generates complete dungeon with themed traits
+- ✅ Cave theme generates complete dungeon with themed traits
+- ✅ Temple theme generates complete dungeon with themed traits
+
+### Room Connectivity (3 tests)
+- ✅ All rooms are reachable from entrance (BFS verification)
+- ✅ Room connections are bidirectional (reverse path exists)
+- ✅ Can navigate between rooms in game (integration with InMemoryGameEngine)
+
+### NPC Generation (3 tests)
+- ✅ Dungeon contains at least one boss NPC (high health, hostile)
+- ✅ Hostile NPCs can be fought in combat
+- ✅ Friendly NPCs can be talked to
+
+### Item Distribution (5 tests)
+- ✅ Dungeon contains weapons with damage bonuses
+- ✅ Dungeon contains armor with defense bonuses
+- ✅ Dungeon contains consumables with heal amounts
+- ✅ Items can be picked up and used in game
+- ✅ Items are distributed across multiple rooms (not all in one location)
+
+### Quest Generation (4 tests)
+- ✅ Can generate quests for crypt dungeon (all themes supported)
+- ✅ Can generate kill quests when hostile NPCs exist
+- ✅ Can generate collect quests when items exist
+- ✅ Can generate explore quests for all dungeons
+
+### Dungeon Determinism (2 tests)
+- ✅ Same seed generates identical dungeon layouts (reproducible generation)
+- ✅ Different seeds generate different dungeons
+
+**Testing Methodology**:
+- Uses `InMemoryGameEngine` for integration testing procedural dungeons
+- Tests both structure (graph connectivity, entity presence) and gameplay (combat, item pickup, navigation)
+- Verifies theme consistency across room traits
+- Validates quest generation based on actual dungeon contents
+
+**Status**: ✅ **COMPLETE** - All 21 tests passing, replaces `test_procedural.sh`
+
+**Phase 3 Progress**: 2/4 integration tests complete (SaveLoadIntegrationTest, ProceduralDungeonIntegrationTest)

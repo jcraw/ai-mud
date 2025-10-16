@@ -8,9 +8,9 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~220 (across all modules)**
+- ✅ **Total Unit/Integration Tests: ~241 (across all modules)**
 - ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE**
-- 🔄 **Phase 3 Progress: 1/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests)**
+- 🔄 **Phase 3 Progress: 2/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests)**
 
 ---
 
@@ -108,12 +108,13 @@ Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
   - Combat state preservation
   - Room connections preservation
 
-- [ ] `ProceduralDungeonIntegrationTest.kt` (replaces `test_procedural.sh`)
+- ✅ `ProceduralDungeonIntegrationTest.kt` (replaces `test_procedural.sh`) - **21 tests, all passing**
   - All 4 dungeon themes (Crypt, Castle, Cave, Temple)
-  - Room connectivity
-  - NPC generation
-  - Item distribution
-  - Quest generation
+  - Room connectivity (reachability, bidirectional connections, navigation)
+  - NPC generation (boss NPCs, hostile NPCs, friendly NPCs, combat and dialogue)
+  - Item distribution (weapons, armor, consumables, pickup/use mechanics)
+  - Quest generation (all quest types based on dungeon state)
+  - Deterministic generation with seeds
 
 - [ ] `NavigationIntegrationTest.kt` (replaces `test_exits_debug.sh`)
   - Directional navigation (n/s/e/w)
