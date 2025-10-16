@@ -61,9 +61,10 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~207 tests** across all modules (including 7 UI tests, 58 integration tests)
+- **Comprehensive tests**: **~220 tests** across all modules (including 7 UI tests, 71 integration tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
+  - **Phase 3 In Progress**: 1/4 integration tests complete (SaveLoadIntegrationTest - 13 tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 
 ## What's Next
@@ -220,7 +221,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~207 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done)
+- **All modules building** - **~220 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3: 1/4 tests done)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -233,9 +234,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: Phase 2 Testing Complete! (2025-10-15)
+## Current Status: Phase 3 Testing In Progress (2025-10-15)
 
-**Latest Session**: Phase 2 integration tests - social interaction system complete
+**Latest Session**: Phase 3 integration tests - save/load persistence system complete
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -292,6 +293,21 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
   - Multiple NPCs independently
 - **Progress: 5/5 integration tests complete (58 total integration tests)**
 
+**Phase 3 Testing Migration - IN PROGRESS** 🔄
+- ✅ Created `SaveLoadIntegrationTest.kt` - **13 tests, all passing**
+  - Save game state to disk
+  - Load game state from disk
+  - Persistence roundtrip (save → modify → load → verify)
+  - Save file format validation (JSON structure)
+  - Load after game modifications
+  - Non-existent save file handling
+  - Custom save names
+  - List all saves
+  - Delete save files
+  - Combat state preservation
+  - Room connections preservation
+- **Progress: 1/4 integration tests complete (13 additional tests)**
+
 **Major Achievements**:
 - ✅ All automated tests: **100% pass rate**
 - ✅ Phase 2 integration tests: **5/5 COMPLETE (58 tests total)**
@@ -342,7 +358,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, and **Phase 1 & Phase 2 testing migration** are complete!
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **Phase 1 & Phase 2 testing migration**, and **save/load persistence testing** are complete!
 
 **Testing Status**:
 - ✅ **Phase 1 Complete**: 82 new unit tests created
@@ -356,10 +372,12 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - ✅ QuestIntegrationTest (11 tests) - replaces `test_quests.sh`
   - ✅ SkillCheckIntegrationTest (14 tests) - replaces `test_skill_checks.sh`
   - ✅ SocialInteractionIntegrationTest (13 tests) - replaces `test_social.sh`
+- 🔄 **Phase 3 In Progress**: 1/4 integration tests complete
+  - ✅ SaveLoadIntegrationTest (13 tests) - replaces `test_save_load.sh`
 - ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
 - ✅ bad_playthrough: **100% pass rate (8/8)** ✅
 - ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~207 tests** across all modules
+- **Total: ~220 tests** across all modules
 
 **All Known Bugs Resolved!** 🎉
 
