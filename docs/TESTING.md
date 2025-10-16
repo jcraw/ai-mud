@@ -393,40 +393,33 @@ class QuestIntegrationTest {
 }
 ```
 
-## Shell Script Migration Plan
+## Shell Script Migration - ✅ COMPLETE
 
-### Current Shell Scripts → Unit Tests
+All legacy shell script tests have been successfully migrated to proper Kotlin unit/integration tests and deleted.
 
-| Shell Script | New Test File | Module | Type | Status |
-|-------------|---------------|--------|------|--------|
-| `test_combat.sh` | `CombatIntegrationTest.kt` | app | Integration | ✅ Complete (7 tests) |
-| `test_items.sh` | `ItemInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
-| `test_skill_checks.sh` | `SkillCheckIntegrationTest.kt` | app | Integration | ✅ Complete (14 tests) |
-| `test_social.sh` | `SocialInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
-| `test_quests.sh` | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) |
-| `test_save_load.sh` | `SaveLoadIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) |
-| `test_procedural.sh` | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) |
-| `test_game.sh` | `FullGameplayIntegrationTest.kt` | app | Integration | ⏳ Pending |
-| `test_exits_debug.sh` | `NavigationIntegrationTest.kt` | app | Integration | ⏳ Pending |
-| `test_brute_force_playthrough.sh` | `BruteForcePlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) |
-| `test_smart_playthrough.sh` | `SmartPlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
-| `test_bad_playthrough.sh` | `BadPlaythroughTest.kt` | testbot | E2E | ⏳ Pending |
-| `test_all_playthroughs.sh` | `AllPlaythroughsTest.kt` | testbot | E2E | ⏳ Pending |
+### Migrated Tests
 
-### Migration Process
+| Old Shell Script | New Test File | Module | Type | Status |
+|-----------------|---------------|--------|------|--------|
+| ~~`test_combat.sh`~~ | `CombatIntegrationTest.kt` | app | Integration | ✅ Complete (7 tests) - **Deleted** |
+| ~~`test_items.sh`~~ | `ItemInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
+| ~~`test_skill_checks.sh`~~ | `SkillCheckIntegrationTest.kt` | app | Integration | ✅ Complete (14 tests) - **Deleted** |
+| ~~`test_social.sh`~~ | `SocialInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
+| ~~`test_quests.sh`~~ | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) - **Deleted** |
+| ~~`test_save_load.sh`~~ | `SaveLoadIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
+| ~~`test_procedural.sh`~~ | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) - **Deleted** |
+| ~~`test_game.sh`~~ | `FullGameplayIntegrationTest.kt` | app | Integration | ✅ Complete (15 tests) - **Deleted** |
+| ~~`test_exits_debug.sh`~~ | `NavigationIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) - **Deleted** |
+| ~~`test_brute_force_playthrough.sh`~~ | `BruteForcePlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
+| ~~`test_smart_playthrough.sh`~~ | `SmartPlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
+| ~~`test_bad_playthrough.sh`~~ | `BadPlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
+| ~~`test_all_playthroughs.sh`~~ | `AllPlaythroughsTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
 
-For each shell script:
+**Migration completed:** 2025-10-16
+**Total tests created:** 222 (82 unit + 128 integration + 12 E2E)
+**All legacy shell scripts removed**
 
-1. **Read the script** - Understand what it tests
-2. **Identify test cases** - Extract distinct scenarios
-3. **Write unit test** - Create test class with @Nested groups
-4. **Use InMemoryGameEngine** - For integration tests
-5. **Add assertions** - Verify expected behavior
-6. **Run and verify** - Ensure tests pass
-7. **Mark script deprecated** - Add comment pointing to new test
-8. **Delete script** - After verification period
-
-**Example migration:**
+### Example Migration
 
 **Before (test_combat.sh):**
 ```bash
@@ -552,17 +545,17 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** ~241 (across all modules)
-**Pass Rate:** 100% (all core, perception, reasoning, memory, app, client tests passing)
+**Total Tests:** ~298 (across all modules)
+**Pass Rate:** 100% (all core, perception, reasoning, memory, app, client, testbot tests passing)
 
 **Module Breakdown:**
 - ✅ core: 8 test files, 112 tests (includes 82 new Phase 1 unit tests)
 - ✅ perception: 2 test files, 8 tests
 - ✅ reasoning: 5 test files, 40 tests
 - ✅ memory: 4 test files, 15 tests
-- ✅ app: 7 integration test files, 92 tests (Phase 2 complete, Phase 3: 2/4 complete)
+- ✅ app: 9 integration test files, 128 tests (Phase 2 complete - 58 tests, Phase 3 complete - 70 tests)
 - ✅ client: 1 test file, 7 tests
-- ✅ testbot: InMemoryGameEngine infrastructure
+- ✅ testbot: 5 test files (InMemoryGameEngine + 4 E2E scenario tests, 12 total tests)
 
 ## Implementation Phases
 
@@ -633,8 +626,8 @@ Focus: Replace shell script tests with proper integration tests
 
 **Outcome:** Phase 2 complete! 5 integration test files with 58 total tests, 100% passing
 
-### Phase 3: Complex Integration (2-3 days)
-Priority: **MEDIUM**
+### Phase 3: Complex Integration - ✅ COMPLETE (2025-10-15)
+Priority: **MEDIUM** ✅
 Focus: Advanced workflows and persistence
 
 - ✅ `SaveLoadIntegrationTest.kt` - **13 tests, all passing** ✅
@@ -656,25 +649,43 @@ Focus: Advanced workflows and persistence
   - Item distribution (weapons, armor, consumables)
   - Quest generation (all types based on dungeon state)
   - Deterministic generation with seeds
-- [ ] `NavigationIntegrationTest.kt` - Natural language navigation
-- [ ] `FullGameplayIntegrationTest.kt` - Complete playthrough
+- ✅ `NavigationIntegrationTest.kt` - **21 tests, all passing** ✅
+  - Directional navigation (n/s/e/w, cardinal names, "go" syntax)
+  - Natural language navigation ("go to throne room", partial names)
+  - Invalid direction handling (invalid directions, non-existent rooms, gibberish)
+  - Exit validation (bidirectionality, reachability, hub rooms, dead ends)
+  - Procedural dungeon navigation (connectivity, valid exits)
+- ✅ `FullGameplayIntegrationTest.kt` - **15 tests, all passing** ✅
+  - Basic game loop (exploration, NPC interaction, inventory)
+  - Multi-system integration (navigation + equipment + combat, consumables in combat, loot collection, skill checks)
+  - Quest integration (explore, collect, kill quests with auto-tracking)
+  - Save/load during gameplay (mid-exploration, active combat, with quests)
+  - Complete playthroughs (full dungeon exploration, realistic gameplay session, procedural dungeon)
 
-**Progress:** 2/4 tests complete
+**Outcome:** Phase 3 complete! 4 integration test files with 70 total tests, 100% passing
 
-### Phase 4: Bot Migration (1-2 days)
-Priority: **LOW**
+### Phase 4: Bot Migration - ✅ COMPLETE (2025-10-15)
+Priority: **LOW** ✅
 Focus: Migrate shell script E2E tests to testbot
 
-- ✅ `BruteForcePlaythroughTest.kt` - **3 tests, combat-focused playthrough** ✅
+- ✅ `BruteForcePlaythroughTest.kt` - **3 tests, all passing** ✅
   - Bot completes brute force playthrough by collecting gear and defeating boss
   - Bot explores multiple rooms looking for gear
   - Bot takes damage but survives with equipment
-- [ ] `SmartPlaythroughTest.kt` - Strategic playthrough
-- [ ] `BadPlaythroughTest.kt` - Death/failure scenarios
-- [ ] `AllPlaythroughsTest.kt` - Suite runner
-- [ ] Delete shell scripts after verification
+- ✅ `SmartPlaythroughTest.kt` - **3 tests, all passing** ✅
+  - Bot completes smart playthrough using social skills and intelligence
+  - Bot attempts social interactions before resorting to combat
+  - Bot explores secret areas and completes skill checks
+- ✅ `BadPlaythroughTest.kt` - **3 tests, all passing** ✅
+  - Bot rushes to boss and dies without gear
+  - Bot reaches boss room quickly without collecting gear
+  - Bot takes fatal damage from boss encounter
+- ✅ `AllPlaythroughsTest.kt` - **3 tests, all passing** ✅
+  - All three playthrough scenarios complete successfully
+  - Game balance validation (bad player dies, good players win)
+  - Multiple solution paths exist and are viable
 
-**Progress:** 1/4 tests complete (3 E2E tests)
+**Outcome:** Phase 4 complete! 4 E2E scenario test files with 12 total tests, 100% passing
 
 ## Best Practices Summary
 

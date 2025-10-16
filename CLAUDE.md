@@ -73,7 +73,6 @@ For complete documentation, see:
 Priority tasks:
 1. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 2. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
-3. **Shell script cleanup** (optional) - Delete old shell script tests now that all tests are migrated
 
 ## Commands
 
@@ -84,11 +83,10 @@ Priority tasks:
 - `gradle :client:run` - **Run GUI client**
 
 ### Testing
-- `gradle test` - Run unit tests across all modules
+- `gradle test` - Run all tests (~298 tests across all modules)
 - `gradle :core:test` - Run tests for specific module
 - `gradle :client:test` - Run UI client tests
 - `gradle :testbot:run` - Run automated test bot (requires OpenAI API key)
-- `./test_quests.sh` - Run quest testing scenario specifically
 
 ## Project Structure
 
@@ -234,9 +232,9 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
 
-## Current Status: All Testing Migration Complete (2025-10-15)
+## Current Status: All Testing Migration & Cleanup Complete (2025-10-16)
 
-**Latest Session**: Phase 4 bot scenario tests - 4/4 COMPLETE (AllPlaythroughsTest created with 3 E2E tests)
+**Latest Update**: Legacy shell script tests deleted - codebase now uses only Kotlin tests via `gradle test`
 
 **Phase 1 Testing Migration - COMPLETE** ✅
 - ✅ Created `EquipmentSystemTest.kt` - 16 tests for weapon/armor mechanics
@@ -399,7 +397,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION COMPLETE**! 🎉
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! 🎉
 
 **Testing Status**:
 - ✅ **Phase 1 Complete**: 82 new unit tests created
@@ -407,26 +405,14 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Inventory system (19 tests)
   - World state navigation (33 tests)
   - Combat resolver (14 tests)
-- ✅ **Phase 2 Complete**: 5/5 integration tests complete
-  - ✅ CombatIntegrationTest (7 tests) - replaces `test_combat.sh`
-  - ✅ ItemInteractionIntegrationTest (13 tests) - replaces `test_items.sh`
-  - ✅ QuestIntegrationTest (11 tests) - replaces `test_quests.sh`
-  - ✅ SkillCheckIntegrationTest (14 tests) - replaces `test_skill_checks.sh`
-  - ✅ SocialInteractionIntegrationTest (13 tests) - replaces `test_social.sh`
-- ✅ **Phase 3 Complete**: 4/4 integration tests complete
-  - ✅ SaveLoadIntegrationTest (13 tests) - replaces `test_save_load.sh`
-  - ✅ ProceduralDungeonIntegrationTest (21 tests) - replaces `test_procedural.sh`
-  - ✅ NavigationIntegrationTest (21 tests) - replaces `test_exits_debug.sh`
-  - ✅ FullGameplayIntegrationTest (15 tests) - replaces `test_game.sh`
-- ✅ **Phase 4 Complete**: 4/4 E2E scenario tests complete
-  - ✅ BruteForcePlaythroughTest (3 tests) - replaces `test_brute_force_playthrough.sh`
-  - ✅ SmartPlaythroughTest (3 tests) - replaces `test_smart_playthrough.sh`
-  - ✅ BadPlaythroughTest (3 tests) - replaces `test_bad_playthrough.sh`
-  - ✅ AllPlaythroughsTest (3 tests) - replaces `test_all_playthroughs.sh`
-- ✅ brute_force_playthrough: **100% pass rate (17/17)** ✅
-- ✅ bad_playthrough: **100% pass rate (8/8)** ✅
-- ✅ smart_playthrough: **100% pass rate (7/7)** ✅
-- **Total: ~298 tests** across all modules (including 12 new E2E scenario tests)
+- ✅ **Phase 2 Complete**: 5/5 integration tests complete (58 tests)
+  - CombatIntegrationTest, ItemInteractionIntegrationTest, QuestIntegrationTest, SkillCheckIntegrationTest, SocialInteractionIntegrationTest
+- ✅ **Phase 3 Complete**: 4/4 integration tests complete (70 tests)
+  - SaveLoadIntegrationTest, ProceduralDungeonIntegrationTest, NavigationIntegrationTest, FullGameplayIntegrationTest
+- ✅ **Phase 4 Complete**: 4/4 E2E scenario tests complete (12 tests)
+  - BruteForcePlaythroughTest, SmartPlaythroughTest, BadPlaythroughTest, AllPlaythroughsTest
+- ✅ **Cleanup Complete**: All 13 legacy shell scripts deleted (2025-10-16)
+- **Total: ~298 tests** across all modules, 100% pass rate
 
 **All Known Bugs Resolved!** 🎉
 
@@ -436,10 +422,7 @@ The GUI client with real engine integration, quest system with auto-tracking, au
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
    - **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
-2. **Testing cleanup** (optional):
-   - Delete old shell script tests (now that all tests are migrated to proper unit tests)
-
-3. **Polish & Enhancement Ideas**:
+2. **Polish & Enhancement Ideas**:
    - More quest objective types (Escort, Defend, Craft, etc.)
    - Character progression system (leveling, skill trees)
    - More dungeon themes and procedural variations

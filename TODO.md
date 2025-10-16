@@ -9,9 +9,11 @@
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
 - ✅ **Total Tests: ~298 (across all modules)**
-- ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE**
-- ✅ **Phase 3 Progress: 4/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)**
-- ✅ **Phase 4 Progress: 4/4 E2E scenario tests COMPLETE (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)**
+- ✅ **Phase 1 Progress: COMPLETE (82 unit tests)**
+- ✅ **Phase 2 Progress: COMPLETE (58 integration tests)**
+- ✅ **Phase 3 Progress: COMPLETE (70 integration tests)**
+- ✅ **Phase 4 Progress: COMPLETE (12 E2E scenario tests)**
+- ✅ **All shell script tests successfully migrated to Kotlin unit/integration tests!**
 
 ---
 
@@ -94,7 +96,7 @@ Replaced shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/
   - CHA modifier effects on success rates
   - Multiple NPCs independently
 
-#### Phase 3: Complex Integration - ✅ COMPLETE
+#### Phase 3: Complex Integration - ✅ COMPLETE (2025-10-15)
 Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
 
 - ✅ `SaveLoadIntegrationTest.kt` (replaces `test_save_load.sh`) - **13 tests, all passing**
@@ -132,25 +134,29 @@ Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
   - Save/load during gameplay (mid-exploration, active combat, with quests)
   - Complete playthroughs (full dungeon exploration, realistic gameplay session, procedural dungeon)
 
-#### Phase 4: Bot Test Migration - ✅ COMPLETE
+**Progress:** 4/4 tests complete (70 total tests)
+
+#### Phase 4: Bot Test Migration - ✅ COMPLETE (2025-10-15)
 Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
 
-- ✅ `BruteForcePlaythroughTest.kt` (replaces `test_brute_force_playthrough.sh`) - **3 tests**
+- ✅ `BruteForcePlaythroughTest.kt` (replaces `test_brute_force_playthrough.sh`) - **3 tests, all passing**
   - Bot completes brute force playthrough by collecting gear and defeating boss
   - Bot explores multiple rooms looking for gear
   - Bot takes damage but survives with equipment
-- ✅ `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`) - **3 tests**
+- ✅ `SmartPlaythroughTest.kt` (replaces `test_smart_playthrough.sh`) - **3 tests, all passing**
   - Bot completes smart playthrough using social skills and intelligence
   - Bot attempts social interactions before resorting to combat
   - Bot explores secret areas and completes skill checks
-- ✅ `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`) - **3 tests**
+- ✅ `BadPlaythroughTest.kt` (replaces `test_bad_playthrough.sh`) - **3 tests, all passing**
   - Bot rushes to boss and dies without gear
   - Bot reaches boss room quickly without collecting gear
   - Bot takes fatal damage from boss encounter
-- ✅ `AllPlaythroughsTest.kt` (replaces `test_all_playthroughs.sh`) - **3 tests**
+- ✅ `AllPlaythroughsTest.kt` (replaces `test_all_playthroughs.sh`) - **3 tests, all passing**
   - All three playthrough scenarios complete successfully
   - Game balance validation (bad player dies, good players win)
   - Multiple solution paths exist and are viable
+
+**Progress:** 4/4 tests complete (12 total tests)
 
 **Files to Create/Modify:**
 - See [TESTING.md](docs/TESTING.md) for complete file list and examples
@@ -195,16 +201,41 @@ Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
 
 ## Testing Protocol
 
-After each bug fix, run relevant test scenarios:
+Run the full test suite:
 
 ```bash
-# Full test suite:
-gradle test && ./test_bad_playthrough.sh && ./test_brute_force_playthrough.sh && ./test_smart_playthrough.sh
+gradle test
 ```
 
 **Success Criteria (All Achieved):** ✅
-- bad_playthrough: 100% pass rate ✅
-- brute_force_playthrough: 100% pass rate ✅
-- smart_playthrough: 100% pass rate ✅
+- All 298 tests passing ✅
+- Phase 1-4 testing migration complete ✅
+- Legacy shell scripts removed ✅
+
+---
+
+## Cleanup Status
+
+### ✅ CLEANUP-001: Remove Legacy Shell Scripts - COMPLETE (2025-10-16)
+**Priority:** HIGH (COMPLETED)
+**Description:** Delete obsolete shell script tests after successful migration to Kotlin
+**Status:** All 13 shell scripts deleted
+
+**Deleted Files:**
+- ~~test_combat.sh~~ → CombatIntegrationTest.kt
+- ~~test_items.sh~~ → ItemInteractionIntegrationTest.kt
+- ~~test_skill_checks.sh~~ → SkillCheckIntegrationTest.kt
+- ~~test_social.sh~~ → SocialInteractionIntegrationTest.kt
+- ~~test_quests.sh~~ → QuestIntegrationTest.kt
+- ~~test_save_load.sh~~ → SaveLoadIntegrationTest.kt
+- ~~test_procedural.sh~~ → ProceduralDungeonIntegrationTest.kt
+- ~~test_game.sh~~ → FullGameplayIntegrationTest.kt
+- ~~test_exits_debug.sh~~ → NavigationIntegrationTest.kt
+- ~~test_brute_force_playthrough.sh~~ → BruteForcePlaythroughTest.kt
+- ~~test_smart_playthrough.sh~~ → SmartPlaythroughTest.kt
+- ~~test_bad_playthrough.sh~~ → BadPlaythroughTest.kt
+- ~~test_all_playthroughs.sh~~ → AllPlaythroughsTest.kt
+
+**Outcome:** Codebase now uses only Kotlin tests via `gradle test`
 
 ---
