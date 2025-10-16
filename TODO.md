@@ -8,9 +8,9 @@
 - ✅ brute_force_playthrough: **100% pass rate (17/17)**
 - ✅ bad_playthrough: **100% pass rate (8/8)**
 - ✅ smart_playthrough: **100% pass rate (7/7)**
-- ✅ **Total Unit/Integration Tests: ~241 (across all modules)**
+- ✅ **Total Unit/Integration Tests: ~277 (across all modules)**
 - ✅ **Phase 2 Progress: 5/5 integration tests COMPLETE**
-- 🔄 **Phase 3 Progress: 2/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests)**
+- ✅ **Phase 3 Progress: 4/4 integration tests COMPLETE (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)**
 
 ---
 
@@ -92,7 +92,7 @@ Replaced shell scripts with integration tests in `app/src/test/kotlin/com/jcraw/
   - CHA modifier effects on success rates
   - Multiple NPCs independently
 
-#### Phase 3: Complex Integration (2-3 days) - MEDIUM PRIORITY
+#### Phase 3: Complex Integration - ✅ COMPLETE
 Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
 
 - ✅ `SaveLoadIntegrationTest.kt` (replaces `test_save_load.sh`) - **13 tests, all passing**
@@ -116,16 +116,19 @@ Advanced workflow tests in `app/src/test/kotlin/com/jcraw/app/integration/`:
   - Quest generation (all quest types based on dungeon state)
   - Deterministic generation with seeds
 
-- [ ] `NavigationIntegrationTest.kt` (replaces `test_exits_debug.sh`)
-  - Directional navigation (n/s/e/w)
-  - Natural language navigation ("go to throne room")
-  - Invalid direction handling
-  - Exit validation
+- ✅ `NavigationIntegrationTest.kt` (replaces `test_exits_debug.sh`) - **21 tests, all passing**
+  - Directional navigation (n/s/e/w, cardinal names, "go" syntax)
+  - Natural language navigation ("go to throne room", partial names)
+  - Invalid direction handling (invalid directions, non-existent rooms, gibberish)
+  - Exit validation (bidirectionality, reachability, hub rooms, dead ends)
+  - Procedural dungeon navigation (connectivity, valid exits)
 
-- [ ] `FullGameplayIntegrationTest.kt` (replaces `test_game.sh`)
-  - Complete game loop
-  - Multiple systems working together
-  - End-to-end gameplay scenario
+- ✅ `FullGameplayIntegrationTest.kt` (replaces `test_game.sh`) - **15 tests, all passing**
+  - Basic game loop (exploration, NPC interaction, inventory)
+  - Multi-system integration (navigation + equipment + combat, consumables in combat, loot collection, skill checks)
+  - Quest integration (explore, collect, kill quests with auto-tracking)
+  - Save/load during gameplay (mid-exploration, active combat, with quests)
+  - Complete playthroughs (full dungeon exploration, realistic gameplay session, procedural dungeon)
 
 #### Phase 4: Bot Test Migration (1-2 days) - LOW PRIORITY
 Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
