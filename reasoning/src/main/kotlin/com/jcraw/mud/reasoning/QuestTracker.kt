@@ -5,16 +5,20 @@ import com.jcraw.mud.core.*
 /**
  * Tracks quest progress and handles objective completion
  */
-class QuestTracker {
+class QuestTracker(
+    private val dispositionManager: DispositionManager? = null
+) {
     /**
      * Update quest objectives based on player actions
+     * Returns updated player state and world state (if NPCs changed)
      */
     fun updateQuestsAfterAction(
         playerState: PlayerState,
         worldState: WorldState,
         action: QuestAction
-    ): PlayerState {
+    ): Pair<PlayerState, WorldState> {
         var updatedPlayer = playerState
+        var updatedWorld = worldState
 
         // Check each active quest for progress
         playerState.activeQuests.forEach { quest ->
@@ -24,12 +28,40 @@ class QuestTracker {
 
                 // Auto-complete quest if all objectives are done
                 if (updatedQuest.isComplete() && updatedQuest.status == QuestStatus.ACTIVE) {
-                    updatedPlayer = updatedPlayer.updateQuest(updatedQuest.complete())
+                    val completedQuest = updatedQuest.complete()
+                    updatedPlayer = updatedPlayer.updateQuest(completedQuest)
+
+                    // Apply disposition bonus to quest giver
+                    updatedWorld = applyQuestCompletionDisposition(completedQuest, updatedWorld)
                 }
             }
         }
 
-        return updatedPlayer
+        return updatedPlayer to updatedWorld
+    }
+
+    /**
+     * Apply disposition bonus to quest giver when quest is completed
+     */
+    private fun applyQuestCompletionDisposition(quest: Quest, worldState: WorldState): WorldState {
+        // Only apply if we have a disposition manager and a quest giver
+        if (dispositionManager == null || quest.giver == null) {
+            return worldState
+        }
+
+        // Find the quest giver NPC in the world
+        val questGiver = worldState.rooms.values
+            .flatMap { it.entities }
+            .filterIsInstance<Entity.NPC>()
+            .find { it.id == quest.giver }
+            ?: return worldState
+
+        // Apply quest completed event (+15 disposition)
+        val event = SocialEvent.QuestCompleted(quest.title)
+        val updatedNPC = dispositionManager.applyEvent(questGiver, event)
+
+        // Update the world state with the modified NPC
+        return worldState.updateEntity(questGiver.id, updatedNPC)
     }
 
     /**

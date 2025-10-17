@@ -244,7 +244,7 @@ class MudGame(
     }
 
     private fun trackQuests(action: QuestAction) {
-        val updatedPlayer = questTracker.updateQuestsAfterAction(
+        val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
             worldState.player,
             worldState,
             action
@@ -271,7 +271,8 @@ class MudGame(
                 }
             }
 
-            worldState = worldState.updatePlayer(updatedPlayer)
+            // Update both player and world state (world may have NPC disposition changes)
+            worldState = updatedWorld.updatePlayer(updatedPlayer)
         }
     }
 

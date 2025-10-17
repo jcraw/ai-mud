@@ -126,9 +126,10 @@ class GameServer(
 
     /**
      * Track quest progress and return notification messages
+     * Also returns updated world state (quest giver NPCs may have disposition changes)
      */
-    private fun trackQuests(playerState: PlayerState, action: QuestAction): Pair<PlayerState, String> {
-        val updatedPlayer = questTracker.updateQuestsAfterAction(
+    private fun trackQuests(playerState: PlayerState, action: QuestAction): Triple<PlayerState, WorldState, String> {
+        val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
             playerState,
             worldState,
             action
@@ -158,7 +159,7 @@ class GameServer(
             }
         }
 
-        return Pair(updatedPlayer, notifications)
+        return Triple(updatedPlayer, updatedWorld, notifications)
     }
 
     /**
