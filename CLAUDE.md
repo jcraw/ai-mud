@@ -432,13 +432,14 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 4 COMPLETE**! 🎉
 
-**Latest Update (2025-10-17)**: Completed Social System Phase 5 - NPC Dialogue Enhancement
-  - Enhanced NPCInteractionGenerator with disposition-aware dialogue generation
-  - NPCs now speak with personality and disposition-based tone (ALLIED → HOSTILE)
-  - Unified KnowledgeEntry data model across modules (removed duplicate)
-  - Updated SocialDatabase schema with is_canon and tags columns
-  - All reasoning module tests passing (45 tests)
-  - Total test count now ~352 tests
+**Latest Update (2025-10-17)**: Completed Social System Phase 6 (Partial) - Game Loop Integration
+  - Updated InMemoryGameEngine.kt to handle Intent.Emote and Intent.AskQuestion
+  - Added optional emoteHandler and knowledgeManager parameters
+  - Implemented handleEmote() - processes emotes via EmoteHandler, updates NPC disposition
+  - Implemented handleAskQuestion() - queries NPC knowledge via NPCKnowledgeManager
+  - Both handlers update WorldState when NPC components change
+  - Graceful fallback when social system components not available
+  - Total test count ~352 tests (all passing)
 
 **Previous Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
   - `InMemoryGameEngine.kt` (testbot) - Lines 302-316, 98-105
@@ -499,7 +500,10 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - Personality and traits included in dialogue prompts
      - Unified KnowledgeEntry data model (removed duplicate)
      - Updated SocialDatabase schema with is_canon and tags
-   - ⏳ Phase 6-11: Full system integration (game loop, procedural generation, quest integration, etc.)
+   - ⏳ Phase 6: Game Loop Integration - PARTIAL (2025-10-17)
+     - InMemoryGameEngine.kt updated with emote and question handlers
+     - App.kt and EngineGameClient.kt pending full integration
+   - ⏳ Phase 7-11: Full system integration (procedural generation, quest integration, etc.)
 
 2. **Feature work** (Future):
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player

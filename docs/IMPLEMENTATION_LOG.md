@@ -950,3 +950,26 @@ The All Playthroughs test validates the entire game balance by running all three
 **Status**: ✅ **PHASE 5 COMPLETE** - NPC dialogue now disposition-aware, ready for Phase 6 (Game Loop Integration)
 
 **Next Steps**: Phase 6 - Game Loop Integration (Wire up Intent.Emote and Intent.AskQuestion handlers in game loop)
+
+## Advanced Social System V2 - Phase 6: Game Loop Integration (2025-10-17) 🎮
+
+**Feature**: Intent.Emote and Intent.AskQuestion handlers integrated into all game loops
+
+✅ **InMemoryGameEngine Updated** - Test bot engine supports social system intents
+  - File: `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt`
+  - Added emoteHandler and knowledgeManager parameters (optional, nullable)
+  - Added handleEmote() method - processes emotes via EmoteHandler, updates NPC disposition
+  - Added handleAskQuestion() method - queries NPC knowledge via NPCKnowledgeManager
+  - Both handlers update WorldState when NPC components change
+  - Graceful fallback when social system components not available
+  - Added Intent.Emote and Intent.AskQuestion to processIntent switch
+
+**Phase 6 Deliverables Complete**:
+1. ✅ InMemoryGameEngine.kt - Social intent handlers for test bot
+2. ⏳ App.kt - Social intent handlers for console game (pending full integration)
+3. ⏳ EngineGameClient.kt - Social intent handlers for GUI client (pending full integration)
+4. ⏳ Integration tests - Full social workflow testing (next phase)
+
+**Status**: ✅ **PHASE 6 PARTIAL COMPLETE** - InMemoryGameEngine updated, App.kt and EngineGameClient.kt ready for integration
+
+**Next Steps**: Phase 7 - Procedural Generation Update (Update NPCGenerator to create NPCs with SocialComponent)

@@ -21,7 +21,9 @@ class InMemoryGameEngine(
     private val npcInteractionGenerator: NPCInteractionGenerator? = null,
     private val combatNarrator: CombatNarrator? = null,
     private val memoryManager: MemoryManager? = null,
-    private val llmClient: LLMClient? = null
+    private val llmClient: LLMClient? = null,
+    private val emoteHandler: EmoteHandler? = null,
+    private val knowledgeManager: NPCKnowledgeManager? = null
 ) : GameEngineInterface {
 
     private var worldState: WorldState = initialWorldState
@@ -65,6 +67,8 @@ class InMemoryGameEngine(
             is Intent.Check -> handleCheck(intent.target)
             is Intent.Persuade -> handlePersuade(intent.target)
             is Intent.Intimidate -> handleIntimidate(intent.target)
+            is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
+            is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> intent.message
@@ -460,7 +464,68 @@ class InMemoryGameEngine(
         }
     }
 
-    private fun handleHelp(): String = "Available commands: move, look, inventory, take, drop, talk, attack, equip, use, check, persuade, intimidate, quit"
+    private fun handleEmote(emoteType: String, target: String?): String {
+        // Emotes require emoteHandler
+        if (emoteHandler == null) {
+            return "Emotes are not available in this mode."
+        }
+
+        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+
+        // If no target specified, perform general emote
+        if (target.isNullOrBlank()) {
+            return "You ${emoteType.lowercase()}."
+        }
+
+        // Find target NPC
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
+
+        if (npc == null) {
+            return "No one by that name here."
+        }
+
+        // Parse emote keyword
+        val emoteTypeEnum = emoteHandler.parseEmoteKeyword(emoteType)
+        if (emoteTypeEnum == null) {
+            return "Unknown emote: $emoteType"
+        }
+
+        // Process emote
+        val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
+
+        // Update world state with updated NPC
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        return narrative
+    }
+
+    private suspend fun handleAskQuestion(npcTarget: String, topic: String): String {
+        // Questions require knowledgeManager
+        if (knowledgeManager == null) {
+            return "Knowledge queries are not available in this mode."
+        }
+
+        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+
+        // Find target NPC
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.lowercase().contains(npcTarget.lowercase()) || it.id.lowercase().contains(npcTarget.lowercase()) }
+
+        if (npc == null) {
+            return "No one by that name here."
+        }
+
+        // Query knowledge
+        val (answer, updatedNpc) = knowledgeManager.queryKnowledge(npc, topic)
+
+        // Update world state with updated NPC (may have new knowledge)
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        return "${npc.name} says: \"$answer\""
+    }
+
+    private fun handleHelp(): String = "Available commands: move, look, inventory, take, drop, talk, attack, equip, use, check, persuade, intimidate, emote, ask, quit"
 
     private fun handleQuit(): String {
         running = false
