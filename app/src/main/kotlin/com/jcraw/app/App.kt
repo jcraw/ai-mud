@@ -229,6 +229,8 @@ class MudGame(
             is Intent.Check -> handleCheck(intent.target)
             is Intent.Persuade -> handlePersuade(intent.target)
             is Intent.Intimidate -> handleIntimidate(intent.target)
+            is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
+            is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
             is Intent.Save -> handleSave(intent.saveName)
             is Intent.Load -> handleLoad(intent.saveName)
             is Intent.Quests -> handleQuests()
@@ -1132,6 +1134,36 @@ class MudGame(
             println("\n❌ Failure!")
             println(challenge.failureDescription)
         }
+    }
+
+    private fun handleEmote(emoteType: String, target: String?) {
+        // Emotes are not yet fully integrated in console mode
+        // This is a placeholder for future social system integration
+        if (target.isNullOrBlank()) {
+            println("\nYou ${emoteType.lowercase()}.")
+        } else {
+            println("\nYou ${emoteType.lowercase()} at $target.")
+        }
+    }
+
+    private fun handleAskQuestion(npcTarget: String, topic: String) {
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Find the NPC in the room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                entity.id.lowercase().contains(npcTarget.lowercase())
+            }
+
+        if (npc == null) {
+            println("There's no one here by that name.")
+            return
+        }
+
+        // Knowledge queries not yet fully integrated in console mode
+        // This is a placeholder for future social system integration
+        println("\n${npc.name} doesn't seem to know anything about that.")
     }
 
     private fun handleSave(saveName: String) {
