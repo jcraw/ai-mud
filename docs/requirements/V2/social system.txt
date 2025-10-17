@@ -1,0 +1,84 @@
+Social System Requirements (NPC/Dialogue Interactions Submodule)
+
+Overview
+
+The Social system (:social submodule) manages NPC entities, dialogue, and social mechanics in the AI-powered MUD/RPG. It enables natural language interactions where players can converse, emote, or perform social actions with NPCs. NPCs respond dynamically via LLM, maintaining in-character behavior, limited knowledge, and variable dispositions. The system integrates with other modules (e.g., :world for placement, :player for state) and includes stubs for future connections (:skills, :story). Emphasizes scalability via component-based design, coherence through RAG, and persistence for canonized lore.
+Key Goals:
+
+Immersive, DnD-like conversations: Plain English inputs (talk, emote, threaten) yield realistic, varied responses.
+Disposition-driven: NPCs' attitudes affect responses/help; changeable via events/skills.
+Knowledge Management: NPCs draw from personal knowledge/lore; generate/make canon new info if unknown.
+Modularity: Component-based NPC model for scalability across systems.
+
+Tech Hints: Kotlin, coroutines for async LLM/DB ops. Immutable data classes. Sealed classes for intents/outcomes. Depend on :core, :llm, :db. Export facade like SocialSystem for integration.
+
+Functional Requirements
+
+2.1 NPC Modeling
+
+Component-Based: NPCs are entities in :world (e.g., data class Entity(id: String, type: EntityType.NPC, ...)). Attach a social component: data class SocialComponent(disposition: Int = 0, personality: String, traits: List<String>, knowledgeBase: List<String> = emptyList()).
+Scalability: SocialComponent immutable; updates return copies. Allows easy attachment to other entities (e.g., future animals/merchants). KnowledgeBase as strings for embedding; expandable via DB inserts.
+Placement: NPCs tied to RoomId in :world; support multiple per room without self-loops (e.g., ignore NPC-NPC chatter).
+
+2.2 Dialogue and Interaction Pipeline
+
+Input Handling: Player text (e.g., "What did you have for breakfast?" or "I bow to you.") via natural language.
+Intent Parsing: LLM classifies: sealed class SocialIntent { Conversation, QueryKnowledge, Threat, Persuasion, Emote, Other }. Prompt: "Classify as [list intents]; extract params like target NPC, action details."
+Emote/Social Actions: Handle non-verbal (e.g., bow → disposition +5 if respectful); map to intents affecting disposition.
+Skill Checks: For intents like Threat/Persuasion, stub interface SkillChecker { fun check(skill: String, difficulty: Int): SocialOutcome }. Use Kotlin Random for rolls (d20 + mods). Stub impl: Random success. Comment: "// STUB: Integrate :skills module."
+Resolution and Response:
+
+If knowledge query: Check knowledgeBase via RAG; if unknown, LLM accesses lore (prompt: "Invent fitting detail from [world lore summary]; stay in-character.") → Save new fact to knowledgeBase/DB as canon.
+Generate Response: LLM prompt: "Respond as [personality] NPC with [disposition] to [intent/text]. Use [knowledgeBase + new canon]. Vary creatively; incorporate RAG history."
+Disposition Update: Based on outcome/event (e.g., successful persuasion +10). Sealed class SocialEvent for triggers.
+
+
+Group Interactions: Single-target focus (parse "Talk to [name]"); prevent loops by ignoring non-player initiations.
+Error/Fallback: On LLM fail/invalid input, default: "The NPC looks confused." Log for debugging.
+
+2.3 Disposition Mechanics
+
+Scale: Int (-100 hostile to +100 allied); thresholds for behaviors (e.g., < -50 → hostile, trigger :combat stub).
+Changes: Event-driven (e.g., HelpProvided → +20). Player skills influence (via stub). Persist to DB.
+Behaviors: Reactive (e.g., low disposition → curt responses; high → hints/help). No NPC-initiated loops.
+
+2.4 Integrations
+
+Story Stub: Interface StoryConnector { fun getRelevantQuests(npc: SocialComponent): List<String> }; call for hints if disposition high. Comment: "// STUB: Connect to :story."
+Skills Stub: As above; easy-notice comments like "// TODO: SKILLS INTEGRATION POINT".
+World/Lore: Pull lore summaries for invention; save canonized facts to vector DB for RAG.
+Persistence: Room DB for SocialComponent; auto-save on updates.
+
+2.5 Variability and Coherence
+
+LLM Prompts: Engineered for non-deterministic output (e.g., "Vary phrasing each time; avoid repetition.").
+RAG: Include past dialogues/actions to maintain context/canon.
+
+
+Non-Functional Requirements
+
+
+Performance: Async coroutines for LLM calls; cache common prompts.
+Scalability: Component design allows adding to non-NPC entities; handle 100+ NPCs via efficient DB queries.
+Security: Sanitize inputs; no direct DB access from LLM.
+Accessibility: Text outputs narratable; future voice hooks.
+
+
+Architecture Hints
+
+
+Packages: com.game.social.model (data classes), .pipeline (intent/resolution), .handlers (disposition/behavior), .stubs (integrations).
+Facade: SocialSystem class: fun handleInteraction(input: String, npcId: String, playerId: String, ragContext: RagContext): Pair<String, UpdatedComponents>.
+Data Flow: Input → Parse (LLM) → Check (stub + RNG) → Resolve/Generate (LLM + DB) → Output/Update.
+Modularity: Use interfaces for pluggable parts (e.g., IntentParser as interface, LLM impl).
+
+
+Testing Requirements
+
+
+Unit Tests: In :social/test; use JUnit/MockK. Cover: Disposition updates (e.g., assert delta applies), intent parsing (mock LLM returns), canon invention (DB insert checks), fallbacks.
+Mocks: For LLM (fixed responses), DB (in-memory), stubs (configurable outcomes).
+Integration: Mock pipelines; reference other submodules' test styles (e.g., property-based for randomness).
+Coverage: All branches (success/fail, known/unknown knowledge).
+
+This doc defines the rules/mechanics; implement iteratively, starting with core pipeline.
