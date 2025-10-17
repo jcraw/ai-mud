@@ -40,6 +40,32 @@ class PersistentVectorStore(
             .take(k)
     }
 
+    override fun searchWithMetadata(
+        queryEmbedding: List<Double>,
+        k: Int,
+        metadataFilter: Map<String, String>
+    ): List<ScoredMemoryEntry> {
+        if (entries.isEmpty()) return emptyList()
+
+        // Filter entries matching ALL metadata key-value pairs
+        val filteredEntries = entries.filter { entry ->
+            metadataFilter.all { (key, value) ->
+                entry.metadata[key] == value
+            }
+        }
+
+        if (filteredEntries.isEmpty()) return emptyList()
+
+        // Perform similarity search on filtered entries
+        return filteredEntries
+            .map { entry ->
+                val similarity = cosineSimilarity(queryEmbedding, entry.embedding)
+                ScoredMemoryEntry(entry, similarity)
+            }
+            .sortedByDescending { it.score }
+            .take(k)
+    }
+
     override fun getAll(): List<MemoryEntry> = entries.toList()
 
     override fun clear() {

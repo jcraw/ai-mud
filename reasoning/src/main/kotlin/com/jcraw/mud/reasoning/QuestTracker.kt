@@ -49,19 +49,38 @@ class QuestTracker(
             return worldState
         }
 
-        // Find the quest giver NPC in the world
-        val questGiver = worldState.rooms.values
-            .flatMap { it.entities }
-            .filterIsInstance<Entity.NPC>()
-            .find { it.id == quest.giver }
-            ?: return worldState
+        // Find the quest giver NPC and the room they're in
+        var questGiverRoom: Room? = null
+        var questGiver: Entity.NPC? = null
+
+        for (room in worldState.rooms.values) {
+            val npc = room.entities.filterIsInstance<Entity.NPC>().find { it.id == quest.giver }
+            if (npc != null) {
+                questGiverRoom = room
+                questGiver = npc
+                break
+            }
+        }
+
+        if (questGiver == null || questGiverRoom == null) {
+            return worldState
+        }
 
         // Apply quest completed event (+15 disposition)
         val event = SocialEvent.QuestCompleted(quest.title)
         val updatedNPC = dispositionManager.applyEvent(questGiver, event)
 
-        // Update the world state with the modified NPC
-        return worldState.updateEntity(questGiver.id, updatedNPC)
+        // Update the room with the modified NPC
+        val updatedEntities = questGiverRoom.entities.map { entity ->
+            if (entity is Entity.NPC && entity.id == questGiver.id) {
+                updatedNPC
+            } else {
+                entity
+            }
+        }
+
+        val updatedRoom = questGiverRoom.copy(entities = updatedEntities)
+        return worldState.updateRoom(updatedRoom)
     }
 
     /**
