@@ -171,11 +171,67 @@ Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
 
 ---
 
+## Next Implementation
+
+### 🎯 SOCIAL-001: Advanced Social System (V2)
+**Priority:** HIGH (NEXT TO IMPLEMENT)
+**Status:** Planning Complete - Ready for Implementation
+**Description:** Comprehensive social interaction system with disposition tracking, knowledge management, and dynamic NPC relationships
+**Documentation:** [Implementation Plan](docs/requirements/V2/SOCIAL_SYSTEM_IMPLEMENTATION_PLAN.md)
+**Estimated Time:** 28-35 hours
+
+**Key Features:**
+- **Disposition System** - Numeric NPC attitude tracking (-100 to +100)
+- **Knowledge Management** - NPCs with individual knowledge bases and canon generation
+- **Emote System** - Non-verbal interactions (bow, wave, laugh, etc.)
+- **Event-Driven Mechanics** - Actions affect NPC relationships dynamically
+- **Enhanced Dialogue** - LLM responses influenced by disposition and history
+- **Quest Integration** - Disposition affects quest hints and rewards
+
+**Implementation Phases:**
+1. ✅ Architecture & Planning - COMPLETE
+2. ⏳ Phase 1: Core Data Models (2-3 hours)
+3. ⏳ Phase 2: Core Logic Components (4-5 hours)
+4. ⏳ Phase 3: Intent Recognition (2-3 hours)
+5. ⏳ Phase 4: NPC Dialogue Enhancement (3-4 hours)
+6. ⏳ Phase 5: Game Loop Integration (4-5 hours)
+7. ⏳ Phase 6: Procedural Generation Update (2-3 hours)
+8. ⏳ Phase 7: Quest System Integration (2 hours)
+9. ⏳ Phase 8: Memory System Extension (2-3 hours)
+10. ⏳ Phase 9: Documentation (2-3 hours)
+11. ⏳ Phase 10: Integration Testing & Polish (3-4 hours)
+
+**Files to Create:**
+- `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt`
+- `core/src/main/kotlin/com/jcraw/mud/core/KnowledgeEntry.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/EmoteHandler.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCKnowledgeManager.kt`
+- Integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`
+
+**Files to Modify:**
+- `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt` (add SocialProfile)
+- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` (add Emote, AskQuestion)
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt` (enhance with disposition)
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` (add SocialProfile generation)
+- Game loop implementations (App.kt, EngineGameClient.kt, InMemoryGameEngine.kt)
+
+**Success Criteria:**
+- All 21 TODO items complete
+- ~50+ new unit tests passing
+- ~20+ new integration tests passing
+- Full playthrough with social interactions works
+- Documentation updated
+- Backward compatible with existing save files
+
+---
+
 ## Feature Backlog
 
 ### Deliver Quest Objectives
-**Status:** Not implemented
+**Status:** Not implemented (superseded by SOCIAL-001)
 **Description:** Implement DeliverItem quest objective tracking
+**Note:** Will be implemented as part of overall system improvements
 **Files:**
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/QuestTracker.kt`
 - `core/src/main/kotlin/com/jcraw/mud/core/Quest.kt`
