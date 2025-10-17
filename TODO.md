@@ -190,31 +190,41 @@ Migrate bot tests to `testbot/src/test/kotlin/com/jcraw/mud/testbot/scenarios/`:
 
 **Implementation Phases:**
 1. ✅ Architecture & Planning - COMPLETE
-2. ⏳ Phase 1: Core Data Models (2-3 hours)
-3. ⏳ Phase 2: Core Logic Components (4-5 hours)
-4. ⏳ Phase 3: Intent Recognition (2-3 hours)
-5. ⏳ Phase 4: NPC Dialogue Enhancement (3-4 hours)
-6. ⏳ Phase 5: Game Loop Integration (4-5 hours)
-7. ⏳ Phase 6: Procedural Generation Update (2-3 hours)
-8. ⏳ Phase 7: Quest System Integration (2 hours)
-9. ⏳ Phase 8: Memory System Extension (2-3 hours)
-10. ⏳ Phase 9: Documentation (2-3 hours)
-11. ⏳ Phase 10: Integration Testing & Polish (3-4 hours)
+2. ✅ Phase 1: Core Data Models (2-3 hours) - COMPLETE (2025-10-16)
+3. ⏳ Phase 2: Database Layer (4-5 hours)
+4. ⏳ Phase 3: Core Logic Components (4-5 hours)
+5. ⏳ Phase 4: Intent Recognition (2-3 hours)
+6. ⏳ Phase 5: NPC Dialogue Enhancement (3-4 hours)
+7. ⏳ Phase 6: Game Loop Integration (4-5 hours)
+8. ⏳ Phase 7: Procedural Generation Update (2-3 hours)
+9. ⏳ Phase 8: Quest System Integration (2 hours)
+10. ⏳ Phase 9: Memory System Extension (2-3 hours)
+11. ⏳ Phase 10: Documentation (2-3 hours)
+12. ⏳ Phase 11: Integration Testing & Polish (3-4 hours)
 
-**Files to Create:**
-- `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt`
-- `core/src/main/kotlin/com/jcraw/mud/core/KnowledgeEntry.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/EmoteHandler.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCKnowledgeManager.kt`
-- Integration tests in `app/src/test/kotlin/com/jcraw/app/integration/`
+**Files Created (Phase 1):**
+- ✅ `core/src/main/kotlin/com/jcraw/mud/core/Component.kt`
+- ✅ `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt`
+- ✅ `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt`
+- ✅ `core/src/main/kotlin/com/jcraw/mud/core/KnowledgeEntry.kt`
+- ✅ `core/src/test/kotlin/com/jcraw/mud/core/ComponentSystemTest.kt` (30 tests)
 
-**Files to Modify:**
-- `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt` (add SocialProfile)
-- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` (add Emote, AskQuestion)
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt` (enhance with disposition)
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` (add SocialProfile generation)
-- Game loop implementations (App.kt, EngineGameClient.kt, InMemoryGameEngine.kt)
+**Files to Create (Phase 2+):**
+- ⏳ `core/src/main/kotlin/com/jcraw/mud/core/repository/Repository.kt` (Phase 2)
+- ⏳ `persistence/` module with SQLite repositories (Phase 2)
+- ⏳ `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt` (Phase 3)
+- ⏳ `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/EmoteHandler.kt` (Phase 3)
+- ⏳ `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCKnowledgeManager.kt` (Phase 3)
+- ⏳ Integration tests in `app/src/test/kotlin/com/jcraw/app/integration/` (Phase 11)
+
+**Files Modified (Phase 1):**
+- ✅ `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt` (added ComponentHost implementation)
+
+**Files to Modify (Phase 2+):**
+- ⏳ `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` (add Emote, AskQuestion) (Phase 4)
+- ⏳ `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt` (enhance with disposition) (Phase 5)
+- ⏳ `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` (add SocialComponent generation) (Phase 7)
+- ⏳ Game loop implementations (App.kt, EngineGameClient.kt, InMemoryGameEngine.kt) (Phase 6)
 
 **Success Criteria:**
 - All 21 TODO items complete

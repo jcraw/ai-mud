@@ -720,3 +720,67 @@ The All Playthroughs test validates the entire game balance by running all three
 - Phase 2: 58 integration tests (5 test files)
 - Phase 3: 70 integration tests (4 test files)
 - Phase 4: 12 E2E scenario tests (4 test files)
+
+## Advanced Social System V2 - Phase 1: Core Data Models (2025-10-16) 🔧
+
+**Feature**: Component-based architecture foundation for social interaction system
+
+✅ **Component System Foundation** - Scalable ECS-like pattern for entity attachments
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/Component.kt`
+  - Component interface with ComponentType enum
+  - ComponentHost interface for entity attachment support
+  - Type-safe component retrieval and immutable operations
+
+✅ **Entity.NPC Enhanced** - Entity.NPC now implements ComponentHost
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/Entity.kt`
+  - Added components map field to Entity.NPC
+  - Implemented withComponent/withoutComponent methods
+  - Helper methods: getSocialComponent(), getDisposition(), applySocialEvent(), isHostileByDisposition()
+  - Backward compatible with legacy social fields
+
+✅ **SocialComponent** - Full disposition tracking and relationship management
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt`
+  - Disposition tracking (-100 to +100 scale)
+  - DispositionTier enum (HOSTILE, UNFRIENDLY, NEUTRAL, FRIENDLY, ALLIED)
+  - Personality and trait system
+  - Knowledge entry references
+  - Conversation count and timestamp tracking
+  - Immutable state methods: applyDispositionChange(), incrementConversationCount(), addKnowledge()
+
+✅ **SocialEvent Hierarchy** - Event-driven disposition changes
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt`
+  - Sealed class with 11 event types
+  - Events: HelpProvided, HelpRefused, Threatened, Intimidated, Persuaded, GiftGiven, EmotePerformed, QuestCompleted, QuestFailed, AttackAttempted, ConversationHeld
+  - EmoteType enum with 7 emote types (BOW, WAVE, NOD, SHAKE_HEAD, LAUGH, INSULT, THREATEN)
+  - Keyword-based emote recognition
+  - Each event has disposition delta and description
+
+✅ **KnowledgeEntry Model** - RAG-based NPC knowledge management
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/KnowledgeEntry.kt`
+  - KnowledgeEntry data class for NPC knowledge storage
+  - KnowledgeSource enum (PREDEFINED, GENERATED, PLAYER_TAUGHT, OBSERVED)
+  - Support for canon vs non-canon knowledge
+  - Tag system for knowledge categorization
+  - Designed for vector embedding integration
+
+✅ **Comprehensive Tests** - 30 tests covering component system
+  - File: `core/src/test/kotlin/com/jcraw/mud/core/ComponentSystemTest.kt`
+  - Component attachment/detachment tests
+  - Type-safe retrieval and immutability tests
+  - Disposition tier calculation and clamping
+  - Social event application tests
+  - Emote system tests
+  - Knowledge entry tests
+  - All 30 tests passing
+
+**Phase 1 Deliverables Complete**:
+1. ✅ Component.kt - Base component interfaces
+2. ✅ Entity.kt - ComponentHost implementation
+3. ✅ SocialComponent.kt - Full disposition system
+4. ✅ SocialEvent.kt - Event hierarchy with emotes
+5. ✅ KnowledgeEntry.kt - Knowledge data model
+6. ✅ ComponentSystemTest.kt - 30 comprehensive tests
+
+**Status**: ✅ **PHASE 1 COMPLETE** - Foundation ready for Phase 2 (Database Layer)
+
+**Next Steps**: Phase 2 - Database Layer (SQLite repositories, schema, persistence)

@@ -73,12 +73,55 @@ sealed class Entity {
         val maxHealth: Int = 100,
         val stats: Stats = Stats(),
         val properties: Map<String, String> = emptyMap(),
-        // Social interaction
+        // Social interaction (legacy - will be migrated to SocialComponent)
         val persuasionChallenge: SkillChallenge? = null,
         val intimidationChallenge: SkillChallenge? = null,
         val hasBeenPersuaded: Boolean = false,
-        val hasBeenIntimidated: Boolean = false
-    ) : Entity()
+        val hasBeenIntimidated: Boolean = false,
+        // Component system
+        override val components: Map<ComponentType, Component> = emptyMap()
+    ) : Entity(), ComponentHost {
+
+        override fun withComponent(component: Component): NPC {
+            return copy(components = components + (component.componentType to component))
+        }
+
+        override fun withoutComponent(type: ComponentType): NPC {
+            return copy(components = components - type)
+        }
+
+        /**
+         * Helper to get social component with fallback
+         */
+        fun getSocialComponent(): SocialComponent? {
+            return getComponent(ComponentType.SOCIAL)
+        }
+
+        /**
+         * Get current disposition (0 if no social component)
+         */
+        fun getDisposition(): Int {
+            return getSocialComponent()?.disposition ?: 0
+        }
+
+        /**
+         * Apply social event to NPC
+         */
+        fun applySocialEvent(event: SocialEvent): NPC {
+            val social = getSocialComponent() ?: SocialComponent(
+                personality = "ordinary",
+                traits = emptyList()
+            )
+            return withComponent(social.applyDispositionChange(event.dispositionDelta))
+        }
+
+        /**
+         * Check if NPC should be hostile based on disposition
+         */
+        fun isHostileByDisposition(): Boolean {
+            return getSocialComponent()?.getDispositionTier() == DispositionTier.HOSTILE || isHostile
+        }
+    }
 
     @Serializable
     data class Feature(
