@@ -7,5 +7,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":llm"))
     implementation(libs.bundles.kotlinxEcosystem)
+    implementation(libs.sqliteJdbc)
     testImplementation(kotlin("test"))
 }

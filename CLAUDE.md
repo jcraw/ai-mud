@@ -61,12 +61,12 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~328 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 30 component system tests)
+- **Comprehensive tests**: **~345 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
   - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
-  - **Component System Tests**: 30 tests for social system foundation (ComponentSystemTest - component attachment, disposition mechanics, social events, emotes, knowledge entries)
+  - **Social System Tests**: 47 tests for social system (Phase 1: 30 component tests, Phase 2: 17 database tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 - **TestReport metrics**: Tracks playthrough metrics including combat rounds, damage taken, NPCs killed, skill/social checks passed, player death, and room exploration for game balance validation
 
@@ -85,7 +85,7 @@ Priority tasks:
 - `gradle :client:run` - **Run GUI client**
 
 ### Testing
-- `gradle test` - Run all tests (~328 tests across all modules)
+- `gradle test` - Run all tests (~345 tests across all modules)
 - `gradle :core:test` - Run tests for specific module
 - `gradle :client:test` - Run UI client tests
 - `gradle :testbot:run` - Run automated test bot (requires OpenAI API key)
@@ -119,6 +119,11 @@ Priority tasks:
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/QuestTracker.kt`
 - **Procedural generation**: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/`
 - **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
+- **Social system**:
+  - `core/src/main/kotlin/com/jcraw/mud/core/Component.kt` - Component system foundation
+  - `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
+  - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/social/` - Database layer (repositories)
 
 ## Architecture
 
@@ -221,7 +226,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~328 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 complete - 4/4 E2E tests done, Social System Phase 1 complete - 30 component tests)
+- **All modules building** - **~345 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 complete - 4/4 E2E tests done, Social System Phases 1-2 complete - 47 tests)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -451,7 +456,9 @@ The GUI client with real engine integration, quest system with auto-tracking, au
 - ✅ **Cleanup Complete**: All 13 legacy shell scripts deleted (2025-10-16)
 - ✅ **Social System Phase 1 Complete**: Component-based architecture foundation (2025-10-16)
   - Component system with 30 tests (component attachment, disposition, social events, emotes, knowledge)
-- **Total: ~328 tests** across all modules, 100% pass rate
+- ✅ **Social System Phase 2 Complete**: Database layer with SQLite persistence (2025-10-16)
+  - 17 tests for repository implementations (all passing)
+- **Total: ~345 tests** across all modules, 100% pass rate
 
 **All Known Bugs Resolved!** 🎉
 
@@ -459,7 +466,11 @@ The GUI client with real engine integration, quest system with auto-tracking, au
 
 1. **Social System V2** (IN PROGRESS):
    - ✅ Phase 1: Core Data Models - COMPLETE (2025-10-16)
-   - ⏳ Phase 2: Database Layer - SQLite repositories and schema
+   - ✅ Phase 2: Database Layer - COMPLETE (2025-10-16)
+     - SQLite schema with 3 tables (knowledge_entries, social_events, social_components)
+     - KnowledgeRepository for NPC knowledge persistence (17 tests passing)
+     - SocialEventRepository for event history tracking (17 tests passing)
+     - SocialComponentRepository for social state persistence (17 tests passing)
    - ⏳ Phase 3: Core Logic Components - DispositionManager, EmoteHandler, NPCKnowledgeManager
    - ⏳ Phase 4-11: Full system integration
 
