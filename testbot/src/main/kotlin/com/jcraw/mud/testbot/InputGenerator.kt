@@ -373,7 +373,7 @@ class InputGenerator(
                 - DO NOT equip weapons or armor
                 - DO NOT use health potions (you don't have any!)
                 - Rush directly to throne room (entrance → corridor → throne)
-                - Fight Skeleton King with base stats only (STR 14, no bonuses)
+                - Fight Skeleton King with base stats only (STR 10, no bonuses)
                 - Expected: Player dies in ~3-5 combat rounds
 
                 This validates the game is NOT too easy - you should die without preparation.
@@ -504,16 +504,16 @@ class InputGenerator(
                 6. attempt_intimidate_king - "intimidate Skeleton King" (Hard CHA check)
                    - CRITICAL: MUST be in throne room FIRST (step 5) before intimidating!
                    - SUCCESS: King backs down, becomes non-hostile, no combat needed!
-                   - FAILURE: Fall back to minimal combat (player has STR 14, might still win)
+                   - FAILURE: Fall back to minimal combat (player has STR 10, weaker than king!)
                 7. avoid_or_minimize_combat - Avoid fighting if possible, use intimidation first
                 8. explore_secret_chamber - Go north from throne room to secret chamber
-                9. pass_strength_check - "check stuck door" (Hard STR check, player has STR 14)
-                10. pass_intelligence_check - "check rune inscription" (Medium INT check, player has INT 13)
+                9. pass_strength_check - "check stuck door" (Hard STR check, player has STR 10)
+                10. pass_intelligence_check - "check rune inscription" (Medium INT check, player has INT 9)
 
                 CRITICAL RULES:
                 - ALWAYS try social/skill approaches BEFORE combat
                 - MUST navigate to throne room BEFORE intimidating Skeleton King!
-                - Intimidate Skeleton King to avoid difficult fight (Hard CHA 10, DC ~15-20)
+                - Intimidate Skeleton King to avoid difficult fight (Hard CHA 9, DC ~15-20)
                 - If intimidation succeeds, King becomes passive - NO COMBAT!
                 - Dice rolls can fail - don't give up if persuasion/intimidation fails!
                 - Explore secret chamber and pass skill checks to show versatility

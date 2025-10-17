@@ -85,7 +85,7 @@ class CombatResolver {
         // Check if player died
         if (afterNpcAttack.playerHealth <= 0) {
             return CombatResult(
-                narrative = "You strike for $damage damage! The enemy retaliates for $npcDamage damage!",
+                narrative = "You strike for $damage damage! The enemy retaliates for $npcDamage damage!\n\nYou have been defeated! Your vision fades as you fall to the ground...",
                 newCombatState = null,  // Combat ends
                 playerDied = true,
                 npcDied = false,
@@ -139,7 +139,7 @@ class CombatResolver {
 
             if (afterNpcAttack.playerHealth <= 0) {
                 return CombatResult(
-                    narrative = "You fail to escape! The enemy strikes you for $npcDamage damage!",
+                    narrative = "You fail to escape! The enemy strikes you for $npcDamage damage!\n\nYou have been defeated! Your vision fades as you fall to the ground...",
                     newCombatState = null,
                     playerDied = true,
                     npcDied = false

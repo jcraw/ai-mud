@@ -1,10 +1,10 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
-import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.testbot.*
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -203,6 +203,8 @@ class AllPlaythroughsTest {
 
     /**
      * Run a single playthrough scenario.
+     * Uses SampleDungeon for consistent layout that matches scenario expectations.
+     * Uses default player stats from SampleDungeon for consistent game balance.
      */
     private suspend fun runPlaythrough(
         scenarioName: String,
@@ -210,11 +212,12 @@ class AllPlaythroughsTest {
         dungeonSize: Int,
         scenario: TestScenario
     ): TestReport {
-        // Create dungeon
-        val worldState = ProceduralDungeonBuilder.generateCrypt(
-            roomCount = dungeonSize,
-            seed = dungeonSeed.toLong()
-        )
+        // Create dungeon using SampleDungeon with known layout
+        // (entrance -> corridor -> armory/treasury/throne_room)
+        // This matches the expectations in InputGenerator scenario guidance
+        // Uses default player stats (STR 10, DEX 8, CON 10, INT 9, WIS 8, CHA 9)
+        // which are intentionally weak to ensure proper game balance
+        val worldState = SampleDungeon.createInitialWorldState()
 
         // Initialize LLM components
         val llmClient = OpenAIClient(apiKey!!)

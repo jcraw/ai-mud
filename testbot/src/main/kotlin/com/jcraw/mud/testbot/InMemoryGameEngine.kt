@@ -96,7 +96,11 @@ class InMemoryGameEngine(
             } else {
                 // Failed to flee - update combat state and stay in place
                 if (result.newCombatState != null) {
-                    worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                    // Sync player's actual health with combat state
+                    val updatedPlayer = worldState.player
+                        .updateCombat(result.newCombatState)
+                        .copy(health = result.newCombatState.playerHealth)
+                    worldState = worldState.updatePlayer(updatedPlayer)
                 }
                 result.narrative
             }
@@ -299,11 +303,21 @@ class InMemoryGameEngine(
             val narrative = result.narrative
 
             if (result.newCombatState != null) {
-                worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                // Sync player's actual health with combat state
+                val updatedPlayer = worldState.player
+                    .updateCombat(result.newCombatState)
+                    .copy(health = result.newCombatState.playerHealth)
+                worldState = worldState.updatePlayer(updatedPlayer)
             } else {
                 // Combat ended - save combat info BEFORE ending
                 val endedCombat = worldState.player.activeCombat
-                worldState = worldState.updatePlayer(worldState.player.endCombat())
+                // Sync final health before ending combat
+                val playerWithHealth = if (endedCombat != null) {
+                    worldState.player.copy(health = endedCombat.playerHealth)
+                } else {
+                    worldState.player
+                }
+                worldState = worldState.updatePlayer(playerWithHealth.endCombat())
 
                 if (result.npcDied && endedCombat != null) {
                     worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState

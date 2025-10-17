@@ -331,7 +331,11 @@ class MudGame(
             } else {
                 // Failed to flee - update combat state and stay in place
                 if (result.newCombatState != null) {
-                    worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                    // Sync player's actual health with combat state
+                    val updatedPlayer = worldState.player
+                        .updateCombat(result.newCombatState)
+                        .copy(health = result.newCombatState.playerHealth)
+                    worldState = worldState.updatePlayer(updatedPlayer)
                 }
                 describeCurrentRoom()
             }
@@ -712,12 +716,22 @@ class MudGame(
 
             // Update world state
             if (result.newCombatState != null) {
-                worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
+                // Sync player's actual health with combat state
+                val updatedPlayer = worldState.player
+                    .updateCombat(result.newCombatState)
+                    .copy(health = result.newCombatState.playerHealth)
+                worldState = worldState.updatePlayer(updatedPlayer)
                 describeCurrentRoom()  // Show updated combat status
             } else {
                 // Combat ended - save combat info before ending
                 val endedCombat = worldState.player.activeCombat
-                worldState = worldState.updatePlayer(worldState.player.endCombat())
+                // Sync final health before ending combat
+                val playerWithHealth = if (endedCombat != null) {
+                    worldState.player.copy(health = endedCombat.playerHealth)
+                } else {
+                    worldState.player
+                }
+                worldState = worldState.updatePlayer(playerWithHealth.endCombat())
 
                 when {
                     result.npcDied -> {
@@ -895,7 +909,10 @@ class MudGame(
                             describeCurrentRoom()
                         } else {
                             // Update combat state with new health
-                            worldState = worldState.updatePlayer(worldState.player.updateCombat(afterNpcAttack))
+                            val updatedPlayer = worldState.player
+                                .updateCombat(afterNpcAttack)
+                                .copy(health = afterNpcAttack.playerHealth)
+                            worldState = worldState.updatePlayer(updatedPlayer)
                             describeCurrentRoom()  // Show updated combat status
                         }
                     }

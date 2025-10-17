@@ -355,6 +355,8 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - ✅ BUG-002 (social checks): **FIXED**
 - ✅ BUG-003 (death/respawn): **FIXED**
 - ✅ BUG-006 (navigation NLU): **FIXED**
+- ✅ BUG-007 (death detection): **FIXED**
+- ✅ BUG-008 (health synchronization): **FIXED**
 - ✅ IMPROVEMENT-001 (smart_playthrough validation): **FIXED**
 
 1. **IMPROVEMENT-001: SmartPlaythrough Test Validation - RESOLVED** ✅
@@ -391,6 +393,30 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
      - `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt`
      - `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt`
 
+5. **BUG-007: Player Death Detection - RESOLVED** ✅
+   - **Root Cause**: CombatResolver returned `playerDied = true` but narrative didn't include death messages, causing test detection to fail
+   - **Fix**: Updated CombatResolver to include explicit death message in combat narratives
+     - Added "\n\nYou have been defeated! Your vision fades as you fall to the ground..." to death narratives
+     - Applied to both regular combat death and flee failure death scenarios
+   - **Files Modified**:
+     - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatResolver.kt`
+   - **Test Result**: AllPlaythroughsTest now correctly detects player death, bad playthrough test passes
+
+6. **BUG-008: Health Synchronization - RESOLVED** ✅
+   - **Root Cause**: Combat state tracked player health correctly, but PlayerState.health was never synchronized
+     - CombatState.playerHealth decreased properly during combat
+     - But `worldState.player.health` stayed at original value (40 HP)
+     - Players could survive with -4 HP because actual health never updated
+   - **Fix**: Synchronized player's actual health with combat state health at every update:
+     - During combat: `player.copy(health = combatState.playerHealth)` when updating combat state
+     - When ending combat: Sync final health before calling `endCombat()`
+     - Applied to flee attempts, normal attacks, and consumable use during combat
+   - **Files Modified**:
+     - `testbot/src/main/kotlin/com/jcraw/mud/testbot/InMemoryGameEngine.kt` (lines 302-316, 98-105)
+     - `app/src/main/kotlin/com/jcraw/app/App.kt` (lines 715-730, 333-339, 912-916)
+     - `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt` (lines 668-689, 750-754, 266-271)
+   - **Test Result**: AllPlaythroughsTest now correctly validates game balance - bad players die as expected
+
 **Test Results**:
 - Brute force playthrough: **100% pass rate (17/17 steps)** ✅
 - Bad playthrough: **100% pass rate (8/8 steps)** ✅
@@ -399,6 +425,15 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 ## Next Developer
 
 The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! 🎉
+
+**Latest Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
+  - `InMemoryGameEngine.kt` (testbot) - Lines 302-316, 98-105
+  - `App.kt` (console) - Lines 715-730, 333-339, 912-916
+  - `EngineGameClient.kt` (GUI) - Lines 668-689, 750-754, 266-271
+
+**Previous Fixes (2025-10-16)**:
+- BUG-007: Fixed player death detection - Combat Resolver now includes explicit death messages in narratives
+- Test infrastructure: Fixed AllPlaythroughsTest to use centralized player stats from SampleDungeon
 
 **Testing Status**:
 - ✅ **Phase 1 Complete**: 82 new unit tests created
