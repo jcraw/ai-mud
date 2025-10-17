@@ -9,6 +9,9 @@ import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.reasoning.procedural.QuestGenerator
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
+import com.jcraw.mud.memory.social.SocialDatabase
+import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
+import com.jcraw.mud.memory.social.SqliteSocialEventRepository
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,8 +44,14 @@ class EngineGameClient(
     private val intentRecognizer: IntentRecognizer
     private val sceneryGenerator: SceneryDescriptionGenerator
     private val questGenerator: QuestGenerator
+    private val questTracker: QuestTracker
 
     init {
+        // Initialize social system components (optional, gracefully handle absence)
+        val socialDatabase = SocialDatabase("client_social.db")
+        val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
+        val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
+        val dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
         // Initialize LLM components if API key available
         llmClient = if (!apiKey.isNullOrBlank()) {
             OpenAIClient(apiKey)
@@ -61,6 +70,7 @@ class EngineGameClient(
         intentRecognizer = IntentRecognizer(llmClient)
         sceneryGenerator = SceneryDescriptionGenerator(llmClient)
         questGenerator = QuestGenerator()
+        questTracker = QuestTracker(dispositionManager)
 
         // Always use Sample Dungeon (same as test bot)
         val baseWorldState = SampleDungeon.createInitialWorldState()
@@ -227,6 +237,38 @@ class EngineGameClient(
         }
     }
 
+    private fun trackQuests(action: QuestAction) {
+        val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
+            worldState.player,
+            worldState,
+            action
+        )
+
+        // Check if any quest objectives were completed
+        if (updatedPlayer != worldState.player) {
+            updatedPlayer.activeQuests.forEach { quest ->
+                val oldQuest = worldState.player.getQuest(quest.id)
+                if (oldQuest != null) {
+                    // Check for newly completed objectives
+                    quest.objectives.zip(oldQuest.objectives).forEach { (newObj, oldObj) ->
+                        if (newObj.isCompleted && !oldObj.isCompleted) {
+                            emitEvent(GameEvent.Quest("\n✓ Quest objective completed: ${newObj.description}"))
+                        }
+                    }
+
+                    // Check if quest just completed
+                    if (quest.status == QuestStatus.COMPLETED &&
+                        oldQuest.status == QuestStatus.ACTIVE) {
+                        emitEvent(GameEvent.Quest("\n🎉 Quest completed: ${quest.title}\nUse 'claim ${quest.id}' to collect your reward!"))
+                    }
+                }
+            }
+
+            // Update both player and world state (world may have NPC disposition changes)
+            worldState = updatedWorld.updatePlayer(updatedPlayer)
+        }
+    }
+
     private fun handleMove(direction: Direction) {
         // Check if in combat - must flee first
         if (worldState.player.isInCombat()) {
@@ -294,6 +336,13 @@ class EngineGameClient(
 
         worldState = newState
         emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
+
+        // Track room exploration for quests
+        val room = worldState.getCurrentRoom()
+        if (room != null) {
+            trackQuests(QuestAction.VisitedRoom(room.id))
+        }
+
         describeCurrentRoom()
     }
 
@@ -511,6 +560,9 @@ class EngineGameClient(
         if (newState != null) {
             worldState = newState
             emitEvent(GameEvent.Narrative("You take the ${item.name}."))
+
+            // Track item collection for quests
+            trackQuests(QuestAction.CollectedItem(item.id))
         } else {
             emitEvent(GameEvent.System("Something went wrong.", GameEvent.MessageLevel.ERROR))
         }
@@ -546,6 +598,11 @@ class EngineGameClient(
 
         if (takenCount > 0) {
             emitEvent(GameEvent.Narrative("Picked up $takenCount ${if (takenCount == 1) "item" else "items"}."))
+
+            // Track item collection for quests
+            items.forEach { item ->
+                trackQuests(QuestAction.CollectedItem(item.id))
+            }
         }
     }
 
@@ -605,6 +662,9 @@ class EngineGameClient(
         worldState = worldState.updatePlayer(updatedPlayer)
 
         emitEvent(GameEvent.Narrative("You give the ${item.name} to ${npc.name}."))
+
+        // Track delivery for quests
+        trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
     }
 
     private fun handleTalk(target: String) {
@@ -634,6 +694,9 @@ class EngineGameClient(
                 emitEvent(GameEvent.Narrative("\n${npc.name} nods at you in acknowledgment."))
             }
         }
+
+        // Track NPC conversation for quests
+        trackQuests(QuestAction.TalkedToNPC(npc.id))
     }
 
     // Combat, equipment, skills, quests - implement similarly to MudGame
@@ -697,6 +760,9 @@ class EngineGameClient(
                         emitEvent(GameEvent.Combat("\nVictory! The enemy has been defeated!"))
                         if (endedCombat != null) {
                             worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
+
+                            // Track NPC kill for quests
+                            trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
                         }
                     }
                     result.playerDied -> {

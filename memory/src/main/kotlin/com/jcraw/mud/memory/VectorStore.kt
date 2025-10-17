@@ -32,6 +32,32 @@ class InMemoryVectorStore : VectorStore {
     }
 
     /**
+     * Search for the k most similar entries using cosine similarity,
+     * filtered by metadata. Only entries matching ALL metadata key-value pairs are included.
+     */
+    override fun searchWithMetadata(
+        queryEmbedding: List<Double>,
+        k: Int,
+        metadataFilter: Map<String, String>
+    ): List<ScoredMemoryEntry> {
+        if (entries.isEmpty()) return emptyList()
+
+        return entries
+            .filter { entry ->
+                // Entry must match all metadata filter key-value pairs
+                metadataFilter.all { (key, value) ->
+                    entry.metadata[key] == value
+                }
+            }
+            .map { entry ->
+                val similarity = cosineSimilarity(queryEmbedding, entry.embedding)
+                ScoredMemoryEntry(entry, similarity)
+            }
+            .sortedByDescending { it.score }
+            .take(k)
+    }
+
+    /**
      * Get all entries (for debugging/testing)
      */
     override fun getAll(): List<MemoryEntry> = entries.toList()

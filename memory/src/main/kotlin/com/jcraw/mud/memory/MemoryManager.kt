@@ -74,6 +74,42 @@ class MemoryManager(
     }
 
     /**
+     * Retrieve relevant memories for a given context, filtered by metadata.
+     * Only entries matching ALL metadata key-value pairs are retrieved.
+     * Example: recallWithMetadata("what happened?", 5, mapOf("npc_id" to "skeleton_king"))
+     */
+    suspend fun recallWithMetadata(
+        query: String,
+        k: Int = 5,
+        metadataFilter: Map<String, String>
+    ): List<String> {
+        if (llmClient == null) {
+            println("⚠️  No LLM client - skipping memory retrieval")
+            return emptyList()
+        }
+
+        if (vectorStore.size() == 0) {
+            println("💭 No memories stored yet")
+            return emptyList()
+        }
+
+        try {
+            val queryEmbedding = llmClient.createEmbedding(query)
+            val results = vectorStore.searchWithMetadata(queryEmbedding, k, metadataFilter)
+
+            println("🔍 Retrieved ${results.size} relevant memories (filtered by metadata: $metadataFilter)")
+            results.forEachIndexed { idx, scored ->
+                println("   ${idx + 1}. [score=${String.format("%.3f", scored.score)}] ${scored.entry.content.take(60)}...")
+            }
+
+            return results.map { it.entry.content }
+        } catch (e: Exception) {
+            println("⚠️  Failed to retrieve memories: ${e.message}")
+            return emptyList()
+        }
+    }
+
+    /**
      * Get all memories (for debugging)
      */
     fun getAllMemories(): List<MemoryEntry> = vectorStore.getAll()

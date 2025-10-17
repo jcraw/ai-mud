@@ -23,7 +23,8 @@ class InMemoryGameEngine(
     private val memoryManager: MemoryManager? = null,
     private val llmClient: LLMClient? = null,
     private val emoteHandler: EmoteHandler? = null,
-    private val knowledgeManager: NPCKnowledgeManager? = null
+    private val knowledgeManager: NPCKnowledgeManager? = null,
+    private val dispositionManager: DispositionManager? = null
 ) : GameEngineInterface {
 
     private var worldState: WorldState = initialWorldState
@@ -32,6 +33,7 @@ class InMemoryGameEngine(
     private val skillCheckResolver = SkillCheckResolver()
     private val intentRecognizer = IntentRecognizer(llmClient)
     private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
+    private val questTracker = QuestTracker(dispositionManager)
 
     override suspend fun processInput(input: String): String {
         if (!running) return "Game is not running."
@@ -116,7 +118,8 @@ class InMemoryGameEngine(
         return if (newState != null) {
             worldState = newState
             val room = worldState.getCurrentRoom()!!
-            buildRoomDescription(room)
+            val questNotifications = trackQuests(QuestAction.VisitedRoom(room.id))
+            buildRoomDescription(room) + questNotifications
         } else {
             "You can't go that way."
         }
@@ -199,7 +202,8 @@ class InMemoryGameEngine(
                 ?.updatePlayer(worldState.player.addToInventory(item))
             if (newState != null) {
                 worldState = newState
-                "You take the ${item.name}."
+                val questNotifications = trackQuests(QuestAction.CollectedItem(item.id))
+                "You take the ${item.name}." + questNotifications
             } else {
                 "Failed to take item."
             }
@@ -228,9 +232,14 @@ class InMemoryGameEngine(
             }
 
             worldState = currentState
+
+            // Track quest progress for all taken items
+            val questNotifications = items.map { item -> trackQuests(QuestAction.CollectedItem(item.id)) }.joinToString("")
+
             buildString {
                 takenItems.forEach { append("You take the $it.\n") }
                 append("You took ${takenItems.size} item${if (takenItems.size > 1) "s" else ""}.")
+                append(questNotifications)
             }
         }
     }
@@ -288,11 +297,12 @@ class InMemoryGameEngine(
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         return if (npc != null) {
+            val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
             if (npcInteractionGenerator != null) {
                 val dialogue = npcInteractionGenerator.generateDialogue(npc, worldState.player)
-                "${npc.name} says: \"$dialogue\""
+                "${npc.name} says: \"$dialogue\"" + questNotifications
             } else {
-                "${npc.name} acknowledges you."
+                "${npc.name} acknowledges you." + questNotifications
             }
         } else {
             "No one by that name here."
@@ -327,6 +337,8 @@ class InMemoryGameEngine(
 
                 if (result.npcDied && endedCombat != null) {
                     worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
+                    val questNotifications = trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
+                    return narrative + questNotifications
                 }
                 if (result.playerDied) {
                     running = false
@@ -412,7 +424,8 @@ class InMemoryGameEngine(
 
         return if (result.success) {
             worldState = worldState.replaceEntity(room.id, feature.id, feature.copy(isCompleted = true)) ?: worldState
-            "Success! ${feature.skillChallenge!!.successDescription}"
+            val questNotifications = trackQuests(QuestAction.UsedSkill(feature.id))
+            "Success! ${feature.skillChallenge!!.successDescription}" + questNotifications
         } else {
             "Failed! ${feature.skillChallenge!!.failureDescription}"
         }
@@ -566,5 +579,45 @@ class InMemoryGameEngine(
                 null
             }
         }.toMap()
+    }
+
+    /**
+     * Track quest progress after player actions.
+     * Returns quest notifications as a string.
+     */
+    private fun trackQuests(action: QuestAction): String {
+        val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
+            worldState.player,
+            worldState,
+            action
+        )
+
+        val notifications = mutableListOf<String>()
+
+        // Check if any quest objectives were completed
+        if (updatedPlayer != worldState.player) {
+            updatedPlayer.activeQuests.forEach { quest ->
+                val oldQuest = worldState.player.getQuest(quest.id)
+                if (oldQuest != null) {
+                    // Check for newly completed objectives
+                    quest.objectives.zip(oldQuest.objectives).forEach { (newObj, oldObj) ->
+                        if (newObj.isCompleted && !oldObj.isCompleted) {
+                            notifications.add("\n✓ Quest objective completed: ${newObj.description}")
+                        }
+                    }
+
+                    // Check if quest just completed
+                    if (quest.status == com.jcraw.mud.core.QuestStatus.COMPLETED &&
+                        oldQuest.status == com.jcraw.mud.core.QuestStatus.ACTIVE) {
+                        notifications.add("\n🎉 Quest completed: ${quest.title}")
+                    }
+                }
+            }
+
+            // Update both player and world state (world may have NPC disposition changes)
+            worldState = updatedWorld.updatePlayer(updatedPlayer)
+        }
+
+        return notifications.joinToString("")
     }
 }
