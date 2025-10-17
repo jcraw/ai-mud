@@ -865,3 +865,50 @@ The All Playthroughs test validates the entire game balance by running all three
 **Status**: ✅ **PHASE 3 COMPLETE** - Core logic components ready for Phase 4 (Intent Recognition)
 
 **Next Steps**: Phase 4 - Intent Recognition (Add Intent.Emote and Intent.AskQuestion, enhance IntentRecognizer)
+
+## Advanced Social System V2 - Phase 4: Intent Recognition (2025-10-17) 🎯
+
+**Feature**: Intent types and recognition for social interactions including emotes and questions
+
+✅ **Intent.Emote** - Express emotions and actions toward NPCs
+  - File: `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`
+  - Data class with emoteType and optional target fields
+  - Supports 7 emote types: smile, wave, nod, shrug, laugh, cry, bow
+  - Can be directed at NPCs or performed generally
+
+✅ **Intent.AskQuestion** - Ask NPCs about topics
+  - File: `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`
+  - Data class with npcTarget and topic fields
+  - Enables knowledge queries (e.g., "ask guard about castle")
+  - Integrates with NPCKnowledgeManager for responses
+
+✅ **IntentRecognizer Enhanced** - LLM and fallback parsing for new intents
+  - File: `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt`
+  - Added "emote" and "ask_question" to LLM system prompt
+  - LLM parsing handles natural language emote/question commands
+  - Fallback parser supports direct emote commands (smile, wave, etc.)
+  - Fallback parser handles "ask <npc> about <topic>" syntax
+
+✅ **Comprehensive Tests** - 7 new tests for emote and question intents
+  - File: `perception/src/test/kotlin/com/jcraw/mud/perception/IntentTest.kt`
+  - Emote intent creation with and without targets
+  - AskQuestion intent creation with npc and topic
+  - Serialization tests for both intent types
+  - Intent hierarchy and equality tests
+  - All 27 tests passing (20 existing + 7 new)
+
+**Phase 4 Deliverables Complete**:
+1. ✅ Intent.Emote - Emotion/action expression data class
+2. ✅ Intent.AskQuestion - Question asking data class
+3. ✅ IntentRecognizer system prompt - LLM recognition rules for new intents
+4. ✅ IntentRecognizer LLM parsing - Parse emote and ask_question from LLM responses
+5. ✅ IntentRecognizer fallback - Pattern matching for emote/ask commands
+6. ✅ IntentTest - 7 comprehensive tests for new intents
+
+**Example Commands**:
+- Emotes: `smile`, `wave at guard`, `nod at merchant`, `bow`
+- Questions: `ask guard about castle`, `ask merchant about wares`
+
+**Status**: ✅ **PHASE 4 COMPLETE** - Intent recognition ready for Phase 5 (Game Loop Integration)
+
+**Next Steps**: Phase 5 - Game Loop Integration (Wire up emote and question handlers in game loop)

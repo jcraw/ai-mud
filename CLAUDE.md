@@ -23,7 +23,7 @@ For complete documentation, see:
 - **9 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
 - **World model**: Room, WorldState, PlayerState, Entity hierarchy, CombatState, Direction
 - **Multi-user architecture**: Multiple concurrent players with thread-safe state management
-- **Intent system**: 18+ intent types for player actions
+- **Intent system**: 20+ intent types for player actions (including Emote and AskQuestion)
 - **Working game loop**: Console-based with text parser and LLM integration
 
 ### Game Features ✅
@@ -61,7 +61,7 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~345 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests)
+- **Comprehensive tests**: **~352 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 27 perception tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
@@ -85,7 +85,7 @@ Priority tasks:
 - `gradle :client:run` - **Run GUI client**
 
 ### Testing
-- `gradle test` - Run all tests (~345 tests across all modules)
+- `gradle test` - Run all tests (~352 tests across all modules)
 - `gradle :core:test` - Run tests for specific module
 - `gradle :client:test` - Run UI client tests
 - `gradle :testbot:run` - Run automated test bot (requires OpenAI API key)
@@ -164,7 +164,7 @@ Memory (store for RAG)
 - **Equipment**: `equip/wield/wear <item>` to equip weapons or armor
 - **Consumables**: `use/consume/drink/eat <item>` to use healing potions
 - **Skill checks**: `check/test <feature>` to attempt skill checks
-- **Social**: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks
+- **Social**: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks, `smile/wave/nod/shrug/laugh/cry/bow [at <npc>]` for emotes, `ask <npc> about <topic>` to ask questions
 - **Quests**: `quests/journal/j` to view quests, `accept <id>`, `abandon <id>`, `claim <id>`
 - **Persistence**: `save [name]` to save, `load [name]` to load
 - **Meta**: `help`, `quit`
@@ -226,7 +226,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - **~345 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 complete - 4/4 E2E tests done, Social System Phases 1-2 complete - 47 tests)
+- **All modules building** - **~352 tests** across modules (Phase 1 complete, Phase 2 complete - 5/5 integration tests done, Phase 3 complete - 4/4 integration tests done, Phase 4 complete - 4/4 E2E tests done, Social System Phases 1-4 complete - 54 tests)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -430,9 +430,16 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! 🎉
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 4 COMPLETE**! 🎉
 
-**Latest Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
+**Latest Update (2025-10-17)**: Completed Social System Phase 4 - Intent Recognition
+  - Added Intent.Emote for expressing emotions/actions (smile, wave, nod, shrug, laugh, cry, bow)
+  - Added Intent.AskQuestion for asking NPCs about topics
+  - Updated IntentRecognizer with LLM prompts and fallback parsing
+  - 7 new tests added to IntentTest.kt (all passing)
+  - Total test count now ~352 tests
+
+**Previous Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
   - `InMemoryGameEngine.kt` (testbot) - Lines 302-316, 98-105
   - `App.kt` (console) - Lines 715-730, 333-339, 912-916
   - `EngineGameClient.kt` (GUI) - Lines 668-689, 750-754, 266-271
@@ -458,7 +465,11 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Component system with 30 tests (component attachment, disposition, social events, emotes, knowledge)
 - ✅ **Social System Phase 2 Complete**: Database layer with SQLite persistence (2025-10-16)
   - 17 tests for repository implementations (all passing)
-- **Total: ~345 tests** across all modules, 100% pass rate
+- ✅ **Social System Phase 3 Complete**: Core logic components (2025-10-16)
+  - DispositionManager, EmoteHandler, NPCKnowledgeManager
+- ✅ **Social System Phase 4 Complete**: Intent recognition (2025-10-17)
+  - Intent.Emote and Intent.AskQuestion added with 7 new tests (all passing)
+- **Total: ~352 tests** across all modules, 100% pass rate
 
 **All Known Bugs Resolved!** 🎉
 
@@ -476,7 +487,11 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - EmoteHandler for processing 7 emote types with context-aware narratives
      - NPCKnowledgeManager for knowledge queries and LLM canon generation
      - SkillSystem and StorySystem stub interfaces for future integration
-   - ⏳ Phase 4: Intent Recognition - Add Intent.Emote and Intent.AskQuestion
+   - ✅ Phase 4: Intent Recognition - COMPLETE (2025-10-17)
+     - Added Intent.Emote for expressing emotions/actions (smile, wave, nod, shrug, laugh, cry, bow)
+     - Added Intent.AskQuestion for asking NPCs about topics
+     - Updated IntentRecognizer with LLM prompts and fallback parsing for both new intents
+     - 7 new tests added to IntentTest.kt (all passing)
    - ⏳ Phase 5-11: Full system integration
 
 2. **Feature work** (Future):

@@ -161,6 +161,22 @@ sealed class Intent {
     data class ClaimReward(val questId: String) : Intent()
 
     /**
+     * Express an emotion or action toward an NPC or generally
+     * @param emoteType The type of emote (smile, wave, nod, shrug, laugh, cry, bow)
+     * @param target Optional NPC target for directed emotes (e.g., "smile at guard")
+     */
+    @Serializable
+    data class Emote(val emoteType: String, val target: String? = null) : Intent()
+
+    /**
+     * Ask an NPC a question about a topic
+     * @param npcTarget The name/identifier of the NPC to ask
+     * @param topic The topic to ask about (e.g., "castle", "wares", "quest")
+     */
+    @Serializable
+    data class AskQuestion(val npcTarget: String, val topic: String) : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

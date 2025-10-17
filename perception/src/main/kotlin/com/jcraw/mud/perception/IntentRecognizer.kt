@@ -130,6 +130,8 @@ Valid intent types:
 - "accept_quest" - Accept a quest (target is quest ID, optional)
 - "abandon_quest" - Abandon a quest (requires target quest ID)
 - "claim_reward" - Claim quest reward (requires target quest ID)
+- "emote" - Express emotion/action (requires "target" for emote type like smile/wave/nod/shrug/laugh/cry/bow, optional "npc_target" for directed emotes like "smile at guard")
+- "ask_question" - Ask NPC about topic (requires "npc_target" for NPC and "target" for topic, e.g., "ask guard about castle")
 - "help" - Show help (no target)
 - "quit" - Quit game (no target)
 - "invalid" - Unable to parse or unknown command (use "reason" to explain)
@@ -253,6 +255,16 @@ Response format (JSON only, no markdown):
                 "accept_quest" -> Intent.AcceptQuest(target)
                 "abandon_quest" -> if (target != null) Intent.AbandonQuest(target) else Intent.Invalid("Abandon which quest?")
                 "claim_reward" -> if (target != null) Intent.ClaimReward(target) else Intent.Invalid("Claim reward for which quest?")
+                "emote" -> if (target != null) Intent.Emote(target, npcTarget) else Intent.Invalid("What emotion do you want to express?")
+                "ask_question" -> {
+                    if (npcTarget != null && target != null) {
+                        Intent.AskQuestion(npcTarget, target)
+                    } else if (npcTarget == null) {
+                        Intent.Invalid("Ask whom?")
+                    } else {
+                        Intent.Invalid("Ask about what?")
+                    }
+                }
                 "help" -> Intent.Help
                 "quit" -> Intent.Quit
                 "invalid" -> Intent.Invalid("Unknown command: ${originalInput.take(50)}. Type 'help' for available commands.")
@@ -331,6 +343,41 @@ Response format (JSON only, no markdown):
             "accept" -> Intent.AcceptQuest(args)
             "abandon" -> if (args.isNullOrBlank()) Intent.Invalid("Abandon which quest?") else Intent.AbandonQuest(args)
             "claim" -> if (args.isNullOrBlank()) Intent.Invalid("Claim reward for which quest?") else Intent.ClaimReward(args)
+            "smile", "wave", "nod", "shrug", "laugh", "cry", "bow" -> {
+                // Parse "smile at guard" or just "smile"
+                val emoteType = command
+                if (args.isNullOrBlank()) {
+                    Intent.Emote(emoteType, null)
+                } else {
+                    // Remove "at" if present
+                    val target = args.removePrefix("at ").trim()
+                    Intent.Emote(emoteType, target)
+                }
+            }
+            "emote" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("What emotion do you want to express?")
+                } else {
+                    // Parse "emote smile at guard" or "emote smile"
+                    val parts = args.split(Regex("\\s+at\\s+|\\s+"), limit = 2)
+                    val emoteType = parts[0].trim()
+                    val target = parts.getOrNull(1)?.trim()
+                    Intent.Emote(emoteType, target)
+                }
+            }
+            "ask" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Ask whom?")
+                } else {
+                    // Parse "ask guard about castle" or "ask guard castle"
+                    val parts = args.split(Regex("\\s+about\\s+|\\s+"), limit = 2)
+                    if (parts.size < 2) {
+                        Intent.Invalid("Ask about what?")
+                    } else {
+                        Intent.AskQuestion(parts[0].trim(), parts[1].trim())
+                    }
+                }
+            }
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
