@@ -1,0 +1,1 @@
+Core systems: World/Room Graph, Player State & Progression, Input Parsing & Action Resolution, LLM Narration & Variability, Skills & Checks, Combat Mechanics, NPC/Dialogue Interactions, Inventory/Loot Management, Persistence & State Handling, UI/Console I/O

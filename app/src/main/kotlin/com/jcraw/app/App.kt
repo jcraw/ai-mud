@@ -330,11 +330,12 @@ class MudGame(
                 describeCurrentRoom()
             } else {
                 // Failed to flee - update combat state and stay in place
-                if (result.newCombatState != null) {
+                val combatState = result.newCombatState
+                if (combatState != null) {
                     // Sync player's actual health with combat state
                     val updatedPlayer = worldState.player
-                        .updateCombat(result.newCombatState)
-                        .copy(health = result.newCombatState.playerHealth)
+                        .updateCombat(combatState)
+                        .copy(health = combatState.playerHealth)
                     worldState = worldState.updatePlayer(updatedPlayer)
                 }
                 describeCurrentRoom()
@@ -715,11 +716,12 @@ class MudGame(
             println("\n$narrative")
 
             // Update world state
-            if (result.newCombatState != null) {
+            val combatState = result.newCombatState
+            if (combatState != null) {
                 // Sync player's actual health with combat state
                 val updatedPlayer = worldState.player
-                    .updateCombat(result.newCombatState)
-                    .copy(health = result.newCombatState.playerHealth)
+                    .updateCombat(combatState)
+                    .copy(health = combatState.playerHealth)
                 worldState = worldState.updatePlayer(updatedPlayer)
                 describeCurrentRoom()  // Show updated combat status
             } else {

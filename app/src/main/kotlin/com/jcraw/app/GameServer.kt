@@ -682,7 +682,7 @@ class GameServer(
             excludePlayer = playerId
         )
 
-        Triple("You give the ${item.name} to ${npc.name}." + questNotifications, newWorldState, event)
+        return Triple("You give the ${item.name} to ${npc.name}." + questNotifications, newWorldState, event)
     }
 
     private fun handleEquip(

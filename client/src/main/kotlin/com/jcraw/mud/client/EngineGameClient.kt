@@ -262,11 +262,12 @@ class EngineGameClient(
                 ))
             } else {
                 // Failed to flee - update combat state and stay in place
-                if (result.newCombatState != null) {
+                val combatState = result.newCombatState
+                if (combatState != null) {
                     // Sync player's actual health with combat state
                     val updatedPlayer = worldState.player
-                        .updateCombat(result.newCombatState)
-                        .copy(health = result.newCombatState.playerHealth)
+                        .updateCombat(combatState)
+                        .copy(health = combatState.playerHealth)
                     worldState = worldState.updatePlayer(updatedPlayer)
                 }
 
@@ -664,11 +665,12 @@ class EngineGameClient(
 
             emitEvent(GameEvent.Combat(narrative, result.npcDamage))
 
-            if (result.newCombatState != null) {
+            val combatState = result.newCombatState
+            if (combatState != null) {
                 // Sync player's actual health with combat state
                 val updatedPlayer = worldState.player
-                    .updateCombat(result.newCombatState)
-                    .copy(health = result.newCombatState.playerHealth)
+                    .updateCombat(combatState)
+                    .copy(health = combatState.playerHealth)
                 worldState = worldState.updatePlayer(updatedPlayer)
 
                 // Update status
@@ -746,11 +748,12 @@ class EngineGameClient(
 
         emitEvent(GameEvent.Combat(narrative))
 
-        if (result.newCombatState != null) {
+        val combatState = result.newCombatState
+        if (combatState != null) {
             // Sync player's actual health with combat state
             val updatedPlayer = worldState.player
-                .updateCombat(result.newCombatState)
-                .copy(health = result.newCombatState.playerHealth)
+                .updateCombat(combatState)
+                .copy(health = combatState.playerHealth)
             worldState = worldState.updatePlayer(updatedPlayer)
 
             // Update status
