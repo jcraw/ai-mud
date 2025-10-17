@@ -48,7 +48,9 @@ class SocialDatabase(
                     content TEXT NOT NULL,
                     category TEXT NOT NULL,
                     timestamp INTEGER NOT NULL,
-                    source TEXT NOT NULL
+                    source TEXT NOT NULL,
+                    is_canon INTEGER DEFAULT 1,
+                    tags TEXT DEFAULT ''
                 )
                 """.trimIndent()
             )

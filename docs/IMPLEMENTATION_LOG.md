@@ -909,6 +909,44 @@ The All Playthroughs test validates the entire game balance by running all three
 - Emotes: `smile`, `wave at guard`, `nod at merchant`, `bow`
 - Questions: `ask guard about castle`, `ask merchant about wares`
 
-**Status**: ✅ **PHASE 4 COMPLETE** - Intent recognition ready for Phase 5 (Game Loop Integration)
+**Status**: ✅ **PHASE 4 COMPLETE** - Intent recognition ready for Phase 5 (NPC Dialogue Enhancement)
 
-**Next Steps**: Phase 5 - Game Loop Integration (Wire up emote and question handlers in game loop)
+**Next Steps**: Phase 5 - NPC Dialogue Enhancement (Update NPCInteractionGenerator with disposition awareness and knowledge queries)
+
+## Advanced Social System V2 - Phase 5: NPC Dialogue Enhancement (2025-10-17) 🎭
+
+**Feature**: Disposition-aware dialogue generation with NPC personality and knowledge integration
+
+✅ **NPCInteractionGenerator Enhanced** - Disposition-aware LLM dialogue generation
+  - File: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt`
+  - Added DispositionManager as constructor parameter
+  - Uses DispositionManager.getDialogueTone() to adjust LLM prompts based on disposition tier
+  - Includes personality and traits from SocialComponent in user context
+  - Shows disposition tier (HOSTILE, UNFRIENDLY, NEUTRAL, FRIENDLY, ALLIED) in dialogue prompts
+  - Backward compatible with legacy isHostile flag
+
+✅ **KnowledgeEntry Unified** - Merged duplicate data classes
+  - Removed duplicate KnowledgeEntry from memory/social package
+  - Updated KnowledgeRepository to use core.KnowledgeEntry with all fields
+  - Updated SocialDatabase schema to include is_canon and tags columns
+  - Updated NPCKnowledgeManager to use correct field names (entityId, isCanon, KnowledgeSource enum)
+
+✅ **Enhanced Dialogue Context** - NPCs speak with personality and disposition awareness
+  - Disposition tier affects tone: ALLIED (warm/helpful) → NEUTRAL (professional) → HOSTILE (threatening)
+  - Personality included in LLM prompts (e.g., "gruff veteran", "wise scholar")
+  - Traits displayed to LLM for character consistency (e.g., "honorable", "greedy")
+  - NPC health status shown (healthy/injured/wounded)
+  - Conversation history via RAG memory system
+
+**Phase 5 Deliverables Complete**:
+1. ✅ NPCInteractionGenerator.kt - Disposition-aware dialogue generation
+2. ✅ KnowledgeEntry consolidation - Unified data model across modules
+3. ✅ KnowledgeRepository.kt - Updated to use core.KnowledgeEntry
+4. ✅ SocialDatabase.kt - Schema updated with is_canon and tags columns
+5. ✅ NPCKnowledgeManager.kt - Fixed to use unified KnowledgeEntry
+
+**Build Status**: ✅ All reasoning module tests passing (45 tests)
+
+**Status**: ✅ **PHASE 5 COMPLETE** - NPC dialogue now disposition-aware, ready for Phase 6 (Game Loop Integration)
+
+**Next Steps**: Phase 6 - Game Loop Integration (Wire up Intent.Emote and Intent.AskQuestion handlers in game loop)

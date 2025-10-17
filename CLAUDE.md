@@ -432,11 +432,12 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 4 COMPLETE**! 🎉
 
-**Latest Update (2025-10-17)**: Completed Social System Phase 4 - Intent Recognition
-  - Added Intent.Emote for expressing emotions/actions (smile, wave, nod, shrug, laugh, cry, bow)
-  - Added Intent.AskQuestion for asking NPCs about topics
-  - Updated IntentRecognizer with LLM prompts and fallback parsing
-  - 7 new tests added to IntentTest.kt (all passing)
+**Latest Update (2025-10-17)**: Completed Social System Phase 5 - NPC Dialogue Enhancement
+  - Enhanced NPCInteractionGenerator with disposition-aware dialogue generation
+  - NPCs now speak with personality and disposition-based tone (ALLIED → HOSTILE)
+  - Unified KnowledgeEntry data model across modules (removed duplicate)
+  - Updated SocialDatabase schema with is_canon and tags columns
+  - All reasoning module tests passing (45 tests)
   - Total test count now ~352 tests
 
 **Previous Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
@@ -492,7 +493,13 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - Added Intent.AskQuestion for asking NPCs about topics
      - Updated IntentRecognizer with LLM prompts and fallback parsing for both new intents
      - 7 new tests added to IntentTest.kt (all passing)
-   - ⏳ Phase 5-11: Full system integration
+   - ✅ Phase 5: NPC Dialogue Enhancement - COMPLETE (2025-10-17)
+     - Enhanced NPCInteractionGenerator with disposition-aware dialogue
+     - Disposition tier affects LLM tone (ALLIED → NEUTRAL → HOSTILE)
+     - Personality and traits included in dialogue prompts
+     - Unified KnowledgeEntry data model (removed duplicate)
+     - Updated SocialDatabase schema with is_canon and tags
+   - ⏳ Phase 6-11: Full system integration (game loop, procedural generation, quest integration, etc.)
 
 2. **Feature work** (Future):
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player

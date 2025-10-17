@@ -1,26 +1,32 @@
 package com.jcraw.mud.reasoning
 
+import com.jcraw.mud.core.ComponentType
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.PlayerState
+import com.jcraw.mud.core.SocialComponent
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.sophia.llm.LLMClient
 
 /**
- * Generates NPC dialogue and interactions using LLM with conversation history
+ * Generates NPC dialogue and interactions using LLM with conversation history and disposition awareness
  */
 class NPCInteractionGenerator(
     private val llmClient: LLMClient,
-    private val memoryManager: MemoryManager? = null
+    private val memoryManager: MemoryManager? = null,
+    private val dispositionManager: DispositionManager? = null
 ) {
 
     /**
-     * Generate dialogue response from an NPC with conversation history
+     * Generate dialogue response from an NPC with conversation history and disposition awareness
      */
     suspend fun generateDialogue(npc: Entity.NPC, player: PlayerState): String {
         // Retrieve past interactions with this NPC
         val memories = memoryManager?.recall("conversation with ${npc.name}", k = 3) ?: emptyList()
 
-        val systemPrompt = buildSystemPrompt()
+        // Get disposition tone if available
+        val dispositionTone = dispositionManager?.getDialogueTone(npc)
+
+        val systemPrompt = buildSystemPrompt(dispositionTone)
         val userContext = buildUserContext(npc, player, memories)
 
         return try {
@@ -48,28 +54,50 @@ class NPCInteractionGenerator(
         }
     }
 
-    private fun buildSystemPrompt(): String = """
-        You are a dialogue generator for NPCs in a text-based adventure game (MUD).
+    private fun buildSystemPrompt(dispositionTone: String? = null): String = buildString {
+        appendLine("You are a dialogue generator for NPCs in a text-based adventure game (MUD).")
+        appendLine()
+        appendLine("Your task is to create engaging, in-character dialogue for NPCs.")
+        appendLine()
+        appendLine("Guidelines:")
+        appendLine("- Write in the NPC's voice, staying true to their nature")
+        appendLine("- Keep responses to 1-3 sentences")
+        appendLine("- Be creative and atmospheric")
 
-        Your task is to create engaging, in-character dialogue for NPCs.
+        if (dispositionTone != null) {
+            appendLine("- DISPOSITION TONE: Be $dispositionTone")
+        } else {
+            appendLine("- If hostile, the NPC should be menacing or dismissive")
+            appendLine("- If friendly, the NPC should be welcoming or helpful")
+        }
 
-        Guidelines:
-        - Write in the NPC's voice, staying true to their nature
-        - Keep responses to 1-3 sentences
-        - Be creative and atmospheric
-        - If hostile, the NPC should be menacing or dismissive
-        - If friendly, the NPC should be welcoming or helpful
-        - Use the NPC's description and properties to inform personality
-        - Do NOT break character or provide meta-information
-        - If conversation history is provided, maintain continuity
-        - Avoid repeating exact phrases from past conversations
-
-        Example hostile NPC: "Begone, mortal! Your presence defiles this sacred throne."
-        Example friendly NPC: "Welcome, traveler. You look weary from your journey."
-    """.trimIndent()
+        appendLine("- Use the NPC's description and properties to inform personality")
+        appendLine("- Do NOT break character or provide meta-information")
+        appendLine("- If conversation history is provided, maintain continuity")
+        appendLine("- Avoid repeating exact phrases from past conversations")
+        appendLine()
+        appendLine("Example hostile NPC: \"Begone, mortal! Your presence defiles this sacred throne.\"")
+        appendLine("Example friendly NPC: \"Welcome, traveler. You look weary from your journey.\"")
+    }.trimEnd()
 
     private fun buildUserContext(npc: Entity.NPC, player: PlayerState, memories: List<String>): String {
-        val hostilityNote = if (npc.isHostile) "HOSTILE" else "FRIENDLY"
+        // Get social component and disposition info
+        val social = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)
+        val dispositionInfo = if (social != null) {
+            val tier = social.getDispositionTier()
+            val value = social.disposition
+            "$tier (${if (value >= 0) "+" else ""}$value)"
+        } else {
+            // Fallback to legacy hostile flag
+            if (npc.isHostile) "HOSTILE" else "FRIENDLY"
+        }
+
+        // Get personality info
+        val personalityNote = social?.personality?.let { "\nPersonality: $it" } ?: ""
+        val traitsNote = social?.traits?.takeIf { it.isNotEmpty() }?.let {
+            "\nTraits: ${it.joinToString(", ")}"
+        } ?: ""
+
         val healthStatus = when {
             npc.health < npc.maxHealth * 0.3 -> "severely wounded"
             npc.health < npc.maxHealth * 0.7 -> "injured"
@@ -82,18 +110,23 @@ class NPCInteractionGenerator(
             ""
         }
 
-        return """
-            NPC: ${npc.name}
-            Description: ${npc.description}
-            Disposition: $hostilityNote
-            Condition: $healthStatus (${npc.health}/${npc.maxHealth} HP)
-
-            Player: ${player.name}
-            Player Health: ${player.health}/${player.maxHealth} HP$historySection
-
-            The player approaches and tries to talk to the NPC.
-            Generate the NPC's response.
-        """.trimIndent()
+        return buildString {
+            appendLine("NPC: ${npc.name}")
+            appendLine("Description: ${npc.description}")
+            append("Disposition: $dispositionInfo")
+            append(personalityNote)
+            append(traitsNote)
+            appendLine()
+            appendLine("Condition: $healthStatus (${npc.health}/${npc.maxHealth} HP)")
+            appendLine()
+            appendLine("Player: ${player.name}")
+            appendLine("Player Health: ${player.health}/${player.maxHealth} HP")
+            append(historySection)
+            appendLine()
+            appendLine()
+            appendLine("The player approaches and tries to talk to the NPC.")
+            append("Generate the NPC's response.")
+        }.trim()
     }
 
     /**

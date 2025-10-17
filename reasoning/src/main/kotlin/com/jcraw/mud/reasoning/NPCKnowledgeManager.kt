@@ -102,11 +102,12 @@ class NPCKnowledgeManager(
         val knowledgeId = UUID.randomUUID().toString()
         val entry = KnowledgeEntry(
             id = knowledgeId,
-            npcId = npc.id,
+            entityId = npc.id,
             content = answer,
-            category = "canon",
+            isCanon = true,
+            source = KnowledgeSource.GENERATED,
             timestamp = System.currentTimeMillis(),
-            source = "generated"
+            tags = mapOf("category" to "canon")
         )
 
         val saveResult = knowledgeRepo.save(entry)
@@ -180,11 +181,12 @@ class NPCKnowledgeManager(
         val knowledgeId = UUID.randomUUID().toString()
         val entry = KnowledgeEntry(
             id = knowledgeId,
-            npcId = npc.id,
+            entityId = npc.id,
             content = content,
-            category = category,
+            isCanon = true,
+            source = KnowledgeSource.PREDEFINED,
             timestamp = System.currentTimeMillis(),
-            source = "predefined"
+            tags = mapOf("category" to category)
         )
 
         // Save to repository

@@ -1,16 +1,7 @@
 package com.jcraw.mud.memory.social
 
-/**
- * Represents a piece of knowledge an NPC has learned
- */
-data class KnowledgeEntry(
-    val id: String,
-    val npcId: String,
-    val content: String,
-    val category: String, // "quest", "rumor", "secret", "fact", etc.
-    val timestamp: Long,
-    val source: String // How they learned it (e.g., "player told", "witnessed", "book")
-)
+import com.jcraw.mud.core.KnowledgeEntry
+import com.jcraw.mud.core.KnowledgeSource
 
 /**
  * Repository for NPC knowledge persistence
@@ -36,17 +27,23 @@ class SqliteKnowledgeRepository(
             val conn = database.getConnection()
             val sql = """
                 INSERT OR REPLACE INTO knowledge_entries
-                (id, npc_id, content, category, timestamp, source)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (id, npc_id, content, category, timestamp, source, is_canon, tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
+
+            // Extract first tag value as category for backward compatibility
+            val category = entry.tags["category"] ?: "general"
+            val tagsJson = entry.tags.entries.joinToString(",") { "${it.key}:${it.value}" }
 
             conn.prepareStatement(sql).use { stmt ->
                 stmt.setString(1, entry.id)
-                stmt.setString(2, entry.npcId)
+                stmt.setString(2, entry.entityId)
                 stmt.setString(3, entry.content)
-                stmt.setString(4, entry.category)
+                stmt.setString(4, category)
                 stmt.setLong(5, entry.timestamp)
-                stmt.setString(6, entry.source)
+                stmt.setString(6, entry.source.name)
+                stmt.setBoolean(7, entry.isCanon)
+                stmt.setString(8, tagsJson)
                 stmt.executeUpdate()
             }
             Result.success(Unit)
@@ -65,13 +62,24 @@ class SqliteKnowledgeRepository(
                 val rs = stmt.executeQuery()
 
                 if (rs.next()) {
+                    val tagsStr = rs.getString("tags") ?: ""
+                    val tags = if (tagsStr.isNotEmpty()) {
+                        tagsStr.split(",").associate {
+                            val parts = it.split(":")
+                            parts[0] to (parts.getOrNull(1) ?: "")
+                        }
+                    } else {
+                        emptyMap()
+                    }
+
                     val entry = KnowledgeEntry(
                         id = rs.getString("id"),
-                        npcId = rs.getString("npc_id"),
+                        entityId = rs.getString("npc_id"),
                         content = rs.getString("content"),
-                        category = rs.getString("category"),
+                        isCanon = rs.getBoolean("is_canon"),
+                        source = KnowledgeSource.valueOf(rs.getString("source")),
                         timestamp = rs.getLong("timestamp"),
-                        source = rs.getString("source")
+                        tags = tags
                     )
                     Result.success(entry)
                 } else {
@@ -94,14 +102,25 @@ class SqliteKnowledgeRepository(
 
                 val entries = mutableListOf<KnowledgeEntry>()
                 while (rs.next()) {
+                    val tagsStr = rs.getString("tags") ?: ""
+                    val tags = if (tagsStr.isNotEmpty()) {
+                        tagsStr.split(",").associate {
+                            val parts = it.split(":")
+                            parts[0] to (parts.getOrNull(1) ?: "")
+                        }
+                    } else {
+                        emptyMap()
+                    }
+
                     entries.add(
                         KnowledgeEntry(
                             id = rs.getString("id"),
-                            npcId = rs.getString("npc_id"),
+                            entityId = rs.getString("npc_id"),
                             content = rs.getString("content"),
-                            category = rs.getString("category"),
+                            isCanon = rs.getBoolean("is_canon"),
+                            source = KnowledgeSource.valueOf(rs.getString("source")),
                             timestamp = rs.getLong("timestamp"),
-                            source = rs.getString("source")
+                            tags = tags
                         )
                     )
                 }
@@ -128,14 +147,25 @@ class SqliteKnowledgeRepository(
 
                 val entries = mutableListOf<KnowledgeEntry>()
                 while (rs.next()) {
+                    val tagsStr = rs.getString("tags") ?: ""
+                    val tags = if (tagsStr.isNotEmpty()) {
+                        tagsStr.split(",").associate {
+                            val parts = it.split(":")
+                            parts[0] to (parts.getOrNull(1) ?: "")
+                        }
+                    } else {
+                        emptyMap()
+                    }
+
                     entries.add(
                         KnowledgeEntry(
                             id = rs.getString("id"),
-                            npcId = rs.getString("npc_id"),
+                            entityId = rs.getString("npc_id"),
                             content = rs.getString("content"),
-                            category = rs.getString("category"),
+                            isCanon = rs.getBoolean("is_canon"),
+                            source = KnowledgeSource.valueOf(rs.getString("source")),
                             timestamp = rs.getLong("timestamp"),
-                            source = rs.getString("source")
+                            tags = tags
                         )
                     )
                 }
