@@ -4,6 +4,9 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.*
 import com.jcraw.mud.memory.MemoryManager
+import com.jcraw.mud.memory.social.SocialDatabase
+import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
+import com.jcraw.mud.memory.social.SqliteSocialEventRepository
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -19,11 +22,19 @@ class GameServer(
     private val combatResolver: CombatResolver,
     private val combatNarrator: CombatNarrator,
     private val skillCheckResolver: SkillCheckResolver,
-    private val sceneryGenerator: SceneryDescriptionGenerator
+    private val sceneryGenerator: SceneryDescriptionGenerator,
+    private val socialDatabase: SocialDatabase? = null
 ) {
     private val sessions = mutableMapOf<PlayerId, PlayerSession>()
     private val stateMutex = Mutex()
-    private val questTracker = QuestTracker()
+
+    // Social system components
+    private val socialComponentRepo = socialDatabase?.let { SqliteSocialComponentRepository(it) }
+    private val socialEventRepo = socialDatabase?.let { SqliteSocialEventRepository(it) }
+    private val dispositionManager = if (socialComponentRepo != null && socialEventRepo != null) {
+        DispositionManager(socialComponentRepo, socialEventRepo)
+    } else null
+    private val questTracker = QuestTracker(dispositionManager)
 
     /**
      * Add a player session to the server

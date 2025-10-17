@@ -1407,7 +1407,8 @@ class MultiUserGame(
         val effectiveNpcGenerator = npcInteractionGenerator ?: createFallbackNPCGenerator(effectiveMemoryManager)
         val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
 
-        // Initialize game server
+        // Initialize game server with social system
+        val socialDatabase = SocialDatabase("social.db")
         val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
         gameServer = GameServer(
             worldState = initialWorldState,
@@ -1417,7 +1418,8 @@ class MultiUserGame(
             combatResolver = combatResolver,
             combatNarrator = effectiveCombatNarrator,
             skillCheckResolver = skillCheckResolver,
-            sceneryGenerator = sceneryGenerator
+            sceneryGenerator = sceneryGenerator,
+            socialDatabase = socialDatabase
         )
 
         println("\n🎮 Multi-User Mode Enabled")
