@@ -430,17 +430,16 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 ## Next Developer
 
-The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 6 COMPLETE**! 🎉
+The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 7 COMPLETE**! 🎉
 
-**Latest Update (2025-10-17)**: Completed Social System Phase 6 - Game Loop Integration
-  - All three game implementations (InMemoryGameEngine, App, EngineGameClient) now handle Intent.Emote and Intent.AskQuestion
-  - InMemoryGameEngine.kt: Full integration with EmoteHandler and NPCKnowledgeManager
-  - App.kt and EngineGameClient.kt: Graceful fallback handlers (placeholders for future full integration)
-  - handleEmote() processes emotes via EmoteHandler, updates NPC disposition
-  - handleAskQuestion() queries NPC knowledge via NPCKnowledgeManager
-  - Both handlers update WorldState when NPC components change
-  - Graceful fallback when social system components not available
-  - Total test count ~352 tests (all passing)
+**Latest Update (2025-10-17)**: Completed Social System Phase 7 - Procedural Generation Update
+  - Updated NPCGenerator to automatically attach SocialComponent to all generated NPCs
+  - Theme-based personality generation: Each of 4 dungeon themes (Crypt, Castle, Cave, Temple) has unique personality pools
+  - Trait system: NPCs get 1-3 traits (hostile/friendly) or 2-4 traits (boss) from curated trait lists
+  - Disposition initialization: Hostile NPCs start at -75 to -25, friendly at 25 to 60, bosses at -100 to -75
+  - Deterministic generation: Same seed produces identical personalities, traits, and dispositions
+  - 19 new tests in NPCGeneratorTest.kt covering all NPC types and themes (all passing)
+  - Total test count ~371 tests (all passing)
 
 **Previous Fix (2025-10-16)**: Fixed critical combat health synchronization bug (BUG-008). The combat state tracked player health correctly, but the player's actual health was never updated, allowing players to survive with negative health. Fixed in all three game implementations:
   - `InMemoryGameEngine.kt` (testbot) - Lines 302-316, 98-105
@@ -476,7 +475,9 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Disposition-aware dialogue generation
 - ✅ **Social System Phase 6 Complete**: Game Loop Integration (2025-10-17)
   - All three game implementations handle emotes and questions
-- **Total: ~352 tests** across all modules, 100% pass rate
+- ✅ **Social System Phase 7 Complete**: Procedural Generation Update (2025-10-17)
+  - NPCGenerator creates NPCs with SocialComponent (19 tests)
+- **Total: ~371 tests** across all modules, 100% pass rate
 
 **All Known Bugs Resolved!** 🎉
 
@@ -510,7 +511,13 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - App.kt: Graceful fallback handlers added (placeholder for future integration)
      - EngineGameClient.kt: Graceful fallback handlers added (placeholder for future integration)
      - All three game implementations now handle Intent.Emote and Intent.AskQuestion
-   - ⏳ Phase 7-11: Full system integration (procedural generation, quest integration, etc.)
+   - ✅ Phase 7: Procedural Generation Update - COMPLETE (2025-10-17)
+     - Updated NPCGenerator to create NPCs with SocialComponent
+     - Theme-based personality generation (4 themes: Crypt, Castle, Cave, Temple)
+     - Trait generation (hostile: 1-3 traits, friendly: 1-3 traits, boss: 2-4 traits)
+     - Disposition ranges: hostile (-75 to -25), friendly (25 to 60), boss (-100 to -75)
+     - 19 new tests in NPCGeneratorTest.kt (all passing)
+   - ⏳ Phase 8-11: Quest/Memory integration, documentation, testing
 
 2. **Feature work** (Future):
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player

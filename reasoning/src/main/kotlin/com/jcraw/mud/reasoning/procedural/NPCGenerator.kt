@@ -5,6 +5,8 @@ import com.jcraw.mud.core.Stats
 import com.jcraw.mud.core.SkillChallenge
 import com.jcraw.mud.core.StatType
 import com.jcraw.mud.core.Difficulty
+import com.jcraw.mud.core.SocialComponent
+import com.jcraw.mud.core.ComponentType
 import kotlin.random.Random
 
 /**
@@ -19,6 +21,149 @@ class NPCGenerator(
         "Warrior", "Mage", "Rogue", "Brute", "Sentinel",
         "Berserker", "Assassin", "Champion", "Warden", "Destroyer"
     )
+
+    // Personality templates based on dungeon theme
+    private val hostilePersonalities = mapOf(
+        DungeonTheme.CRYPT to listOf(
+            "undead revenant consumed by hatred",
+            "cursed guardian bound to eternal service",
+            "mindless skeleton driven by dark magic",
+            "vengeful spirit seeking living souls"
+        ),
+        DungeonTheme.CASTLE to listOf(
+            "battle-hardened knight sworn to defend",
+            "ruthless mercenary seeking glory",
+            "proud champion of the realm",
+            "fanatical zealot defending their lord"
+        ),
+        DungeonTheme.CAVE to listOf(
+            "savage beast defending its territory",
+            "primitive warrior protecting the tribe",
+            "territorial predator hunting intruders",
+            "feral creature driven by instinct"
+        ),
+        DungeonTheme.TEMPLE to listOf(
+            "zealous cultist devoted to dark gods",
+            "corrupted priest spreading heresy",
+            "fanatic guardian protecting sacred grounds",
+            "possessed warrior controlled by divine will"
+        )
+    )
+
+    private val friendlyPersonalities = mapOf(
+        DungeonTheme.CRYPT to listOf(
+            "ancient spirit offering cryptic wisdom",
+            "melancholic ghost seeking redemption",
+            "scholarly lich pursuing knowledge",
+            "wandering soul longing for peace"
+        ),
+        DungeonTheme.CASTLE to listOf(
+            "noble courtier with courtly manners",
+            "wise advisor offering counsel",
+            "friendly merchant seeking profit",
+            "helpful servant maintaining the halls"
+        ),
+        DungeonTheme.CAVE to listOf(
+            "curious explorer seeking adventure",
+            "hermit sage living in solitude",
+            "friendly dwarf mining for ore",
+            "peaceful druid tending to nature"
+        ),
+        DungeonTheme.TEMPLE to listOf(
+            "devout priest offering blessings",
+            "humble monk seeking enlightenment",
+            "compassionate healer aiding travelers",
+            "wise oracle sharing prophecies"
+        )
+    )
+
+    // Trait pools for variety
+    private val hostileTraits = listOf(
+        "aggressive", "ruthless", "merciless", "cunning",
+        "fearless", "brutal", "savage", "vengeful"
+    )
+
+    private val friendlyTraits = listOf(
+        "helpful", "wise", "patient", "curious",
+        "generous", "humble", "honorable", "compassionate"
+    )
+
+    private val neutralTraits = listOf(
+        "cautious", "observant", "pragmatic", "stoic",
+        "mysterious", "reserved", "calculating", "diplomatic"
+    )
+
+    /**
+     * Generate SocialComponent for hostile NPC
+     * Hostile NPCs start with negative disposition and aggressive traits
+     */
+    private fun generateHostileSocialComponent(): SocialComponent {
+        val personality = hostilePersonalities[theme]?.random(random)
+            ?: "hostile warrior"
+
+        // Select 1-3 traits
+        val traitCount = random.nextInt(1, 4)
+        val traits = (hostileTraits + neutralTraits)
+            .shuffled(random)
+            .take(traitCount)
+
+        // Hostile NPCs start with unfriendly to hostile disposition
+        val disposition = random.nextInt(-75, -25)
+
+        return SocialComponent(
+            disposition = disposition,
+            personality = personality,
+            traits = traits
+        )
+    }
+
+    /**
+     * Generate SocialComponent for friendly NPC
+     * Friendly NPCs start with positive disposition and helpful traits
+     */
+    private fun generateFriendlySocialComponent(): SocialComponent {
+        val personality = friendlyPersonalities[theme]?.random(random)
+            ?: "friendly traveler"
+
+        // Select 1-3 traits
+        val traitCount = random.nextInt(1, 4)
+        val traits = (friendlyTraits + neutralTraits)
+            .shuffled(random)
+            .take(traitCount)
+
+        // Friendly NPCs start with friendly disposition
+        val disposition = random.nextInt(25, 60)
+
+        return SocialComponent(
+            disposition = disposition,
+            personality = personality,
+            traits = traits
+        )
+    }
+
+    /**
+     * Generate SocialComponent for boss NPC
+     * Bosses start with very hostile disposition and intimidating traits
+     */
+    private fun generateBossSocialComponent(): SocialComponent {
+        val personality = hostilePersonalities[theme]?.firstOrNull()
+            ?: "powerful overlord"
+
+        // Bosses get more traits (2-4)
+        val traitCount = random.nextInt(2, 5)
+        val traits = (hostileTraits + listOf("powerful", "commanding", "intimidating"))
+            .shuffled(random)
+            .take(traitCount)
+
+        // Bosses start very hostile
+        val disposition = random.nextInt(-100, -75)
+
+        return SocialComponent(
+            disposition = disposition,
+            personality = personality,
+            traits = traits
+        )
+    }
 
     /**
      * Generate hostile NPC with random stats
@@ -42,7 +187,7 @@ class NPCGenerator(
             includeIntimidation = true            // All hostile enemies can be intimidated
         )
 
-        return Entity.NPC(
+        val npc = Entity.NPC(
             id = id,
             name = name,
             description = "A menacing $name ready for battle",
@@ -53,6 +198,10 @@ class NPCGenerator(
             persuasionChallenge = persuasion,
             intimidationChallenge = intimidation
         )
+
+        // Attach SocialComponent
+        val socialComponent = generateHostileSocialComponent()
+        return npc.withComponent(socialComponent) as Entity.NPC
     }
 
     /**
@@ -80,7 +229,7 @@ class NPCGenerator(
             includeIntimidation = false // Don't intimidate friendly NPCs
         )
 
-        return Entity.NPC(
+        val npc = Entity.NPC(
             id = id,
             name = name,
             description = "A $name willing to help travelers",
@@ -91,6 +240,10 @@ class NPCGenerator(
             persuasionChallenge = persuasion,
             intimidationChallenge = intimidation
         )
+
+        // Attach SocialComponent
+        val socialComponent = generateFriendlySocialComponent()
+        return npc.withComponent(socialComponent) as Entity.NPC
     }
 
     /**
@@ -188,7 +341,7 @@ class NPCGenerator(
             includeIntimidation = true  // Can be intimidated (very hard)
         )
 
-        return Entity.NPC(
+        val npc = Entity.NPC(
             id = id,
             name = name,
             description = "The fearsome $name, master of this domain",
@@ -199,6 +352,10 @@ class NPCGenerator(
             persuasionChallenge = persuasion,
             intimidationChallenge = intimidation
         )
+
+        // Attach SocialComponent
+        val socialComponent = generateBossSocialComponent()
+        return npc.withComponent(socialComponent) as Entity.NPC
     }
 
     /**
