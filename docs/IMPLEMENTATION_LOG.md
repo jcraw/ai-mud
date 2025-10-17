@@ -784,3 +784,84 @@ The All Playthroughs test validates the entire game balance by running all three
 **Status**: ✅ **PHASE 1 COMPLETE** - Foundation ready for Phase 2 (Database Layer)
 
 **Next Steps**: Phase 2 - Database Layer (SQLite repositories, schema, persistence)
+
+## Advanced Social System V2 - Phase 2: Database Layer (2025-10-16) 🗄️
+
+**Feature**: SQLite persistence for social components with proper database schema
+
+✅ **SocialDatabase** - SQLite connection management and schema creation
+  - File: `memory/src/main/kotlin/com/jcraw/mud/memory/social/SocialDatabase.kt`
+  - Schema with 3 tables: knowledge_entries, social_events, social_components
+  - Proper indexes for query performance
+  - Foreign key constraints and data integrity
+
+✅ **Repository Implementations** - Three repository classes for social data
+  - Files: `memory/src/main/kotlin/com/jcraw/mud/memory/social/*.kt`
+  - SocialComponentRepository - NPC disposition and personality storage
+  - SocialEventRepository - Event history tracking with timestamps  
+  - KnowledgeRepository - NPC knowledge base persistence
+  - All use parameterized queries for safety
+  - Result types for error handling
+
+✅ **Comprehensive Tests** - 17 tests per repository (51 total)
+  - File: `memory/src/test/kotlin/com/jcraw/mud/memory/social/SocialDatabaseTest.kt`
+  - CRUD operations for all repositories
+  - Query operations (findByNpcId, findByCategory, findRecent)
+  - Data integrity tests
+  - Edge case handling
+  - All 51 tests passing
+
+**Phase 2 Deliverables Complete**:
+1. ✅ SocialDatabase.kt - SQLite schema and connection management
+2. ✅ SocialComponentRepository.kt - Social component persistence
+3. ✅ SocialEventRepository.kt - Event history persistence
+4. ✅ KnowledgeRepository.kt - Knowledge base persistence
+5. ✅ SocialDatabaseTest.kt - 51 comprehensive tests
+
+**Status**: ✅ **PHASE 2 COMPLETE** - Database layer ready for Phase 3 (Core Logic Components)
+
+**Next Steps**: Phase 3 - Core Logic Components (DispositionManager, EmoteHandler, NPCKnowledgeManager)
+
+## Advanced Social System V2 - Phase 3: Core Logic Components (2025-10-16) 🧠
+
+**Feature**: Business logic layer for social interactions with disposition management, emotes, and knowledge queries
+
+✅ **DispositionManager** - Manages NPC disposition and social event application
+  - File: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt`
+  - Apply social events to NPCs with database persistence
+  - Calculate disposition-based behavior (dialogue tone, quest hints, trading prices)
+  - Event logging for analytics and debugging
+  - Helper methods: shouldProvideQuestHints(), getDialogueTone(), getPriceModifier()
+
+✅ **EmoteHandler** - Processes emote actions and generates narratives
+  - File: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/EmoteHandler.kt`
+  - Process 7 emote types (BOW, WAVE, NOD, SHAKE_HEAD, LAUGH, INSULT, THREATEN)
+  - Generate context-aware narratives based on NPC disposition
+  - Relationship status updates for significant disposition changes
+  - Keyword parsing for natural language emote commands
+
+✅ **NPCKnowledgeManager** - Manages NPC knowledge bases with LLM canon generation
+  - File: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCKnowledgeManager.kt`
+  - Query existing knowledge with keyword matching
+  - Generate new canon lore via LLM when knowledge doesn't exist
+  - Persist generated knowledge to database
+  - Support for predefined knowledge setup
+  - Async/suspend functions for LLM integration
+
+✅ **Stub System Interfaces** - Placeholder interfaces for future skill and story systems
+  - Files: `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/stubs/*.kt`
+  - SkillSystem interface + StubSkillSystem (d20 skill checks)
+  - StorySystem interface + StubStorySystem (quest hints, world lore, events)
+  - Clear TODO comments marking integration points
+  - Ready to replace with real implementations when modules are built
+
+**Phase 3 Deliverables Complete**:
+1. ✅ DispositionManager.kt - Social event application and disposition logic
+2. ✅ EmoteHandler.kt - Emote processing and narrative generation
+3. ✅ NPCKnowledgeManager.kt - Knowledge queries and canon generation
+4. ✅ stubs/SkillSystem.kt - Skill system interface and stub
+5. ✅ stubs/StorySystem.kt - Story system interface and stub
+
+**Status**: ✅ **PHASE 3 COMPLETE** - Core logic components ready for Phase 4 (Intent Recognition)
+
+**Next Steps**: Phase 4 - Intent Recognition (Add Intent.Emote and Intent.AskQuestion, enhance IntentRecognizer)
