@@ -20,6 +20,10 @@ import com.jcraw.mud.reasoning.QuestTracker
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
+import com.jcraw.mud.memory.social.SocialDatabase
+import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
+import com.jcraw.mud.memory.social.SqliteSocialEventRepository
+import com.jcraw.mud.reasoning.DispositionManager
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -138,7 +142,13 @@ class MudGame(
     private val persistenceManager = PersistenceManager()
     private val intentRecognizer = IntentRecognizer(llmClient)
     private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
-    private val questTracker = QuestTracker()
+
+    // Social system components
+    private val socialDatabase = SocialDatabase("social.db")
+    private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
+    private val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
+    private val dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
+    private val questTracker = QuestTracker(dispositionManager)
 
     fun start() {
         printWelcome()
