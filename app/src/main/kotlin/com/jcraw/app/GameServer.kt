@@ -11,6 +11,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
+ * Result of quest tracking, including updated states and notification messages
+ */
+data class QuestTrackingResult(
+    val updatedPlayer: PlayerState,
+    val updatedWorld: WorldState,
+    val notifications: String
+)
+
+/**
  * GameServer manages the shared WorldState and coordinates multiple player sessions.
  * Handles game logic, state updates, and broadcasting events to relevant players.
  */
@@ -139,7 +148,7 @@ class GameServer(
      * Track quest progress and return notification messages
      * Also returns updated world state (quest giver NPCs may have disposition changes)
      */
-    private fun trackQuests(playerState: PlayerState, action: QuestAction): Triple<PlayerState, WorldState, String> {
+    private fun trackQuests(playerState: PlayerState, action: QuestAction): QuestTrackingResult {
         val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
             playerState,
             worldState,
@@ -170,7 +179,7 @@ class GameServer(
             }
         }
 
-        return Triple(updatedPlayer, updatedWorld, notifications)
+        return QuestTrackingResult(updatedPlayer, updatedWorld, notifications)
     }
 
     /**
@@ -248,12 +257,8 @@ class GameServer(
                     val description = roomDescriptionGenerator.generateDescription(newRoom)
 
                     // Track room exploration for quests
-                    val (updatedPlayerAfterQuests, questNotifications) = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
-                    val finalWorldState = if (updatedPlayerAfterQuests != newPlayerState) {
-                        newWorldState.updatePlayer(updatedPlayerAfterQuests)
-                    } else {
-                        newWorldState
-                    }
+                    val questResult = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
+                    val finalWorldState = questResult.updatedWorld
 
                     // Create movement events
                     val leaveEvent = GameEvent.PlayerMoved(
@@ -277,7 +282,7 @@ class GameServer(
                     broadcastEvent(leaveEvent)
                     broadcastEvent(enterEvent)
 
-                    Triple(result.narrative + "\nYou move ${direction.displayName}.\n" + description + questNotifications, finalWorldState, null)
+                    Triple(result.narrative + "\nYou move ${direction.displayName}.\n" + description + questResult.notifications, finalWorldState, null)
                 } else {
                     Triple(result.narrative + "\nBut there's nowhere to go in that direction!", worldAfterFlee, null)
                 }
@@ -309,12 +314,8 @@ class GameServer(
             val description = roomDescriptionGenerator.generateDescription(newRoom)
 
             // Track room exploration for quests
-            val (updatedPlayerAfterQuests, questNotifications) = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
-            val finalWorldState = if (updatedPlayerAfterQuests != newPlayerState) {
-                newWorldState.updatePlayer(updatedPlayerAfterQuests)
-            } else {
-                newWorldState
-            }
+            val questResult = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
+            val finalWorldState = questResult.updatedWorld
 
             // Create movement events
             val leaveEvent = GameEvent.PlayerMoved(
@@ -338,7 +339,7 @@ class GameServer(
             broadcastEvent(leaveEvent)
             broadcastEvent(enterEvent)
 
-            Triple(description + questNotifications, finalWorldState, null)
+            Triple(description + questResult.notifications, finalWorldState, null)
         } else {
             Triple("You can't go that way.", worldState, null)
         }
@@ -450,19 +451,13 @@ class GameServer(
             }
 
             // Track NPC kill for quests
-            val (updatedPlayerAfterQuests, questNotifications) = if (result.npcDied && combat != null) {
+            val questResult = if (result.npcDied && combat != null) {
                 trackQuests(updatedPlayer, QuestAction.KilledNPC(combat.combatantNpcId))
             } else {
-                Pair(updatedPlayer, "")
+                QuestTrackingResult(updatedPlayer, newWorldState, "")
             }
 
-            val finalWorldState = if (updatedPlayerAfterQuests != updatedPlayer) {
-                newWorldState.updatePlayer(updatedPlayerAfterQuests)
-            } else {
-                newWorldState
-            }
-
-            return Triple(narrative + questNotifications, finalWorldState, null)
+            return Triple(narrative + questResult.notifications, questResult.updatedWorld, null)
         }
 
         // Initiate combat
@@ -501,14 +496,9 @@ class GameServer(
             val dialogue = npcInteractionGenerator.generateDialogue(npc, playerState)
 
             // Track NPC conversation for quests
-            val (updatedPlayer, questNotifications) = trackQuests(playerState, QuestAction.TalkedToNPC(npc.id))
-            val newWorldState = if (updatedPlayer != playerState) {
-                worldState.updatePlayer(updatedPlayer)
-            } else {
-                worldState
-            }
+            val questResult = trackQuests(playerState, QuestAction.TalkedToNPC(npc.id))
 
-            Triple(dialogue + questNotifications, newWorldState, null)
+            Triple(dialogue + questResult.notifications, questResult.updatedWorld, null)
         } else {
             Triple("There's no one here by that name.", worldState, null)
         }
@@ -529,12 +519,7 @@ class GameServer(
             val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
 
             // Track item collection for quests
-            val (updatedPlayerAfterQuests, questNotifications) = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
-            val finalWorldState = if (updatedPlayerAfterQuests != updatedPlayer) {
-                newWorldState.updatePlayer(updatedPlayerAfterQuests)
-            } else {
-                newWorldState
-            }
+            val questResult = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
 
             val event = GameEvent.GenericAction(
                 playerId = playerId,
@@ -544,7 +529,7 @@ class GameServer(
                 excludePlayer = playerId
             )
 
-            Triple("You take the ${item.name}." + questNotifications, finalWorldState, event)
+            Triple("You take the ${item.name}." + questResult.notifications, questResult.updatedWorld, event)
         } else if (item != null && !item.isPickupable) {
             Triple("That's part of the environment and can't be taken.", worldState, null)
         } else {
@@ -570,6 +555,7 @@ class GameServer(
             Triple("There are no items to take here.", worldState, null)
         } else {
             var currentPlayer = playerState
+            var currentWorld = worldState
             var currentRoom = currentRoom
             val takenItems = mutableListOf<String>()
             var allQuestNotifications = ""
@@ -580,12 +566,13 @@ class GameServer(
                 takenItems.add(item.name)
 
                 // Track item collection for quests
-                val (updatedPlayer, questNotifications) = trackQuests(currentPlayer, QuestAction.CollectedItem(item.id))
-                currentPlayer = updatedPlayer
-                allQuestNotifications += questNotifications
+                val questResult = trackQuests(currentPlayer, QuestAction.CollectedItem(item.id))
+                currentPlayer = questResult.updatedPlayer
+                currentWorld = questResult.updatedWorld
+                allQuestNotifications += questResult.notifications
             }
 
-            val newWorldState = worldState.updatePlayer(currentPlayer).updateRoom(currentRoom)
+            val newWorldState = currentWorld.updatePlayer(currentPlayer).updateRoom(currentRoom)
 
             val message = buildString {
                 takenItems.forEach { append("You take the $it.\n") }
@@ -685,8 +672,7 @@ class GameServer(
         val updatedPlayer = playerState.removeFromInventory(item.id)
 
         // Track delivery for quests
-        val (playerAfterQuests, questNotifications) = trackQuests(updatedPlayer, QuestAction.DeliveredItem(item.id, npc.id))
-        val newWorldState = worldState.updatePlayer(playerAfterQuests)
+        val questResult = trackQuests(updatedPlayer, QuestAction.DeliveredItem(item.id, npc.id))
 
         val event = GameEvent.GenericAction(
             playerId = playerId,
@@ -696,7 +682,7 @@ class GameServer(
             excludePlayer = playerId
         )
 
-        return Triple("You give the ${item.name} to ${npc.name}." + questNotifications, newWorldState, event)
+        return Triple("You give the ${item.name} to ${npc.name}." + questResult.notifications, questResult.updatedWorld, event)
     }
 
     private fun handleEquip(
@@ -843,19 +829,13 @@ class GameServer(
         val newWorldState = worldState.updateRoom(updatedRoom)
 
         // Track skill check for quests
-        val (updatedPlayer, questNotifications) = if (result.success) {
+        val questResult = if (result.success) {
             trackQuests(playerState, QuestAction.UsedSkill(feature.id))
         } else {
-            Pair(playerState, "")
+            QuestTrackingResult(playerState, newWorldState, "")
         }
 
-        val finalWorldState = if (updatedPlayer != playerState) {
-            newWorldState.updatePlayer(updatedPlayer)
-        } else {
-            newWorldState
-        }
-
-        return Triple(description + questNotifications, finalWorldState, null)
+        return Triple(description + questResult.notifications, questResult.updatedWorld, null)
     }
 
     private fun handlePersuade(

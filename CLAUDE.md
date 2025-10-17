@@ -443,7 +443,11 @@ The GUI client with real engine integration, quest system with auto-tracking, au
     - Full end-to-end social interaction cycles
   - Fixed PersistentVectorStore to implement searchWithMetadata interface method
   - Fixed QuestTracker disposition bonus application to properly update NPCs via room
-  - **TODO**: Fix GameServer.kt destructuring errors (trackQuests returns Triple but being destructured as Pair in 9 locations)
+  - ✅ Refactored GameServer.kt quest tracking: Replaced Triple with QuestTrackingResult data class
+    - More self-documenting and safer than positional destructuring
+    - Consistent with existing result patterns (CombatResult, SkillCheckResult)
+    - Updated all 9 call sites for clarity
+  - **TODO**: Fix SocialDatabaseTest.kt compilation errors (KnowledgeEntry references need updating after schema changes)
   - Tests ready to run once compilation errors are resolved
 
 **Previous Update (2025-10-17)**: Social System Phase 8 - Quest/Memory Integration COMPLETE ✅
@@ -550,7 +554,8 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - Created SocialSystemV2IntegrationTest.kt with 18 comprehensive tests
      - Tests cover: emotes, questions, disposition, quest bonuses, dialogue, persistence, E2E cycles
      - Fixed PersistentVectorStore and QuestTracker compilation issues
-     - TODO: Fix GameServer.kt trackQuests destructuring (9 locations need Triple instead of Pair)
+     - ✅ Refactored GameServer.kt: Replaced Triple with QuestTrackingResult data class (9 call sites updated)
+     - TODO: Fix SocialDatabaseTest.kt compilation errors (KnowledgeEntry schema changes)
    - ⏳ Phase 10-11: Documentation and polish (pending)
 
 2. **Feature work** (Future):
