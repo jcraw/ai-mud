@@ -434,7 +434,14 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 
 The GUI client with real engine integration, quest system with auto-tracking, automated testing improvements, social interaction system, natural language navigation, **ALL 4 PHASES OF TESTING MIGRATION & CLEANUP COMPLETE**! **SOCIAL SYSTEM PHASE 10 COMPLETE**! 🎉
 
-**Latest Update (2025-10-17)**: Social System Phase 10 - Documentation COMPLETE ✅
+**Latest Update (2025-10-17)**: Social System Phase 11 - Detailed Planning ✅
+  - Documented current state of social system integration
+  - Identified exact files and line numbers for remaining handler integration work
+  - App.kt and EngineGameClient.kt have placeholder handlers ready for EmoteHandler/NPCKnowledgeManager wiring
+  - InMemoryGameEngine.kt serves as reference implementation (lines 600-650)
+  - See Phase 11 details below for complete remaining work breakdown
+
+**Previous Update (2025-10-17)**: Social System Phase 10 - Documentation COMPLETE ✅
   - Created comprehensive docs/SOCIAL_SYSTEM.md (340+ lines)
     - Full documentation of emote system (7 types), disposition tracking (5 tiers), knowledge system
     - Database architecture details (3 SQLite tables: knowledge_entries, social_events, social_components)
@@ -587,11 +594,36 @@ The GUI client with real engine integration, quest system with auto-tracking, au
      - Updated docs/GETTING_STARTED.md (8 new commands, gameplay features)
      - Updated docs/ARCHITECTURE.md (module count, social system architecture, file locations)
      - All documentation cross-referenced and complete
-   - ⏳ Phase 11: Polish and final integration (next step)
-     - Full social system integration in App.kt and EngineGameClient.kt (currently using fallback handlers)
-     - Optional: Add GUI elements for disposition visualization
-     - Optional: Add social system persistence to save/load
-     - Optional: Enhance procedural quest generation to consider NPC disposition
+   - ⏳ Phase 11: Polish and Final Integration (IN PROGRESS)
+
+     **Current State**:
+     - Social system components partially instantiated:
+       - `App.kt` (console): Has DispositionManager only (line 150) - missing EmoteHandler and NPCKnowledgeManager
+       - `EngineGameClient.kt` (GUI): Has DispositionManager only (line 54) - missing EmoteHandler and NPCKnowledgeManager
+       - `InMemoryGameEngine.kt` (testbot): Fully integrated with all components
+     - Intent handlers exist but use placeholder logic:
+       - `handleEmote()`: Currently just prints/emits basic messages (no disposition changes)
+       - `handleAskQuestion()`: Currently returns "doesn't know anything" (no knowledge lookup)
+
+     **Remaining Work**:
+     1. **Component Instantiation** (Main Task):
+        - Create EmoteHandler in `App.kt` (add after line 150, requires memoryManager)
+        - Create NPCKnowledgeManager in `App.kt` (add after EmoteHandler, requires llmClient + memoryManager)
+        - Create EmoteHandler in `EngineGameClient.kt` (add after line 54, requires memoryManager)
+        - Create NPCKnowledgeManager in `EngineGameClient.kt` (add after EmoteHandler, requires llmClient + memoryManager)
+        - Reference implementation: `InMemoryGameEngine.kt` lines 75-78
+
+     2. **Handler Integration**:
+        - Wire EmoteHandler into `App.kt::handleEmote()` (replace placeholder at line 1150)
+        - Wire NPCKnowledgeManager into `App.kt::handleAskQuestion()` (replace placeholder at line 1160)
+        - Wire EmoteHandler into `EngineGameClient.kt::handleEmote()` (replace placeholder at line 931)
+        - Wire NPCKnowledgeManager into `EngineGameClient.kt::handleAskQuestion()` (replace placeholder at line 941)
+        - Reference implementation: `InMemoryGameEngine.kt` lines 600-650 for handler logic
+
+     3. **Optional Enhancements**:
+        - Add GUI elements for disposition visualization (status bar showing NPC relationship tiers)
+        - Add social system persistence to save/load (serialize SocialComponent to JSON)
+        - Enhance procedural quest generation to consider NPC disposition (require friendly NPCs for certain quests)
 
 2. **Feature work** (Future):
    - **Network layer** (optional) - TCP/WebSocket support for remote multi-player
