@@ -46,12 +46,22 @@ class EngineGameClient(
     private val questGenerator: QuestGenerator
     private val questTracker: QuestTracker
 
+    // Social system components
+    private val socialDatabase: SocialDatabase
+    private val socialComponentRepo: SqliteSocialComponentRepository
+    private val socialEventRepo: SqliteSocialEventRepository
+    private val knowledgeRepo: com.jcraw.mud.memory.social.SqliteKnowledgeRepository
+    private val dispositionManager: DispositionManager
+    private val emoteHandler: EmoteHandler
+    private val npcKnowledgeManager: NPCKnowledgeManager
+
     init {
-        // Initialize social system components (optional, gracefully handle absence)
-        val socialDatabase = SocialDatabase("client_social.db")
-        val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
-        val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
-        val dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
+        // Initialize social system components
+        socialDatabase = SocialDatabase("client_social.db")
+        socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
+        socialEventRepo = SqliteSocialEventRepository(socialDatabase)
+        knowledgeRepo = com.jcraw.mud.memory.social.SqliteKnowledgeRepository(socialDatabase)
+
         // Initialize LLM components if API key available
         llmClient = if (!apiKey.isNullOrBlank()) {
             OpenAIClient(apiKey)
@@ -63,6 +73,10 @@ class EngineGameClient(
         descriptionGenerator = llmClient?.let { RoomDescriptionGenerator(it, memoryManager!!) }
         npcInteractionGenerator = llmClient?.let { NPCInteractionGenerator(it, memoryManager!!) }
         combatNarrator = llmClient?.let { CombatNarrator(it, memoryManager!!) }
+
+        dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
+        emoteHandler = EmoteHandler(dispositionManager)
+        npcKnowledgeManager = NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
 
         combatResolver = CombatResolver()
         skillCheckResolver = SkillCheckResolver()
@@ -929,16 +943,40 @@ class EngineGameClient(
     }
 
     private fun handleEmote(emoteType: String, target: String?) {
-        // Emotes are not yet fully integrated in GUI mode
-        // This is a placeholder for future social system integration
+        val room = worldState.getCurrentRoom() ?: return
+
+        // If no target specified, perform general emote
         if (target.isNullOrBlank()) {
             emitEvent(GameEvent.Narrative("You ${emoteType.lowercase()}."))
-        } else {
-            emitEvent(GameEvent.Narrative("You ${emoteType.lowercase()} at $target."))
+            return
         }
+
+        // Find target NPC
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
+
+        if (npc == null) {
+            emitEvent(GameEvent.System("No one by that name here.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Parse emote keyword
+        val emoteTypeEnum = emoteHandler.parseEmoteKeyword(emoteType)
+        if (emoteTypeEnum == null) {
+            emitEvent(GameEvent.System("Unknown emote: $emoteType", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Process emote
+        val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
+
+        // Update world state with updated NPC
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        emitEvent(GameEvent.Narrative(narrative))
     }
 
-    private fun handleAskQuestion(npcTarget: String, topic: String) {
+    private suspend fun handleAskQuestion(npcTarget: String, topic: String) {
         val room = worldState.getCurrentRoom() ?: return
 
         // Find the NPC in the room
@@ -953,9 +991,13 @@ class EngineGameClient(
             return
         }
 
-        // Knowledge queries not yet fully integrated in GUI mode
-        // This is a placeholder for future social system integration
-        emitEvent(GameEvent.Narrative("${npc.name} doesn't seem to know anything about that."))
+        // Query knowledge
+        val (answer, updatedNpc) = npcKnowledgeManager.queryKnowledge(npc, topic)
+
+        // Update world state with updated NPC (may have new knowledge)
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        emitEvent(GameEvent.Narrative("${npc.name} says: \"$answer\""))
     }
 
     private fun handleSave(saveName: String) {

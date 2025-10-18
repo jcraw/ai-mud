@@ -147,7 +147,10 @@ class MudGame(
     private val socialDatabase = SocialDatabase("social.db")
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
     private val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
+    private val knowledgeRepo = com.jcraw.mud.memory.social.SqliteKnowledgeRepository(socialDatabase)
     private val dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
+    private val emoteHandler = com.jcraw.mud.reasoning.EmoteHandler(dispositionManager)
+    private val npcKnowledgeManager = com.jcraw.mud.reasoning.NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
     private val questTracker = QuestTracker(dispositionManager)
 
     fun start() {
@@ -1148,16 +1151,40 @@ class MudGame(
     }
 
     private fun handleEmote(emoteType: String, target: String?) {
-        // Emotes are not yet fully integrated in console mode
-        // This is a placeholder for future social system integration
+        val room = worldState.getCurrentRoom() ?: return
+
+        // If no target specified, perform general emote
         if (target.isNullOrBlank()) {
             println("\nYou ${emoteType.lowercase()}.")
-        } else {
-            println("\nYou ${emoteType.lowercase()} at $target.")
+            return
         }
+
+        // Find target NPC
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
+
+        if (npc == null) {
+            println("\nNo one by that name here.")
+            return
+        }
+
+        // Parse emote keyword
+        val emoteTypeEnum = emoteHandler.parseEmoteKeyword(emoteType)
+        if (emoteTypeEnum == null) {
+            println("\nUnknown emote: $emoteType")
+            return
+        }
+
+        // Process emote
+        val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
+
+        // Update world state with updated NPC
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        println("\n$narrative")
     }
 
-    private fun handleAskQuestion(npcTarget: String, topic: String) {
+    private suspend fun handleAskQuestion(npcTarget: String, topic: String) {
         val room = worldState.getCurrentRoom() ?: return
 
         // Find the NPC in the room
@@ -1168,13 +1195,17 @@ class MudGame(
             }
 
         if (npc == null) {
-            println("There's no one here by that name.")
+            println("\nThere's no one here by that name.")
             return
         }
 
-        // Knowledge queries not yet fully integrated in console mode
-        // This is a placeholder for future social system integration
-        println("\n${npc.name} doesn't seem to know anything about that.")
+        // Query knowledge
+        val (answer, updatedNpc) = npcKnowledgeManager.queryKnowledge(npc, topic)
+
+        // Update world state with updated NPC (may have new knowledge)
+        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+
+        println("\n${npc.name} says: \"$answer\"")
     }
 
     private fun handleSave(saveName: String) {
