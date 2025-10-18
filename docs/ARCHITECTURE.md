@@ -4,13 +4,14 @@ This document describes the technical architecture of the AI-MUD engine.
 
 ## Module Structure
 
-Multi-module Gradle project with 8 modules:
+Multi-module Gradle project with 9 modules:
 
 ### Core Modules
 
-- **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest)
+- **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest, SocialComponent)
   - Immutable data models
   - Game state management
+  - Component system for extensible entity behaviors
   - No external dependencies except kotlinx.serialization
 
 - **perception** - Input parsing and intent recognition
@@ -21,11 +22,12 @@ Multi-module Gradle project with 8 modules:
 - **reasoning** - LLM-powered content generation and game logic
   - Depends on: core, llm, memory
   - Room description generation
-  - NPC dialogue generation
+  - NPC dialogue generation (disposition-aware)
   - Combat narration
   - Procedural dungeon generation
   - Quest generation
   - Skill check resolution
+  - Social system logic (disposition tracking, emotes, knowledge management)
 
 - **memory** - Vector database integration and state persistence
   - Depends on: core
@@ -33,6 +35,7 @@ Multi-module Gradle project with 8 modules:
   - Vector embeddings and similarity search
   - JSON-based persistence
   - Pluggable vector store interface
+  - Social system database (SQLite) with knowledge/event/component persistence
 
 - **action** - Output formatting and narration
   - Depends on: core
@@ -53,6 +56,11 @@ Multi-module Gradle project with 8 modules:
   - Depends on: core, llm, perception, reasoning, memory, action
   - LLM-powered test generation
   - ReAct loop for autonomous testing
+
+- **client** - Compose Multiplatform GUI client
+  - Depends on: core, perception, reasoning, memory, action, llm
+  - Desktop GUI with unidirectional data flow
+  - EngineGameClient wraps complete game engine
 
 - **utils** - Shared utilities
   - No dependencies
@@ -182,8 +190,20 @@ Memory (store for RAG)
 - 4 themed dungeons: Crypt, Castle, Cave, Temple
 - Graph-based room layout
 - Theme-appropriate traits, NPCs, and items
+- NPCs generated with SocialComponents (personality, traits, disposition)
 - Deterministic with optional seed
 - Boss rooms and entrance designation
+
+### Social System
+- Component-based architecture for extensible NPC behaviors
+- Disposition tracking (-100 to +100) with 5 tiers (ALLIED, FRIENDLY, NEUTRAL, UNFRIENDLY, HOSTILE)
+- Emote system with 7 emote types (smile, wave, nod, shrug, laugh, cry, bow)
+- Question/answer system with persistent knowledge base
+- Quest completion grants +15 disposition to quest giver
+- Disposition-aware dialogue generation
+- SQLite database for persistence (knowledge entries, social events, social components)
+- Procedurally generated NPC personalities and traits based on dungeon theme
+- See [Social System Documentation](./SOCIAL_SYSTEM.md) for complete details
 
 ## File Locations (Important)
 
@@ -231,16 +251,35 @@ Memory (store for RAG)
 ### Procedural Generation
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonTheme.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/RoomGenerator.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` - Creates NPCs with SocialComponents
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ItemGenerator.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonLayoutGenerator.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralDungeonBuilder.kt`
+
+### Social System
+- `core/src/main/kotlin/com/jcraw/mud/core/Component.kt` - Component system foundation
+- `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
+- `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
+- `memory/src/main/kotlin/com/jcraw/mud/memory/social/SocialDatabase.kt` - SQLite database
+- `memory/src/main/kotlin/com/jcraw/mud/memory/social/KnowledgeRepository.kt` - Knowledge persistence
+- `memory/src/main/kotlin/com/jcraw/mud/memory/social/SocialEventRepository.kt` - Event persistence
+- `memory/src/main/kotlin/com/jcraw/mud/memory/social/SocialComponentRepository.kt` - Component persistence
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/social/DispositionManager.kt` - Disposition tracking
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/social/EmoteHandler.kt` - Emote processing
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/social/NPCKnowledgeManager.kt` - Knowledge queries
+- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Emote and AskQuestion intents
 
 ### Sample Content
 - `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
 
 ### Intent System
-- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`
+- `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - 22+ intent types including Emote and AskQuestion
+
+### Client (GUI)
+- `client/src/main/kotlin/com/jcraw/mud/client/Main.kt` - Entry point
+- `client/src/main/kotlin/com/jcraw/mud/client/GameViewModel.kt` - State management
+- `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt` - Engine integration
+- `client/src/main/kotlin/com/jcraw/mud/client/ui/` - UI screens
 
 ## Design Notes
 

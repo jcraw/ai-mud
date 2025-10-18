@@ -110,6 +110,16 @@ Test logs are saved to `test-logs/` directory (JSON + human-readable text).
 - `persuade <npc>` or `convince <npc>` - Attempt to persuade an NPC (CHA check)
 - `intimidate <npc>` or `threaten <npc>` - Attempt to intimidate an NPC (CHA check)
 
+### Social Interactions
+- `smile` or `smile at <npc>` - Smile at an NPC (+2 disposition)
+- `wave` or `wave at <npc>` - Wave at an NPC (+1 disposition)
+- `nod` or `nod at <npc>` - Nod at an NPC (+1 disposition)
+- `shrug` or `shrug at <npc>` - Shrug at an NPC (no effect)
+- `laugh` or `laugh at <npc>` - Laugh at an NPC (-1 disposition)
+- `cry` or `cry at <npc>` - Cry in front of an NPC (no effect)
+- `bow` or `bow at <npc>` - Bow to an NPC (+2 disposition)
+- `ask <npc> about <topic>` - Ask an NPC about a topic (builds knowledge base)
+
 ### Quests
 - `quests` or `quest` or `journal` or `j` - View quest log and available quests
 - `accept <quest_id>` - Accept an available quest
@@ -165,11 +175,16 @@ Test logs are saved to `test-logs/` directory (JSON + human-readable text).
   - Stuck door (STR/DC20) - Force open
   - Arcane runes (INT/DC15) - Decipher magic
 
-**Social Interactions**
+**Social System**
+- Express emotions through emotes (smile, wave, nod, shrug, laugh, cry, bow)
+- Ask NPCs questions to learn about topics
+- Build relationships through disposition system (-100 to +100)
+- Disposition affects dialogue tone and NPC behavior
+- Quest completion grants +15 disposition with quest giver
 - Persuade NPCs (CHA check) to reveal information
 - Intimidate NPCs (CHA check) to avoid combat
-- Example: Persuade Old Guard (DC 10) for hints
-- Example: Intimidate Skeleton King (DC 20) to flee
+- All interactions and knowledge persist in database
+- See [Social System Documentation](./SOCIAL_SYSTEM.md) for details
 
 **Quest System**
 - Procedurally generated quests based on dungeon
@@ -232,5 +247,6 @@ Once you're comfortable with the basics:
 
 For more details, see:
 - [Architecture Documentation](./ARCHITECTURE.md)
+- [Social System Documentation](./SOCIAL_SYSTEM.md)
 - [Multi-User Details](./MULTI_USER.md)
 - [Implementation Log](./IMPLEMENTATION_LOG.md)
