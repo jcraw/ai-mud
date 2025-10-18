@@ -1,5 +1,7 @@
 package com.jcraw.mud.memory.social
 
+import com.jcraw.mud.core.KnowledgeEntry
+import com.jcraw.mud.core.KnowledgeSource
 import com.jcraw.mud.core.SocialComponent
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -57,11 +59,12 @@ class SocialDatabaseTest {
         knowledgeRepo.save(
             KnowledgeEntry(
                 id = "k1",
-                npcId = "npc1",
+                entityId = "npc1",
                 content = "Test knowledge",
-                category = "fact",
+                isCanon = false,
+                source = KnowledgeSource.PLAYER_TAUGHT,
                 timestamp = System.currentTimeMillis(),
-                source = "test"
+                tags = mapOf("category" to "fact")
             )
         )
         eventRepo.save(
@@ -113,11 +116,12 @@ class KnowledgeRepositoryTest {
     fun `save and findById returns saved entry`() {
         val entry = KnowledgeEntry(
             id = "k1",
-            npcId = "npc1",
+            entityId = "npc1",
             content = "The dragon sleeps in the mountain",
-            category = "rumor",
+            isCanon = false,
+            source = KnowledgeSource.PLAYER_TAUGHT,
             timestamp = System.currentTimeMillis(),
-            source = "player told"
+            tags = mapOf("category" to "rumor")
         )
 
         repository.save(entry)
@@ -125,16 +129,16 @@ class KnowledgeRepositoryTest {
 
         assertNotNull(result)
         assertEquals("k1", result.id)
-        assertEquals("npc1", result.npcId)
+        assertEquals("npc1", result.entityId)
         assertEquals("The dragon sleeps in the mountain", result.content)
-        assertEquals("rumor", result.category)
+        assertEquals("rumor", result.tags["category"])
     }
 
     @Test
     fun `findByNpcId returns all entries for NPC`() {
-        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", "fact", 1000L, "witnessed")
-        val entry2 = KnowledgeEntry("k2", "npc1", "Fact 2", "rumor", 2000L, "player told")
-        val entry3 = KnowledgeEntry("k3", "npc2", "Fact 3", "fact", 3000L, "book")
+        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
+        val entry2 = KnowledgeEntry("k2", "npc1", "Fact 2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
+        val entry3 = KnowledgeEntry("k3", "npc2", "Fact 3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
 
         repository.save(entry1)
         repository.save(entry2)
@@ -149,9 +153,9 @@ class KnowledgeRepositoryTest {
 
     @Test
     fun `findByCategory filters by category`() {
-        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", "fact", 1000L, "witnessed")
-        val entry2 = KnowledgeEntry("k2", "npc1", "Rumor 1", "rumor", 2000L, "player told")
-        val entry3 = KnowledgeEntry("k3", "npc1", "Fact 2", "fact", 3000L, "book")
+        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
+        val entry2 = KnowledgeEntry("k2", "npc1", "Rumor 1", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
+        val entry3 = KnowledgeEntry("k3", "npc1", "Fact 2", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
 
         repository.save(entry1)
         repository.save(entry2)
@@ -160,12 +164,12 @@ class KnowledgeRepositoryTest {
         val results = repository.findByCategory("npc1", "fact").getOrNull()
         assertNotNull(results)
         assertEquals(2, results.size)
-        assertTrue(results.all { it.category == "fact" })
+        assertTrue(results.all { it.tags["category"] == "fact" })
     }
 
     @Test
     fun `delete removes entry`() {
-        val entry = KnowledgeEntry("k1", "npc1", "Content", "fact", 1000L, "source")
+        val entry = KnowledgeEntry("k1", "npc1", "Content", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact"))
         repository.save(entry)
 
         val beforeDelete = repository.findById("k1").getOrNull()
@@ -179,9 +183,9 @@ class KnowledgeRepositoryTest {
 
     @Test
     fun `deleteAllForNpc removes all NPC entries`() {
-        repository.save(KnowledgeEntry("k1", "npc1", "C1", "fact", 1000L, "s"))
-        repository.save(KnowledgeEntry("k2", "npc1", "C2", "rumor", 2000L, "s"))
-        repository.save(KnowledgeEntry("k3", "npc2", "C3", "fact", 3000L, "s"))
+        repository.save(KnowledgeEntry("k1", "npc1", "C1", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact")))
+        repository.save(KnowledgeEntry("k2", "npc1", "C2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor")))
+        repository.save(KnowledgeEntry("k3", "npc2", "C3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact")))
 
         repository.deleteAllForNpc("npc1")
 
