@@ -219,7 +219,7 @@ class EngineGameClient(
         ))
     }
 
-    private fun processIntent(intent: Intent) {
+    private suspend fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> handleMove(intent.direction)
             is Intent.Look -> handleLook(intent.target)
