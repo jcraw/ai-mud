@@ -1,0 +1,205 @@
+Skill System Requirements (Modular Use-Based Progression and Integration)
+Overview
+The Skill system adds a dynamic, use-based progression mechanic to the AI-powered MUD engine, where skills improve through repeated practice, mimicking real-life learning but with infinite growth potential. Skills range from 0 (hidden until unlocked) to theoretically unlimited levels, with diminishing returns after level 100 (e.g., exponential XP requirements like XP_needed = base_XP * (level ^ 1.5)) to allow godlike progression after extensive play. It integrates with existing modules (:core, :reasoning, :perception, :memory, :persistence) and ties into the social system for skill checks (e.g., persuasion/intimidation). Includes stubs for future :combat and :magic modules. Emphasizes modularity via component-based design (extending ECS from social system), coherence via RAG for action history, and database persistence. Keeps complexity comparable to the social system, with predefined skills for MVP and future LLM dynamic generation.
+Key Goals:
+
+Use-based growth: Skills level via actions, with XP from successes (partial on failures).
+Infinite scaling: No hard caps; perks at milestones for powerful unlocks.
+Multi-skill combos: Actions draw from multiple skills (e.g., averaged or weighted for success).
+Integration: Tie to social (e.g., diplomacy checks), future combat/magic.
+Modularity: Component-based for easy attachment to entities (players/NPCs).
+Simplicity: Predefined initial skills; dynamic gen as future enhancement.
+
+Tech Stack: Kotlin, coroutines for async, immutable data classes, sealed classes for events/outcomes, SQLite DB (migrate to PostgreSQL), existing modules.
+
+Functional Requirements
+
+COMPONENT-BASED ARCHITECTURE
+
+1.1 Extension of ECS
+Build on existing ComponentHost interface from social system.
+New Component Type (Enum addition to ComponentType):
+
+SKILL - Skill progression data for entities.
+
+Entities (e.g., Player, NPC) can attach SkillComponent for per-entity skills.
+1.2 SkillComponent Definition
+Data Class: SkillComponent(
+skills: Map<String, SkillState> = emptyMap(),  // Skill name to state
+componentType: ComponentType = ComponentType.SKILL
+) : Component
+Data Class: SkillState(
+level: Int = 0,                        // Current level (0+)
+xp: Long = 0L,                         // Current XP toward next level
+xpToNext: Long = calculateXpToNext(1), // XP needed for next level
+unlocked: Boolean = false,             // Hidden until true
+tags: List<String> = emptyList(),      // e.g., ["melee", "fire", "stat"]
+perks: List<Perk> = emptyList(),       // Unlocked perks
+resourceType: String? = null           // e.g., "mana", "chi" for resource skills
+)
+Methods (in SkillState):
+
+addXp(amount: Long): SkillState - Add XP, level up if needed, unlock perks
+unlock(): SkillState - Set unlocked = true if level >= 1
+getEffectiveLevel(): Int - Level + temp buffs
+calculateXpToNext(level: Int): Long - Formula: if level <= 100: 100 * level^2 else: 100 * level^2 * (level / 100)^1.5 (configurable)
+
+Resources: For skills like "Mana Reserve", level determines capacity (e.g., maxMana = level * 10); regen as separate skill (e.g., "Mana Flow").
+1.3 Perk System
+Data Class: Perk(
+name: String,
+description: String,
+type: PerkType,  // ABILITY or PASSIVE
+effect: String   // e.g., "+10% crit" or "Unlock Parry"
+)
+Milestones: Every 10 levels, offer 2 choices (e.g., level 10: 2 abilities; level 20: 2 passives).
+Selection: Player command (e.g., "Choose perk for Sword Fighting: 1 or 2").
+All skills can have perks; predefined per skill for MVP.
+
+
+DATABASE PERSISTENCE
+
+2.1 Schema Extension
+Extend existing SQLite schema:
+
+skill_components - (entity_id, component_data as JSON)
+skills - Denormalized (entity_id, skill_name, level, xp, unlocked, tags as JSON, perks as JSON, resource_type)
+skill_events_log - History (id, entity_id, skill_name, xp_gained, level_up, timestamp)
+
+Indexes: skills.entity_id, skill_name; skill_events_log.entity_id
+2.2 Repository Pattern
+New Interfaces (:core/repository/):
+
+SkillRepository - CRUD for skills (findByTag, updateXp, unlockSkill)
+
+Implementations (:persistence):
+
+SQLiteSkillRepository
+
+
+
+SKILL PROGRESSION PIPELINE
+
+3.1 Input Handling
+Extend :perception Intent system:
+New Intents:
+
+Intent.UseSkill(skill: String?, action: String) - e.g., "Cast fireball"
+Intent.TrainSkill(skill: String, method: String) - e.g., "Train with mentor"
+
+LLM parses to detect skill-relevant actions.
+3.2 Unlocking Skills
+Methods:
+
+Attempt: Low-chance success roll (e.g., d100 < 5 for magic) unlocks at level 1.
+Observation: Witness (e.g., see sword fight) gives temp growth buff (1.5x XP for 5 attempts).
+Training: Mentor/NPC (tie to social) gives level 1 + temp buff (2x XP +5 level bonus until "sleep").
+Prereqs: Some skills check others (e.g., "Advanced Fire Magic" needs "Fire Magic" 50).
+
+"Sleep": Player action/rest; resets temp buffs.
+3.3 XP and Leveling
+XP Grant: On action (success: full XP based on difficulty; failure: 20% XP).
+Formula: Base XP = difficulty * 10; tweakable.
+Level Up: Auto on XP threshold; unlock perks if milestone.
+3.4 Multi-Skill Combinations
+For actions (e.g., fireball):
+
+Identify skills (LLM/classifier: "Fire Magic", "Gesture Casting", etc.).
+Success: Weighted average (e.g., 0.5Fire + 0.3Gesture + 0.2*Accuracy) + roll.
+Opposed: vs. target skill (e.g., dodge).
+Stats: Core "stat" skills (e.g., Strength) multiply/modify (e.g., melee damage *= Strength/10).
+
+Failures: Narrative (e.g., backfire injury); low level increases risk.
+3.5 Resource Management
+Resource Skills: Level up via use; e.g., "Mana Reserve" for capacity, "Mana Flow" for regen.
+Costs: Action-specific (e.g., fireball cost = 10 + powerLevel * 5).
+3.6 Resistances
+As skills (e.g., "Fire Resistance"): XP per damage taken; diminishes incoming damage (e.g., reduction = level / 2 %).
+Perks: Yes, e.g., level 10: "Immunity Threshold".
+3.7 Social Tie-In
+Use SkillSystem for social checks (e.g., Intent.Persuade calls checkSkill("Diplomacy", difficulty)).
+Disposition changes can grant skill buffs (e.g., friendly NPC trains skill).
+Replace StubSkillSystem with real implementation.
+
+
+INTEGRATIONS
+
+4.1 Stub Interfaces
+For :combat (future): CombatSystem interface (resolveAttack using skills).
+For :magic (future): MagicSystem interface (castSpell using combos).
+4.2 Memory/RAG
+Store action history: MemoryManager.remember("Used skill [name]: [outcome]").
+Recall for coherence (e.g., perk effects).
+4.3 Predefined Skills
+Initial List (preloaded to DB; engineer to expand during impl):
+
+Core Stats (tags: ["stat"]): Strength, Agility, Vitality, Intelligence, Wisdom, Charisma.
+Rogue: Stealth, Backstab, Lockpicking, Trap Disarm, Trap Setting.
+Combat: Sword Fighting, Axe Mastery, Bow Accuracy, Light Armor, Heavy Armor, Shield Use.
+Elemental Magic: Fire Magic, Water Magic, Earth Magic, Air Magic, Gesture Casting, Chant Casting, Magical Projectile Accuracy.
+Advanced Magic: Summoning, Necromancy, Elemental Affinity (sub: Fire Affinity).
+Resources: Mana Reserve, Mana Flow, Chi Reserve, Chi Flow.
+Resistances: Fire Resistance, Poison Resistance, Slashing Resistance.
+Other: Blacksmithing, Diplomacy (ties to social), Acrobatics.
+
+Perks Examples (per skill; 2 choices per milestone):
+
+Sword Fighting Level 10: Choice1: "Quick Strike" (ability: extra attack); Choice2: "Feint" (ability: debuff enemy).
+Level 20: Choice1: "+15% Damage" (passive); Choice2: "+10% Parry Chance" (passive).
+
+Future: LLM gen for new skills/perks on novel actions.
+
+
+MODULE STRUCTURE
+
+:core: SkillComponent, SkillState, Perk, SkillEvent sealed.
+:perception: New intents.
+:reasoning: SkillManager (xp add, combos, checks), PerkSelector.
+:memory: Action recall.
+:persistence: SkillRepository.
+:app/:client: Handle intents, player choices.
+Data Flow: Input → Intent → SkillManager → DB/Update → Output.
+
+
+NON-FUNCTIONAL REQUIREMENTS
+
+Performance: Async for checks; cache skills.
+Scalability: Handles 100+ skills per entity.
+Security: Sanitize inputs.
+Testability: Mocks for RNG/LLM.
+
+
+TESTING REQUIREMENTS
+
+Unit: Skill leveling, combos, perks.
+Integration: Full workflows (unlock, use, social tie).
+Bot: Playthroughs using skills to win.
+
+
+IMPLEMENTATION STRATEGY
+
+Phase 1: Components/Schema (3-4h)
+Phase 2: Progression Logic (4-5h)
+Phase 3: Unlocking/Training (3-4h)
+Phase 4: Combos/Resources (4-5h)
+Phase 5: Integrations (3-4h)
+Phase 6: Predefined Skills/Perks (2-3h)
+Phase 7: Testing/Documentation (4-5h)
+Total: 25-35 hours.
+
+
+FUTURE ENHANCEMENTS
+
+
+LLM dynamic skill/perk gen.
+Shapeshifting: Form-specific skills (e.g., "Wolf Form" unlocks "Claw Attack").
+Multiplayer teaching.
+Full :combat/:magic modules.
+
+SUCCESS CRITERIA
+✅ Use-based leveling with infinite growth.
+✅ Multi-skill combos and resources.
+✅ Perks with choices.
+✅ Tied to social (checks/buffs).
+✅ Predefined skills loaded.
+✅ Tests passing; playthrough works.
