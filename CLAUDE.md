@@ -62,13 +62,13 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~386 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 34 skill system tests, 27 perception tests)
+- **Comprehensive tests**: **~424 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 52 skill system tests, 27 perception tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
   - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
   - **Social System Tests**: 47 tests for social system (Phase 1: 30 component tests, Phase 2: 17 database tests)
-  - **Skill System Tests**: 34 tests for Phase 1 (SkillState unit tests - XP calculation, leveling, perks, immutability)
+  - **Skill System Tests**: 52 tests for Phases 1-2 (Phase 1: 34 unit tests for SkillState, Phase 2: 18 database tests for repositories)
 - **InMemoryGameEngine**: Headless engine for automated testing
 - **TestReport metrics**: Tracks playthrough metrics including combat rounds, damage taken, NPCs killed, skill/social checks passed, player death, and room exploration for game balance validation
 
@@ -78,8 +78,9 @@ Priority tasks:
 1. **Skill System V2** - Use-based progression with infinite growth, multi-skill combos, perks, resources
    - See [Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md) for complete architecture and 12-phase roadmap
    - **Phase 1 COMPLETE** ✅ - Core data models (SkillState, SkillComponent, SkillEvent, 34 tests passing)
-   - **Next: Phase 2** - Database Layer (SkillDatabase, SQLiteSkillRepository with 3-table schema)
-   - Estimated: 22-31 hours remaining across 11 phases
+   - **Phase 2 COMPLETE** ✅ - Database Layer (SkillDatabase, SQLiteSkillRepository, SQLiteSkillComponentRepository, 18 tests passing)
+   - **Next: Phase 3** - Skill Manager (Core Logic) - grantXp, unlockSkill, checkSkill methods
+   - Estimated: 18-26 hours remaining across 10 phases
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 30+ predefined skills, perk choices every 10 levels, resource management (mana/chi), resistance skills
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
@@ -133,10 +134,15 @@ Priority tasks:
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
   - `memory/src/main/kotlin/com/jcraw/mud/memory/social/` - Database layer (repositories)
-- **Skill system** (Phase 1 complete):
+- **Skill system** (Phases 1-2 complete):
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt` - Skill progression data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillComponent.kt` - Entity skill container
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillEvent.kt` - Skill event types
+  - `core/src/main/kotlin/com/jcraw/mud/core/repository/SkillRepository.kt` - Repository interface
+  - `core/src/main/kotlin/com/jcraw/mud/core/repository/SkillComponentRepository.kt` - Component repository interface
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SkillDatabase.kt` - SQLite database
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SQLiteSkillRepository.kt` - Repository implementation
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SQLiteSkillComponentRepository.kt` - Component repository implementation
 
 ## Architecture
 

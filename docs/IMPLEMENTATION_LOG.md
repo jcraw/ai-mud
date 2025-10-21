@@ -1103,3 +1103,83 @@ The All Playthroughs test validates the entire game balance by running all three
 **Status**: ✅ **PHASE 1 COMPLETE** - Foundation ready for Phase 2 (Database Layer)
 
 **Next Steps**: Phase 2 - Database Layer (SkillDatabase, SQLiteSkillRepository, SQLiteSkillComponentRepository with 3-table schema)
+
+## Skill System V2 - Phase 2: Database Layer (2025-10-20) 🗄️
+
+**Feature**: SQLite persistence for skills with repository pattern and 3-table schema
+
+✅ **SkillDatabase** - SQLite connection management and schema creation
+  - File: `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SkillDatabase.kt`
+  - Schema with 3 tables: skill_components, skills, skill_events_log
+  - skill_components: JSON-serialized complete SkillComponent state
+  - skills: Denormalized table for fast queries (entity_id, skill_name, level, xp, etc.)
+  - skill_events_log: Event history with timestamps for analytics
+  - Proper indexes for query performance (entity_id, skill_name, tags, timestamp)
+
+✅ **SkillRepository Interface** - Repository contract for skill data persistence
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/repository/SkillRepository.kt`
+  - Methods: findByEntityAndSkill(), findByEntityId(), findByTag()
+  - CRUD: save(), updateXp(), unlockSkill(), delete(), deleteAllForEntity()
+  - Event logging: logEvent(), getEventHistory()
+  - Result types for error handling
+  - Supports skill queries, XP updates, and event tracking
+
+✅ **SQLiteSkillRepository** - Repository implementation for denormalized skills table
+  - File: `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SQLiteSkillRepository.kt`
+  - All CRUD operations with parameterized queries
+  - Tag-based queries using LIKE for JSON array searching
+  - Event history with timestamp ordering and limits
+  - SkillEvent serialization/deserialization for polymorphic storage
+  - JSON encoding for tags, perks, and event data
+
+✅ **SkillComponentRepository Interface** - Repository contract for complete skill components
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/repository/SkillComponentRepository.kt`
+  - Methods: save(), load(), delete(), findAll()
+  - Simpler than SkillRepository - handles full component state
+  - JSON-based persistence for entire skill map
+
+✅ **SQLiteSkillComponentRepository** - Repository implementation for skill components
+  - File: `memory/src/main/kotlin/com/jcraw/mud/memory/skill/SQLiteSkillComponentRepository.kt`
+  - Stores complete SkillComponent as JSON
+  - Parameterized queries for safety
+  - Result types for error handling
+  - Efficient bulk operations (findAll)
+
+✅ **Comprehensive Database Tests** - 18 tests covering all repository operations
+  - File: `memory/src/test/kotlin/com/jcraw/mud/memory/skill/SkillDatabaseTest.kt`
+  - SkillRepository tests (12 tests):
+    - Save/find skills by entity and name
+    - Find all skills for entity
+    - Tag-based queries
+    - XP updates
+    - Unlock operations
+    - Delete operations
+    - Event logging
+    - Event history queries (with pagination and filtering)
+  - SkillComponentRepository tests (6 tests):
+    - Save/load complete components
+    - Delete operations
+    - FindAll operations
+    - Complex perk data persistence
+    - Resource type skill storage
+  - All 18 tests passing with in-memory SQLite
+
+**Database Schema Design**:
+- **skill_components**: Primary storage for complete SkillComponent JSON
+- **skills**: Denormalized for fast queries without JSON parsing
+- **skill_events_log**: Event sourcing pattern for analytics and debugging
+- **Indexes**: Optimized for common queries (by entity, by skill, by tag, by time)
+
+**Phase 2 Deliverables Complete**:
+1. ✅ SkillDatabase.kt - SQLite schema and connection management (102 lines)
+2. ✅ SkillRepository.kt - Repository interface (58 lines)
+3. ✅ SkillComponentRepository.kt - Component repository interface (28 lines)
+4. ✅ SQLiteSkillRepository.kt - Skill repository implementation (256 lines)
+5. ✅ SQLiteSkillComponentRepository.kt - Component repository implementation (92 lines)
+6. ✅ SkillDatabaseTest.kt - 18 comprehensive database tests (302 lines)
+
+**Build Status**: ✅ All memory module tests passing (18 new tests)
+
+**Status**: ✅ **PHASE 2 COMPLETE** - Database layer ready for Phase 3 (Skill Manager - Core Logic)
+
+**Next Steps**: Phase 3 - Skill Manager (grantXp, unlockSkill, checkSkill methods with 20-25 tests)
