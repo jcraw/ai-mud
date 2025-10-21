@@ -212,6 +212,7 @@ class GameServer(
             is Intent.Persuade -> handlePersuade(playerId, playerState, intent.target, currentRoom)
             is Intent.Intimidate -> handleIntimidate(playerId, playerState, intent.target, currentRoom)
             is Intent.Emote -> Triple("Emote system not yet fully supported in multi-user mode", worldState, null)
+            is Intent.Say -> Triple("Say is not yet supported in multi-user mode", worldState, null)
             is Intent.AskQuestion -> Triple("Ask system not yet fully supported in multi-user mode", worldState, null)
             is Intent.Inventory -> Triple(formatInventory(playerState), worldState, null)
             is Intent.Save -> Triple("Save not supported in multi-user mode", worldState, null)

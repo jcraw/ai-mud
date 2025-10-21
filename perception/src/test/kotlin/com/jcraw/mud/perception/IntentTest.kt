@@ -56,6 +56,17 @@ class IntentTest {
     }
 
     @Test
+    fun `Say intent captures message and optional target`() {
+        val generalSay = Intent.Say("Hello there")
+        assertEquals("Hello there", generalSay.message)
+        assertEquals(null, generalSay.npcTarget)
+
+        val directedSay = Intent.Say("Open the gate", "guard")
+        assertEquals("Open the gate", directedSay.message)
+        assertEquals("guard", directedSay.npcTarget)
+    }
+
+    @Test
     fun `Emote intent can have null target for general emotes`() {
         val emote = Intent.Emote("smile", null)
         assertEquals("smile", emote.emoteType)
@@ -92,6 +103,7 @@ class IntentTest {
             Intent.Take("item"),
             Intent.Drop("item"),
             Intent.Talk("npc"),
+            Intent.Say("Hello", "npc"),
             Intent.Emote("smile", null),
             Intent.AskQuestion("guard", "castle"),
             Intent.Help,
@@ -138,6 +150,14 @@ class IntentTest {
     }
 
     @Test
+    fun `Say intent serializes correctly`() {
+        val intent = Intent.Say("Open sesame", "door_guardian")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("Open sesame"))
+        assertTrue(json.contains("door_guardian"))
+    }
+
+    @Test
     fun `Emote intent with target serializes correctly`() {
         val intent = Intent.Emote("wave", "guard")
         val json = Json.encodeToString(intent)
@@ -178,6 +198,7 @@ class IntentTest {
         assertEquals(Intent.Take("item"), Intent.Take("item"))
         assertEquals(Intent.Drop("item"), Intent.Drop("item"))
         assertEquals(Intent.Talk("npc"), Intent.Talk("npc"))
+        assertEquals(Intent.Say("Speak", "npc"), Intent.Say("Speak", "npc"))
         assertEquals(Intent.Emote("smile", null), Intent.Emote("smile", null))
         assertEquals(Intent.Emote("wave", "guard"), Intent.Emote("wave", "guard"))
         assertEquals(Intent.AskQuestion("merchant", "wares"), Intent.AskQuestion("merchant", "wares"))

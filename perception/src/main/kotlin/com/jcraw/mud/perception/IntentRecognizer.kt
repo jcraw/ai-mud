@@ -12,6 +12,18 @@ import com.jcraw.sophia.llm.LLMClient
 class IntentRecognizer(
     private val llmClient: LLMClient?
 ) {
+    companion object {
+        private val SAY_QUESTION_KEYWORDS = listOf(
+            "who", "what", "where", "when", "why", "how",
+            "can", "will", "is", "are", "am",
+            "do", "does", "did",
+            "should", "could", "would",
+            "have", "has", "had",
+            "tell me", "explain", "describe"
+        )
+
+        private val SAY_ARTICLES = setOf("the", "a", "an")
+    }
 
     /**
      * Parse natural language input into a structured Intent.
@@ -118,6 +130,7 @@ Valid intent types:
 - "drop" - Drop an item (requires target)
 - "give" - Give an item to an NPC (requires "target" for item and "npc_target" for NPC, e.g., "give sword to guard")
 - "talk" - Talk to an NPC (requires target)
+- "say" - Speak a line of dialogue (use "target" for the message text, optional "npc_target" for whom it's addressed)
 - "attack" - Attack an NPC or continue combat (target optional if in combat, extract ANY identifying word from NPC name)
 - "equip" - Equip a weapon or armor (requires target, extract ANY identifying word from item name)
 - "use" - Use/consume an item (requires target, extract ANY identifying word from item name)
@@ -156,6 +169,7 @@ Important parsing rules:
 14. PARTIAL NAMES: "attack king" when NPC is "skeleton king" → extract "king", "take sword" when item is "rusty sword" → extract "sword"
 15. For attack/talk/persuade/intimidate with NPCs, extract ANY word from the player's input that could identify the NPC
 16. For equip/use/take/drop with items, extract ANY word from the player's input that could identify the item
+17. "say" or dialogue lines should map to the "say" intent with the spoken words in "target" and optional NPC in "npc_target"
 
 Response format (JSON only, no markdown):
 {
@@ -243,6 +257,14 @@ Response format (JSON only, no markdown):
                     }
                 }
                 "talk" -> if (target != null) Intent.Talk(target) else Intent.Invalid("Talk to whom?")
+                "say" -> {
+                    val message = target?.takeIf { it.isNotBlank() }
+                    if (message != null) {
+                        Intent.Say(message, npcTarget)
+                    } else {
+                        Intent.Invalid("Say what?")
+                    }
+                }
                 "attack" -> Intent.Attack(target)
                 "equip" -> if (target != null) Intent.Equip(target) else Intent.Invalid("Equip what?")
                 "use" -> if (target != null) Intent.Use(target) else Intent.Invalid("Use what?")
@@ -273,6 +295,133 @@ Response format (JSON only, no markdown):
         } catch (e: Exception) {
             return Intent.Invalid("Failed to parse command: ${e.message}")
         }
+    }
+
+    private fun parseSay(args: String?): Intent {
+        if (args.isNullOrBlank()) {
+            return Intent.Invalid("Say what?")
+        }
+
+        val (npcTarget, message) = extractSayComponents(args)
+        val trimmedMessage = message.trim()
+
+        return if (trimmedMessage.isEmpty()) {
+            Intent.Invalid("Say what?")
+        } else {
+            Intent.Say(trimmedMessage, npcTarget)
+        }
+    }
+
+    private fun extractSayComponents(raw: String): Pair<String?, String> {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) {
+            return null to ""
+        }
+
+        val lower = trimmed.lowercase()
+        val prefix = when {
+            lower.startsWith("to ") -> "to "
+            lower.startsWith("at ") -> "at "
+            else -> null
+        }
+
+        if (prefix != null) {
+            val remainder = trimmed.substring(prefix.length).trim()
+            if (remainder.isEmpty()) {
+                return null to ""
+            }
+
+            val (targetPart, messagePart) = splitSayRemainder(remainder)
+            val cleanedTarget = sanitizeNpcTarget(targetPart)
+            val fallbackMessage = if (messagePart.isNotBlank()) messagePart else remainder
+            return cleanedTarget to fallbackMessage
+        }
+
+        return null to trimmed
+    }
+
+    private fun splitSayRemainder(remainder: String): Pair<String?, String> {
+        val normalized = remainder.trim()
+        if (normalized.isEmpty()) {
+            return null to ""
+        }
+
+        val lower = normalized.lowercase()
+        var messageStart = -1
+
+        for (keyword in SAY_QUESTION_KEYWORDS) {
+            val idx = lower.indexOf(keyword)
+            if (idx != -1) {
+                val validBoundary = idx == 0 || !lower[idx - 1].isLetter()
+                if (validBoundary && (messageStart == -1 || idx < messageStart)) {
+                    messageStart = idx
+                }
+            }
+        }
+
+        if (messageStart > 0 && messageStart < normalized.length) {
+            val potentialTarget = normalized.substring(0, messageStart).trim()
+            val message = normalized.substring(messageStart).trim()
+            if (message.isNotEmpty()) {
+                return potentialTarget to message
+            }
+        } else if (messageStart == 0) {
+            // Message starts immediately, no explicit target
+            return null to normalized
+        }
+
+        val delimiterIndices = listOf(
+            normalized.indexOf(':'),
+            normalized.indexOf(',')
+        ).filter { it > 0 && it < normalized.length - 1 }
+            .sorted()
+
+        if (delimiterIndices.isNotEmpty()) {
+            val delimiterIndex = delimiterIndices.first()
+            val target = normalized.substring(0, delimiterIndex).trim()
+            val message = normalized.substring(delimiterIndex + 1).trim()
+            if (message.isNotEmpty()) {
+                return target to message
+            }
+        }
+
+        val words = normalized.split(Regex("\\s+"))
+        if (words.size > 1) {
+            val targetWords = if (words[0].lowercase() in SAY_ARTICLES && words.size > 2) {
+                listOf(words[0], words[1])
+            } else {
+                listOf(words[0])
+            }
+
+            val target = targetWords.joinToString(" ")
+            val message = normalized.substring(target.length).trim()
+            if (message.isNotEmpty()) {
+                return target to message
+            }
+        }
+
+        return null to normalized
+    }
+
+    private fun sanitizeNpcTarget(raw: String?): String? {
+        if (raw == null) {
+            return null
+        }
+
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) {
+            return null
+        }
+
+        val lower = trimmed.lowercase()
+        val article = SAY_ARTICLES.firstOrNull { lower.startsWith("$it ") }
+        val withoutArticle = if (article != null) {
+            trimmed.substring(article.length + 1).trim()
+        } else {
+            trimmed
+        }
+
+        return withoutArticle.ifBlank { null }
     }
 
     /**
@@ -330,6 +479,7 @@ Response format (JSON only, no markdown):
                     }
                 }
             }
+            "say", "tell" -> parseSay(args)
             "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
             "attack", "kill", "fight", "hit" -> Intent.Attack(args)
             "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)

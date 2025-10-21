@@ -34,6 +34,7 @@ class InMemoryGameEngine(
     private val intentRecognizer = IntentRecognizer(llmClient)
     private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
     private val questTracker = QuestTracker(dispositionManager)
+    private var lastConversationNpcId: String? = null
 
     override suspend fun processInput(input: String): String {
         if (!running) return "Game is not running."
@@ -63,6 +64,7 @@ class InMemoryGameEngine(
             is Intent.TakeAll -> handleTakeAll()
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Talk -> handleTalk(intent.target)
+            is Intent.Say -> handleSay(intent.message, intent.npcTarget)
             is Intent.Attack -> handleAttack(intent.target)
             is Intent.Equip -> handleEquip(intent.target)
             is Intent.Use -> handleUse(intent.target)
@@ -297,6 +299,7 @@ class InMemoryGameEngine(
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         return if (npc != null) {
+            lastConversationNpcId = npc.id
             val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
             if (npcInteractionGenerator != null) {
                 val dialogue = npcInteractionGenerator.generateDialogue(npc, worldState.player)
@@ -307,6 +310,86 @@ class InMemoryGameEngine(
         } else {
             "No one by that name here."
         }
+    }
+
+    private suspend fun handleSay(message: String, npcTarget: String?): String {
+        val utterance = message.trim()
+        if (utterance.isEmpty()) {
+            return "Say what?"
+        }
+
+        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val npc = resolveNpcTarget(room, npcTarget)
+
+        if (npcTarget != null && npc == null) {
+            return "No one by that name here."
+        }
+
+        if (npc == null) {
+            lastConversationNpcId = null
+            return "You say: \"$utterance\""
+        }
+
+        lastConversationNpcId = npc.id
+        val introduction = "You say to ${npc.name}: \"$utterance\""
+
+        if (isQuestion(utterance)) {
+            val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
+            val reply = handleAskQuestion(npc.name, topic)
+            val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
+            return listOf(introduction, reply + questNotifications).joinToString("\n")
+        }
+
+        val response = if (npcInteractionGenerator != null) {
+            val dialogue = npcInteractionGenerator.generateDialogue(npc, worldState.player)
+            "${npc.name} says: \"$dialogue\""
+        } else {
+            if (npc.isHostile) {
+                "${npc.name} scowls and refuses to answer."
+            } else {
+                "${npc.name} listens quietly."
+            }
+        }
+
+        val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
+        return listOf(introduction, response + questNotifications).joinToString("\n")
+    }
+
+    private fun resolveNpcTarget(room: com.jcraw.mud.core.Room, npcTarget: String?): Entity.NPC? {
+        val npcs = room.entities.filterIsInstance<Entity.NPC>()
+        if (npcTarget != null) {
+            val lower = npcTarget.lowercase()
+            val explicit = npcs.find {
+                it.name.lowercase().contains(lower) || it.id.lowercase().contains(lower)
+            }
+            if (explicit != null) {
+                return explicit
+            }
+        }
+
+        val recent = lastConversationNpcId
+        if (recent != null) {
+            return npcs.find { it.id == recent }
+        }
+
+        return null
+    }
+
+    private fun isQuestion(text: String): Boolean {
+        val trimmed = text.trim()
+        if (trimmed.endsWith("?")) return true
+
+        val lower = trimmed.lowercase()
+        val prefixes = listOf(
+            "who", "what", "where", "when", "why", "how",
+            "can", "will", "is", "are", "am",
+            "do", "does", "did",
+            "should", "could", "would",
+            "have", "has", "had",
+            "tell me", "explain", "describe"
+        )
+
+        return prefixes.any { lower.startsWith(it) }
     }
 
     private suspend fun handleAttack(target: String?): String {
@@ -529,13 +612,16 @@ class InMemoryGameEngine(
             return "No one by that name here."
         }
 
+        lastConversationNpcId = npc.id
+
         // Query knowledge
         val (answer, updatedNpc) = knowledgeManager.queryKnowledge(npc, topic)
 
         // Update world state with updated NPC (may have new knowledge)
         worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
 
-        return "${npc.name} says: \"$answer\""
+        val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
+        return "${npc.name} says: \"$answer\"" + questNotifications
     }
 
     private fun handleHelp(): String = "Available commands: move, look, inventory, take, drop, talk, attack, equip, use, check, persuade, intimidate, emote, ask, quit"
@@ -546,6 +632,11 @@ class InMemoryGameEngine(
     }
 
     private suspend fun buildRoomDescription(room: com.jcraw.mud.core.Room): String {
+        val npcs = room.entities.filterIsInstance<Entity.NPC>()
+        if (lastConversationNpcId != null && npcs.none { it.id == lastConversationNpcId }) {
+            lastConversationNpcId = null
+        }
+
         val description = if (descriptionGenerator != null) {
             try {
                 descriptionGenerator.generateDescription(room)

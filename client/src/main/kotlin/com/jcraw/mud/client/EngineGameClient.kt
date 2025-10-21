@@ -31,6 +31,7 @@ class EngineGameClient(
     private val _events = MutableSharedFlow<GameEvent>(replay = 10)
     private var worldState: WorldState
     private var running = true
+    private var lastConversationNpcId: String? = null
 
     // Engine components
     private val llmClient: OpenAIClient?
@@ -189,6 +190,11 @@ class EngineGameClient(
             room.traits.joinToString(". ") + "."
         }
 
+        val roomNpcs = room.entities.filterIsInstance<Entity.NPC>()
+        if (lastConversationNpcId != null && roomNpcs.none { it.id == lastConversationNpcId }) {
+            lastConversationNpcId = null
+        }
+
         val narrativeText = buildString {
             appendLine("\n${room.name}")
             appendLine("-".repeat(room.name.length))
@@ -231,6 +237,7 @@ class EngineGameClient(
             is Intent.Drop -> handleDrop(intent.target)
             is Intent.Give -> handleGive(intent.itemTarget, intent.npcTarget)
             is Intent.Talk -> handleTalk(intent.target)
+            is Intent.Say -> handleSay(intent.message, intent.npcTarget)
             is Intent.Attack -> handleAttack(intent.target)
             is Intent.Equip -> handleEquip(intent.target)
             is Intent.Use -> handleUse(intent.target)
@@ -695,6 +702,8 @@ class EngineGameClient(
             return
         }
 
+        lastConversationNpcId = npc.id
+
         if (npcInteractionGenerator != null) {
             emitEvent(GameEvent.Narrative("\nYou speak to ${npc.name}..."))
             val dialogue = runBlocking {
@@ -991,6 +1000,8 @@ class EngineGameClient(
             return
         }
 
+        lastConversationNpcId = npc.id
+
         // Query knowledge
         val (answer, updatedNpc) = npcKnowledgeManager.queryKnowledge(npc, topic)
 
@@ -998,6 +1009,98 @@ class EngineGameClient(
         worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
 
         emitEvent(GameEvent.Narrative("${npc.name} says: \"$answer\""))
+        trackQuests(QuestAction.TalkedToNPC(npc.id))
+    }
+
+    private suspend fun handleSay(message: String, npcTarget: String?) {
+        val utterance = message.trim()
+        if (utterance.isEmpty()) {
+            emitEvent(GameEvent.System("Say what?", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        val room = worldState.getCurrentRoom() ?: return
+
+        val npc = resolveNpcTarget(room, npcTarget)
+        if (npcTarget != null && npc == null) {
+            emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        if (npc == null) {
+            emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
+            lastConversationNpcId = null
+            return
+        }
+
+        emitEvent(GameEvent.Narrative("You say to ${npc.name}: \"$utterance\""))
+        lastConversationNpcId = npc.id
+
+        if (isQuestion(utterance)) {
+            val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
+            handleAskQuestion(npc.name, topic)
+            trackQuests(QuestAction.TalkedToNPC(npc.id))
+            return
+        }
+
+        if (npcInteractionGenerator != null) {
+            val reply = runCatching {
+                npcInteractionGenerator?.generateDialogue(npc, worldState.player)
+            }.getOrElse {
+                println("Warning: NPC dialogue generation failed: ${it.message}")
+                null
+            }
+
+            if (reply != null) {
+                emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
+            }
+        } else {
+            val fallbackResponse = if (npc.isHostile) {
+                "${npc.name} scowls and refuses to answer."
+            } else {
+                "${npc.name} listens quietly."
+            }
+            emitEvent(GameEvent.Narrative(fallbackResponse))
+        }
+
+        trackQuests(QuestAction.TalkedToNPC(npc.id))
+    }
+
+    private fun resolveNpcTarget(room: Room, npcTarget: String?): Entity.NPC? {
+        val candidates = room.entities.filterIsInstance<Entity.NPC>()
+        if (npcTarget != null) {
+            val lower = npcTarget.lowercase()
+            val explicit = candidates.find {
+                it.name.lowercase().contains(lower) || it.id.lowercase().contains(lower)
+            }
+            if (explicit != null) {
+                return explicit
+            }
+        }
+
+        val recentId = lastConversationNpcId
+        if (recentId != null) {
+            return candidates.find { it.id == recentId }
+        }
+
+        return null
+    }
+
+    private fun isQuestion(text: String): Boolean {
+        val trimmed = text.trim()
+        if (trimmed.endsWith("?")) return true
+
+        val lower = trimmed.lowercase()
+        val questionPrefixes = listOf(
+            "who", "what", "where", "when", "why", "how",
+            "can", "will", "is", "are", "am",
+            "do", "does", "did",
+            "should", "could", "would",
+            "have", "has", "had",
+            "tell me", "explain", "describe"
+        )
+
+        return questionPrefixes.any { lower.startsWith(it) }
     }
 
     private fun handleSave(saveName: String) {

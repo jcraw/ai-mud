@@ -78,6 +78,14 @@ sealed class Intent {
     data class Talk(val target: String) : Intent()
 
     /**
+     * Say something out loud, optionally to a specific NPC
+     * @param message The content of the speech
+     * @param npcTarget Optional NPC being addressed
+     */
+    @Serializable
+    data class Say(val message: String, val npcTarget: String? = null) : Intent()
+
+    /**
      * Attack an NPC or continue attacking in combat
      * @param target The name/identifier of the NPC to attack (optional if already in combat)
      */
