@@ -1030,3 +1030,76 @@ The All Playthroughs test validates the entire game balance by running all three
 **Status**: ✅ **PHASE 7 COMPLETE** - Procedural NPCs now have rich social components, ready for Phase 8 (Quest/Memory Integration)
 
 **Next Steps**: Phase 8 - Quest System Integration (Add disposition bonuses on quest completion)
+
+## Skill System V2 - Phase 1: Foundation - Core Data Models (2025-10-20) 🎯
+
+**Feature**: Immutable data structures for skills, perks, and skill events with use-based progression
+
+✅ **SkillState** - Core skill progression data model with XP and leveling mechanics
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt`
+  - Fields: level, xp, unlocked, tags, perks, resourceType, tempBuffs
+  - XP formula: `if (level <= 100) 100 * level^2 else 100 * level^2 * (level / 100)^1.5`
+  - Methods: addXp(), unlock(), getEffectiveLevel(), applyBuff(), clearBuffs(), addPerk()
+  - Perk milestone tracking: every 10 levels
+  - Immutable copy-on-update semantics for all state changes
+
+✅ **Perk and PerkType** - Milestone reward system
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt`
+  - Perk data class with name, description, type, effectData
+  - PerkType enum: ABILITY (active abilities), PASSIVE (passive effects)
+  - Flexible effectData map for varied perk effects
+  - Player chooses 1 of 2 perks every 10 skill levels
+
+✅ **SkillComponent** - Entity skill container with component system integration
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SkillComponent.kt`
+  - Implements Component interface from ECS pattern
+  - Stores Map<String, SkillState> for all entity skills
+  - Helper methods: getSkill(), hasSkill(), getEffectiveLevel(), updateSkill()
+  - Query methods: getUnlockedSkills(), getSkillsByTag(), getSkillsWithPendingPerks()
+  - Resource pool calculation based on skill levels (e.g., Mana Reserve * 10)
+
+✅ **SkillEvent Sealed Class** - Event-driven skill progression tracking
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/SkillEvent.kt`
+  - 5 event types: SkillUnlocked, XpGained, LevelUp, PerkUnlocked, SkillCheckAttempt
+  - All events include entityId, skillName, eventType, timestamp
+  - Designed for logging, analytics, and RAG memory integration
+  - Serializable for database persistence
+
+✅ **ComponentType.SKILL** - Skill component already registered in enum
+  - File: `core/src/main/kotlin/com/jcraw/mud/core/Component.kt`
+  - SKILL enum value present in ComponentType
+  - No changes needed - already set up from social system
+
+✅ **Comprehensive Unit Tests** - 34 behavioral tests for SkillState
+  - File: `core/src/test/kotlin/com/jcraw/mud/core/SkillStateTest.kt`
+  - XP calculation tests (levels 1, 10, 50, 100, 101, 200)
+  - Level-up threshold detection and multi-level jumps
+  - Unlock logic and immutability verification
+  - Effective level with buffs
+  - Perk milestone detection and pending choices
+  - Edge cases: zero XP, negative XP, resource types, tags
+  - All 34 tests passing
+
+**XP Progression Design**:
+- **Early game** (L1-L10): ~5,000 XP total - accessible progression
+- **Mid game** (L50-L60): ~185,000 XP per level - meaningful grind
+- **Late game** (L100+): Millions of XP per level - infinite scaling
+- **Godlike progression**: No hard caps, exponential scaling after L100
+
+**Perk Milestone System**:
+- Every 10 levels: player chooses 1 of 2 perks
+- hasPendingPerkChoice() detects unclaimed perks
+- Perks stored in SkillState for persistence
+
+**Phase 1 Deliverables Complete**:
+1. ✅ SkillState.kt - XP calculation, leveling, buffs, perks (134 lines)
+2. ✅ SkillComponent.kt - Skill container for entities (100 lines)
+3. ✅ SkillEvent.kt - Event hierarchy for skill tracking (82 lines)
+4. ✅ SkillStateTest.kt - 34 comprehensive unit tests
+5. ✅ ComponentType.SKILL already present
+
+**Build Status**: ✅ All core module tests passing (127 tests = 93 existing + 34 new)
+
+**Status**: ✅ **PHASE 1 COMPLETE** - Foundation ready for Phase 2 (Database Layer)
+
+**Next Steps**: Phase 2 - Database Layer (SkillDatabase, SQLiteSkillRepository, SQLiteSkillComponentRepository with 3-table schema)
