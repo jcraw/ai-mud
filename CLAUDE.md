@@ -74,8 +74,13 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-2. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+1. **Skill System V2** - Use-based progression with infinite growth, multi-skill combos, perks, resources
+   - See [Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md) for complete architecture and 12-phase roadmap
+   - Estimated: 25-35 hours across 12 phases
+   - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
+   - 30+ predefined skills, perk choices every 10 levels, resource management (mana/chi), resistance skills
+2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
 ## Commands
 
@@ -237,6 +242,7 @@ See [Multi-User Documentation](docs/MULTI_USER.md) for complete details.
 - **[Client UI](docs/CLIENT_UI.md)** - GUI client documentation and usage
 - **[Architecture](docs/ARCHITECTURE.md)** - Module structure, data flow, file locations
 - **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
+- **[Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md)** - Complete architecture and roadmap for V2 skill system
 - **[Testing Strategy](docs/TESTING.md)** - Comprehensive testing guide, test organization, migration plan
 - **[Implementation Log](docs/IMPLEMENTATION_LOG.md)** - Chronological feature list
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
