@@ -325,7 +325,7 @@ class DispositionManager(
             val unlockResult = manager.unlockSkill(
                 playerId,
                 skillName,
-                com.jcraw.mud.reasoning.skill.UnlockMethod.Training
+                com.jcraw.mud.reasoning.skill.UnlockMethod.Training(npc.id)
             )
 
             if (unlockResult.isFailure) {

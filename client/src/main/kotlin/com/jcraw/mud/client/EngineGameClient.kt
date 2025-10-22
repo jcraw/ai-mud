@@ -1172,7 +1172,41 @@ class EngineGameClient(
     }
 
     private fun handleChoosePerk(skillName: String, choice: Int) {
-        emitEvent(GameEvent.System("You attempt to choose a perk for $skillName, but perk choices are not yet implemented.\nPerk selection will be added in Phase 11.", GameEvent.MessageLevel.INFO))
+        // Get skill component to check skill state
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        val skillState = component.getSkill(skillName)
+
+        if (skillState == null) {
+            emitEvent(GameEvent.System("You don't have the skill '$skillName'. Train it first!", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Get available perk choices at current level
+        val availablePerks = perkSelector.getPerkChoices(skillName, skillState.level)
+
+        if (availablePerks.isEmpty()) {
+            emitEvent(GameEvent.System("No perk choices available for $skillName at level ${skillState.level}.", GameEvent.MessageLevel.INFO))
+            return
+        }
+
+        // Validate choice (1-based index)
+        if (choice < 1 || choice > availablePerks.size) {
+            emitEvent(GameEvent.System("Invalid choice. Please choose a number between 1 and ${availablePerks.size}.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Convert to 0-based index and get chosen perk
+        val chosenPerk = availablePerks[choice - 1]
+
+        // Attempt to select the perk
+        val event = perkSelector.selectPerk(worldState.player.id, skillName, chosenPerk)
+
+        if (event != null) {
+            val message = com.jcraw.mud.action.SkillFormatter.formatPerkUnlocked(chosenPerk.name, skillName)
+            emitEvent(GameEvent.Narrative(message))
+        } else {
+            emitEvent(GameEvent.System("Failed to unlock perk. You may not have a pending perk choice for this skill.", GameEvent.MessageLevel.ERROR))
+        }
     }
 
     private fun handleViewSkills() {

@@ -777,8 +777,41 @@ class InMemoryGameEngine(
             return "Skills are not available in this mode."
         }
 
-        // Perk choice not yet implemented - will be added in Phase 11
-        return "You attempt to choose a perk for $skillName, but perk choices are not yet implemented."
+        // Get skill component to check skill state
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        val skillState = component.getSkill(skillName)
+
+        if (skillState == null) {
+            return "You don't have the skill '$skillName'. Train it first!"
+        }
+
+        // Get available perk choices at current level
+        val perkSelector = com.jcraw.mud.reasoning.skill.PerkSelector(
+            skillManager.getSkillComponentRepository(),
+            memoryManager
+        )
+        val availablePerks = perkSelector.getPerkChoices(skillName, skillState.level)
+
+        if (availablePerks.isEmpty()) {
+            return "No perk choices available for $skillName at level ${skillState.level}."
+        }
+
+        // Validate choice (1-based index)
+        if (choice < 1 || choice > availablePerks.size) {
+            return "Invalid choice. Please choose a number between 1 and ${availablePerks.size}."
+        }
+
+        // Convert to 0-based index and get chosen perk
+        val chosenPerk = availablePerks[choice - 1]
+
+        // Attempt to select the perk
+        val event = perkSelector.selectPerk(worldState.player.id, skillName, chosenPerk)
+
+        return if (event != null) {
+            com.jcraw.mud.action.SkillFormatter.formatPerkUnlocked(chosenPerk.name, skillName)
+        } else {
+            "Failed to unlock perk. You may not have a pending perk choice for this skill."
+        }
     }
 
     private fun handleViewSkills(): String {

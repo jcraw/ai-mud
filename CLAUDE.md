@@ -93,7 +93,7 @@ Priority tasks:
      - ✅ Wired SkillManager into EngineGameClient.kt (GUI) - skill system components initialized
      - ✅ Added Intent.UseSkill, Intent.TrainSkill, Intent.ChoosePerk, Intent.ViewSkills handlers to all 3 implementations
      - ✅ ViewSkills command functional - displays formatted skill sheet using SkillFormatter
-   - **Phase 11 IN PROGRESS** ⏳ - Full Game Loop Integration (2/5 complete)
+   - **Phase 11 IN PROGRESS** ⏳ - Full Game Loop Integration (3/5 complete)
      - ✅ **UseSkill handler implemented** - skill checks, XP rewards, action inference
        - All 3 implementations (console, GUI, testbot) now support skill usage
        - Players can use skills with natural language (e.g., "cast fireball", "pick lock")
@@ -113,10 +113,17 @@ Priority tasks:
        - Parses NPC names from method strings ("with knight", "at guard", etc.)
        - Full integration with social system disposition tracking
        - Uses DispositionManager.trainSkillWithNPC() for all training logic
-     - ⏳ TODO: Implement ChoosePerk handler - perk selection at milestone levels
+     - ✅ **ChoosePerk handler implemented** - perk selection at milestone levels
+       - All 3 implementations (console, GUI, testbot) now support perk selection
+       - Players choose perks using "choose perk [1-2] for <skill>" command
+       - Validates choice is in range (1-based index)
+       - Uses PerkSelector to select and persist chosen perk
+       - Displays confirmation message using SkillFormatter
+       - Added SkillManager.getSkillComponentRepository() method for PerkSelector access
+       - Full integration with perk system (30+ predefined perks across 18 skills)
      - ⏳ TODO: Add GUI elements for skill display and perk selection in client UI
      - ⏳ TODO: Integration testing for all skill system features
-   - Estimated: 1.0-2.0 hours remaining for Phase 11
+   - Estimated: 0.5-1.0 hours remaining for Phase 11
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 36 predefined skills (6 stats, 6 combat, 5 rogue, 7 elemental magic, 3 advanced magic, 4 resources, 3 resistances, 2 utility)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
@@ -238,6 +245,7 @@ Memory (store for RAG)
 - **Consumables**: `use/consume/drink/eat <item>` to use healing potions
 - **Skill checks**: `check/test <feature>` to attempt skill checks
 - **Social**: `persuade/convince <npc>` and `intimidate/threaten <npc>` for CHA checks, `smile/wave/nod/shrug/laugh/cry/bow [at <npc>]` for emotes, `ask <npc> about <topic>` to ask questions
+- **Skills**: `skills` to view skill sheet, `use <skill>` or natural language (e.g., "cast fireball"), `train <skill> with <npc>` to learn from NPCs, `choose perk <1-2> for <skill>` to select perks at milestones
 - **Quests**: `quests/journal/j` to view quests, `accept <id>`, `abandon <id>`, `claim <id>`
 - **Persistence**: `save [name]` to save, `load [name]` to load
 - **Meta**: `help`, `quit`

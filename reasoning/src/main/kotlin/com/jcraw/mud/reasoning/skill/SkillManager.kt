@@ -427,4 +427,11 @@ class SkillManager(
             memoryManager.recall(query, k)
         }
     }
+
+    /**
+     * Get the component repository (for PerkSelector creation)
+     */
+    fun getSkillComponentRepository(): SkillComponentRepository {
+        return componentRepo
+    }
 }

@@ -1462,8 +1462,41 @@ class MudGame(
     }
 
     private fun handleChoosePerk(skillName: String, choice: Int) {
-        println("\nYou attempt to choose a perk for $skillName, but perk choices are not yet implemented.")
-        println("Perk selection will be added in Phase 11.")
+        // Get skill component to check skill state
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        val skillState = component.getSkill(skillName)
+
+        if (skillState == null) {
+            println("\nYou don't have the skill '$skillName'. Train it first!")
+            return
+        }
+
+        // Get available perk choices at current level
+        val availablePerks = perkSelector.getPerkChoices(skillName, skillState.level)
+
+        if (availablePerks.isEmpty()) {
+            println("\nNo perk choices available for $skillName at level ${skillState.level}.")
+            return
+        }
+
+        // Validate choice (1-based index)
+        if (choice < 1 || choice > availablePerks.size) {
+            println("\nInvalid choice. Please choose a number between 1 and ${availablePerks.size}.")
+            return
+        }
+
+        // Convert to 0-based index and get chosen perk
+        val chosenPerk = availablePerks[choice - 1]
+
+        // Attempt to select the perk
+        val event = perkSelector.selectPerk(worldState.player.id, skillName, chosenPerk)
+
+        if (event != null) {
+            val message = com.jcraw.mud.action.SkillFormatter.formatPerkUnlocked(chosenPerk.name, skillName)
+            println("\n$message")
+        } else {
+            println("\nFailed to unlock perk. You may not have a pending perk choice for this skill.")
+        }
     }
 
     private fun handleViewSkills() {
