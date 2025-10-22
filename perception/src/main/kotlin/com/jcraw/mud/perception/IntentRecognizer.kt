@@ -145,6 +145,10 @@ Valid intent types:
 - "claim_reward" - Claim quest reward (requires target quest ID)
 - "emote" - Express emotion/action (requires "target" for emote type like smile/wave/nod/shrug/laugh/cry/bow, optional "npc_target" for directed emotes like "smile at guard")
 - "ask_question" - Ask NPC about topic (requires "npc_target" for NPC and "target" for topic, e.g., "ask guard about castle")
+- "use_skill" - Perform skill-based action (requires "target" for action description like "cast fireball" or "pick the lock", optional "skill_name" if skill can be inferred)
+- "train_skill" - Train with NPC mentor (requires "target" for skill name and "npc_target" for training method/NPC like "with the knight")
+- "choose_perk" - Select perk at milestone (requires "target" for skill name and "perk_choice" for choice number 1-2)
+- "view_skills" - Display skill sheet (no target, triggered by "skills", "skill sheet", "abilities", "show skills", etc.)
 - "help" - Show help (no target)
 - "quit" - Quit game (no target)
 - "invalid" - Unable to parse or unknown command (use "reason" to explain)
@@ -170,6 +174,10 @@ Important parsing rules:
 15. For attack/talk/persuade/intimidate with NPCs, extract ANY word from the player's input that could identify the NPC
 16. For equip/use/take/drop with items, extract ANY word from the player's input that could identify the item
 17. "say" or dialogue lines should map to the "say" intent with the spoken words in "target" and optional NPC in "npc_target"
+18. SKILL USAGE: Actions like "cast fireball", "pick the lock", "sneak past guard" → use_skill with action in "target"
+19. SKILL TRAINING: "train sword fighting with knight", "practice magic with wizard" → train_skill with skill in "target" and method/NPC in "npc_target"
+20. PERK SELECTION: "choose perk 1 for sword fighting", "select second perk for fire magic" → choose_perk with skill in "target" and choice in "perk_choice"
+21. VIEW SKILLS: "skills", "skill sheet", "show skills", "abilities", "character sheet" → view_skills (no target)
 
 Response format (JSON only, no markdown):
 {
@@ -226,10 +234,14 @@ Response format (JSON only, no markdown):
             val intentMatch = Regex(""""intent"\s*:\s*"([^"]+)"""").find(jsonText)
             val targetMatch = Regex(""""target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
             val npcTargetMatch = Regex(""""npc_target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
+            val skillNameMatch = Regex(""""skill_name"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
+            val perkChoiceMatch = Regex(""""perk_choice"\s*:\s*(\d+)""").find(jsonText)
 
             val intentType = intentMatch?.groupValues?.get(1) ?: return Intent.Invalid("Unknown command")
             val target = targetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
             val npcTarget = npcTargetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val skillName = skillNameMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val perkChoice = perkChoiceMatch?.groupValues?.getOrNull(1)?.toIntOrNull()
 
             return when (intentType.lowercase()) {
                 "move" -> {
@@ -287,6 +299,32 @@ Response format (JSON only, no markdown):
                         Intent.Invalid("Ask about what?")
                     }
                 }
+                "use_skill" -> {
+                    if (target != null) {
+                        Intent.UseSkill(skillName, target)
+                    } else {
+                        Intent.Invalid("Use what skill for what action?")
+                    }
+                }
+                "train_skill" -> {
+                    if (target != null && npcTarget != null) {
+                        Intent.TrainSkill(target, npcTarget)
+                    } else if (target == null) {
+                        Intent.Invalid("Train which skill?")
+                    } else {
+                        Intent.Invalid("Train with whom or how?")
+                    }
+                }
+                "choose_perk" -> {
+                    if (target != null && perkChoice != null) {
+                        Intent.ChoosePerk(target, perkChoice)
+                    } else if (target == null) {
+                        Intent.Invalid("Choose perk for which skill?")
+                    } else {
+                        Intent.Invalid("Choose which perk (1 or 2)?")
+                    }
+                }
+                "view_skills" -> Intent.ViewSkills
                 "help" -> Intent.Help
                 "quit" -> Intent.Quit
                 "invalid" -> Intent.Invalid("Unknown command: ${originalInput.take(50)}. Type 'help' for available commands.")
@@ -528,6 +566,63 @@ Response format (JSON only, no markdown):
                     }
                 }
             }
+            "cast", "invoke", "channel" -> {
+                // Magic skill usage: "cast fireball", "invoke shield"
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Cast what?")
+                } else {
+                    Intent.UseSkill(null, "$command $args")
+                }
+            }
+            "pick", "lockpick" -> {
+                // Lockpicking: "pick lock", "lockpick door"
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Pick what?")
+                } else {
+                    Intent.UseSkill(null, "$command $args")
+                }
+            }
+            "sneak", "stealth", "hide" -> {
+                // Stealth usage: "sneak past guard", "hide in shadows"
+                Intent.UseSkill(null, if (args.isNullOrBlank()) command else "$command $args")
+            }
+            "train", "practice" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Train what skill?")
+                } else {
+                    // Parse "train sword fighting with knight" or "practice magic with wizard"
+                    val parts = args.split(Regex("\\s+with\\s+|\\s+at\\s+"), limit = 2)
+                    if (parts.size < 2) {
+                        Intent.Invalid("Train with whom or how?")
+                    } else {
+                        Intent.TrainSkill(parts[0].trim(), parts[1].trim())
+                    }
+                }
+            }
+            "choose", "select" -> {
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Choose what?")
+                } else if (args.lowercase().contains("perk")) {
+                    // Parse "choose perk 1 for sword fighting" or "select perk 2"
+                    val perkMatch = Regex("perk\\s+(\\d+)\\s+for\\s+(.+)", RegexOption.IGNORE_CASE).find(args)
+                        ?: Regex("perk\\s+(\\d+)", RegexOption.IGNORE_CASE).find(args)
+
+                    if (perkMatch != null) {
+                        val choice = perkMatch.groupValues[1].toIntOrNull() ?: 1
+                        val skillName = perkMatch.groupValues.getOrNull(2)?.trim() ?: ""
+                        if (skillName.isEmpty()) {
+                            Intent.Invalid("Choose perk for which skill?")
+                        } else {
+                            Intent.ChoosePerk(skillName, choice)
+                        }
+                    } else {
+                        Intent.Invalid("Choose which perk (1 or 2)?")
+                    }
+                } else {
+                    Intent.Invalid("Choose what?")
+                }
+            }
+            "skills", "abilities", "sheet" -> Intent.ViewSkills
             "inventory", "i" -> Intent.Inventory
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit

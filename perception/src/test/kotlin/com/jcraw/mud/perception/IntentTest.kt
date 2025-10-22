@@ -106,6 +106,10 @@ class IntentTest {
             Intent.Say("Hello", "npc"),
             Intent.Emote("smile", null),
             Intent.AskQuestion("guard", "castle"),
+            Intent.UseSkill("Fire Magic", "cast fireball"),
+            Intent.TrainSkill("Sword Fighting", "with knight"),
+            Intent.ChoosePerk("Magic", 1),
+            Intent.ViewSkills,
             Intent.Help,
             Intent.Quit,
             Intent.Invalid("test")
@@ -203,5 +207,81 @@ class IntentTest {
         assertEquals(Intent.Emote("wave", "guard"), Intent.Emote("wave", "guard"))
         assertEquals(Intent.AskQuestion("merchant", "wares"), Intent.AskQuestion("merchant", "wares"))
         assertEquals(Intent.Help, Intent.Help)
+    }
+
+    // Skill System Intent Tests
+
+    @Test
+    fun `UseSkill intent with explicit skill name`() {
+        val intent = Intent.UseSkill("Fire Magic", "cast fireball")
+        assertEquals("Fire Magic", intent.skill)
+        assertEquals("cast fireball", intent.action)
+    }
+
+    @Test
+    fun `UseSkill intent with inferred skill name`() {
+        val intent = Intent.UseSkill(null, "pick the lock")
+        assertEquals(null, intent.skill)
+        assertEquals("pick the lock", intent.action)
+    }
+
+    @Test
+    fun `TrainSkill intent requires skill and method`() {
+        val intent = Intent.TrainSkill("Sword Fighting", "with the knight")
+        assertEquals("Sword Fighting", intent.skill)
+        assertEquals("with the knight", intent.method)
+    }
+
+    @Test
+    fun `ChoosePerk intent requires skill and choice number`() {
+        val intent = Intent.ChoosePerk("Fire Magic", 1)
+        assertEquals("Fire Magic", intent.skillName)
+        assertEquals(1, intent.choice)
+    }
+
+    @Test
+    fun `ChoosePerk intent accepts choice 2`() {
+        val intent = Intent.ChoosePerk("Sword Fighting", 2)
+        assertEquals("Sword Fighting", intent.skillName)
+        assertEquals(2, intent.choice)
+    }
+
+    @Test
+    fun `ViewSkills intent is singleton`() {
+        val skills1 = Intent.ViewSkills
+        val skills2 = Intent.ViewSkills
+        assertTrue(skills1 === skills2)
+    }
+
+    @Test
+    fun `UseSkill intent serializes correctly`() {
+        val intent = Intent.UseSkill("Lockpicking", "pick the ancient lock")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("Lockpicking"))
+        assertTrue(json.contains("pick the ancient lock"))
+    }
+
+    @Test
+    fun `TrainSkill intent serializes correctly`() {
+        val intent = Intent.TrainSkill("Diplomacy", "with the merchant")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("Diplomacy"))
+        assertTrue(json.contains("with the merchant"))
+    }
+
+    @Test
+    fun `ChoosePerk intent serializes correctly`() {
+        val intent = Intent.ChoosePerk("Bow Accuracy", 1)
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("Bow Accuracy"))
+        assertTrue(json.contains("1"))
+    }
+
+    @Test
+    fun `Skill intents have correct equality behavior`() {
+        assertEquals(Intent.UseSkill("Fire Magic", "cast"), Intent.UseSkill("Fire Magic", "cast"))
+        assertEquals(Intent.TrainSkill("Sword", "knight"), Intent.TrainSkill("Sword", "knight"))
+        assertEquals(Intent.ChoosePerk("Magic", 1), Intent.ChoosePerk("Magic", 1))
+        assertEquals(Intent.ViewSkills, Intent.ViewSkills)
     }
 }

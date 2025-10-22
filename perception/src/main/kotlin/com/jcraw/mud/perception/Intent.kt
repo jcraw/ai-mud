@@ -185,6 +185,36 @@ sealed class Intent {
     data class AskQuestion(val npcTarget: String, val topic: String) : Intent()
 
     /**
+     * Use a skill to perform an action
+     * @param skill The skill name to use (null if needs to be inferred from action)
+     * @param action The action description (e.g., "cast fireball", "pick the lock")
+     */
+    @Serializable
+    data class UseSkill(val skill: String?, val action: String) : Intent()
+
+    /**
+     * Train a skill with an NPC mentor
+     * @param skill The skill name to train
+     * @param method The training method description (e.g., "with the knight", "at the training dummy")
+     */
+    @Serializable
+    data class TrainSkill(val skill: String, val method: String) : Intent()
+
+    /**
+     * Choose a perk at a skill milestone
+     * @param skillName The skill name for which to choose a perk
+     * @param choice The perk choice number (1 or 2)
+     */
+    @Serializable
+    data class ChoosePerk(val skillName: String, val choice: Int) : Intent()
+
+    /**
+     * View the player's skill sheet
+     */
+    @Serializable
+    data object ViewSkills : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable
