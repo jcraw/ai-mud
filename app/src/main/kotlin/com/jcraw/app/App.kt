@@ -154,6 +154,13 @@ class MudGame(
     private val npcKnowledgeManager = com.jcraw.mud.reasoning.NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
     private val questTracker = QuestTracker(dispositionManager)
 
+    // Skill system components
+    private val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase("skills.db")
+    private val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
+    private val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
+    private val skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
+    private val perkSelector = com.jcraw.mud.reasoning.skill.PerkSelector(skillComponentRepo, memoryManager)
+
     fun start() {
         printWelcome()
         describeCurrentRoom()
@@ -251,6 +258,10 @@ class MudGame(
             is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
             is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
+            is Intent.UseSkill -> handleUseSkill(intent.skill, intent.action)
+            is Intent.TrainSkill -> handleTrainSkill(intent.skill, intent.method)
+            is Intent.ChoosePerk -> handleChoosePerk(intent.skillName, intent.choice)
+            is Intent.ViewSkills -> handleViewSkills()
             is Intent.Save -> handleSave(intent.saveName)
             is Intent.Load -> handleLoad(intent.saveName)
             is Intent.Quests -> handleQuests()
@@ -1312,6 +1323,26 @@ class MudGame(
 
         println("\n${npc.name} says: \"$answer\"")
         trackQuests(QuestAction.TalkedToNPC(npc.id))
+    }
+
+    private fun handleUseSkill(skill: String?, action: String) {
+        println("\nYou attempt to $action, but skills are not yet fully implemented.")
+        println("Skill system will be fully integrated in Phase 11.")
+    }
+
+    private fun handleTrainSkill(skill: String, method: String) {
+        println("\nYou attempt to train $skill $method, but training is not yet implemented.")
+        println("Skill training will be added in Phase 11.")
+    }
+
+    private fun handleChoosePerk(skillName: String, choice: Int) {
+        println("\nYou attempt to choose a perk for $skillName, but perk choices are not yet implemented.")
+        println("Perk selection will be added in Phase 11.")
+    }
+
+    private fun handleViewSkills() {
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        println("\n" + com.jcraw.mud.action.SkillFormatter.formatSkillSheet(component))
     }
 
     private fun handleSave(saveName: String) {

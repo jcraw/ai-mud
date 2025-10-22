@@ -56,6 +56,13 @@ class EngineGameClient(
     private val emoteHandler: EmoteHandler
     private val npcKnowledgeManager: NPCKnowledgeManager
 
+    // Skill system components
+    private val skillDatabase: com.jcraw.mud.memory.skill.SkillDatabase
+    private val skillRepo: com.jcraw.mud.memory.skill.SQLiteSkillRepository
+    private val skillComponentRepo: com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository
+    private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager
+    private val perkSelector: com.jcraw.mud.reasoning.skill.PerkSelector
+
     init {
         // Initialize social system components
         socialDatabase = SocialDatabase("client_social.db")
@@ -78,6 +85,13 @@ class EngineGameClient(
         dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
         emoteHandler = EmoteHandler(dispositionManager)
         npcKnowledgeManager = NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
+
+        // Initialize skill system components
+        skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase("client_skills.db")
+        skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
+        skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
+        skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
+        perkSelector = com.jcraw.mud.reasoning.skill.PerkSelector(skillComponentRepo, memoryManager)
 
         combatResolver = CombatResolver()
         skillCheckResolver = SkillCheckResolver()
@@ -246,6 +260,10 @@ class EngineGameClient(
             is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
             is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
+            is Intent.UseSkill -> handleUseSkill(intent.skill, intent.action)
+            is Intent.TrainSkill -> handleTrainSkill(intent.skill, intent.method)
+            is Intent.ChoosePerk -> handleChoosePerk(intent.skillName, intent.choice)
+            is Intent.ViewSkills -> handleViewSkills()
             is Intent.Save -> handleSave(intent.saveName)
             is Intent.Load -> handleLoad(intent.saveName)
             is Intent.Quests -> handleQuests()
@@ -1010,6 +1028,24 @@ class EngineGameClient(
 
         emitEvent(GameEvent.Narrative("${npc.name} says: \"$answer\""))
         trackQuests(QuestAction.TalkedToNPC(npc.id))
+    }
+
+    private fun handleUseSkill(skill: String?, action: String) {
+        emitEvent(GameEvent.System("You attempt to $action, but skills are not yet fully implemented.\nSkill system will be fully integrated in Phase 11.", GameEvent.MessageLevel.INFO))
+    }
+
+    private fun handleTrainSkill(skill: String, method: String) {
+        emitEvent(GameEvent.System("You attempt to train $skill $method, but training is not yet implemented.\nSkill training will be added in Phase 11.", GameEvent.MessageLevel.INFO))
+    }
+
+    private fun handleChoosePerk(skillName: String, choice: Int) {
+        emitEvent(GameEvent.System("You attempt to choose a perk for $skillName, but perk choices are not yet implemented.\nPerk selection will be added in Phase 11.", GameEvent.MessageLevel.INFO))
+    }
+
+    private fun handleViewSkills() {
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        val formattedSkillSheet = com.jcraw.mud.action.SkillFormatter.formatSkillSheet(component)
+        emitEvent(GameEvent.Narrative(formattedSkillSheet))
     }
 
     private suspend fun handleSay(message: String, npcTarget: String?) {

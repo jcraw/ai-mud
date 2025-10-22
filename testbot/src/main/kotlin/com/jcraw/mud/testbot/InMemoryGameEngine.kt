@@ -24,7 +24,8 @@ class InMemoryGameEngine(
     private val llmClient: LLMClient? = null,
     private val emoteHandler: EmoteHandler? = null,
     private val knowledgeManager: NPCKnowledgeManager? = null,
-    private val dispositionManager: DispositionManager? = null
+    private val dispositionManager: DispositionManager? = null,
+    private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager? = null
 ) : GameEngineInterface {
 
     private var worldState: WorldState = initialWorldState
@@ -73,6 +74,10 @@ class InMemoryGameEngine(
             is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
             is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
+            is Intent.UseSkill -> handleUseSkill(intent.skill, intent.action)
+            is Intent.TrainSkill -> handleTrainSkill(intent.skill, intent.method)
+            is Intent.ChoosePerk -> handleChoosePerk(intent.skillName, intent.choice)
+            is Intent.ViewSkills -> handleViewSkills()
             is Intent.Help -> handleHelp()
             is Intent.Quit -> handleQuit()
             is Intent.Invalid -> intent.message
@@ -624,7 +629,43 @@ class InMemoryGameEngine(
         return "${npc.name} says: \"$answer\"" + questNotifications
     }
 
-    private fun handleHelp(): String = "Available commands: move, look, inventory, take, drop, talk, attack, equip, use, check, persuade, intimidate, emote, ask, quit"
+    private fun handleUseSkill(skill: String?, action: String): String {
+        if (skillManager == null) {
+            return "Skills are not available in this mode."
+        }
+
+        // For now, simple fallback - skill system usage will be fully implemented in Phase 11
+        return "You attempt to $action, but skills are not yet fully implemented."
+    }
+
+    private fun handleTrainSkill(skill: String, method: String): String {
+        if (skillManager == null) {
+            return "Skills are not available in this mode."
+        }
+
+        // Training not yet implemented - will be added in Phase 11
+        return "You attempt to train $skill $method, but training is not yet implemented."
+    }
+
+    private fun handleChoosePerk(skillName: String, choice: Int): String {
+        if (skillManager == null) {
+            return "Skills are not available in this mode."
+        }
+
+        // Perk choice not yet implemented - will be added in Phase 11
+        return "You attempt to choose a perk for $skillName, but perk choices are not yet implemented."
+    }
+
+    private fun handleViewSkills(): String {
+        if (skillManager == null) {
+            return "Skills are not available in this mode."
+        }
+
+        val component = skillManager.getSkillComponent(worldState.player.id)
+        return com.jcraw.mud.action.SkillFormatter.formatSkillSheet(component)
+    }
+
+    private fun handleHelp(): String = "Available commands: move, look, inventory, take, drop, talk, attack, equip, use, check, persuade, intimidate, emote, ask, skills, quit"
 
     private fun handleQuit(): String {
         running = false
