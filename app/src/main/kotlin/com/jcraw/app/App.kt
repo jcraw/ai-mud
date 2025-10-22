@@ -24,6 +24,7 @@ import com.jcraw.mud.memory.social.SocialDatabase
 import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
 import com.jcraw.mud.memory.social.SqliteSocialEventRepository
 import com.jcraw.mud.reasoning.DispositionManager
+import com.jcraw.mud.action.SkillFormatter
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -1493,7 +1494,7 @@ class MudGame(
         val event = perkSelector.selectPerk(worldState.player.id, skillName, chosenPerk)
 
         if (event != null) {
-            val message = com.jcraw.mud.action.SkillFormatter.formatPerkUnlocked(chosenPerk.name, skillName)
+            val message = SkillFormatter.formatPerkUnlocked(chosenPerk.name, skillName)
             println("\n$message")
         } else {
             println("\nFailed to unlock perk. You may not have a pending perk choice for this skill.")
@@ -1502,7 +1503,7 @@ class MudGame(
 
     private fun handleViewSkills() {
         val component = skillManager.getSkillComponent(worldState.player.id)
-        println("\n" + com.jcraw.mud.action.SkillFormatter.formatSkillSheet(component))
+        println("\n" + SkillFormatter.formatSkillSheet(component))
     }
 
     private fun handleSave(saveName: String) {
