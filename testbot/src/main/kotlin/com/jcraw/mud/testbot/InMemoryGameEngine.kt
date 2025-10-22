@@ -724,12 +724,52 @@ class InMemoryGameEngine(
     }
 
     private fun handleTrainSkill(skill: String, method: String): String {
-        if (skillManager == null) {
+        if (skillManager == null || dispositionManager == null) {
             return "Skills are not available in this mode."
         }
 
-        // Training not yet implemented - will be added in Phase 11
-        return "You attempt to train $skill $method, but training is not yet implemented."
+        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+
+        // Parse NPC name from method string (e.g., "with the knight" → "knight")
+        val npcName = method.lowercase()
+            .removePrefix("with ")
+            .removePrefix("the ")
+            .removePrefix("at ")
+            .removePrefix("from ")
+            .trim()
+
+        if (npcName.isBlank()) {
+            return "Train with whom? Use 'train <skill> with <npc>'."
+        }
+
+        // Find NPC in room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find {
+                it.name.lowercase().contains(npcName) ||
+                it.id.lowercase().contains(npcName)
+            }
+
+        if (npc == null) {
+            return "There's no one here by that name to train with."
+        }
+
+        // Attempt training via DispositionManager
+        val trainingResult = dispositionManager.trainSkillWithNPC(
+            worldState.player.id,
+            npc,
+            skill
+        )
+
+        return trainingResult.fold(
+            onSuccess = { message ->
+                // Update world state with any NPC changes (disposition)
+                worldState = worldState.replaceEntity(room.id, npc.id, npc) ?: worldState
+                message
+            },
+            onFailure = { error ->
+                error.message ?: "Training failed"
+            }
+        )
     }
 
     private fun handleChoosePerk(skillName: String, choice: Int): String {

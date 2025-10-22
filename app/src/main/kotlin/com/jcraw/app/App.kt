@@ -1417,8 +1417,48 @@ class MudGame(
     }
 
     private fun handleTrainSkill(skill: String, method: String) {
-        println("\nYou attempt to train $skill $method, but training is not yet implemented.")
-        println("Skill training will be added in Phase 11.")
+        val room = worldState.getCurrentRoom() ?: return
+
+        // Parse NPC name from method string (e.g., "with the knight" → "knight")
+        val npcName = method.lowercase()
+            .removePrefix("with ")
+            .removePrefix("the ")
+            .removePrefix("at ")
+            .removePrefix("from ")
+            .trim()
+
+        if (npcName.isBlank()) {
+            println("\nTrain with whom? Use 'train <skill> with <npc>'.")
+            return
+        }
+
+        // Find NPC in room
+        val npc = room.entities.filterIsInstance<Entity.NPC>()
+            .find {
+                it.name.lowercase().contains(npcName) ||
+                it.id.lowercase().contains(npcName)
+            }
+
+        if (npc == null) {
+            println("\nThere's no one here by that name to train with.")
+            return
+        }
+
+        // Attempt training via DispositionManager
+        val trainingResult = dispositionManager.trainSkillWithNPC(
+            worldState.player.id,
+            npc,
+            skill
+        )
+
+        trainingResult.onSuccess { message ->
+            println("\n$message")
+
+            // Update world state with any NPC changes (disposition)
+            worldState = worldState.replaceEntity(room.id, npc.id, npc) ?: worldState
+        }.onFailure { error ->
+            println("\n${error.message}")
+        }
     }
 
     private fun handleChoosePerk(skillName: String, choice: Int) {
