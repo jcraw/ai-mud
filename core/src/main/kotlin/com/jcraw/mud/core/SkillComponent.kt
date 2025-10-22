@@ -31,9 +31,15 @@ data class SkillComponent(
 
     /**
      * Get effective level for a skill (including buffs)
+     * Returns 0 if skill is not unlocked
      */
     fun getEffectiveLevel(skillName: String): Int {
-        return skills[skillName]?.getEffectiveLevel() ?: 0
+        val skill = skills[skillName]
+        return if (skill != null && skill.unlocked) {
+            skill.getEffectiveLevel()
+        } else {
+            0
+        }
     }
 
     /**

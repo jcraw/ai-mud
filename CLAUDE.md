@@ -62,13 +62,13 @@ For complete documentation, see:
 
 ### Testing ✅
 - **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~456 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 84 skill system tests, 37 perception tests)
+- **Comprehensive tests**: **~505 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 133 skill system tests, 37 perception tests)
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
   - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
   - **Social System Tests**: 47 tests for social system (Phase 1: 30 component tests, Phase 2: 17 database tests)
-  - **Skill System Tests**: 84 tests for Phases 1-4 (Phase 1: 34 unit tests for SkillState, Phase 2: 18 database tests for repositories, Phase 3: 22 unit tests for SkillManager, Phase 4: 10 intent tests)
+  - **Skill System Tests**: 133 tests for Phases 1-5 (Phase 1: 34 unit tests for SkillState, Phase 2: 18 database tests for repositories, Phase 3: 22 unit tests for SkillManager, Phase 4: 10 intent tests, Phase 5: 49 combo/resource/resistance tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 - **TestReport metrics**: Tracks playthrough metrics including combat rounds, damage taken, NPCs killed, skill/social checks passed, player death, and room exploration for game balance validation
 
@@ -81,7 +81,8 @@ Priority tasks:
    - **Phase 2 COMPLETE** ✅ - Database Layer (SkillDatabase, SQLiteSkillRepository, SQLiteSkillComponentRepository, 18 tests passing)
    - **Phase 3 COMPLETE** ✅ - Skill Manager (Core Logic) - grantXp, unlockSkill, checkSkill methods (22 tests passing)
    - **Phase 4 COMPLETE** ✅ - Intent Recognition - Added skill-related intents (UseSkill, TrainSkill, ChoosePerk, ViewSkills, 10 tests passing)
-   - **Next: Phase 5** - Multi-Skill Combinations & Resources - SkillComboResolver, ResourceManager, ResistanceCalculator
+   - **Phase 5 COMPLETE** ✅ - Multi-Skill Combinations & Resources - SkillComboResolver, ResourceManager, ResistanceCalculator (49 tests passing)
+   - **Next: Phase 6** - Perk System - PerkSelector, PerkDefinitions
    - Estimated: 11-17 hours remaining across 8 phases
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 30+ predefined skills, perk choices every 10 levels, resource management (mana/chi), resistance skills
@@ -136,7 +137,7 @@ Priority tasks:
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
   - `memory/src/main/kotlin/com/jcraw/mud/memory/social/` - Database layer (repositories)
-- **Skill system** (Phases 1-4 complete):
+- **Skill system** (Phases 1-5 complete):
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt` - Skill progression data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillComponent.kt` - Entity skill container
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillEvent.kt` - Skill event types
@@ -148,6 +149,9 @@ Priority tasks:
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt` - Core skill logic (XP, leveling, checks)
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/UnlockMethod.kt` - Skill unlock methods (Attempt, Observation, Training, Prerequisite)
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillCheckResult.kt` - Skill check result data
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillComboResolver.kt` - Multi-skill action resolution with weighted averages
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/ResourceManager.kt` - Mana/chi pool management and regeneration
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/ResistanceCalculator.kt` - Damage reduction from resistance skills
   - `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Intent.UseSkill, Intent.TrainSkill, Intent.ChoosePerk, Intent.ViewSkills
   - `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Skill intent parsing (LLM + fallback)
 
