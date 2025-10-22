@@ -17,7 +17,7 @@
 - Include at least one mocked end-to-end integration test.
 
 ## Cost Savings
-- Use GPT4_1Nano for all LLM calls to save costs during development
+- Use gpt-4o-mini for LLM calls during development to balance quality and cost
 
 ## UI Guidelines
 - Use a unidirectional data flow pattern with a single immutable state object as the source of truth. The ViewModel exposes only this state. The UI can call methods on the ViewModel to send events, but the ViewModel must never call into the UI directly. The ViewModel responds by updating and emitting a new state object, which the UI observes and renders.

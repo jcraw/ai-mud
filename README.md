@@ -102,15 +102,6 @@ gradle :reasoning:test
 gradle :memory:test
 ```
 
-### Integration Tests
-```bash
-./test_game.sh      # Full game playthrough
-./test_combat.sh    # Combat system
-./test_items.sh     # Item/equipment system
-./test_procedural.sh # Procedural generation
-./test_social.sh     # LLM-powered social interaction
-```
-
 ## Project Guidelines
 
 See `CLAUDE_GUIDELINES.md` for development principles:

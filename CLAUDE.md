@@ -21,7 +21,7 @@ For complete documentation, see:
 ## What's Implemented
 
 ### Core Systems ✅
-- **9 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
+- **10 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
 - **World model**: Room, WorldState, PlayerState, Entity hierarchy, CombatState, Direction
 - **Multi-user architecture**: Multiple concurrent players with thread-safe state management
 - **Intent system**: 24+ intent types for player actions (including Emote, AskQuestion, UseSkill, TrainSkill, ChoosePerk, ViewSkills)
@@ -61,8 +61,8 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **Test bot**: Automated LLM-powered testing with 8 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough)
-- **Comprehensive tests**: **~525 tests** across all modules (including 7 UI tests, 128 integration tests, 12 E2E scenario tests, 47 social system tests, 153 skill system tests, 37 perception tests)
+- **Test bot**: Automated LLM-powered testing with 11 scenarios (exploration, combat, skill checks, item interaction, social interaction, quest testing, exploratory, full playthrough, bad playthrough, brute-force playthrough, smart playthrough)
+- **Comprehensive tests**: **~640 tests** across all modules, covering unit, integration (157 app integration cases), GUI (6 UI tests), and 16 end-to-end bot scenarios
   - **Phase 1 Complete**: 82 new unit tests for equipment, inventory, world state, and combat
   - **Phase 2 Complete**: 5/5 integration tests complete (CombatIntegrationTest - 7 tests, ItemInteractionIntegrationTest - 13 tests, QuestIntegrationTest - 11 tests, SkillCheckIntegrationTest - 14 tests, SocialInteractionIntegrationTest - 13 tests)
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
@@ -622,7 +622,7 @@ The GUI client with real engine integration, quest system with auto-tracking, au
   - Quest completion triggers NPC disposition bonuses
 - ✅ **Social System Phase 9 Complete**: Integration Testing (2025-10-17)
   - 18 comprehensive integration tests + 17 database tests (35 new tests)
-- **Total: ~406 tests** across all modules, 100% pass rate
+- **Total: ~640 tests** across all modules, 100% pass rate
 
 **All Known Bugs Resolved!** 🎉
 
