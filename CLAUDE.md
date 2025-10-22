@@ -68,7 +68,7 @@ For complete documentation, see:
   - **Phase 3 Complete**: 4/4 integration tests complete (SaveLoadIntegrationTest - 13 tests, ProceduralDungeonIntegrationTest - 21 tests, NavigationIntegrationTest - 21 tests, FullGameplayIntegrationTest - 15 tests)
   - **Phase 4 Complete**: 4/4 bot scenario tests complete (BruteForcePlaythroughTest - 3 tests, SmartPlaythroughTest - 3 tests, BadPlaythroughTest - 3 tests, AllPlaythroughsTest - 3 tests)
   - **Social System Tests**: 47 tests for social system (Phase 1: 30 component tests, Phase 2: 17 database tests)
-  - **Skill System Tests**: 153 tests for Phases 1-6 (Phase 1: 34 unit tests for SkillState, Phase 2: 18 database tests for repositories, Phase 3: 22 unit tests for SkillManager, Phase 4: 10 intent tests, Phase 5: 49 combo/resource/resistance tests, Phase 6: 20 perk system tests)
+  - **Skill System Tests**: 179 tests for Phases 1-7 (Phase 1: 34 unit tests for SkillState, Phase 2: 18 database tests for repositories, Phase 3: 22 unit tests for SkillManager, Phase 4: 10 intent tests, Phase 5: 49 combo/resource/resistance tests, Phase 6: 20 perk system tests, Phase 7: 26 skill definitions tests)
 - **InMemoryGameEngine**: Headless engine for automated testing
 - **TestReport metrics**: Tracks playthrough metrics including combat rounds, damage taken, NPCs killed, skill/social checks passed, player death, and room exploration for game balance validation
 
@@ -83,10 +83,11 @@ Priority tasks:
    - **Phase 4 COMPLETE** ✅ - Intent Recognition - Added skill-related intents (UseSkill, TrainSkill, ChoosePerk, ViewSkills, 10 tests passing)
    - **Phase 5 COMPLETE** ✅ - Multi-Skill Combinations & Resources - SkillComboResolver, ResourceManager, ResistanceCalculator (49 tests passing)
    - **Phase 6 COMPLETE** ✅ - Perk System - PerkSelector, PerkDefinitions with 30+ skills (20 tests passing)
-   - **Next: Phase 7** - Predefined Skills & Seed Data - SkillDefinitions catalog
-   - Estimated: 8-13 hours remaining across 6 phases
+   - **Phase 7 COMPLETE** ✅ - Predefined Skills & Seed Data - SkillDefinitions catalog with 36 skills, StarterSkillSets for 5 archetypes (26 tests passing)
+   - **Next: Phase 8** - Social System Integration - Wire SkillManager to social interactions
+   - Estimated: 6-10 hours remaining across 5 phases
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
-   - 30+ predefined skills, perk choices every 10 levels, resource management (mana/chi), resistance skills
+   - 36 predefined skills (6 stats, 6 combat, 5 rogue, 7 elemental magic, 3 advanced magic, 4 resources, 3 resistances, 2 utility)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 
@@ -138,7 +139,7 @@ Priority tasks:
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
   - `memory/src/main/kotlin/com/jcraw/mud/memory/social/` - Database layer (repositories)
-- **Skill system** (Phases 1-6 complete):
+- **Skill system** (Phases 1-7 complete):
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt` - Skill progression data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillComponent.kt` - Entity skill container
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillEvent.kt` - Skill event types
@@ -155,6 +156,7 @@ Priority tasks:
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/ResistanceCalculator.kt` - Damage reduction from resistance skills
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/PerkSelector.kt` - Perk choice management at milestone levels (10, 20, 30, etc.)
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/PerkDefinitions.kt` - Predefined perk trees for 18+ skills
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillDefinitions.kt` - Catalog of 36 predefined skills with metadata
   - `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Intent.UseSkill, Intent.TrainSkill, Intent.ChoosePerk, Intent.ViewSkills
   - `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Skill intent parsing (LLM + fallback)
 
