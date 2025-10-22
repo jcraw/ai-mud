@@ -634,8 +634,93 @@ class InMemoryGameEngine(
             return "Skills are not available in this mode."
         }
 
-        // For now, simple fallback - skill system usage will be fully implemented in Phase 11
-        return "You attempt to $action, but skills are not yet fully implemented."
+        // Determine skill name from explicit parameter or action
+        val skillName = skill ?: inferSkillFromAction(action)
+        if (skillName == null) {
+            return "Could not determine which skill to use for: $action"
+        }
+
+        // Check if skill exists
+        val skillDef = com.jcraw.mud.reasoning.skill.SkillDefinitions.getSkill(skillName)
+        if (skillDef == null) {
+            return "Unknown skill: $skillName"
+        }
+
+        // Perform skill check (default difficulty: Medium = 15)
+        val difficulty = 15
+        val checkResult = skillManager.checkSkill(
+            entityId = worldState.player.id,
+            skillName = skillName,
+            difficulty = difficulty
+        ).getOrElse { error ->
+            return "Skill check failed: ${error.message}"
+        }
+
+        // Grant XP based on success/failure (base 50 XP)
+        val baseXp = 50L
+        val xpEvents = skillManager.grantXp(
+            entityId = worldState.player.id,
+            skillName = skillName,
+            baseXp = baseXp,
+            success = checkResult.success
+        ).getOrElse { error ->
+            // Skill not unlocked
+            return "You attempt to $action with $skillName, but the skill is not unlocked.\nTry 'train $skillName with <npc>' or use it repeatedly to unlock it."
+        }
+
+        // Format output with roll details and XP
+        val output = buildString {
+            appendLine("You attempt to $action using $skillName:")
+            appendLine()
+            appendLine("Roll: d20(${checkResult.roll}) + Level(${checkResult.skillLevel}) = ${checkResult.total} vs DC $difficulty")
+            appendLine(checkResult.narrative)
+            appendLine()
+
+            // XP and level-up messages
+            xpEvents.forEach { event ->
+                when (event) {
+                    is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                        appendLine("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")
+                    }
+                    is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                        appendLine()
+                        appendLine("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}")
+                        if (event.isAtPerkMilestone) {
+                            appendLine("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.")
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        return output
+    }
+
+    /**
+     * Infer skill name from action description
+     * Maps common actions to skills
+     */
+    private fun inferSkillFromAction(action: String): String? {
+        val lower = action.lowercase()
+        return when {
+            lower.contains("fire") || lower.contains("fireball") || lower.contains("burn") -> "Fire Magic"
+            lower.contains("water") || lower.contains("ice") || lower.contains("freeze") -> "Water Magic"
+            lower.contains("earth") || lower.contains("stone") || lower.contains("rock") -> "Earth Magic"
+            lower.contains("air") || lower.contains("wind") || lower.contains("lightning") -> "Air Magic"
+            lower.contains("sneak") || lower.contains("hide") || lower.contains("stealth") -> "Stealth"
+            lower.contains("pick") && lower.contains("lock") -> "Lockpicking"
+            lower.contains("disarm") && lower.contains("trap") -> "Trap Disarm"
+            lower.contains("set") && lower.contains("trap") -> "Trap Setting"
+            lower.contains("backstab") || lower.contains("sneak attack") -> "Backstab"
+            lower.contains("persuade") || lower.contains("negotiate") -> "Diplomacy"
+            lower.contains("intimidate") || lower.contains("threaten") -> "Charisma"
+            lower.contains("sword") -> "Sword Fighting"
+            lower.contains("axe") -> "Axe Mastery"
+            lower.contains("bow") || lower.contains("arrow") -> "Bow Accuracy"
+            lower.contains("blacksmith") || lower.contains("forge") || lower.contains("craft") -> "Blacksmithing"
+            else -> null
+        }
     }
 
     private fun handleTrainSkill(skill: String, method: String): String {

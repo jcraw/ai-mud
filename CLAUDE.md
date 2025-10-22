@@ -93,14 +93,22 @@ Priority tasks:
      - ✅ Wired SkillManager into EngineGameClient.kt (GUI) - skill system components initialized
      - ✅ Added Intent.UseSkill, Intent.TrainSkill, Intent.ChoosePerk, Intent.ViewSkills handlers to all 3 implementations
      - ✅ ViewSkills command functional - displays formatted skill sheet using SkillFormatter
-     - ⏳ TODO (Phase 11): Implement UseSkill, TrainSkill, and ChoosePerk handlers with full functionality
-   - **Phase 11 NOT STARTED** - Full Game Loop Integration
-     - ⏳ TODO: Implement UseSkill handler - skill checks, XP rewards, resource consumption
+   - **Phase 11 IN PROGRESS** ⏳ - Full Game Loop Integration (1/5 complete)
+     - ✅ **UseSkill handler implemented** - skill checks, XP rewards, action inference
+       - All 3 implementations (console, GUI, testbot) now support skill usage
+       - Players can use skills with natural language (e.g., "cast fireball", "pick lock")
+       - Automatic skill inference from action descriptions (15+ skill mappings)
+       - Skill checks use d20 + skill level vs DC 15 (medium difficulty)
+       - Grants 50 XP on success, 10 XP on failure (20% of base)
+       - Displays roll details (d20 + level vs DC), success/failure narrative, XP gained
+       - Level-up notifications with current XP and level
+       - Prompts perk selection at milestone levels (10, 20, 30, etc.)
+       - Handles unlocked skills only - prompts for training if skill not unlocked
      - ⏳ TODO: Implement TrainSkill handler - NPC training with Diplomacy integration
      - ⏳ TODO: Implement ChoosePerk handler - perk selection at milestone levels
      - ⏳ TODO: Add GUI elements for skill display and perk selection in client UI
      - ⏳ TODO: Integration testing for all skill system features
-   - Estimated: 2-3 hours remaining for Phase 11
+   - Estimated: 1.5-2.5 hours remaining for Phase 11
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 36 predefined skills (6 stats, 6 combat, 5 rogue, 7 elemental magic, 3 advanced magic, 4 resources, 3 resistances, 2 utility)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
