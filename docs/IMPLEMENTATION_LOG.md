@@ -64,6 +64,69 @@ This document tracks all completed features and implementations in chronological
 
 ---
 
+## 2025-10-21: Skill System Phase 9 - Memory/RAG Integration
+
+**Status**: Complete ✅
+
+**Feature**: Store skill usage history in MemoryManager for narrative coherence
+
+**Implementation**:
+- ✅ SkillManager extended with MemoryManager integration:
+  - Added optional memoryManager parameter to constructor
+  - grantXp() logs skill practice events to memory (success/failure, XP gained, level)
+  - checkSkill() logs skill check attempts to memory (roll, DC, margin, outcome)
+  - unlockSkill() logs skill unlock events to memory (unlock method)
+  - All events include metadata tags ("skill" → skillName, "event_type" → event category)
+- ✅ PerkSelector extended with MemoryManager integration:
+  - Added optional memoryManager parameter to constructor
+  - selectPerk() logs perk unlock events to memory (perk name, skill, level)
+  - Metadata includes skill, event_type, and perk name for filtering
+- ✅ recallSkillHistory() helper method:
+  - Suspend function in SkillManager for querying skill history
+  - Supports skill-specific filtering via metadata
+  - Uses MemoryManager.recallWithMetadata() for filtered searches
+  - Returns list of skill events for narrative coherence
+- ✅ Memory logging uses runBlocking for coroutine integration:
+  - SkillManager methods are synchronous, MemoryManager methods are suspend
+  - runBlocking ensures memory operations complete without blocking gameplay
+  - Graceful handling when memoryManager is null (optional dependency)
+
+**Files Modified**:
+1. `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt`
+   - Added memoryManager parameter (optional, nullable)
+   - Added memory logging in grantXp() for XP and level-up events
+   - Added memory logging in checkSkill() for skill check attempts (3 paths: no skill, opposed, regular)
+   - Added memory logging in unlockSkill() for skill unlock events
+   - Added recallSkillHistory() suspend function for querying skill history
+2. `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/PerkSelector.kt`
+   - Added memoryManager parameter (optional, nullable)
+   - Added memory logging in selectPerk() for perk unlock events
+   - Includes perk name in metadata for narrative callbacks
+
+**Design Decisions**:
+- MemoryManager is optional (nullable) for backward compatibility and testing
+- Uses runBlocking to bridge synchronous game logic with async MemoryManager
+- Metadata tagging enables filtered queries (e.g., recall only "Diplomacy" events)
+- Event descriptions are human-readable for LLM narrative generation
+- Supports both skill-specific and general skill history queries
+
+**Memory Event Examples**:
+- XP gained: "Practiced Diplomacy: success (+50 XP, level 3)"
+- Level up: "Diplomacy leveled up from 2 to 3!"
+- Skill check: "Attempted Diplomacy check: success (roll: 15+3 vs DC 15, margin: 3)"
+- Skill unlock: "Unlocked Fire Magic via training!"
+- Perk unlock: "Unlocked perk 'Quick Strike' for Sword Fighting at level 10"
+
+**Integration Points**:
+- Future narrative generators (NPCInteractionGenerator, CombatResolver) can call recallSkillHistory()
+- RAG-enhanced combat narratives can reference skill progression
+- NPC dialogue can mention past skill failures/successes
+- Quest dialogue can acknowledge skill improvements
+
+**Next Steps**: Phase 10 - Game Loop Integration (wire SkillManager into App.kt, EngineGameClient.kt, InMemoryGameEngine.kt with all 4 skill intents)
+
+---
+
 ## Foundation (Completed)
 ✅ Module structure and dependencies
 ✅ Core data models (Room, WorldState, PlayerState, Entity, Direction, CombatState)

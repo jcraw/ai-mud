@@ -4,15 +4,20 @@ import com.jcraw.mud.core.Perk
 import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.core.SkillEvent
 import com.jcraw.mud.core.repository.SkillComponentRepository
+import com.jcraw.mud.memory.MemoryManager
+import kotlinx.coroutines.runBlocking
 
 /**
  * Manages perk choices and selection at skill milestone levels (10, 20, 30, etc.)
  *
  * Perks are granted at milestone levels (every 10 levels).
  * At each milestone, the player chooses 1 of 2 predefined perks for that skill.
+ *
+ * Optionally integrates with MemoryManager for RAG-enhanced narratives
  */
 class PerkSelector(
-    private val componentRepository: SkillComponentRepository
+    private val componentRepository: SkillComponentRepository,
+    private val memoryManager: MemoryManager? = null
 ) {
 
     /**
@@ -53,13 +58,25 @@ class PerkSelector(
         // Persist to database
         componentRepository.save(entityId, updatedComponent)
 
-        return SkillEvent.PerkUnlocked(
+        val event = SkillEvent.PerkUnlocked(
             entityId = entityId,
             skillName = skillName,
             perk = perkChoice,
             skillLevel = skillState.level,
             timestamp = System.currentTimeMillis()
         )
+
+        // Log to memory for RAG
+        memoryManager?.let { mm ->
+            runBlocking {
+                mm.remember(
+                    "Unlocked perk '${perkChoice.name}' for $skillName at level ${skillState.level}",
+                    metadata = mapOf("skill" to skillName, "event_type" to "perk_unlocked", "perk" to perkChoice.name)
+                )
+            }
+        }
+
+        return event
     }
 
     /**

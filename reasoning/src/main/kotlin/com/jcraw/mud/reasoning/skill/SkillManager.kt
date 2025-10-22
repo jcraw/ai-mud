@@ -5,15 +5,20 @@ import com.jcraw.mud.core.SkillEvent
 import com.jcraw.mud.core.SkillState
 import com.jcraw.mud.core.repository.SkillComponentRepository
 import com.jcraw.mud.core.repository.SkillRepository
+import com.jcraw.mud.memory.MemoryManager
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 /**
  * Core skill progression logic
  * Manages XP granting, skill unlocking, skill checks, and level-ups
+ *
+ * Optionally integrates with MemoryManager for RAG-enhanced narratives
  */
 class SkillManager(
     internal val skillRepo: SkillRepository, // Internal for DispositionManager training access
     private val componentRepo: SkillComponentRepository,
+    private val memoryManager: MemoryManager? = null, // Optional for RAG integration
     private val rng: Random = Random.Default
 ) {
 
@@ -74,6 +79,17 @@ class SkillManager(
             events.add(xpEvent)
             skillRepo.logEvent(xpEvent).getOrThrow()
 
+            // Log to memory for RAG
+            memoryManager?.let { mm ->
+                runBlocking {
+                    val outcome = if (success) "success" else "failure"
+                    mm.remember(
+                        "Practiced $skillName: $outcome (+${xpToGrant} XP, level ${updatedSkill.level})",
+                        metadata = mapOf("skill" to skillName, "event_type" to "xp_gained")
+                    )
+                }
+            }
+
             // Generate LevelUp event if leveled up
             if (newLevel > oldLevel) {
                 val levelUpEvent = SkillEvent.LevelUp(
@@ -85,6 +101,16 @@ class SkillManager(
                 )
                 events.add(levelUpEvent)
                 skillRepo.logEvent(levelUpEvent).getOrThrow()
+
+                // Log to memory for RAG
+                memoryManager?.let { mm ->
+                    runBlocking {
+                        mm.remember(
+                            "$skillName leveled up from $oldLevel to $newLevel!",
+                            metadata = mapOf("skill" to skillName, "event_type" to "level_up")
+                        )
+                    }
+                }
             }
 
             events
@@ -175,6 +201,16 @@ class SkillManager(
 
             skillRepo.logEvent(unlockEvent).getOrThrow()
 
+            // Log to memory for RAG
+            memoryManager?.let { mm ->
+                runBlocking {
+                    mm.remember(
+                        "Unlocked $skillName via $methodName!",
+                        metadata = mapOf("skill" to skillName, "event_type" to "skill_unlocked")
+                    )
+                }
+            }
+
             unlockEvent
         }
     }
@@ -226,6 +262,17 @@ class SkillManager(
                 )
                 skillRepo.logEvent(event).getOrThrow()
 
+                // Log to memory for RAG
+                memoryManager?.let { mm ->
+                    runBlocking {
+                        val outcome = if (success) "success" else "failure"
+                        mm.remember(
+                            "Attempted $skillName check (no skill): $outcome (roll: $roll vs DC $difficulty)",
+                            metadata = mapOf("skill" to skillName, "event_type" to "skill_check")
+                        )
+                    }
+                }
+
                 return Result.success(result)
             }
 
@@ -275,6 +322,17 @@ class SkillManager(
                 )
                 skillRepo.logEvent(event).getOrThrow()
 
+                // Log to memory for RAG
+                memoryManager?.let { mm ->
+                    runBlocking {
+                        val outcome = if (success) "success" else "failure"
+                        mm.remember(
+                            "Attempted $skillName vs $opposedSkill check: $outcome (roll: $roll+$skillLevel vs $opposingRoll+$opponentLevel)",
+                            metadata = mapOf("skill" to skillName, "event_type" to "skill_check_opposed")
+                        )
+                    }
+                }
+
                 return Result.success(result)
             }
 
@@ -313,6 +371,17 @@ class SkillManager(
             )
             skillRepo.logEvent(event).getOrThrow()
 
+            // Log to memory for RAG
+            memoryManager?.let { mm ->
+                runBlocking {
+                    val outcome = if (success) "success" else "failure"
+                    mm.remember(
+                        "Attempted $skillName check: $outcome (roll: $roll+$skillLevel vs DC $difficulty, margin: $margin)",
+                        metadata = mapOf("skill" to skillName, "event_type" to "skill_check")
+                    )
+                }
+            }
+
             result
         }
     }
@@ -330,5 +399,32 @@ class SkillManager(
      */
     fun updateSkillComponent(entityId: String, component: SkillComponent): Result<Unit> {
         return componentRepo.save(entityId, component)
+    }
+
+    /**
+     * Recall skill usage history from memory
+     *
+     * Returns list of past skill events for narrative coherence
+     * @param skillName Optional filter for specific skill
+     * @param k Number of memories to retrieve (default: 5)
+     */
+    suspend fun recallSkillHistory(
+        query: String,
+        skillName: String? = null,
+        k: Int = 5
+    ): List<String> {
+        if (memoryManager == null) {
+            return emptyList()
+        }
+
+        return if (skillName != null) {
+            memoryManager.recallWithMetadata(
+                query = query,
+                k = k,
+                metadataFilter = mapOf("skill" to skillName)
+            )
+        } else {
+            memoryManager.recall(query, k)
+        }
     }
 }
