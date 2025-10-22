@@ -86,8 +86,12 @@ Priority tasks:
    - **Phase 7 COMPLETE** ✅ - Predefined Skills & Seed Data - SkillDefinitions catalog with 36 skills, StarterSkillSets for 5 archetypes (26 tests passing)
    - **Phase 8 COMPLETE** ✅ - Social System Integration - Persuasion/intimidation use Diplomacy/Charisma skills, XP rewards, NPC training with disposition buffs (15 tests created)
    - **Phase 9 COMPLETE** ✅ - Memory/RAG Integration - SkillManager and PerkSelector log skill events to MemoryManager, recallSkillHistory() helper for narrative coherence
-   - **Next: Phase 10** - Game Loop Integration - Wire skill system into all 3 game implementations
-   - Estimated: 2-3 hours remaining across 3 phases
+   - **Phase 10 IN PROGRESS** ⚙️ - Game Loop Integration - Wire skill system into all 3 game implementations
+     - ✅ Created SkillFormatter in action module for output formatting
+     - ⏳ TODO: Wire SkillManager into App.kt, EngineGameClient.kt, InMemoryGameEngine.kt
+     - ⏳ TODO: Add skill intent handlers to game loops
+     - ⏳ TODO: Add GUI elements for skill display and perk selection
+   - Estimated: 2-3 hours remaining across 2 phases (Phase 10-11)
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 36 predefined skills (6 stats, 6 combat, 5 rogue, 7 elemental magic, 3 advanced magic, 4 resources, 3 resistances, 2 utility)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
@@ -141,7 +145,7 @@ Priority tasks:
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialComponent.kt` - Social component data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - Social event types
   - `memory/src/main/kotlin/com/jcraw/mud/memory/social/` - Database layer (repositories)
-- **Skill system** (Phases 1-9 complete):
+- **Skill system** (Phases 1-9 complete, Phase 10 in progress):
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillState.kt` - Skill progression data model
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillComponent.kt` - Entity skill container
   - `core/src/main/kotlin/com/jcraw/mud/core/SkillEvent.kt` - Skill event types
@@ -163,6 +167,7 @@ Priority tasks:
   - `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Skill intent parsing (LLM + fallback)
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt` - Social skill checks: attemptPersuasion() (Diplomacy), attemptIntimidation() (Charisma), trainSkillWithNPC()
   - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - PersuasionAttempt, IntimidationAttempt events (Phase 8)
+  - `action/src/main/kotlin/com/jcraw/mud/action/SkillFormatter.kt` - Output formatting for skill sheets, level-ups, perk choices (Phase 10)
   - `memory/src/test/kotlin/com/jcraw/mud/memory/social/SkillSocialIntegrationTest.kt` - 15 integration tests for skill-social system
 
 ## Architecture
