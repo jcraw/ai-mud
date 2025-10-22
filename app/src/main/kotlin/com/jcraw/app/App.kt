@@ -257,7 +257,7 @@ class MudGame(
             is Intent.Persuade -> handlePersuade(intent.target)
             is Intent.Intimidate -> handleIntimidate(intent.target)
             is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
-            is Intent.AskQuestion -> handleAskQuestion(intent.npcTarget, intent.topic)
+            is Intent.AskQuestion -> runBlocking { handleAskQuestion(intent.npcTarget, intent.topic) }
             is Intent.UseSkill -> handleUseSkill(intent.skill, intent.action)
             is Intent.TrainSkill -> handleTrainSkill(intent.skill, intent.method)
             is Intent.ChoosePerk -> handleChoosePerk(intent.skillName, intent.choice)
@@ -758,7 +758,7 @@ class MudGame(
         if (npcInteractionGenerator != null) {
             val reply = runCatching {
                 runBlocking {
-                    npcInteractionGenerator.generateDialogue(npc, worldState.player)
+                    npcInteractionGenerator?.generateDialogue(npc, worldState.player)
                 }
             }.getOrElse {
                 println("⚠️  NPC dialogue generation failed: ${it.message}")
@@ -1368,7 +1368,8 @@ class MudGame(
         // Format output with roll details and XP
         println("\nYou attempt to $action using $skillName:")
         println()
-        println("Roll: d20(${checkResult.roll}) + Level(${checkResult.skillLevel}) = ${checkResult.total} vs DC $difficulty")
+        val total = checkResult.roll + checkResult.skillLevel
+        println("Roll: d20(${checkResult.roll}) + Level(${checkResult.skillLevel}) = $total vs DC $difficulty")
         println(checkResult.narrative)
         println()
 

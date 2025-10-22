@@ -672,7 +672,8 @@ class InMemoryGameEngine(
         val output = buildString {
             appendLine("You attempt to $action using $skillName:")
             appendLine()
-            appendLine("Roll: d20(${checkResult.roll}) + Level(${checkResult.skillLevel}) = ${checkResult.total} vs DC $difficulty")
+            val total = checkResult.roll + checkResult.skillLevel
+            appendLine("Roll: d20(${checkResult.roll}) + Level(${checkResult.skillLevel}) = $total vs DC $difficulty")
             appendLine(checkResult.narrative)
             appendLine()
 
