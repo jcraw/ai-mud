@@ -12,7 +12,7 @@ import kotlin.random.Random
  * Manages XP granting, skill unlocking, skill checks, and level-ups
  */
 class SkillManager(
-    private val skillRepo: SkillRepository,
+    internal val skillRepo: SkillRepository, // Internal for DispositionManager training access
     private val componentRepo: SkillComponentRepository,
     private val rng: Random = Random.Default
 ) {

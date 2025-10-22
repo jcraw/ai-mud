@@ -105,6 +105,22 @@ sealed class SocialEvent {
     ) : SocialEvent() {
         override val eventType: String = "CONVERSATION_HELD"
     }
+
+    @Serializable
+    data class PersuasionAttempt(
+        override val dispositionDelta: Int,
+        override val description: String
+    ) : SocialEvent() {
+        override val eventType: String = "PERSUASION_ATTEMPT"
+    }
+
+    @Serializable
+    data class IntimidationAttempt(
+        override val dispositionDelta: Int,
+        override val description: String
+    ) : SocialEvent() {
+        override val eventType: String = "INTIMIDATION_ATTEMPT"
+    }
 }
 
 /**

@@ -84,8 +84,9 @@ Priority tasks:
    - **Phase 5 COMPLETE** ✅ - Multi-Skill Combinations & Resources - SkillComboResolver, ResourceManager, ResistanceCalculator (49 tests passing)
    - **Phase 6 COMPLETE** ✅ - Perk System - PerkSelector, PerkDefinitions with 30+ skills (20 tests passing)
    - **Phase 7 COMPLETE** ✅ - Predefined Skills & Seed Data - SkillDefinitions catalog with 36 skills, StarterSkillSets for 5 archetypes (26 tests passing)
-   - **Next: Phase 8** - Social System Integration - Wire SkillManager to social interactions
-   - Estimated: 6-10 hours remaining across 5 phases
+   - **Phase 8 COMPLETE** ✅ - Social System Integration - Persuasion/intimidation use Diplomacy/Charisma skills, XP rewards, NPC training with disposition buffs (15 tests created)
+   - **Next: Phase 9** - Memory/RAG Integration - Store skill usage history for narrative coherence
+   - Estimated: 3-7 hours remaining across 4 phases
    - Component-based (extends ECS), database-backed, integrates with social/combat/memory systems
    - 36 predefined skills (6 stats, 6 combat, 5 rogue, 7 elemental magic, 3 advanced magic, 4 resources, 3 resistances, 2 utility)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
@@ -159,6 +160,9 @@ Priority tasks:
   - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillDefinitions.kt` - Catalog of 36 predefined skills with metadata
   - `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Intent.UseSkill, Intent.TrainSkill, Intent.ChoosePerk, Intent.ViewSkills
   - `perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt` - Skill intent parsing (LLM + fallback)
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt` - Social skill checks: attemptPersuasion() (Diplomacy), attemptIntimidation() (Charisma), trainSkillWithNPC()
+  - `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt` - PersuasionAttempt, IntimidationAttempt events (Phase 8)
+  - `memory/src/test/kotlin/com/jcraw/mud/memory/social/SkillSocialIntegrationTest.kt` - 15 integration tests for skill-social system
 
 ## Architecture
 

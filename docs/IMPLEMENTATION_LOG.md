@@ -2,6 +2,68 @@
 
 This document tracks all completed features and implementations in chronological order.
 
+## 2025-10-21: Skill System Phase 8 - Social System Integration
+
+**Status**: Complete ✅
+
+**Feature**: Skill-based social interactions replacing legacy D&D stat checks
+
+**Implementation**:
+- ✅ DispositionManager extended with SkillManager integration:
+  - `attemptPersuasion()` - Uses Diplomacy skill (d20 + skill level vs DC)
+  - `attemptIntimidation()` - Uses Charisma skill (d20 + skill level vs DC)
+  - `trainSkillWithNPC()` - Train skills with friendly/allied NPCs
+- ✅ XP rewards on social interactions:
+  - 50 base XP for persuasion/intimidation attempts
+  - Full XP on success, 20% XP on failure
+  - Automatic skill progression through use
+- ✅ NPC training system:
+  - Friendly NPCs (disposition 50+) allow training
+  - Allied NPCs give 2.5x XP multiplier
+  - Friendly NPCs give 2.0x XP multiplier
+  - Training unlocks skills at level 1 with buffs
+- ✅ New SocialEvent types:
+  - PersuasionAttempt - Variable disposition change based on skill margin
+  - IntimidationAttempt - Variable disposition change based on skill margin
+- ✅ Disposition-based rewards:
+  - Success: +10 to +20 disposition (persuasion), +5 to +15 (intimidation)
+  - Failure: -5 disposition (persuasion), -10 (intimidation)
+- ✅ Integration tests: 15 comprehensive tests in SkillSocialIntegrationTest.kt
+
+**Files Modified**:
+1. `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt`
+   - Added skillManager parameter (optional for backward compat)
+   - Implemented attemptPersuasion(), attemptIntimidation(), trainSkillWithNPC()
+   - Added canTrainPlayer(), getTrainingMultiplier() helpers
+2. `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt`
+   - Made skillRepo internal for DispositionManager access
+3. `core/src/main/kotlin/com/jcraw/mud/core/SocialEvent.kt`
+   - Added PersuasionAttempt and IntimidationAttempt events
+4. `memory/src/test/kotlin/com/jcraw/mud/memory/social/SkillSocialIntegrationTest.kt` (NEW)
+   - 15 integration tests covering all social-skill interactions
+
+**Design Decisions**:
+- Persuasion uses Diplomacy skill (explicitly listed as social/utility in SkillDefinitions)
+- Intimidation uses Charisma skill (force of personality)
+- Variable disposition changes based on skill check margin (better skills = better outcomes)
+- Training requires friendly/allied disposition to access
+- Disposition buffs motivate player to build positive relationships
+
+**Test Coverage**:
+- ✅ Persuasion uses Diplomacy skill
+- ✅ Intimidation uses Charisma skill
+- ✅ XP granted on success and failure
+- ✅ Disposition changes based on outcome
+- ✅ Training unlocks skills with friendly NPCs
+- ✅ Training grants boosted XP (2.0x - 2.5x)
+- ✅ Hostile/neutral NPCs refuse training
+- ✅ Unknown skill training fails gracefully
+- ✅ Backward compatibility without SkillManager
+
+**Next Steps**: Phase 9 - Memory/RAG Integration (store skill usage history for narrative coherence)
+
+---
+
 ## Foundation (Completed)
 ✅ Module structure and dependencies
 ✅ Core data models (Room, WorldState, PlayerState, Entity, Direction, CombatState)
