@@ -281,6 +281,13 @@ Memory (store for RAG)
 - `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt` - Engine integration
 - `client/src/main/kotlin/com/jcraw/mud/client/ui/` - UI screens
 
+### Test Bot
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/OutputValidator.kt` - Main orchestrator (~65 lines)
+- `testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/` - Validation logic (~1050 lines total)
+  - `CodeValidationRules.kt` - Deterministic code validation (~680 lines)
+  - `ValidationPrompts.kt` - LLM prompt builders (~460 lines)
+  - `ValidationParsers.kt` - Response parsing (~40 lines)
+
 ## Design Notes
 
 - **No backward compatibility needed** - Can wipe and restart data between versions
