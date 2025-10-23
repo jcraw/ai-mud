@@ -129,20 +129,20 @@ fun main() {
 }
 
 class MudGame(
-    private val initialWorldState: WorldState,
+    internal val initialWorldState: WorldState,
     private val descriptionGenerator: RoomDescriptionGenerator? = null,
-    private val npcInteractionGenerator: NPCInteractionGenerator? = null,
-    private val combatNarrator: CombatNarrator? = null,
+    internal val npcInteractionGenerator: NPCInteractionGenerator? = null,
+    internal val combatNarrator: CombatNarrator? = null,
     private val memoryManager: MemoryManager? = null,
     private val llmClient: OpenAIClient? = null
 ) {
-    private var worldState: WorldState = initialWorldState
+    internal var worldState: WorldState = initialWorldState
     private var running = true
-    private val combatResolver = CombatResolver()
-    private val skillCheckResolver = SkillCheckResolver()
+    internal val combatResolver = CombatResolver()
+    internal val skillCheckResolver = SkillCheckResolver()
     private val persistenceManager = PersistenceManager()
     private val intentRecognizer = IntentRecognizer(llmClient)
-    private val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
+    internal val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
     private var lastConversationNpcId: String? = null
 
     // Social system components
@@ -184,13 +184,13 @@ class MudGame(
         println("\nThanks for playing!")
     }
 
-    private fun printWelcome() {
+    internal fun printWelcome() {
         println("\nWelcome, ${worldState.player.name}!")
         println("You have entered a dungeon with ${worldState.rooms.size} rooms to explore.")
         println("Type 'help' for available commands.\n")
     }
 
-    private fun describeCurrentRoom() {
+    internal fun describeCurrentRoom() {
         val room = worldState.getCurrentRoom() ?: return
 
         val npcs = room.entities.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
@@ -226,7 +226,7 @@ class MudGame(
         }
     }
 
-    private fun generateRoomDescription(room: com.jcraw.mud.core.Room): String {
+    internal fun generateRoomDescription(room: com.jcraw.mud.core.Room): String {
         return if (descriptionGenerator != null) {
             // Use LLM-powered description generation
             runBlocking {
@@ -240,9 +240,9 @@ class MudGame(
 
     private fun processIntent(intent: Intent) {
         when (intent) {
-            is Intent.Move -> handleMove(intent.direction)
-            is Intent.Look -> handleLook(intent.target)
-            is Intent.Search -> handleSearch(intent.target)
+            is Intent.Move -> com.jcraw.app.handlers.MovementHandlers.handleMove(this, intent.direction)
+            is Intent.Look -> com.jcraw.app.handlers.MovementHandlers.handleLook(this, intent.target)
+            is Intent.Search -> com.jcraw.app.handlers.MovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> handleInteract(intent.target)
             is Intent.Inventory -> handleInventory()
             is Intent.Take -> handleTake(intent.target)
@@ -275,7 +275,7 @@ class MudGame(
         }
     }
 
-    private fun trackQuests(action: QuestAction) {
+    internal fun trackQuests(action: QuestAction) {
         val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
             worldState.player,
             worldState,
@@ -320,163 +320,6 @@ class MudGame(
                 null
             }
         }.toMap()
-    }
-
-    private fun handleMove(direction: Direction) {
-        // Check if in combat - must flee first
-        if (worldState.player.isInCombat()) {
-            println("\nYou attempt to flee from combat...")
-
-            val result = combatResolver.attemptFlee(worldState)
-            println(result.narrative)
-
-            if (result.playerFled) {
-                // Flee successful - update state and move
-                worldState = worldState.updatePlayer(worldState.player.endCombat())
-
-                val newState = worldState.movePlayer(direction)
-                if (newState == null) {
-                    println("You can't go that way.")
-                    return
-                }
-
-                worldState = newState
-                println("You move ${direction.displayName}.")
-
-                // Track room exploration for quests
-                val room = worldState.getCurrentRoom()
-                if (room != null) {
-                    trackQuests(QuestAction.VisitedRoom(room.id))
-                }
-
-                describeCurrentRoom()
-            } else if (result.playerDied) {
-                // Player died trying to flee
-                println("\nYou have been defeated! Game over.")
-                println("\nPress any key to play again...")
-                readLine()  // Wait for any input
-
-                // Restart the game
-                worldState = initialWorldState
-                println("\n" + "=" * 60)
-                println("  Restarting Adventure...")
-                println("=" * 60)
-                printWelcome()
-                describeCurrentRoom()
-            } else {
-                // Failed to flee - update combat state and stay in place
-                val combatState = result.newCombatState
-                if (combatState != null) {
-                    // Sync player's actual health with combat state
-                    val updatedPlayer = worldState.player
-                        .updateCombat(combatState)
-                        .copy(health = combatState.playerHealth)
-                    worldState = worldState.updatePlayer(updatedPlayer)
-                }
-                describeCurrentRoom()
-            }
-            return
-        }
-
-        // Normal movement (not in combat)
-        val newState = worldState.movePlayer(direction)
-
-        if (newState == null) {
-            println("You can't go that way.")
-            return
-        }
-
-        worldState = newState
-        println("You move ${direction.displayName}.")
-
-        // Track room exploration for quests
-        val room = worldState.getCurrentRoom()
-        if (room != null) {
-            trackQuests(QuestAction.VisitedRoom(room.id))
-        }
-
-        describeCurrentRoom()
-    }
-
-    private fun handleLook(target: String?) {
-        if (target == null) {
-            // Look at room - describeCurrentRoom already shows all entities including items
-            describeCurrentRoom()
-        } else {
-            // Look at specific entity
-            val room = worldState.getCurrentRoom() ?: return
-            val entity = room.entities.find { e ->
-                e.name.lowercase().contains(target.lowercase()) ||
-                e.id.lowercase().contains(target.lowercase())
-            }
-
-            if (entity != null) {
-                println(entity.description)
-            } else {
-                // Try to describe scenery (non-entity objects like walls, floor, etc.)
-                val roomDescription = generateRoomDescription(room)
-                val sceneryDescription = runBlocking {
-                    sceneryGenerator.describeScenery(target, room, roomDescription)
-                }
-
-                if (sceneryDescription != null) {
-                    println(sceneryDescription)
-                } else {
-                    println("You don't see that here.")
-                }
-            }
-        }
-    }
-
-    private fun handleSearch(target: String?) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        println("\nYou search the area carefully${if (target != null) ", focusing on the $target" else ""}...")
-
-        // Perform a Wisdom (Perception) skill check to find hidden items
-        val result = skillCheckResolver.checkPlayer(
-            worldState.player,
-            com.jcraw.mud.core.StatType.WISDOM,
-            com.jcraw.mud.core.Difficulty.MEDIUM  // DC 15 for finding hidden items
-        )
-
-        // Display roll details
-        println("\nRolling Perception check...")
-        println("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
-
-        if (result.isCriticalSuccess) {
-            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
-        } else if (result.isCriticalFailure) {
-            println("\n💀 CRITICAL FAILURE! (Natural 1)")
-        }
-
-        if (result.success) {
-            println("\n✅ Success!")
-
-            // Find hidden items in the room
-            val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-            val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
-
-            if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
-                if (pickupableItems.isNotEmpty()) {
-                    println("You find the following items:")
-                    pickupableItems.forEach { item ->
-                        println("  - ${item.name}: ${item.description}")
-                    }
-                }
-                if (hiddenItems.isNotEmpty()) {
-                    println("\nYou also notice some interesting features:")
-                    hiddenItems.forEach { item ->
-                        println("  - ${item.name}: ${item.description}")
-                    }
-                }
-            } else {
-                println("You don't find anything hidden here.")
-            }
-        } else {
-            println("\n❌ Failure!")
-            println("You don't find anything of interest.")
-        }
     }
 
     private fun handleInteract(target: String) {

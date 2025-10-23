@@ -1,6 +1,6 @@
 # Large Files Refactoring Plan
 
-**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 Started (1/3 complete)
+**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 Started (2/8 files extracted)
 **Target:** Refactor 3 files (1961, 1507, 1146 lines) into 17 smaller files (<350 lines each)
 **Goal:** Improve maintainability, follow KISS principle, stay under 300-500 line guideline
 
@@ -791,7 +791,7 @@ Can be split across multiple Claude Code sessions.
 
 ### Phase 2: App.kt ⏳ IN PROGRESS
 - [x] Create handlers/ package
-- [ ] Extract MovementHandlers.kt
+- [x] Extract MovementHandlers.kt (~200 lines) - handles movement, look, search
 - [ ] Extract ItemHandlers.kt
 - [ ] Extract CombatHandlers.kt
 - [ ] Extract SocialHandlers.kt
