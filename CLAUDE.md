@@ -67,9 +67,14 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-2. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
-3. **Polish & Enhancement Ideas**:
+1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<350 lines each)
+   - See **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** for detailed execution plan
+   - Phase 1: OutputValidator.kt → 4 files
+   - Phase 2: App.kt → 8 files
+   - Phase 3: EngineGameClient.kt → 6 files
+2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
+3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
+4. **Polish & Enhancement Ideas**:
    - More quest objective types (Escort, Defend, Craft, etc.)
    - Character progression system (leveling, skill trees)
    - More dungeon themes and procedural variations
@@ -158,13 +163,21 @@ Memory (store for RAG)
 
 ## Documentation
 
+### User Guides
 - **[Getting Started](docs/GETTING_STARTED.md)** - Setup, commands, gameplay walkthrough
 - **[Client UI](docs/CLIENT_UI.md)** - GUI client documentation and usage
+
+### Technical Documentation
 - **[Architecture](docs/ARCHITECTURE.md)** - Module structure, data flow, file locations
-- **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
-- **[Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md)** - Complete architecture and roadmap for V2 skill system
 - **[Testing Strategy](docs/TESTING.md)** - Comprehensive testing guide, test organization
 - **[Multi-User](docs/MULTI_USER.md)** - Multi-player architecture details
+
+### System Documentation
+- **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
+- **[Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md)** - Complete architecture and roadmap for V2 skill system
+
+### Refactoring Plans
+- **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** - Detailed plan to split oversized files into maintainable modules
 
 ## Current Status
 
