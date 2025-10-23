@@ -23,8 +23,8 @@ ai-mud/
 ├── action/src/test/kotlin/.../action/              # Output formatting tests
 ├── llm/src/test/kotlin/.../llm/                    # LLM client tests
 ├── app/src/test/kotlin/com/jcraw/app/
-│   ├── GameServerTest.kt                           # Existing server test
-│   └── integration/                                # NEW: Integration tests
+│   ├── GameServerTest.kt                           # Server tests
+│   └── integration/                                # Integration tests
 │       ├── CombatIntegrationTest.kt
 │       ├── ItemInteractionIntegrationTest.kt
 │       ├── QuestIntegrationTest.kt
@@ -32,7 +32,7 @@ ai-mud/
 ├── client/src/test/kotlin/.../client/              # GUI client tests
 └── testbot/src/test/kotlin/.../testbot/
     ├── InMemoryGameEngineTest.kt                   # Engine tests
-    └── scenarios/                                   # NEW: E2E scenario tests
+    └── scenarios/                                   # E2E scenario tests
         ├── BruteForcePlaythroughTest.kt
         ├── SmartPlaythroughTest.kt
         └── ...
@@ -61,7 +61,7 @@ ai-mud/
 // core/src/test/kotlin/com/jcraw/mud/core/
 
 CombatSystemTest.kt          // Combat mechanics, damage calculation
-QuestSystemTest.kt           // Quest lifecycle, objectives ✅
+QuestSystemTest.kt           // Quest lifecycle, objectives
 EquipmentSystemTest.kt       // Equip/unequip weapons & armor
 InventorySystemTest.kt       // Add/remove/find items
 WorldStateTest.kt            // Room navigation, entity lookup
@@ -94,8 +94,8 @@ class EquipmentSystemTest {
 ```kotlin
 // perception/src/test/kotlin/com/jcraw/mud/perception/
 
-IntentTest.kt                    // Intent data structures ✅
-DirectionParsingTest.kt          // Direction parsing ✅
+IntentTest.kt                    // Intent data structures
+DirectionParsingTest.kt          // Direction parsing
 CommandParsingTest.kt            // Natural language commands
 NaturalLanguageParsingTest.kt    // Room name navigation
 ```
@@ -105,14 +105,14 @@ NaturalLanguageParsingTest.kt    // Room name navigation
 ```kotlin
 // reasoning/src/test/kotlin/com/jcraw/mud/reasoning/
 
-SocialInteractionTest.kt         // NPC dialogue generation ✅
-SkillCheckResolverTest.kt        // D20 checks ✅
-RoomDescriptionGeneratorTest.kt  // Room descriptions ✅
+SocialInteractionTest.kt         // NPC dialogue generation
+SkillCheckResolverTest.kt        // D20 checks
+RoomDescriptionGeneratorTest.kt  // Room descriptions
 CombatResolverTest.kt            // Combat resolution logic
 NPCInteractionTest.kt            // NPC behavior
 QuestTrackerTest.kt              // Quest progress tracking
 procedural/
-  ProceduralGenerationTest.kt    // Procedural systems ✅
+  ProceduralGenerationTest.kt    // Procedural systems
   DungeonGeneratorTest.kt        // Dungeon theme generation
   NPCGeneratorTest.kt            // NPC procedural generation
 ```
@@ -122,10 +122,10 @@ procedural/
 ```kotlin
 // memory/src/test/kotlin/com/jcraw/mud/memory/
 
-VectorStoreTest.kt               // Vector search ✅
-MemoryManagerTest.kt             // Memory storage ✅
-PersistenceManagerTest.kt        // Save/load ✅
-PersistentVectorStoreTest.kt     // Persistent vectors ✅
+VectorStoreTest.kt               // Vector search
+MemoryManagerTest.kt             // Memory storage
+PersistenceManagerTest.kt        // Save/load
+PersistentVectorStoreTest.kt     // Persistent vectors
 SaveLoadSystemTest.kt            // Full persistence roundtrip
 ```
 
@@ -140,11 +140,11 @@ Integration tests verify that multiple modules work together correctly. They use
 ```kotlin
 // app/src/test/kotlin/com/jcraw/app/integration/
 
-CombatIntegrationTest.kt              // Full combat with equipment ✅
-ItemInteractionIntegrationTest.kt     // Complete item workflow ✅
+CombatIntegrationTest.kt              // Full combat with equipment
+ItemInteractionIntegrationTest.kt     // Complete item workflow
 SkillCheckIntegrationTest.kt          // All 6 stat checks
 SocialInteractionIntegrationTest.kt   // Persuade/intimidate flows
-QuestIntegrationTest.kt               // Quest lifecycle + auto-tracking ✅
+QuestIntegrationTest.kt               // Quest lifecycle + auto-tracking
 NavigationIntegrationTest.kt          // Natural language navigation
 SaveLoadIntegrationTest.kt            // Persistence roundtrip
 ProceduralDungeonIntegrationTest.kt   // All 4 dungeon themes
@@ -393,72 +393,6 @@ class QuestIntegrationTest {
 }
 ```
 
-## Shell Script Migration - ✅ COMPLETE
-
-All legacy shell script tests have been successfully migrated to proper Kotlin unit/integration tests and deleted.
-
-### Migrated Tests
-
-| Old Shell Script | New Test File | Module | Type | Status |
-|-----------------|---------------|--------|------|--------|
-| ~~`test_combat.sh`~~ | `CombatIntegrationTest.kt` | app | Integration | ✅ Complete (7 tests) - **Deleted** |
-| ~~`test_items.sh`~~ | `ItemInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
-| ~~`test_skill_checks.sh`~~ | `SkillCheckIntegrationTest.kt` | app | Integration | ✅ Complete (14 tests) - **Deleted** |
-| ~~`test_social.sh`~~ | `SocialInteractionIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
-| ~~`test_quests.sh`~~ | `QuestIntegrationTest.kt` | app | Integration | ✅ Complete (11 tests) - **Deleted** |
-| ~~`test_save_load.sh`~~ | `SaveLoadIntegrationTest.kt` | app | Integration | ✅ Complete (13 tests) - **Deleted** |
-| ~~`test_procedural.sh`~~ | `ProceduralDungeonIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) - **Deleted** |
-| ~~`test_game.sh`~~ | `FullGameplayIntegrationTest.kt` | app | Integration | ✅ Complete (15 tests) - **Deleted** |
-| ~~`test_exits_debug.sh`~~ | `NavigationIntegrationTest.kt` | app | Integration | ✅ Complete (21 tests) - **Deleted** |
-| ~~`test_brute_force_playthrough.sh`~~ | `BruteForcePlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
-| ~~`test_smart_playthrough.sh`~~ | `SmartPlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
-| ~~`test_bad_playthrough.sh`~~ | `BadPlaythroughTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
-| ~~`test_all_playthroughs.sh`~~ | `AllPlaythroughsTest.kt` | testbot | E2E | ✅ Complete (3 tests) - **Deleted** |
-
-**Migration completed:** 2025-10-16
-**Total tests created:** 222 (82 unit + 128 integration + 12 E2E)
-**All legacy shell scripts removed**
-
-### Example Migration
-
-**Before (test_combat.sh):**
-```bash
-#!/bin/bash
-echo "Testing combat system..."
-echo -e "look\neast\ntake sword\nequip sword\nnorth\nattack guard\nattack guard\nattack guard" | \
-  gradle installDist && app/build/install/app/bin/app
-```
-
-**After (CombatIntegrationTest.kt):**
-```kotlin
-class CombatIntegrationTest {
-    @Test
-    fun `player can defeat guard with equipped sword`() = runBlocking {
-        val worldState = SampleDungeon.createInitialWorldState()
-        val engine = InMemoryGameEngine(worldState)
-
-        // Navigate and equip weapon
-        engine.processInput("east")
-        engine.processInput("take sword")
-        engine.processInput("equip sword")
-
-        // Go to guard
-        engine.processInput("north")
-
-        // Fight
-        var defeated = false
-        repeat(20) {
-            val response = engine.processInput("attack guard")
-            if (response.contains("defeated") || response.contains("dies")) {
-                defeated = true
-            }
-        }
-
-        assertTrue(defeated, "Guard should be defeated within 20 turns")
-    }
-}
-```
-
 ## Running Tests
 
 ### Run All Tests
@@ -545,147 +479,19 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** ~298 (across all modules)
-**Pass Rate:** 100% (all core, perception, reasoning, memory, app, client, testbot tests passing)
+**Total Tests:** ~640 across all modules
+**Pass Rate:** 100%
 
 **Module Breakdown:**
-- ✅ core: 8 test files, 112 tests (includes 82 new Phase 1 unit tests)
-- ✅ perception: 2 test files, 8 tests
-- ✅ reasoning: 5 test files, 40 tests
-- ✅ memory: 4 test files, 15 tests
-- ✅ app: 9 integration test files, 128 tests (Phase 2 complete - 58 tests, Phase 3 complete - 70 tests)
-- ✅ client: 1 test file, 7 tests
-- ✅ testbot: 5 test files (InMemoryGameEngine + 4 E2E scenario tests, 12 total tests)
+- ✅ **core**: 112 tests
+- ✅ **perception**: 8 tests
+- ✅ **reasoning**: 40 tests
+- ✅ **memory**: 15 tests
+- ✅ **app**: 128 integration tests
+- ✅ **client**: 7 tests
+- ✅ **testbot**: 12 E2E scenario tests
 
-## Implementation Phases
-
-### Phase 1: Core Unit Tests - ✅ COMPLETE (2025-10-15)
-Priority: **HIGH** ✅
-Focus: Fill gaps in core module testing
-
-- ✅ `EquipmentSystemTest.kt` - 16 tests for equip/unequip weapons & armor
-- ✅ `InventorySystemTest.kt` - 19 tests for add/remove/find items
-- ✅ `WorldStateTest.kt` - 33 tests for room navigation, entity lookup
-- ✅ `CombatResolverTest.kt` - 14 tests for damage calculation, turn order
-
-**Outcome:** 82 new behavioral tests created, all passing
-
-### Phase 2: Integration Tests - ✅ COMPLETE (2025-10-15)
-Priority: **HIGH** ✅
-Focus: Replace shell script tests with proper integration tests
-
-**Pre-requisite:**
-- ✅ Fix `app/src/test/kotlin/com/jcraw/app/GameServerTest.kt` compilation errors (COMPLETE - removed outdated test)
-- ✅ Add testbot dependency to app module for InMemoryGameEngine access
-
-**Tests Created (58 total tests):**
-- ✅ `CombatIntegrationTest.kt` - **7 tests, all passing** ✅
-  - Player defeats weak NPC
-  - Equipped weapon increases damage
-  - Equipped armor reduces incoming damage
-  - Player death ends combat
-  - Defeated NPC removed from room
-  - Player can flee from combat
-  - Combat progresses through multiple rounds
-- ✅ `ItemInteractionIntegrationTest.kt` - **13 tests, all passing** ✅
-  - Take single/all items
-  - Drop items (including equipped)
-  - Equip weapons and armor
-  - Weapon swapping
-  - Use consumables (in and out of combat)
-  - Healing potion mechanics
-  - Non-pickupable items
-  - Inventory display
-- ✅ `QuestIntegrationTest.kt` - **11 tests, all passing** ✅
-  - Quest acceptance
-  - Kill objective auto-tracking
-  - Collect objective auto-tracking
-  - Explore objective auto-tracking
-  - Talk objective auto-tracking
-  - Skill check objective auto-tracking
-  - Deliver objective (documented, pending implementation)
-  - Multi-objective quest completion
-  - Reward claiming
-  - Quest log display
-  - Quest abandonment
-- ✅ `SkillCheckIntegrationTest.kt` - **14 tests, all passing** ✅
-  - All 6 stat checks (STR, DEX, CON, INT, WIS, CHA)
-  - Difficulty levels (Easy, Medium, Hard)
-  - Success/failure outcomes
-  - Stat modifier effects on success rates
-  - Multiple sequential skill checks
-  - Edge cases with very high/low stats
-- ✅ `SocialInteractionIntegrationTest.kt` - **13 tests, all passing** ✅
-  - Talk to NPCs (friendly and hostile)
-  - Persuasion checks (success/failure)
-  - Intimidation checks (success/failure)
-  - Difficulty levels (easy vs hard)
-  - Cannot persuade/intimidate same NPC twice
-  - CHA modifier effects on success rates
-  - Multiple NPCs independently
-
-**Outcome:** Phase 2 complete! 5 integration test files with 58 total tests, 100% passing
-
-### Phase 3: Complex Integration - ✅ COMPLETE (2025-10-15)
-Priority: **MEDIUM** ✅
-Focus: Advanced workflows and persistence
-
-- ✅ `SaveLoadIntegrationTest.kt` - **13 tests, all passing** ✅
-  - Save game state to disk
-  - Load game state from disk
-  - Persistence roundtrip (save → modify → load → verify)
-  - Save file format validation (JSON structure)
-  - Load after game modifications
-  - Non-existent save file handling
-  - Custom save names
-  - List all saves
-  - Delete save files
-  - Combat state preservation
-  - Room connections preservation
-- ✅ `ProceduralDungeonIntegrationTest.kt` - **21 tests, all passing** ✅
-  - All 4 dungeon themes (Crypt, Castle, Cave, Temple)
-  - Room connectivity (reachability, bidirectional, navigation)
-  - NPC generation (boss, hostile, friendly NPCs)
-  - Item distribution (weapons, armor, consumables)
-  - Quest generation (all types based on dungeon state)
-  - Deterministic generation with seeds
-- ✅ `NavigationIntegrationTest.kt` - **21 tests, all passing** ✅
-  - Directional navigation (n/s/e/w, cardinal names, "go" syntax)
-  - Natural language navigation ("go to throne room", partial names)
-  - Invalid direction handling (invalid directions, non-existent rooms, gibberish)
-  - Exit validation (bidirectionality, reachability, hub rooms, dead ends)
-  - Procedural dungeon navigation (connectivity, valid exits)
-- ✅ `FullGameplayIntegrationTest.kt` - **15 tests, all passing** ✅
-  - Basic game loop (exploration, NPC interaction, inventory)
-  - Multi-system integration (navigation + equipment + combat, consumables in combat, loot collection, skill checks)
-  - Quest integration (explore, collect, kill quests with auto-tracking)
-  - Save/load during gameplay (mid-exploration, active combat, with quests)
-  - Complete playthroughs (full dungeon exploration, realistic gameplay session, procedural dungeon)
-
-**Outcome:** Phase 3 complete! 4 integration test files with 70 total tests, 100% passing
-
-### Phase 4: Bot Migration - ✅ COMPLETE (2025-10-15)
-Priority: **LOW** ✅
-Focus: Migrate shell script E2E tests to testbot
-
-- ✅ `BruteForcePlaythroughTest.kt` - **3 tests, all passing** ✅
-  - Bot completes brute force playthrough by collecting gear and defeating boss
-  - Bot explores multiple rooms looking for gear
-  - Bot takes damage but survives with equipment
-- ✅ `SmartPlaythroughTest.kt` - **3 tests, all passing** ✅
-  - Bot completes smart playthrough using social skills and intelligence
-  - Bot attempts social interactions before resorting to combat
-  - Bot explores secret areas and completes skill checks
-- ✅ `BadPlaythroughTest.kt` - **3 tests, all passing** ✅
-  - Bot rushes to boss and dies without gear
-  - Bot reaches boss room quickly without collecting gear
-  - Bot takes fatal damage from boss encounter
-- ✅ `AllPlaythroughsTest.kt` - **3 tests, all passing** ✅
-  - All three playthrough scenarios complete successfully
-  - Game balance validation (bad player dies, good players win)
-  - Multiple solution paths exist and are viable
-
-**Outcome:** Phase 4 complete! 4 E2E scenario test files with 12 total tests, 100% passing
+**Test Migration Complete:** All legacy shell scripts have been migrated to proper Kotlin tests and deleted.
 
 ## Best Practices Summary
 
