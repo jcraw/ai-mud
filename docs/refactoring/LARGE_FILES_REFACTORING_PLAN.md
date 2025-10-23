@@ -1,6 +1,6 @@
 # Large Files Refactoring Plan
 
-**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 Started (2/8 files extracted)
+**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 In Progress (3/8 files extracted)
 **Target:** Refactor 3 files (1961, 1507, 1146 lines) into 17 smaller files (<350 lines each)
 **Goal:** Improve maintainability, follow KISS principle, stay under 300-500 line guideline
 
@@ -791,8 +791,8 @@ Can be split across multiple Claude Code sessions.
 
 ### Phase 2: App.kt ⏳ IN PROGRESS
 - [x] Create handlers/ package
-- [x] Extract MovementHandlers.kt (~200 lines) - handles movement, look, search
-- [ ] Extract ItemHandlers.kt
+- [x] Extract MovementHandlers.kt (~173 lines) - handles movement, look, search
+- [x] Extract ItemHandlers.kt (~350 lines) - handles inventory, take, drop, equip, use, give
 - [ ] Extract CombatHandlers.kt
 - [ ] Extract SocialHandlers.kt
 - [ ] Extract SkillQuestHandlers.kt
@@ -804,6 +804,8 @@ Can be split across multiple Claude Code sessions.
 - [ ] Test console app manually
 - [ ] Commit: "feat: refactor App.kt into 8 files [Phase 2/3]"
 - [ ] Update ARCHITECTURE.md and CLAUDE.md
+
+**Progress:** App.kt reduced from 1961 → 1481 lines (480 lines extracted)
 
 ### Phase 3: EngineGameClient ✗
 - [ ] Create handlers/ package (client)
