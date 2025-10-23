@@ -1,6 +1,8 @@
 package com.jcraw.app.integration
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.reasoning.procedural.DungeonConfig
+import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.testbot.InMemoryGameEngine
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
@@ -16,11 +18,10 @@ import kotlin.test.*
  */
 class NavigationIntegrationTest {
 
-    @Nested
-    inner class DirectionalNavigation {
+    // ========== Directional Navigation Tests ==========
 
-        @Test
-        fun `can navigate using cardinal direction abbreviations`() = runBlocking {
+    @Test
+    fun `can navigate using cardinal direction abbreviations`() = runBlocking {
             val world = SampleDungeon.createInitialWorldState()
             val engine = InMemoryGameEngine(world)
 
@@ -101,13 +102,11 @@ class NavigationIntegrationTest {
             engine.processInput("south")  // corridor -> entrance
             assertEquals(SampleDungeon.STARTING_ROOM_ID, engine.getWorldState().player.currentRoomId)
         }
-    }
 
-    @Nested
-    inner class NaturalLanguageNavigation {
+    // ========== Natural Language Navigation Tests ==========
 
-        @Test
-        fun `can navigate using room names`() = runBlocking {
+    @Test
+    fun `can navigate using room names`() = runBlocking {
             val world = SampleDungeon.createInitialWorldState()
             val engine = InMemoryGameEngine(world)
 
@@ -167,13 +166,11 @@ class NavigationIntegrationTest {
             engine.processInput("go to armory")
             assertEquals(SampleDungeon.ARMORY_ROOM_ID, engine.getWorldState().player.currentRoomId)
         }
-    }
 
-    @Nested
-    inner class InvalidDirectionHandling {
+    // ========== Invalid Direction Handling Tests ==========
 
-        @Test
-        fun `invalid direction does not move player`() = runBlocking {
+    @Test
+    fun `invalid direction does not move player`() = runBlocking {
             val world = SampleDungeon.createInitialWorldState()
             val engine = InMemoryGameEngine(world)
 
@@ -236,13 +233,11 @@ class NavigationIntegrationTest {
             assertEquals(startingRoom, afterAttempt,
                 "Player should not move on gibberish navigation command")
         }
-    }
 
-    @Nested
-    inner class ExitValidation {
+    // ========== Exit Validation Tests ==========
 
-        @Test
-        fun `all room exits point to valid rooms`() {
+    @Test
+    fun `all room exits point to valid rooms`() {
             val world = SampleDungeon.createInitialWorldState()
 
             // Verify every exit in every room points to a valid room
@@ -339,13 +334,11 @@ class NavigationIntegrationTest {
                     "Dead end room ${room.name} should have exactly one exit")
             }
         }
-    }
 
-    @Nested
-    inner class ProceduralDungeonNavigation {
+    // ========== Procedural Dungeon Navigation Tests ==========
 
-        @Test
-        fun `can navigate in procedurally generated dungeon`() = runBlocking {
+    @Test
+    fun `can navigate in procedurally generated dungeon`() = runBlocking {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 8,
@@ -414,5 +407,4 @@ class NavigationIntegrationTest {
             assertEquals(world.rooms.size, visited.size,
                 "All rooms in procedural dungeon should be reachable")
         }
-    }
 }

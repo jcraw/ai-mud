@@ -18,11 +18,10 @@ import kotlin.test.*
  */
 class ProceduralDungeonIntegrationTest {
 
-    @Nested
-    inner class ThemeGeneration {
+    // ========== Theme Generation Tests ==========
 
-        @Test
-        fun `crypt theme generates complete dungeon`() {
+    @Test
+    fun `crypt theme generates complete dungeon`() {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 8,
@@ -103,13 +102,11 @@ class ProceduralDungeonIntegrationTest {
             }
             assertTrue(hasTempleTraits, "Rooms should have temple-themed traits")
         }
-    }
 
-    @Nested
-    inner class RoomConnectivity {
+    // ========== Room Connectivity Tests ==========
 
-        @Test
-        fun `all rooms are reachable from entrance`() {
+    @Test
+    fun `all rooms are reachable from entrance`() {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 12,
@@ -192,13 +189,11 @@ class ProceduralDungeonIntegrationTest {
                     "Player should move to target room")
             }
         }
-    }
 
-    @Nested
-    inner class NPCGeneration {
+    // ========== NPC Generation Tests ==========
 
-        @Test
-        fun `dungeon contains at least one boss NPC`() {
+    @Test
+    fun `dungeon contains at least one boss NPC`() {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 10,
@@ -306,13 +301,11 @@ class ProceduralDungeonIntegrationTest {
                     "Should be able to talk to friendly NPC")
             }
         }
-    }
 
-    @Nested
-    inner class ItemDistribution {
+    // ========== Item Distribution Tests ==========
 
-        @Test
-        fun `dungeon contains weapons`() {
+    @Test
+    fun `dungeon contains weapons`() {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 10,
@@ -442,13 +435,11 @@ class ProceduralDungeonIntegrationTest {
             assertTrue(roomsWithItems >= 2,
                 "Items should be distributed across multiple rooms")
         }
-    }
 
-    @Nested
-    inner class QuestGeneration {
+    // ========== Quest Generation Tests ==========
 
-        @Test
-        fun `can generate quests for crypt dungeon`() {
+    @Test
+    fun `can generate quests for crypt dungeon`() {
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
                 roomCount = 10,
@@ -544,13 +535,11 @@ class ProceduralDungeonIntegrationTest {
             assertTrue(exploreQuests.isNotEmpty(),
                 "Should be able to generate explore quests for any dungeon")
         }
-    }
 
-    @Nested
-    inner class DungeonDeterminism {
+    // ========== Dungeon Determinism Tests ==========
 
-        @Test
-        fun `same seed generates identical dungeon layouts`() {
+    @Test
+    fun `same seed generates identical dungeon layouts`() {
             val seed = 99999L
             val config = DungeonConfig(
                 theme = DungeonTheme.CRYPT,
@@ -608,5 +597,4 @@ class ProceduralDungeonIntegrationTest {
             assertTrue(differentNames,
                 "Different seeds should likely generate different room names")
         }
-    }
 }

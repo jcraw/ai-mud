@@ -2,6 +2,8 @@ package com.jcraw.app.integration
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.memory.PersistenceManager
+import com.jcraw.mud.reasoning.procedural.DungeonConfig
+import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.testbot.InMemoryGameEngine
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -32,8 +34,7 @@ class FullGameplayIntegrationTest {
         File(testSaveDir).deleteRecursively()
     }
 
-    @Nested
-    inner class BasicGameLoop {
+    // ========== Basic Game Loop Tests ==========
 
         @Test
         fun `can complete basic exploration loop`() = runBlocking {
@@ -100,10 +101,8 @@ class FullGameplayIntegrationTest {
             assertTrue(state.player.inventory.any { it.id == "iron_sword" },
                 "Inventory should contain picked up item")
         }
-    }
 
-    @Nested
-    inner class MultiSystemIntegration {
+    // ========== Multi-System Integration Tests ==========
 
         @Test
         fun `can navigate, equip weapon, and enter combat`() = runBlocking {
@@ -249,10 +248,8 @@ class FullGameplayIntegrationTest {
             assertEquals(SampleDungeon.TREASURY_ROOM_ID, state.player.currentRoomId)
             assertFalse(state.player.isInCombat())
         }
-    }
 
-    @Nested
-    inner class QuestIntegration {
+    // ========== Quest Integration Tests ==========
 
         @Test
         fun `can complete explore quest through navigation`() = runBlocking {
@@ -266,25 +263,28 @@ class FullGameplayIntegrationTest {
                 description = "Find and enter the Abandoned Throne Room",
                 objectives = listOf(
                     QuestObjective.ExploreRoom(
+                        id = "obj_explore_throne",
+                        description = "Enter the Abandoned Throne Room",
                         targetRoomId = SampleDungeon.THRONE_ROOM_ID,
-                        description = "Enter the Abandoned Throne Room"
+                        targetRoomName = "Abandoned Throne Room",
+                        isCompleted = false
                     )
                 ),
-                reward = QuestReward(experience = 100, gold = 50, items = emptyList()),
+                reward = QuestReward(experiencePoints = 100, goldAmount = 50, items = emptyList()),
                 status = QuestStatus.ACTIVE
             )
 
             var state = engine.getWorldState()
             state = state.copy(
                 players = state.players.mapValues { (_, player) ->
-                    player.copy(quests = listOf(exploreQuest))
+                    player.copy(activeQuests = listOf(exploreQuest))
                 }
             )
             val engineWithQuest = InMemoryGameEngine(state)
 
             // Quest should be active but not complete
             var player = engineWithQuest.getWorldState().player
-            val questBefore = player.quests.find { it.id == "explore_throne" }
+            val questBefore = player.activeQuests.find { it.id == "explore_throne" }
             assertNotNull(questBefore)
             assertEquals(QuestStatus.ACTIVE, questBefore.status)
 
@@ -296,7 +296,7 @@ class FullGameplayIntegrationTest {
             assertEquals(SampleDungeon.THRONE_ROOM_ID, player.currentRoomId)
 
             // Quest objective should auto-complete
-            val questAfter = player.quests.find { it.id == "explore_throne" }
+            val questAfter = player.activeQuests.find { it.id == "explore_throne" }
             assertNotNull(questAfter)
             assertTrue(questAfter.objectives.all { it.isCompleted },
                 "Explore objective should complete when entering room")
@@ -314,20 +314,23 @@ class FullGameplayIntegrationTest {
                 description = "Find and collect the iron sword",
                 objectives = listOf(
                     QuestObjective.CollectItem(
+                        id = "obj_collect_sword",
+                        description = "Collect 1 Rusty Iron Sword",
                         targetItemId = "iron_sword",
+                        targetName = "Rusty Iron Sword",
                         quantity = 1,
                         currentQuantity = 0,
-                        description = "Collect 1 Rusty Iron Sword"
+                        isCompleted = false
                     )
                 ),
-                reward = QuestReward(experience = 50, gold = 25, items = emptyList()),
+                reward = QuestReward(experiencePoints = 50, goldAmount = 25, items = emptyList()),
                 status = QuestStatus.ACTIVE
             )
 
             var state = engine.getWorldState()
             state = state.copy(
                 players = state.players.mapValues { (_, player) ->
-                    player.copy(quests = listOf(collectQuest))
+                    player.copy(activeQuests = listOf(collectQuest))
                 }
             )
             val engineWithQuest = InMemoryGameEngine(state)
@@ -339,7 +342,7 @@ class FullGameplayIntegrationTest {
 
             // Quest should auto-complete
             val player = engineWithQuest.getWorldState().player
-            val questAfter = player.quests.find { it.id == "collect_sword" }
+            val questAfter = player.activeQuests.find { it.id == "collect_sword" }
             assertNotNull(questAfter)
             assertTrue(questAfter.objectives.all { it.isCompleted },
                 "Collect objective should complete when picking up item")
@@ -357,18 +360,21 @@ class FullGameplayIntegrationTest {
                 description = "Vanquish the undead ruler",
                 objectives = listOf(
                     QuestObjective.KillEnemy(
+                        id = "obj_kill_king",
+                        description = "Defeat the Skeleton King",
                         targetNpcId = "skeleton_king",
-                        description = "Defeat the Skeleton King"
+                        targetName = "Skeleton King",
+                        isCompleted = false
                     )
                 ),
-                reward = QuestReward(experience = 200, gold = 100, items = emptyList()),
+                reward = QuestReward(experiencePoints = 200, goldAmount = 100, items = emptyList()),
                 status = QuestStatus.ACTIVE
             )
 
             var state = engine.getWorldState()
             state = state.copy(
                 players = state.players.mapValues { (_, player) ->
-                    player.copy(quests = listOf(killQuest))
+                    player.copy(activeQuests = listOf(killQuest))
                 }
             )
             val engineWithQuest = InMemoryGameEngine(state)
@@ -392,7 +398,7 @@ class FullGameplayIntegrationTest {
 
                 if (!currentState.player.isInCombat()) {
                     // Combat ended - check if quest completed
-                    val questAfter = currentState.player.quests.find { it.id == "kill_king" }
+                    val questAfter = currentState.player.activeQuests.find { it.id == "kill_king" }
                     if (questAfter != null && questAfter.objectives.all { it.isCompleted }) {
                         // Successfully defeated and quest completed
                         assertTrue(questAfter.objectives.all { it.isCompleted },
@@ -406,10 +412,8 @@ class FullGameplayIntegrationTest {
                 }
             }
         }
-    }
 
-    @Nested
-    inner class SaveLoadDuringGameplay {
+    // ========== Save/Load During Gameplay Tests ==========
 
         @Test
         fun `can save and load mid-exploration`() = runBlocking {
@@ -482,18 +486,21 @@ class FullGameplayIntegrationTest {
                 description = "Test quest persistence",
                 objectives = listOf(
                     QuestObjective.ExploreRoom(
+                        id = "obj_test",
+                        description = "Visit throne room",
                         targetRoomId = SampleDungeon.THRONE_ROOM_ID,
-                        description = "Visit throne room"
+                        targetRoomName = "Abandoned Throne Room",
+                        isCompleted = false
                     )
                 ),
-                reward = QuestReward(experience = 100, gold = 50, items = emptyList()),
+                reward = QuestReward(experiencePoints = 100, goldAmount = 50, items = emptyList()),
                 status = QuestStatus.ACTIVE
             )
 
             var state = engine.getWorldState()
             state = state.copy(
                 players = state.players.mapValues { (_, player) ->
-                    player.copy(quests = listOf(quest))
+                    player.copy(activeQuests = listOf(quest))
                 }
             )
 
@@ -504,15 +511,13 @@ class FullGameplayIntegrationTest {
             val loadedWorld = persistenceManager.loadGame("with_quest").getOrThrow()
 
             // Quest should be preserved
-            assertEquals(1, loadedWorld.player.quests.size)
-            val loadedQuest = loadedWorld.player.quests[0]
+            assertEquals(1, loadedWorld.player.activeQuests.size)
+            val loadedQuest = loadedWorld.player.activeQuests[0]
             assertEquals("test_quest", loadedQuest.id)
             assertEquals(QuestStatus.ACTIVE, loadedQuest.status)
         }
-    }
 
-    @Nested
-    inner class CompletePlaythrough {
+    // ========== Complete Playthrough Tests ==========
 
         @Test
         fun `can complete full dungeon exploration without errors`() = runBlocking {
@@ -659,5 +664,4 @@ class FullGameplayIntegrationTest {
             assertTrue(finalState.player.health > 0 || finalState.player.health == 0,
                 "Player health should be valid")
         }
-    }
 }

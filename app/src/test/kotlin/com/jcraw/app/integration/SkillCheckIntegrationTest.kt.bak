@@ -24,12 +24,9 @@ class SkillCheckIntegrationTest {
             id = "heavy_door",
             name = "Heavy Stone Door",
             description = "An extremely heavy door",
-            skillChallenge = SkillChallenge(
-                statType = StatType.STRENGTH,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.STRENGTH,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -63,12 +60,9 @@ class SkillCheckIntegrationTest {
             id = "lock",
             name = "Complex Lock",
             description = "A intricate lock mechanism",
-            skillChallenge = SkillChallenge(
-                statType = StatType.DEXTERITY,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.DEXTERITY,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -102,12 +96,9 @@ class SkillCheckIntegrationTest {
             id = "poison_trap",
             name = "Poison Gas Trap",
             description = "A trap spewing toxic gas",
-            skillChallenge = SkillChallenge(
-                statType = StatType.CONSTITUTION,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.CONSTITUTION,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -141,12 +132,9 @@ class SkillCheckIntegrationTest {
             id = "puzzle",
             name = "Ancient Puzzle",
             description = "A complex puzzle mechanism",
-            skillChallenge = SkillChallenge(
-                statType = StatType.INTELLIGENCE,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.INTELLIGENCE,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -180,12 +168,9 @@ class SkillCheckIntegrationTest {
             id = "hidden_trap",
             name = "Hidden Trap",
             description = "A concealed trap mechanism",
-            skillChallenge = SkillChallenge(
-                statType = StatType.WISDOM,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.WISDOM,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -220,12 +205,9 @@ class SkillCheckIntegrationTest {
             id = "magic_seal",
             name = "Magical Seal",
             description = "A seal requiring force of personality",
-            skillChallenge = SkillChallenge(
-                statType = StatType.CHARISMA,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.CHARISMA,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -259,12 +241,9 @@ class SkillCheckIntegrationTest {
             id = "easy_lock",
             name = "Simple Lock",
             description = "A basic lock",
-            skillChallenge = SkillChallenge(
-                statType = StatType.DEXTERITY,
-                difficulty = Difficulty.TRIVIAL,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )  // TRIVIAL difficulty
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.DEXTERITY,
+            skillCheckDC = 5  // TRIVIAL difficulty
         )
 
         val player = PlayerState(
@@ -297,12 +276,9 @@ class SkillCheckIntegrationTest {
             id = "medium_puzzle",
             name = "Moderate Puzzle",
             description = "A moderately complex puzzle",
-            skillChallenge = SkillChallenge(
-                statType = StatType.INTELLIGENCE,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )  // MEDIUM difficulty
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.INTELLIGENCE,
+            skillCheckDC = 15  // MEDIUM difficulty
         )
 
         val player = PlayerState(
@@ -342,12 +318,9 @@ class SkillCheckIntegrationTest {
             id = "hard_door",
             name = "Reinforced Door",
             description = "An extremely sturdy door",
-            skillChallenge = SkillChallenge(
-                statType = StatType.STRENGTH,
-                difficulty = Difficulty.HARD,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )  // HARD difficulty
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.STRENGTH,
+            skillCheckDC = 20  // HARD difficulty
         )
 
         val player = PlayerState(
@@ -380,12 +353,9 @@ class SkillCheckIntegrationTest {
             id = "feature",
             name = "Challenge",
             description = "A test of ability",
-            skillChallenge = SkillChallenge(
-                statType = StatType.STRENGTH,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.STRENGTH,
+            skillCheckDC = 15
         )
 
         val player = PlayerState(
@@ -419,12 +389,9 @@ class SkillCheckIntegrationTest {
             id = "impossible",
             name = "Impossible Task",
             description = "An nearly impossible challenge",
-            skillChallenge = SkillChallenge(
-                statType = StatType.INTELLIGENCE,
-                difficulty = Difficulty.NEARLY_IMPOSSIBLE,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )  // NEARLY_IMPOSSIBLE
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.INTELLIGENCE,
+            skillCheckDC = 30  // NEARLY_IMPOSSIBLE
         )
 
         val player = PlayerState(
@@ -451,24 +418,18 @@ class SkillCheckIntegrationTest {
             id = "lock1",
             name = "First Lock",
             description = "A simple lock",
-            skillChallenge = SkillChallenge(
-                statType = StatType.DEXTERITY,
-                difficulty = Difficulty.EASY,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.DEXTERITY,
+            skillCheckDC = 10
         )
 
         val feature2 = Entity.Feature(
             id = "trap1",
             name = "First Trap",
             description = "A hidden trap",
-            skillChallenge = SkillChallenge(
-                statType = StatType.WISDOM,
-                difficulty = Difficulty.EASY,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.WISDOM,
+            skillCheckDC = 10
         )
 
         val player = PlayerState(
@@ -512,12 +473,9 @@ class SkillCheckIntegrationTest {
             id = "test_feature",
             name = "Test Challenge",
             description = "A balanced challenge",
-            skillChallenge = SkillChallenge(
-                statType = StatType.STRENGTH,
-                difficulty = Difficulty.MEDIUM,
-                description = "Skill check", successDescription = "Success!",
-                failureDescription = "Failed."
-            )
+            requiresSkillCheck = true,
+            skillCheckStat = StatType.STRENGTH,
+            skillCheckDC = 15
         )
 
         // Player with below-average STR

@@ -89,7 +89,7 @@ class SaveLoadIntegrationTest {
             health = 75,
             maxHealth = 100,
             gold = 150,
-            experience = 500,
+            experiencePoints = 500,
             inventory = listOf(sword),
             equippedWeapon = sword
         )
@@ -122,7 +122,7 @@ class SaveLoadIntegrationTest {
         assertEquals(player.health, loadedWorld.player.health)
         assertEquals(player.maxHealth, loadedWorld.player.maxHealth)
         assertEquals(player.gold, loadedWorld.player.gold)
-        assertEquals(player.experience, loadedWorld.player.experience)
+        assertEquals(player.experiencePoints, loadedWorld.player.experiencePoints)
         assertEquals(player.currentRoomId, loadedWorld.player.currentRoomId)
 
         // Verify inventory
@@ -284,8 +284,8 @@ class SaveLoadIntegrationTest {
 
         val combatState = CombatState(
             combatantNpcId = "goblin",
+            playerHealth = 85,
             npcHealth = 25,
-            npcMaxHealth = 30,
             turnCount = 3
         )
 

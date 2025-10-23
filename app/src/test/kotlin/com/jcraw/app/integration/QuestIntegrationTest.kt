@@ -25,11 +25,10 @@ class QuestIntegrationTest {
         val player = PlayerState(
             id = "player1",
             name = "Hero",
-            currentRoomId = "test_room",
-            availableQuests = listOf(quest)
+            currentRoomId = "test_room"
         )
 
-        val world = createTestWorld(player = player)
+        val world = createTestWorld(player = player).copy(availableQuests = listOf(quest))
         val engine = InMemoryGameEngine(world)
 
         // Accept the quest
@@ -37,9 +36,9 @@ class QuestIntegrationTest {
         assertTrue(response.contains("accept", ignoreCase = true) || response.contains("quest", ignoreCase = true))
 
         // Quest should move to active quests
-        val playerState = engine.getWorldState().player
-        assertTrue(playerState.activeQuests.any { it.id == quest.id })
-        assertTrue(playerState.availableQuests.none { it.id == quest.id })
+        val worldState = engine.getWorldState()
+        assertTrue(worldState.player.activeQuests.any { it.id == quest.id })
+        assertTrue(worldState.availableQuests.none { it.id == quest.id })
     }
 
     @Test
@@ -235,9 +234,12 @@ class QuestIntegrationTest {
             id = "lock",
             name = "Rusty Lock",
             description = "An old lock mechanism",
-            requiresSkillCheck = true,
-            skillCheckStat = StatType.DEXTERITY,
-            skillCheckDC = 5  // Very easy check
+            skillChallenge = SkillChallenge(
+                statType = StatType.DEXTERITY,
+                difficulty = Difficulty.TRIVIAL,  // Very easy check
+                description = "Pick the lock", successDescription = "You successfully pick the lock!",
+                failureDescription = "The lock resists your attempts."
+            )
         )
 
         val quest = Quest(
@@ -494,11 +496,10 @@ class QuestIntegrationTest {
             id = "player1",
             name = "Hero",
             currentRoomId = "test_room",
-            activeQuests = listOf(activeQuest),
-            availableQuests = listOf(availableQuest)
+            activeQuests = listOf(activeQuest)
         )
 
-        val world = createTestWorld(player = player)
+        val world = createTestWorld(player = player).copy(availableQuests = listOf(availableQuest))
         val engine = InMemoryGameEngine(world)
 
         // View quest log
