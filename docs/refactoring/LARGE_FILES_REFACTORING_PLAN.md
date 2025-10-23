@@ -1,6 +1,6 @@
 # Large Files Refactoring Plan
 
-**Status:** IN PROGRESS - Phase 1 Complete (1/3)
+**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 Started (1/3 complete)
 **Target:** Refactor 3 files (1961, 1507, 1146 lines) into 17 smaller files (<350 lines each)
 **Goal:** Improve maintainability, follow KISS principle, stay under 300-500 line guideline
 
@@ -784,13 +784,13 @@ Can be split across multiple Claude Code sessions.
 - [x] Refactor OutputValidator.kt (~65 lines)
 - [x] Update imports
 - [x] Run testbot tests - all pass (AllPlaythroughsTest passed)
-- [ ] Commit: "feat: refactor OutputValidator into 4 files [Phase 1/3]"
+- [x] Commit: "refactoring phase 1"
 - [x] Update ARCHITECTURE.md
 
 **Result:** 1146 lines → 4 files (65, 680, 460, 40 lines)
 
-### Phase 2: App.kt ✗
-- [ ] Create handlers/ package
+### Phase 2: App.kt ⏳ IN PROGRESS
+- [x] Create handlers/ package
 - [ ] Extract MovementHandlers.kt
 - [ ] Extract ItemHandlers.kt
 - [ ] Extract CombatHandlers.kt
