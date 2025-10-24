@@ -282,7 +282,13 @@ Memory (store for RAG)
 ### Client (GUI)
 - `client/src/main/kotlin/com/jcraw/mud/client/Main.kt` - Entry point
 - `client/src/main/kotlin/com/jcraw/mud/client/GameViewModel.kt` - State management
-- `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt` - Engine integration
+- `client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt` - Engine integration (~311 lines)
+- `client/src/main/kotlin/com/jcraw/mud/client/handlers/` - Intent handlers (~1400 lines total)
+  - `ClientMovementHandlers.kt` - Navigation and exploration (~250 lines)
+  - `ClientItemHandlers.kt` - Inventory and equipment (~300 lines)
+  - `ClientCombatHandlers.kt` - Combat system (~140 lines)
+  - `ClientSocialHandlers.kt` - Social interactions (~230 lines)
+  - `ClientSkillQuestHandlers.kt` - Skills, quests, persistence, meta-commands (~480 lines)
 - `client/src/main/kotlin/com/jcraw/mud/client/ui/` - UI screens
 
 ### Test Bot

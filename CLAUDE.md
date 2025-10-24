@@ -79,7 +79,13 @@ Priority tasks:
      - ✅ CombatHandlers.kt (136 lines) - Combat system
      - ✅ SocialHandlers.kt (348 lines) - NPC interactions
      - ✅ SkillQuestHandlers.kt (522 lines) - Skills, quests, persistence, meta-commands
-   - Phase 3: EngineGameClient.kt → 6 files (next priority - 1507 lines remaining)
+   - Phase 3: EngineGameClient.kt → 6 files ✅ **COMPLETE** (1507 → 311, 250, 300, 140, 230, 480 lines)
+     - ✅ EngineGameClient.kt (311 lines) - Core GameClient implementation
+     - ✅ ClientMovementHandlers.kt (250 lines) - Navigation and exploration
+     - ✅ ClientItemHandlers.kt (300 lines) - Inventory and equipment
+     - ✅ ClientCombatHandlers.kt (140 lines) - Combat system
+     - ✅ ClientSocialHandlers.kt (230 lines) - Social interactions
+     - ✅ ClientSkillQuestHandlers.kt (480 lines) - Skills, quests, persistence, meta-commands
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 4. **Polish & Enhancement Ideas**:
@@ -131,7 +137,13 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
   - `CombatHandlers.kt` (136 lines) - Combat system
   - `SocialHandlers.kt` (348 lines) - NPC interactions
   - `SkillQuestHandlers.kt` (522 lines) - Skills, quests, persistence, meta-commands
-- **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/Main.kt`
+- **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/`
+  - `EngineGameClient.kt` (311 lines) - Core GameClient implementation
+  - `handlers/ClientMovementHandlers.kt` (250 lines) - Navigation and exploration
+  - `handlers/ClientItemHandlers.kt` (300 lines) - Inventory and equipment
+  - `handlers/ClientCombatHandlers.kt` (140 lines) - Combat system
+  - `handlers/ClientSocialHandlers.kt` (230 lines) - Social interactions
+  - `handlers/ClientSkillQuestHandlers.kt` (480 lines) - Skills, quests, persistence, meta-commands
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
 - **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
 
