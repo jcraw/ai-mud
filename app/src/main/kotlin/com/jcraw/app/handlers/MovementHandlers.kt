@@ -1,6 +1,7 @@
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
+import com.jcraw.app.times
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.reasoning.QuestAction
@@ -168,6 +169,3 @@ object MovementHandlers {
         }
     }
 }
-
-// String repetition helper
-private operator fun String.times(n: Int): String = repeat(n)

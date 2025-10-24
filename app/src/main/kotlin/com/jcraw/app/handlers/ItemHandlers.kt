@@ -1,6 +1,7 @@
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
+import com.jcraw.app.times
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.reasoning.QuestAction
@@ -345,6 +346,3 @@ object ItemHandlers {
         return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
     }
 }
-
-// String repetition helper for this handler
-private operator fun String.times(n: Int): String = repeat(n)

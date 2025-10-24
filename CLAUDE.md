@@ -70,10 +70,16 @@ Priority tasks:
 1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<350 lines each)
    - See **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** for detailed execution plan
    - Phase 1: OutputValidator.kt → 4 files ✅ **COMPLETE**
-   - Phase 2: App.kt → 8 files ⏳ **IN PROGRESS** (5/5 handlers extracted ✅, App.kt: 1036 → 578 lines)
-     - ✅ MovementHandlers.kt, ItemHandlers.kt, CombatHandlers.kt, SocialHandlers.kt, SkillQuestHandlers.kt
-     - Still need: Extract MudGameEngine.kt, MultiUserGame.kt, simplify App.kt main()
-   - Phase 3: EngineGameClient.kt → 6 files
+   - Phase 2: App.kt → 8 files ✅ **COMPLETE** (App.kt: 1961 → 142 lines)
+     - ✅ App.kt (142 lines) - Main entry point and initialization
+     - ✅ MudGameEngine.kt (254 lines) - Core game engine and loop
+     - ✅ MultiUserGame.kt (248 lines) - Multi-user server mode
+     - ✅ MovementHandlers.kt (170 lines) - Navigation and exploration
+     - ✅ ItemHandlers.kt (347 lines) - Inventory and equipment
+     - ✅ CombatHandlers.kt (135 lines) - Combat system
+     - ✅ SocialHandlers.kt - NPC interactions
+     - ✅ SkillQuestHandlers.kt (521 lines) - Skills, quests, persistence, meta-commands
+   - Phase 3: EngineGameClient.kt → 6 files (next priority)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 4. **Polish & Enhancement Ideas**:
@@ -115,13 +121,16 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 - **utils** - Shared utilities
 
 ### Key Files
-- **Console app**: `app/src/main/kotlin/com/jcraw/app/App.kt` (~578 lines)
+- **Console app**: `app/src/main/kotlin/com/jcraw/app/`
+  - `App.kt` (~142 lines) - Main entry point and initialization
+  - `MudGameEngine.kt` (~254 lines) - Core game engine and loop
+  - `MultiUserGame.kt` (~248 lines) - Multi-user server mode
 - **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (5 handler files)
-  - `MovementHandlers.kt` - Navigation and exploration
-  - `ItemHandlers.kt` - Inventory and equipment
-  - `CombatHandlers.kt` - Combat system
+  - `MovementHandlers.kt` (~170 lines) - Navigation and exploration
+  - `ItemHandlers.kt` (~347 lines) - Inventory and equipment
+  - `CombatHandlers.kt` (~135 lines) - Combat system
   - `SocialHandlers.kt` - NPC interactions
-  - `SkillQuestHandlers.kt` - Skills, quests, persistence, meta-commands
+  - `SkillQuestHandlers.kt` (~521 lines) - Skills, quests, persistence, meta-commands
 - **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/Main.kt`
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
 - **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
