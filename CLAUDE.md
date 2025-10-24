@@ -64,36 +64,15 @@ For complete documentation, see:
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
 
-## What's Next
+## Future Enhancements (Optional)
 
-Priority tasks:
-1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<600 lines each)
-   - See **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** for detailed execution plan
-   - Phase 1: OutputValidator.kt → 4 files ✅ **COMPLETE** (1146 → 65, 680, 460, 40 lines)
-   - Phase 2: App.kt → 8 files ✅ **COMPLETE** (1961 → 145, 254, 248, 171, 348, 136, 348, 522 lines)
-     - ✅ App.kt (145 lines) - Main entry point and initialization
-     - ✅ MudGameEngine.kt (254 lines) - Core game engine and loop
-     - ✅ MultiUserGame.kt (248 lines) - Multi-user server mode
-     - ✅ MovementHandlers.kt (171 lines) - Navigation and exploration
-     - ✅ ItemHandlers.kt (348 lines) - Inventory and equipment
-     - ✅ CombatHandlers.kt (136 lines) - Combat system
-     - ✅ SocialHandlers.kt (348 lines) - NPC interactions
-     - ✅ SkillQuestHandlers.kt (522 lines) - Skills, quests, persistence, meta-commands
-   - Phase 3: EngineGameClient.kt → 6 files ✅ **COMPLETE** (1507 → 311, 250, 300, 140, 230, 480 lines)
-     - ✅ EngineGameClient.kt (311 lines) - Core GameClient implementation
-     - ✅ ClientMovementHandlers.kt (250 lines) - Navigation and exploration
-     - ✅ ClientItemHandlers.kt (300 lines) - Inventory and equipment
-     - ✅ ClientCombatHandlers.kt (140 lines) - Combat system
-     - ✅ ClientSocialHandlers.kt (230 lines) - Social interactions
-     - ✅ ClientSkillQuestHandlers.kt (480 lines) - Skills, quests, persistence, meta-commands
-2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
-3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
-4. **Polish & Enhancement Ideas**:
-   - More quest objective types (Escort, Defend, Craft, etc.)
-   - Character progression system (leveling, skill trees)
-   - More dungeon themes and procedural variations
-   - Save/load for GUI client
-   - Multiplayer lobby system
+- **Network layer** - TCP/WebSocket support for remote multi-player
+- **Persistent vector storage** - Save/load vector embeddings to disk
+- **Additional quest types** - Escort, Defend, Craft objectives
+- **Character progression** - Leveling, skill trees
+- **More dungeons** - Additional themes and procedural variations
+- **GUI persistence** - Save/load for GUI client
+- **Multiplayer lobby** - Lobby system for multi-player games
 
 ## Commands
 
@@ -203,10 +182,6 @@ Memory (store for RAG)
 
 ### System Documentation
 - **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
-- **[Skill System Implementation Plan](docs/requirements/V2/SKILL_SYSTEM_IMPLEMENTATION_PLAN.md)** - Complete architecture and roadmap for V2 skill system
-
-### Refactoring Plans
-- **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** - Detailed plan to split oversized files into maintainable modules
 
 ## Current Status
 
@@ -217,6 +192,7 @@ Memory (store for RAG)
 - ✅ Social system (11 phases complete)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ All testing migration & cleanup complete
+- ✅ Code refactoring complete (all files under 600 lines)
 - ✅ All known bugs resolved
 
 **Latest updates** can be found in the git commit history and individual documentation files.
