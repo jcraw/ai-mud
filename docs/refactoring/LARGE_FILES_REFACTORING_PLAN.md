@@ -1,6 +1,6 @@
 # Large Files Refactoring Plan
 
-**Status:** IN PROGRESS - Phase 1 Complete, Phase 2 In Progress (4/8 files extracted)
+**Status:** IN PROGRESS - Phase 1 & 2 Complete, Phase 3 Next
 **Target:** Refactor 3 files (1961, 1507, 1146 lines) into 17 smaller files (<350 lines each)
 **Goal:** Improve maintainability, follow KISS principle, stay under 300-500 line guideline
 
@@ -789,23 +789,23 @@ Can be split across multiple Claude Code sessions.
 
 **Result:** 1146 lines → 4 files (65, 680, 460, 40 lines)
 
-### Phase 2: App.kt ⏳ IN PROGRESS
+### Phase 2: App.kt ✅ COMPLETE
 - [x] Create handlers/ package
-- [x] Extract MovementHandlers.kt (~173 lines) - handles movement, look, search
-- [x] Extract ItemHandlers.kt (~350 lines) - handles inventory, take, drop, equip, use, give
-- [x] Extract CombatHandlers.kt (~138 lines) - handles attack, combat resolution
-- [ ] Extract SocialHandlers.kt
-- [ ] Extract SkillQuestHandlers.kt
-- [ ] Create MudGameEngine.kt
-- [ ] Extract MultiUserGame.kt
-- [ ] Simplify App.kt
-- [ ] Update imports in tests
-- [ ] Run app tests - all pass
-- [ ] Test console app manually
-- [ ] Commit: "feat: refactor App.kt into 8 files [Phase 2/3]"
-- [ ] Update ARCHITECTURE.md and CLAUDE.md
+- [x] Extract MovementHandlers.kt (171 lines) - handles movement, look, search
+- [x] Extract ItemHandlers.kt (348 lines) - handles inventory, take, drop, equip, use, give
+- [x] Extract CombatHandlers.kt (136 lines) - handles attack, combat resolution
+- [x] Extract SocialHandlers.kt (348 lines) - handles talk, say, emote, persuade, intimidate, ask
+- [x] Extract SkillQuestHandlers.kt (522 lines) - handles skills, quests, persistence, meta-commands
+- [x] Create MudGameEngine.kt (254 lines) - core game loop and state management
+- [x] Extract MultiUserGame.kt (248 lines) - multi-user server mode
+- [x] Simplify App.kt (145 lines) - main entry point only
+- [x] Update imports in tests
+- [x] Run app tests - all pass
+- [x] Test console app manually
+- [x] Commit: "refactoring phase 2"
+- [x] Update ARCHITECTURE.md and CLAUDE.md
 
-**Progress:** App.kt reduced from 1961 → 1347 lines (614 lines extracted)
+**Result:** 1961 lines → 8 files (145, 254, 248, 171, 348, 136, 348, 522 lines)
 
 ### Phase 3: EngineGameClient ✗
 - [ ] Create handlers/ package (client)

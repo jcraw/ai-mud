@@ -67,19 +67,19 @@ For complete documentation, see:
 ## What's Next
 
 Priority tasks:
-1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<350 lines each)
+1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<600 lines each)
    - See **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** for detailed execution plan
-   - Phase 1: OutputValidator.kt → 4 files ✅ **COMPLETE**
-   - Phase 2: App.kt → 8 files ✅ **COMPLETE** (App.kt: 1961 → 142 lines)
-     - ✅ App.kt (142 lines) - Main entry point and initialization
+   - Phase 1: OutputValidator.kt → 4 files ✅ **COMPLETE** (1146 → 65, 680, 460, 40 lines)
+   - Phase 2: App.kt → 8 files ✅ **COMPLETE** (1961 → 145, 254, 248, 171, 348, 136, 348, 522 lines)
+     - ✅ App.kt (145 lines) - Main entry point and initialization
      - ✅ MudGameEngine.kt (254 lines) - Core game engine and loop
      - ✅ MultiUserGame.kt (248 lines) - Multi-user server mode
-     - ✅ MovementHandlers.kt (170 lines) - Navigation and exploration
-     - ✅ ItemHandlers.kt (347 lines) - Inventory and equipment
-     - ✅ CombatHandlers.kt (135 lines) - Combat system
-     - ✅ SocialHandlers.kt - NPC interactions
-     - ✅ SkillQuestHandlers.kt (521 lines) - Skills, quests, persistence, meta-commands
-   - Phase 3: EngineGameClient.kt → 6 files (next priority)
+     - ✅ MovementHandlers.kt (171 lines) - Navigation and exploration
+     - ✅ ItemHandlers.kt (348 lines) - Inventory and equipment
+     - ✅ CombatHandlers.kt (136 lines) - Combat system
+     - ✅ SocialHandlers.kt (348 lines) - NPC interactions
+     - ✅ SkillQuestHandlers.kt (522 lines) - Skills, quests, persistence, meta-commands
+   - Phase 3: EngineGameClient.kt → 6 files (next priority - 1507 lines remaining)
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
 4. **Polish & Enhancement Ideas**:
@@ -122,15 +122,15 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 
 ### Key Files
 - **Console app**: `app/src/main/kotlin/com/jcraw/app/`
-  - `App.kt` (~142 lines) - Main entry point and initialization
-  - `MudGameEngine.kt` (~254 lines) - Core game engine and loop
-  - `MultiUserGame.kt` (~248 lines) - Multi-user server mode
+  - `App.kt` (145 lines) - Main entry point and initialization
+  - `MudGameEngine.kt` (254 lines) - Core game engine and loop
+  - `MultiUserGame.kt` (248 lines) - Multi-user server mode
 - **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (5 handler files)
-  - `MovementHandlers.kt` (~170 lines) - Navigation and exploration
-  - `ItemHandlers.kt` (~347 lines) - Inventory and equipment
-  - `CombatHandlers.kt` (~135 lines) - Combat system
-  - `SocialHandlers.kt` - NPC interactions
-  - `SkillQuestHandlers.kt` (~521 lines) - Skills, quests, persistence, meta-commands
+  - `MovementHandlers.kt` (171 lines) - Navigation and exploration
+  - `ItemHandlers.kt` (348 lines) - Inventory and equipment
+  - `CombatHandlers.kt` (136 lines) - Combat system
+  - `SocialHandlers.kt` (348 lines) - NPC interactions
+  - `SkillQuestHandlers.kt` (522 lines) - Skills, quests, persistence, meta-commands
 - **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/Main.kt`
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
 - **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
