@@ -70,7 +70,7 @@ Priority tasks:
 1. **Code refactoring** - Refactor 3 large files (1961, 1507, 1146 lines) into smaller modules (<350 lines each)
    - See **[Large Files Refactoring Plan](docs/refactoring/LARGE_FILES_REFACTORING_PLAN.md)** for detailed execution plan
    - Phase 1: OutputValidator.kt → 4 files ✅ **COMPLETE**
-   - Phase 2: App.kt → 8 files ⏳ **IN PROGRESS** (4/8 files extracted: Movement, Item, Combat handlers complete)
+   - Phase 2: App.kt → 8 files ⏳ **IN PROGRESS** (5/8 files extracted: Movement, Item, Combat, Social handlers complete)
    - Phase 3: EngineGameClient.kt → 6 files
 2. **Network layer** (optional) - TCP/WebSocket support for remote multi-player
 3. **Persistent memory storage** (optional) - Save/load vector embeddings to disk
@@ -114,7 +114,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 
 ### Key Files
 - **Console app**: `app/src/main/kotlin/com/jcraw/app/App.kt`
-- **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (MovementHandlers, ItemHandlers, CombatHandlers)
+- **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (MovementHandlers, ItemHandlers, CombatHandlers, SocialHandlers)
 - **GUI client**: `client/src/main/kotlin/com/jcraw/mud/client/Main.kt`
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
 - **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`

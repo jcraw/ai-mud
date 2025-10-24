@@ -143,7 +143,7 @@ class MudGame(
     private val persistenceManager = PersistenceManager()
     private val intentRecognizer = IntentRecognizer(llmClient)
     internal val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
-    private var lastConversationNpcId: String? = null
+    internal var lastConversationNpcId: String? = null
 
     // Social system components
     private val socialDatabase = SocialDatabase("social.db")
@@ -151,8 +151,8 @@ class MudGame(
     private val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
     private val knowledgeRepo = com.jcraw.mud.memory.social.SqliteKnowledgeRepository(socialDatabase)
     private val dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
-    private val emoteHandler = com.jcraw.mud.reasoning.EmoteHandler(dispositionManager)
-    private val npcKnowledgeManager = com.jcraw.mud.reasoning.NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
+    internal val emoteHandler = com.jcraw.mud.reasoning.EmoteHandler(dispositionManager)
+    internal val npcKnowledgeManager = com.jcraw.mud.reasoning.NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
     private val questTracker = QuestTracker(dispositionManager)
 
     // Skill system components
@@ -249,16 +249,16 @@ class MudGame(
             is Intent.TakeAll -> com.jcraw.app.handlers.ItemHandlers.handleTakeAll(this)
             is Intent.Drop -> com.jcraw.app.handlers.ItemHandlers.handleDrop(this, intent.target)
             is Intent.Give -> com.jcraw.app.handlers.ItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)
-            is Intent.Talk -> handleTalk(intent.target)
-            is Intent.Say -> handleSay(intent.message, intent.npcTarget)
+            is Intent.Talk -> com.jcraw.app.handlers.SocialHandlers.handleTalk(this, intent.target)
+            is Intent.Say -> com.jcraw.app.handlers.SocialHandlers.handleSay(this, intent.message, intent.npcTarget)
             is Intent.Attack -> com.jcraw.app.handlers.CombatHandlers.handleAttack(this, intent.target)
             is Intent.Equip -> com.jcraw.app.handlers.ItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
             is Intent.Check -> handleCheck(intent.target)
-            is Intent.Persuade -> handlePersuade(intent.target)
-            is Intent.Intimidate -> handleIntimidate(intent.target)
-            is Intent.Emote -> handleEmote(intent.emoteType, intent.target)
-            is Intent.AskQuestion -> runBlocking { handleAskQuestion(intent.npcTarget, intent.topic) }
+            is Intent.Persuade -> com.jcraw.app.handlers.SocialHandlers.handlePersuade(this, intent.target)
+            is Intent.Intimidate -> com.jcraw.app.handlers.SocialHandlers.handleIntimidate(this, intent.target)
+            is Intent.Emote -> com.jcraw.app.handlers.SocialHandlers.handleEmote(this, intent.emoteType, intent.target)
+            is Intent.AskQuestion -> runBlocking { com.jcraw.app.handlers.SocialHandlers.handleAskQuestion(this@MudGame, intent.npcTarget, intent.topic) }
             is Intent.UseSkill -> handleUseSkill(intent.skill, intent.action)
             is Intent.TrainSkill -> handleTrainSkill(intent.skill, intent.method)
             is Intent.ChoosePerk -> handleChoosePerk(intent.skillName, intent.choice)
@@ -325,138 +325,6 @@ class MudGame(
     private fun handleInteract(target: String) {
         println("Interaction system not yet implemented. (Target: $target)")
     }
-
-    private fun handleTalk(target: String) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
-            }
-
-        if (npc == null) {
-            println("There's no one here by that name.")
-            return
-        }
-
-        lastConversationNpcId = npc.id
-
-        // Generate dialogue
-        if (npcInteractionGenerator != null) {
-            println("\nYou speak to ${npc.name}...")
-            val dialogue = runBlocking {
-                npcInteractionGenerator.generateDialogue(npc, worldState.player)
-            }
-            println("\n${npc.name} says: \"$dialogue\"")
-        } else {
-            // Fallback dialogue without LLM
-            if (npc.isHostile) {
-                println("\n${npc.name} glares at you menacingly and says nothing.")
-            } else {
-                println("\n${npc.name} nods at you in acknowledgment.")
-            }
-        }
-
-        // Track NPC conversation for quests
-        trackQuests(QuestAction.TalkedToNPC(npc.id))
-    }
-
-    private fun handleSay(message: String, npcTarget: String?) {
-        val utterance = message.trim()
-        if (utterance.isEmpty()) {
-            println("\nSay what?")
-            return
-        }
-
-        val room = worldState.getCurrentRoom() ?: return
-        val npc = resolveNpcTarget(room, npcTarget)
-
-        if (npcTarget != null && npc == null) {
-            println("\nThere's no one here by that name.")
-            return
-        }
-
-        if (npc == null) {
-            println("\nYou say: \"$utterance\"")
-            lastConversationNpcId = null
-            return
-        }
-
-        println("\nYou say to ${npc.name}: \"$utterance\"")
-        lastConversationNpcId = npc.id
-
-        if (isQuestion(utterance)) {
-            val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
-            runBlocking {
-                handleAskQuestion(npc.name, topic)
-            }
-            trackQuests(QuestAction.TalkedToNPC(npc.id))
-            return
-        }
-
-        if (npcInteractionGenerator != null) {
-            val reply = runCatching {
-                runBlocking {
-                    npcInteractionGenerator?.generateDialogue(npc, worldState.player)
-                }
-            }.getOrElse {
-                println("⚠️  NPC dialogue generation failed: ${it.message}")
-                null
-            }
-
-            if (reply != null) {
-                println("\n${npc.name} says: \"$reply\"")
-            }
-        } else {
-            if (npc.isHostile) {
-                println("\n${npc.name} scowls and refuses to answer.")
-            } else {
-                println("\n${npc.name} listens quietly.")
-            }
-        }
-
-        trackQuests(QuestAction.TalkedToNPC(npc.id))
-    }
-
-    private fun resolveNpcTarget(room: com.jcraw.mud.core.Room, npcTarget: String?): com.jcraw.mud.core.Entity.NPC? {
-        val npcs = room.entities.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
-        if (npcTarget != null) {
-            val lower = npcTarget.lowercase()
-            val explicit = npcs.find {
-                it.name.lowercase().contains(lower) || it.id.lowercase().contains(lower)
-            }
-            if (explicit != null) {
-                return explicit
-            }
-        }
-
-        val recent = lastConversationNpcId
-        if (recent != null) {
-            return npcs.find { it.id == recent }
-        }
-
-        return null
-    }
-
-    private fun isQuestion(text: String): Boolean {
-        val trimmed = text.trim()
-        if (trimmed.endsWith("?")) return true
-
-        val lower = trimmed.lowercase()
-        val prefixes = listOf(
-            "who", "what", "where", "when", "why", "how",
-            "can", "will", "is", "are", "am",
-            "do", "does", "did",
-            "should", "could", "would",
-            "have", "has", "had",
-            "tell me", "explain", "describe"
-        )
-
-        return prefixes.any { lower.startsWith(it) }
-    }
-
 
     private fun handleCheck(target: String) {
         val room = worldState.getCurrentRoom() ?: return
@@ -531,185 +399,6 @@ class MudGame(
             println("\n❌ Failure!")
             println(challenge.failureDescription)
         }
-    }
-
-    private fun handlePersuade(target: String) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
-            }
-
-        if (npc == null) {
-            println("There's no one here by that name.")
-            return
-        }
-
-        val challenge = npc.persuasionChallenge
-        if (challenge == null) {
-            println("${npc.name} doesn't seem interested in negotiating.")
-            return
-        }
-
-        if (npc.hasBeenPersuaded) {
-            println("You've already persuaded ${npc.name}.")
-            return
-        }
-
-        println("\n${challenge.description}")
-
-        // Perform the skill check
-        val result = skillCheckResolver.checkPlayer(
-            worldState.player,
-            challenge.statType,
-            challenge.difficulty
-        )
-
-        // Display roll details
-        println("\nRolling ${challenge.statType.name} check...")
-        println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
-
-        // Display result
-        if (result.isCriticalSuccess) {
-            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
-        } else if (result.isCriticalFailure) {
-            println("\n💀 CRITICAL FAILURE! (Natural 1)")
-        }
-
-        if (result.success) {
-            println("\n✅ Success!")
-            println(challenge.successDescription)
-
-            // Mark NPC as persuaded
-            val updatedNpc = npc.copy(hasBeenPersuaded = true)
-            worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
-        } else {
-            println("\n❌ Failure!")
-            println(challenge.failureDescription)
-        }
-    }
-
-    private fun handleIntimidate(target: String) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
-            }
-
-        if (npc == null) {
-            println("There's no one here by that name.")
-            return
-        }
-
-        val challenge = npc.intimidationChallenge
-        if (challenge == null) {
-            println("${npc.name} doesn't seem easily intimidated.")
-            return
-        }
-
-        if (npc.hasBeenIntimidated) {
-            println("${npc.name} is already frightened of you.")
-            return
-        }
-
-        println("\n${challenge.description}")
-
-        // Perform the skill check
-        val result = skillCheckResolver.checkPlayer(
-            worldState.player,
-            challenge.statType,
-            challenge.difficulty
-        )
-
-        // Display roll details
-        println("\nRolling ${challenge.statType.name} check...")
-        println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
-
-        // Display result
-        if (result.isCriticalSuccess) {
-            println("\n🎲 CRITICAL SUCCESS! (Natural 20)")
-        } else if (result.isCriticalFailure) {
-            println("\n💀 CRITICAL FAILURE! (Natural 1)")
-        }
-
-        if (result.success) {
-            println("\n✅ Success!")
-            println(challenge.successDescription)
-
-            // Mark NPC as intimidated
-            val updatedNpc = npc.copy(hasBeenIntimidated = true)
-            worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
-        } else {
-            println("\n❌ Failure!")
-            println(challenge.failureDescription)
-        }
-    }
-
-    private fun handleEmote(emoteType: String, target: String?) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // If no target specified, perform general emote
-        if (target.isNullOrBlank()) {
-            println("\nYou ${emoteType.lowercase()}.")
-            return
-        }
-
-        // Find target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
-
-        if (npc == null) {
-            println("\nNo one by that name here.")
-            return
-        }
-
-        // Parse emote keyword
-        val emoteTypeEnum = emoteHandler.parseEmoteKeyword(emoteType)
-        if (emoteTypeEnum == null) {
-            println("\nUnknown emote: $emoteType")
-            return
-        }
-
-        // Process emote
-        val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-
-        // Update world state with updated NPC
-        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
-
-        println("\n$narrative")
-    }
-
-    private suspend fun handleAskQuestion(npcTarget: String, topic: String) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(npcTarget.lowercase()) ||
-                entity.id.lowercase().contains(npcTarget.lowercase())
-            }
-
-        if (npc == null) {
-            println("\nThere's no one here by that name.")
-            return
-        }
-
-        lastConversationNpcId = npc.id
-
-        // Query knowledge
-        val (answer, updatedNpc) = npcKnowledgeManager.queryKnowledge(npc, topic)
-
-        // Update world state with updated NPC (may have new knowledge)
-        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
-
-        println("\n${npc.name} says: \"$answer\"")
-        trackQuests(QuestAction.TalkedToNPC(npc.id))
     }
 
     private fun handleUseSkill(skill: String?, action: String) {
