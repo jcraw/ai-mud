@@ -251,7 +251,7 @@ class MudGame(
             is Intent.Give -> com.jcraw.app.handlers.ItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)
             is Intent.Talk -> handleTalk(intent.target)
             is Intent.Say -> handleSay(intent.message, intent.npcTarget)
-            is Intent.Attack -> handleAttack(intent.target)
+            is Intent.Attack -> com.jcraw.app.handlers.CombatHandlers.handleAttack(this, intent.target)
             is Intent.Equip -> com.jcraw.app.handlers.ItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
             is Intent.Check -> handleCheck(intent.target)
@@ -457,140 +457,6 @@ class MudGame(
         return prefixes.any { lower.startsWith(it) }
     }
 
-    private fun handleAttack(target: String?) {
-        val room = worldState.getCurrentRoom() ?: return
-
-        // If already in combat
-        if (worldState.player.isInCombat()) {
-            val result = combatResolver.executePlayerAttack(worldState)
-
-            // Generate narrative
-            val narrative = if (combatNarrator != null && !result.playerDied && !result.npcDied) {
-                val combat = worldState.player.activeCombat!!
-                val npc = room.entities.filterIsInstance<Entity.NPC>()
-                    .find { it.id == combat.combatantNpcId }
-
-                if (npc != null) {
-                    runBlocking {
-                        combatNarrator.narrateCombatRound(
-                            worldState, npc, result.playerDamage, result.npcDamage,
-                            result.npcDied, result.playerDied
-                        )
-                    }
-                } else {
-                    result.narrative
-                }
-            } else {
-                result.narrative
-            }
-
-            println("\n$narrative")
-
-            // Update world state
-            val combatState = result.newCombatState
-            if (combatState != null) {
-                // Sync player's actual health with combat state
-                val updatedPlayer = worldState.player
-                    .updateCombat(combatState)
-                    .copy(health = combatState.playerHealth)
-                worldState = worldState.updatePlayer(updatedPlayer)
-                describeCurrentRoom()  // Show updated combat status
-            } else {
-                // Combat ended - save combat info before ending
-                val endedCombat = worldState.player.activeCombat
-                // Sync final health before ending combat
-                val playerWithHealth = if (endedCombat != null) {
-                    worldState.player.copy(health = endedCombat.playerHealth)
-                } else {
-                    worldState.player
-                }
-                worldState = worldState.updatePlayer(playerWithHealth.endCombat())
-
-                when {
-                    result.npcDied -> {
-                        println("\nVictory! The enemy has been defeated!")
-                        // Remove NPC from room
-                        if (endedCombat != null) {
-                            worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
-
-                            // Track NPC kill for quests
-                            trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
-                        }
-                    }
-                    result.playerDied -> {
-                        println("\nYou have been defeated! Game over.")
-                        println("\nPress any key to play again...")
-                        readLine()  // Wait for any input
-
-                        // Restart the game
-                        worldState = initialWorldState
-                        println("\n" + "=" * 60)
-                        println("  Restarting Adventure...")
-                        println("=" * 60)
-                        printWelcome()
-                        describeCurrentRoom()
-                    }
-                    result.playerFled -> {
-                        println("\nYou have fled from combat.")
-                    }
-                }
-            }
-            return
-        }
-
-        // Initiate combat with target
-        if (target.isNullOrBlank()) {
-            println("Attack whom?")
-            return
-        }
-
-        // Find the NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
-            }
-
-        if (npc == null) {
-            println("You don't see anyone by that name to attack.")
-            return
-        }
-
-        // Start combat
-        val result = combatResolver.initiateCombat(worldState, npc.id)
-        if (result == null) {
-            println("You cannot initiate combat with that target.")
-            return
-        }
-
-        // Generate narrative for combat start
-        val narrative = if (combatNarrator != null) {
-            runBlocking {
-                combatNarrator.narrateCombatStart(worldState, npc)
-            }
-        } else {
-            result.narrative
-        }
-
-        println("\n$narrative")
-
-        if (result.newCombatState != null) {
-            worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState))
-            describeCurrentRoom()  // Show combat status
-        }
-    }
-
-    /**
-     * Calculate damage dealt by NPC attack (helper for potion use during combat).
-     * Base damage + STR modifier - player armor defense.
-     */
-    private fun calculateNpcDamage(npc: Entity.NPC): Int {
-        // Base damage 3-12 + STR modifier - armor defense
-        val baseDamage = kotlin.random.Random.nextInt(3, 13)
-        val strModifier = npc.stats.strModifier()
-        val armorDefense = worldState.player.getArmorDefenseBonus()
-        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
-    }
 
     private fun handleCheck(target: String) {
         val room = worldState.getCurrentRoom() ?: return

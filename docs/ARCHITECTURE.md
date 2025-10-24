@@ -209,6 +209,10 @@ Memory (store for RAG)
 
 ### Main Application
 - `app/src/main/kotlin/com/jcraw/app/App.kt` - Entry point and game loops
+- `app/src/main/kotlin/com/jcraw/app/handlers/` - Intent handlers (~661 lines total)
+  - `MovementHandlers.kt` - Navigation and exploration (~173 lines)
+  - `ItemHandlers.kt` - Inventory and equipment (~350 lines)
+  - `CombatHandlers.kt` - Combat system (~138 lines)
 
 ### Multi-User Architecture
 - `core/src/main/kotlin/com/jcraw/mud/core/Room.kt` - PlayerId type alias
