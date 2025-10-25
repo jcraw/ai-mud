@@ -195,6 +195,22 @@ Memory (store for RAG)
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ All known bugs resolved
 
+**Next Planned Feature: Combat System V2**
+
+Implementation plan created: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
+
+**Next Implementation Task:** Create `CombatComponent.kt` in `:core` module with HP calculation logic (Phase 1: Foundation - Component & Schema)
+
+Key features for V2:
+- Emergent combat (no mode switches, disposition-triggered)
+- Asynchronous turn-based system with game clock
+- Multi-skill checks for attack resolution
+- LLM-driven monster AI modulated by intelligence/wisdom
+- Optimized narration with vector DB caching
+- Permadeath with corpse/item recovery system
+- Status effects (DOT, buffs, debuffs)
+- Advanced mechanics (stealth, AoE, magic, environmental interactions)
+
 **Latest updates** can be found in the git commit history and individual documentation files.
 
 See [Implementation Log (archived)](docs/archive/IMPLEMENTATION_LOG.md) for complete feature history.
