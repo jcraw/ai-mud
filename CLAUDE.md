@@ -205,9 +205,9 @@ Completed:
 - ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects
 - ✅ `StatusEffect.kt` - Status effect data class with tick processing (7 effect types)
 - ✅ `DamageType.kt` - Damage type enum (6 types: Physical, Fire, Cold, Poison, Lightning, Magic)
+- ✅ `CombatEvent.kt` - Sealed class for combat event logging (16 event types: damage, healing, status effects, death, combat flow, etc.)
 
 Next tasks:
-- Create `CombatEvent.kt` sealed class for event logging
 - Create database schema in `:memory/combat/CombatDatabase.kt`
 - Create `CombatRepository` interface and SQLite implementation
 - Write unit tests for CombatComponent calculations
