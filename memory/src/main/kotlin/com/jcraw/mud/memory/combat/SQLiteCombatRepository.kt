@@ -91,20 +91,15 @@ class SQLiteCombatRepository(
 
     override fun updateHp(entityId: String, newHp: Int): Result<Unit> {
         return try {
-            val conn = database.getConnection()
-            val sql = """
-                UPDATE combat_components
-                SET current_hp = ?
-                WHERE entity_id = ?
-            """.trimIndent()
-
-            conn.prepareStatement(sql).use { stmt ->
-                stmt.setInt(1, newHp)
-                stmt.setString(2, entityId)
-                stmt.executeUpdate()
+            // Load current component
+            val currentResult = findByEntityId(entityId)
+            if (currentResult.isFailure || currentResult.getOrNull() == null) {
+                return Result.failure(IllegalStateException("Entity $entityId has no combat component"))
             }
 
-            Result.success(Unit)
+            // Update HP and save
+            val updated = currentResult.getOrNull()!!.copy(currentHp = newHp)
+            save(entityId, updated)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -112,23 +107,15 @@ class SQLiteCombatRepository(
 
     override fun applyEffect(entityId: String, effect: StatusEffect): Result<Unit> {
         return try {
-            val conn = database.getConnection()
-            val sql = """
-                INSERT OR REPLACE INTO status_effects
-                (entity_id, effect_type, magnitude, duration, source)
-                VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
-            conn.prepareStatement(sql).use { stmt ->
-                stmt.setString(1, entityId)
-                stmt.setString(2, effect.type.name)
-                stmt.setInt(3, effect.magnitude)
-                stmt.setInt(4, effect.duration)
-                stmt.setString(5, effect.source)
-                stmt.executeUpdate()
+            // Load current component
+            val currentResult = findByEntityId(entityId)
+            if (currentResult.isFailure || currentResult.getOrNull() == null) {
+                return Result.failure(IllegalStateException("Entity $entityId has no combat component"))
             }
 
-            Result.success(Unit)
+            // Apply effect using component logic and save
+            val updated = currentResult.getOrNull()!!.applyStatus(effect)
+            save(entityId, updated)
         } catch (e: Exception) {
             Result.failure(e)
         }

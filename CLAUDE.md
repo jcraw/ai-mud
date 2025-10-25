@@ -199,7 +199,7 @@ Memory (store for RAG)
 
 Implementation plan: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 
-**Phase 1: Foundation - Component & Schema (In Progress)**
+**Phase 1: Foundation - Component & Schema (COMPLETE)** ✅
 
 Completed:
 - ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects (core:308)
@@ -208,11 +208,16 @@ Completed:
 - ✅ `CombatEvent.kt` - Sealed class for combat event logging (16 event types) (core:294)
 - ✅ `CombatDatabase.kt` - SQLite database schema for combat system (memory:132)
 - ✅ `CombatRepository.kt` - Repository interface for combat persistence (core:68)
-- ✅ `SQLiteCombatRepository.kt` - SQLite implementation of CombatRepository (memory:300)
+- ✅ `SQLiteCombatRepository.kt` - SQLite implementation of CombatRepository (memory:122)
 - ✅ `CombatComponentTest.kt` - Unit tests for CombatComponent calculations (44 tests, core:test)
+- ✅ `CombatDatabaseTest.kt` - Integration tests for repository save/load (22 tests, memory:test)
+
+**Phase 2: Turn Queue & Timing System (Next)**
 
 Next tasks:
-- Write integration tests for repository save/load
+- Implement GameClock in WorldState
+- Create TurnQueue manager with priority queue
+- Add action cost constants and speed calculations
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)
