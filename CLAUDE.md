@@ -212,12 +212,23 @@ Completed:
 - ✅ `CombatComponentTest.kt` - Unit tests for CombatComponent calculations (44 tests, core:test)
 - ✅ `CombatDatabaseTest.kt` - Integration tests for repository save/load (22 tests, memory:test)
 
-**Phase 2: Turn Queue & Timing System (Next)**
+**Phase 2: Turn Queue & Timing System (COMPLETE)** ✅
+
+Completed:
+- ✅ `WorldState.gameTime` - Game clock field and advanceTime() method (core/WorldState.kt:10)
+- ✅ `ActionCosts.kt` - Action cost constants and calculation formula (reasoning/combat:46)
+- ✅ `TurnQueueManager.kt` - Priority queue for asynchronous turn ordering (reasoning/combat:143)
+- ✅ `SpeedCalculator.kt` - Speed skill integration and action cost API (reasoning/combat:88)
+- ✅ `ActionCostsTest.kt` - Unit tests for action cost calculations (10 tests, reasoning:test)
+- ✅ `SpeedCalculatorTest.kt` - Unit tests for speed calculations (13 tests, reasoning:test)
+- ✅ `TurnQueueManagerTest.kt` - Unit tests for turn queue operations (21 tests, reasoning:test)
+
+**Phase 3: Damage Resolution & Multi-Skill Checks (Next)**
 
 Next tasks:
-- Implement GameClock in WorldState
-- Create TurnQueue manager with priority queue
-- Add action cost constants and speed calculations
+- Implement SkillClassifier for LLM-based skill detection
+- Create AttackResolver with multi-skill checks
+- Add DamageCalculator with configurable formulas
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

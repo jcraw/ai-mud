@@ -7,6 +7,7 @@ data class WorldState(
     val rooms: Map<RoomId, Room>,
     val players: Map<PlayerId, PlayerState>,
     val turnCount: Int = 0,
+    val gameTime: Long = 0L,
     val gameProperties: Map<String, String> = emptyMap(),
     val availableQuests: List<Quest> = emptyList()
 ) {
@@ -37,6 +38,12 @@ data class WorldState(
         copy(players = players - playerId)
 
     fun incrementTurn(): WorldState = copy(turnCount = turnCount + 1)
+
+    /**
+     * Advances the game clock by the specified number of ticks.
+     * Used for asynchronous turn-based combat timing.
+     */
+    fun advanceTime(ticks: Long): WorldState = copy(gameTime = gameTime + ticks)
 
     fun movePlayer(playerId: PlayerId, direction: Direction): WorldState? {
         val playerState = players[playerId] ?: return null
