@@ -202,14 +202,15 @@ Implementation plan: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_
 **Phase 1: Foundation - Component & Schema (In Progress)**
 
 Completed:
-- ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects
-- ✅ `StatusEffect.kt` - Status effect data class with tick processing (7 effect types)
+- ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects (core:306)
+- ✅ `StatusEffect.kt` - Status effect data class with tick processing (7 effect types) (core:62)
 - ✅ `DamageType.kt` - Damage type enum (6 types: Physical, Fire, Cold, Poison, Lightning, Magic)
-- ✅ `CombatEvent.kt` - Sealed class for combat event logging (16 event types: damage, healing, status effects, death, combat flow, etc.)
+- ✅ `CombatEvent.kt` - Sealed class for combat event logging (16 event types) (core:294)
+- ✅ `CombatDatabase.kt` - SQLite database schema for combat system (memory:132)
+- ✅ `CombatRepository.kt` - Repository interface for combat persistence (core:68)
+- ✅ `SQLiteCombatRepository.kt` - SQLite implementation of CombatRepository (memory:300)
 
 Next tasks:
-- Create database schema in `:memory/combat/CombatDatabase.kt`
-- Create `CombatRepository` interface and SQLite implementation
 - Write unit tests for CombatComponent calculations
 - Write integration tests for repository save/load
 
