@@ -59,7 +59,7 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **~640 tests** across all modules, 100% pass rate
+- **~684 tests** across all modules, 100% pass rate
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -165,7 +165,7 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - ~640 tests passing across all modules
+- **All modules building** - ~684 tests passing across all modules
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -202,16 +202,16 @@ Implementation plan: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_
 **Phase 1: Foundation - Component & Schema (In Progress)**
 
 Completed:
-- ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects (core:306)
+- ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects (core:308)
 - ✅ `StatusEffect.kt` - Status effect data class with tick processing (7 effect types) (core:62)
 - ✅ `DamageType.kt` - Damage type enum (6 types: Physical, Fire, Cold, Poison, Lightning, Magic)
 - ✅ `CombatEvent.kt` - Sealed class for combat event logging (16 event types) (core:294)
 - ✅ `CombatDatabase.kt` - SQLite database schema for combat system (memory:132)
 - ✅ `CombatRepository.kt` - Repository interface for combat persistence (core:68)
 - ✅ `SQLiteCombatRepository.kt` - SQLite implementation of CombatRepository (memory:300)
+- ✅ `CombatComponentTest.kt` - Unit tests for CombatComponent calculations (44 tests, core:test)
 
 Next tasks:
-- Write unit tests for CombatComponent calculations
 - Write integration tests for repository save/load
 
 Key features for V2:

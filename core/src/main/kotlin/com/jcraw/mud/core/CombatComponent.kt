@@ -292,12 +292,14 @@ enum class CombatPosition {
  * Result of applying a status effect
  * Used for narration and event logging
  */
+@Serializable
 data class EffectApplication(
     val type: StatusEffectType,
     val magnitude: Int,
     val result: EffectResult
 )
 
+@Serializable
 enum class EffectResult {
     DAMAGE,   // Effect dealt damage (DOT)
     HEALING,  // Effect healed HP (regeneration)
