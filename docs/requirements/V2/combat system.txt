@@ -1,0 +1,215 @@
+Combat System Requirements (Integrated Asynchronous Turn-Based Combat with AI Behaviors)
+Overview
+The Combat system extends the AI-powered MUD engine with seamless, emergent combat mechanics that integrate directly into the core action pipeline, avoiding a dedicated "combat mode." Combat arises naturally from player actions targeting hostile entities, leveraging dispositions from the social system to trigger aggression. It emphasizes asynchronous play, where players can take turns at their leisure, suitable for intermittent sessions. V1 focuses on single-player, with stubs and flags for future multiplayer extensions. Mechanics are skill-driven, with time-based turn ordering to allow faster entities multiple actions. Damage and resolutions are code-calculated for reliability and balance, while LLM generates flavorful narrations with optimizations for speed/cost. Monster AI uses LLM for decision-making, modulated by their intelligence/wisdom skills for varied quality (e.g., dumb monsters make poor choices). The system ties deeply into skills (for attacks, defenses, speed), social (for initiation/escalation), and persistence for state tracking. Emphasizes modularity via ECS extension, fairness in difficulty, and permadeath for tension.
+Key Goals
+
+Emergent integration: Combat flows from freeform actions without mode switches; e.g., attacking escalates based on dispositions.
+Asynchronous pacing: No real-time pressure; actions advance a game clock, allowing intermittent play.
+Skill-driven depth: Multi-skill checks for attacks/defenses; infinite progression influences combat viability.
+AI behaviors: LLM-driven monster decisions, scaled by skills (intelligence/wisdom) for realistic variability.
+Fair permadeath: Harsh consequences (corpse with items) but telegraphed threats to avoid frustration.
+Optimization: Code for mechanics (damage, rolls); LLM for flavor with caching to minimize latency/calls.
+Modularity: ECS components for easy attachment; stubs for future expansions (multiplayer, allies).
+Balance: Configurable formulas; post-impl tweaking via bots.
+
+Tech Stack
+Kotlin, coroutines for async operations, immutable data classes, sealed classes for events/outcomes, SQLite DB (migrate to PostgreSQL), existing modules (:core, :reasoning, :perception, :memory, :persistence, :skill, :social). RNG via Kotlin Random for rolls. LLM for AI decisions and flavor (with caching in vector DB).
+Functional Requirements
+1. COMPONENT-BASED ARCHITECTURE
+1.1 Extension of ECS
+Extend existing ComponentHost interface.
+New Component Types (add to ComponentType enum):
+
+COMBAT - Combat stats and state (HP, effects, timers).
+
+Entities (Player, NPC/Monster) attach CombatComponent for combat capabilities.
+1.2 CombatComponent Definition
+Data Class: CombatComponent(
+currentHp: Int,                        // Current health
+maxHp: Int,                            // Derived from skills/items
+actionTimerEnd: Long = 0L,             // Next available action time (ticks)
+statusEffects: List<StatusEffect> = emptyList(), // Active buffs/debuffs
+position: Position? = null,            // Abstract position (future; null in V1)
+componentType: ComponentType = ComponentType.COMBAT
+) : Component
+Methods:
+
+calculateMaxHp(skills: Map<String, SkillState>, items: List<Item>): Int - Formula: 10 + (Vitality * 5) + (Endurance * 3) + (Constitution * 2) + itemBonuses; configurable via DB params.
+applyDamage(amount: Int, type: DamageType): CombatComponent - Reduce HP, apply effects.
+advanceTimer(cost: Long): CombatComponent - Set actionTimerEnd.
+applyStatus(effect: StatusEffect): CombatComponent - Add to list, handle stacking.
+tickEffects(gameTime: Long): CombatComponent - Process durations/DOTs.
+
+1.3 StatusEffect Definition
+Data Class: StatusEffect(
+type: StatusEffectType,                // Enum: POISON_DOT, STRENGTH_BOOST, SLOW, etc.
+magnitude: Int,                        // e.g., damage per tick
+duration: Int,                         // Ticks remaining
+source: String? = null                 // e.g., "poison arrow"
+)
+Methods:
+
+tick(): StatusEffect? - Reduce duration, return null if expired.
+V1: Limit to 5-10 basic types; expand later.
+
+2. DATABASE PERSISTENCE
+2.1 Schema Extension
+Extend SQLite schema:
+
+combat_components - (entity_id, current_hp, max_hp, action_timer_end, status_effects as JSON)
+status_effects - Denormalized (entity_id, type, magnitude, duration, source)
+combat_events_log - History (id, entity_id, target_id, action_type, damage, outcome, timestamp)
+corpses - (id, location_room_id, contents as JSON, decay_timer)
+
+Indexes: combat_components.entity_id; combat_events_log.entity_id.
+2.2 Repository Pattern
+New Interfaces (:core/repository/):
+
+CombatRepository - CRUD for combat states (updateHp, applyEffect, findActiveThreats).
+
+Implementations (:persistence):
+
+SQLiteCombatRepository
+
+3. COMBAT PIPELINE
+3.1 Input Handling
+Extend :perception Intent system:
+New Intents:
+
+Intent.Attack(target: String, method: String?) - e.g., "Swing sword at goblin"
+Intent.Flee(direction: String?) - Escape attempt
+
+LLM parses natural input to intents, extracting targets/methods.
+3.2 Initiation and Escalation
+
+Check social disposition on action: If < -75 (hostile), trigger counter/responses.
+No special state; flag "active_combat" in GameState if threats present.
+On aggression (e.g., player attack), set hostile if neutral.
+
+3.3 Turn Order and Timing
+
+Game clock in ticks (DB: world_state.game_time).
+Actions have base cost (e.g., melee=6 ticks, spell=8); modified by Speed skill: cost = base / (1 + speed_level / 10).
+After action, set entity.actionTimerEnd = current_time + cost.
+Process queue: Sort pending actions by timer_end (heap in memory, persisted in DB).
+Simulate NPC actions when timers up, before player input if earlier.
+Ties: Favor player (config: player_tie_bias = 0.7 for randomization).
+Async: Engine waits for player when no pending threats.
+
+3.4 Attack Resolution
+
+Multi-skill check: Identify skills via LLM/classifier (e.g., Sword Fighting 60%, Accuracy 30%, Strength 10%).
+Roll: d20 + weighted mods vs. defender Dodge/Parry.
+Damage: Code calc - (base + mods) * type_mult - resists; variance ±20% (config).
+Types: Enum (PHYSICAL, FIRE, etc.); resists from skills (reduction = level / 2%).
+Stealth: If hidden (Stealth check), +50% damage on first hit.
+AoE: Loop over targets in room; e.g., Whirlwind perk hits all.
+Environmental/Items: e.g., "Push boulder" uses Strength vs. difficulty; bombs DB-defined (damage, radius=room).
+Magic: Uses magic skills, costs resources (Mana Reserve check).
+
+3.5 Monster AI
+
+LLM-driven: For each action, prompt LLM with context (entity skills, environment, player state) to choose behavior (attack, flee, use ability).
+Quality modulation: Intelligence/Wisdom skills scale prompt (e.g., low int: "Make a dumb decision as a low-intelligence goblin"; high: "Strategize optimally"). Temperature based on wisdom (low=high temp for erratic).
+Fallback rules: Target lowest HP, or random if low int.
+Behaviors tied to personality/disposition (e.g., cowardly flees at <30% HP).
+Cache common decisions in vector DB for speed (semantic query fallback to live LLM).
+
+3.6 Flavor Narration
+
+Post-resolution: Bundle (weapon, skills, roll, env, enemy) to LLM for blurb.
+Optimization: Preload/cache variants in vector DB (e.g., 50 "sword hit" per tier); semantic search for match, live LLM only for unique.
+Batch if multi-actions; limit to 1-2 calls/turn.
+
+3.7 Health and Recovery
+
+HP: Derived as above; regen = Vitality / 10 per tick out-of-combat.
+Active: Heal skills/items/rest (advances time).
+
+3.8 Death and Corpses
+
+HP <=0: Create Corpse entity (DB: location, contents=inventory, decay=100 ticks).
+Player: New char at spawn, reset skills/relations; can retrieve old corpse.
+Monsters: Drop loot per existing system.
+
+3.9 Escape
+
+Flee intent: Agility + Speed vs. enemy Pursuit; success moves room, failure free enemy attack.
+
+3.10 Positioning
+V1: Room-based, no explicit positions/tanking (future enhancement).
+4. INTEGRATIONS
+4.1 Skill System
+
+Use for all checks/mods (e.g., checkSkill("Sword Fighting", difficulty)).
+HP derivation, speed costs, resists from skills.
+XP on actions (full on success, 20% failure).
+
+4.2 Social System
+
+Disposition triggers initiation/counter.
+Mid-combat de-escalate via Persuade (improves disp, ends hostility).
+
+4.3 Memory/RAG
+
+Store outcomes: MemoryManager.remember("Attacked goblin: outcome").
+Recall for AI coherence.
+
+4.4 Stub Interfaces
+
+MultiplayerSystem: For shared encounters (stub: log to console).
+AllySystem: For pets (stub: empty behaviors).
+
+5. MODULE STRUCTURE
+:core: CombatComponent, StatusEffect, DamageType enum, CombatEvent sealed.
+:perception: New intents (Attack, Flee).
+:reasoning: CombatManager (resolution, AI, damage calc), DamageCalculator (configurable), MonsterAIHandler (LLM prompts).
+:memory: Combat recall.
+:persistence: CombatRepository.
+:app/:client: Handle intents, simulate queues, narrate.
+Data Flow: Input → Intent → CombatManager → Skill/Social checks → DB/Update → LLM flavor → Output.
+6. NON-FUNCTIONAL REQUIREMENTS
+Performance: Async coroutines; cache LLM; cap entities/fight at 5.
+Scalability: Handles few enemies; DB indexes for queues.
+Security: Sanitize inputs; no LLM DB access.
+Testability: Mocks for RNG/LLM/Skills.
+7. TESTING REQUIREMENTS
+7.1 Unit Tests
+
+Combat resolution, damage formulas, AI prompts, timing.
+Mocks: Fixed LLM responses, in-memory repos.
+
+7.2 Integration Tests
+
+Full fights (initiation, turns, death); persistence.
+
+7.3 Bot Tests
+
+Playthroughs: Win/lose scenarios, retrieval.
+
+8. IMPLEMENTATION STRATEGY
+Phase 1: Components/Schema (3-4h)
+Phase 2: Pipeline/Resolution (4-5h)
+Phase 3: AI/Flavor (4-5h)
+Phase 4: Integrations (3-4h)
+Phase 5: Death/Escape (2-3h)
+Phase 6: Testing/Documentation (4-5h)
+Total: 20-30 hours.
+9. FUTURE ENHANCEMENTS
+
+Multiplayer: Shared queues, group initiatives.
+Tanking/Positions: Front/back, taunts.
+Allies/Pets: AI control, instructions.
+Interrupts: Reaction skills.
+Advanced AI: NPC-NPC fights, sieges.
+PostgreSQL for multi-user.
+
+10. SUCCESS CRITERIA
+✅ Emergent combat from actions.
+✅ Time-based turns with skill mods.
+✅ LLM AI scaled by skills.
+✅ Code damage, optimized flavor.
+✅ Permadeath with corpses.
+✅ Integrates with skills/social.
+✅ Tests passing; fair playthroughs.
+This defines the complete combat system architecture. Implement iteratively per phases.

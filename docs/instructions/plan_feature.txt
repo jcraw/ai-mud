@@ -1,0 +1,18 @@
+Process Overview
+When given a requirements document for a new feature:
+
+Read and analyze the requirements thoroughly using chain-of-thought reasoning: Break down the requirements step-by-step, identifying dependencies, potential challenges, and alignment with existing architecture.
+Create a detailed implementation plan that breaks the feature into small, sequential chunks (e.g., 5-10 steps total, each completable in one session).
+For each chunk, include:
+
+Brief description of what to implement.
+Affected modules/files.
+Key technical decisions (e.g., classes, functions, integrations), reasoned step-by-step.
+Testing approach (specific tests to add), with rationale for why they cover key behaviors.
+Documentation updates needed.
+
+
+Ensure the final chunk in the plan includes comprehensive updates to all relevant documentation (e.g., CLAUDE.md, system-specific docs like ARCHITECTURE.md, GETTING_STARTED.md) to reflect the completed feature.
+Output the plan as a markdown file named FEATURE_PLAN_<feature_name>.md, structured with a TODO section listing chunks in order.
+Do not implement any code in this planning phase—focus solely on the plan, but use chain-of-thought to justify chunk breakdowns and sequencing.
+When you are finished, update the documentation of the project to put the first step of this feature as the next thing on the TODO
