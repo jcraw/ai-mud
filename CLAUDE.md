@@ -195,11 +195,23 @@ Memory (store for RAG)
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ All known bugs resolved
 
-**Next Planned Feature: Combat System V2**
+**Current Feature: Combat System V2** 🚧
 
-Implementation plan created: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
+Implementation plan: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 
-**Next Implementation Task:** Create `CombatComponent.kt` in `:core` module with HP calculation logic (Phase 1: Foundation - Component & Schema)
+**Phase 1: Foundation - Component & Schema (In Progress)**
+
+Completed:
+- ✅ `CombatComponent.kt` - Combat component with HP calculation, damage, healing, timers, status effects
+- ✅ `StatusEffect.kt` - Status effect data class with tick processing (7 effect types)
+- ✅ `DamageType.kt` - Damage type enum (6 types: Physical, Fire, Cold, Poison, Lightning, Magic)
+
+Next tasks:
+- Create `CombatEvent.kt` sealed class for event logging
+- Create database schema in `:memory/combat/CombatDatabase.kt`
+- Create `CombatRepository` interface and SQLite implementation
+- Write unit tests for CombatComponent calculations
+- Write integration tests for repository save/load
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)
