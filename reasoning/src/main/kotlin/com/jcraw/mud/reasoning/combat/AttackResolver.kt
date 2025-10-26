@@ -287,5 +287,6 @@ private inline fun <reified T : Component> Entity.getComponent(type: ComponentTy
         }
         is Entity.Item -> null
         is Entity.Feature -> null
+        is Entity.Corpse -> null
     }
 }

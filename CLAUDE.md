@@ -330,12 +330,27 @@ Completed:
   - Remaining items are destroyed
   - DecayResult with detailed decay information
 - ✅ `CombatDatabase.corpses` - Table already exists in schema (memory/combat/CombatDatabase.kt:94)
+- ✅ `AttackResolver.kt` - Added Entity.Corpse branch to when expression (reasoning/combat:290)
+- 🚧 `MudGameEngine.kt` - Partial permadeath integration (app:460)
+  - Added DeathHandler and CorpseDecayManager instances
+  - Added handlePlayerDeath() method with corpse creation and respawn logic
+  - Updated both death locations to call handlePlayerDeath()
+  - ⚠️ **Compilation errors** - AttackResolver API mismatch needs resolution
+- 🚧 `CombatHandlers.kt` - Updated legacy death handler to use permadeath (app/handlers:169)
+  - ⚠️ **Compilation errors** - AttackResult type mismatch
 
 Remaining tasks:
-- Permadeath sequence integration in MudGameEngine
-- ItemHandlers updates for corpse looting
-- Unit and integration tests
-- Documentation updates
+- **Fix compilation errors** - Resolve AttackResolver API mismatches in CombatHandlers
+- **Remove old combat mode references** - ItemHandlers and MovementHandlers have obsolete `isInCombat` checks
+- **ItemHandlers updates** - Add corpse looting functionality
+- **Unit and integration tests** - DeathHandler, CorpseDecayManager, handlePlayerDeath
+- **Integration testing** - End-to-end death and recovery flow
+- **Documentation updates** - Complete Phase 7 docs
+
+**Known Issues:**
+- AttackResolver.resolveAttack() called with incorrect parameters in CombatHandlers.kt
+- Legacy combat mode properties (isInCombat, activeCombat) still referenced in handlers
+- Need to reconcile V1 and V2 combat system APIs
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

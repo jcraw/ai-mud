@@ -20,6 +20,8 @@ import com.jcraw.mud.reasoning.combat.AttackResolver
 import com.jcraw.mud.reasoning.combat.ActionCosts
 import com.jcraw.mud.reasoning.combat.SpeedCalculator
 import com.jcraw.mud.reasoning.combat.AIDecision
+import com.jcraw.mud.reasoning.combat.DeathHandler
+import com.jcraw.mud.reasoning.combat.CorpseDecayManager
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.mud.memory.social.SocialDatabase
@@ -56,6 +58,8 @@ class MudGame(
     internal val monsterAIHandler: MonsterAIHandler? = if (llmClient != null) MonsterAIHandler(llmClient) else null
     internal val attackResolver: AttackResolver? = if (llmClient != null) AttackResolver() else null
     internal val llmService = llmClient
+    internal val deathHandler = DeathHandler()
+    internal val corpseDecayManager = CorpseDecayManager()
 
     // Social system components
     private val socialDatabase = SocialDatabase("social.db")
@@ -376,17 +380,7 @@ class MudGame(
 
                 // Check if player died
                 if (newPlayer.isDead()) {
-                    println("\nYou have been defeated! Game over.")
-                    println("\nPress any key to play again...")
-                    readLine()
-
-                    // Restart the game
-                    worldState = initialWorldState
-                    println("\n" + "=".repeat(60))
-                    println("  Restarting Adventure...")
-                    println("=".repeat(60))
-                    printWelcome()
-                    describeCurrentRoom()
+                    handlePlayerDeath()
                 }
             } else {
                 println(result.narrative)
@@ -399,14 +393,70 @@ class MudGame(
             println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
 
             if (newPlayer.isDead()) {
-                println("\nYou have been defeated! Game over.")
-                println("\nPress any key to play again...")
-                readLine()
-                worldState = initialWorldState
-                printWelcome()
-                describeCurrentRoom()
+                handlePlayerDeath()
             }
         }
+    }
+
+    /**
+     * Handle player death with permadeath mechanics:
+     * - Create corpse with player's items at death location
+     * - Respawn player at starting location with empty inventory
+     * - Player can return to recover items from corpse
+     */
+    internal fun handlePlayerDeath() {
+        println("\n" + "=".repeat(60))
+        println("  YOU HAVE DIED")
+        println("=".repeat(60))
+
+        // Find player entity in current room
+        val currentRoom = worldState.getCurrentRoom()
+        val playerEntity = currentRoom?.entities?.filterIsInstance<Entity.Player>()
+            ?.find { it.playerId == worldState.player.id }
+
+        if (playerEntity != null && currentRoom != null) {
+            // Use death handler to create corpse
+            val deathResult = deathHandler.handleDeath(playerEntity.id, worldState)
+
+            when (deathResult) {
+                is DeathHandler.DeathResult.PlayerDeath -> {
+                    // Update world with corpse
+                    worldState = deathResult.updatedWorld
+
+                    println("\nYour belongings have been scattered at your death location.")
+                    println("You can return to recover them from your corpse...")
+                }
+                else -> {
+                    // Shouldn't happen, but handle gracefully
+                    println("\nYour items have been lost.")
+                }
+            }
+        }
+
+        // Respawn player
+        println("\nPress any key to respawn...")
+        readLine()
+
+        // Reset player state (empty inventory, full health, no equipment)
+        val respawnedPlayer = worldState.player.copy(
+            health = worldState.player.maxHealth,
+            inventory = emptyList(),
+            equippedWeapon = null,
+            equippedArmor = null
+        )
+
+        // Find starting room (first room in the world)
+        val spawnRoomId = worldState.rooms.values.firstOrNull()?.id
+        if (spawnRoomId != null) {
+            worldState = worldState.updatePlayer(respawnedPlayer.copy(currentRoomId = spawnRoomId))
+        } else {
+            worldState = worldState.updatePlayer(respawnedPlayer)
+        }
+
+        println("\n" + "=".repeat(60))
+        println("  You awaken at the dungeon entrance...")
+        println("=".repeat(60))
+        describeCurrentRoom()
     }
 
     /**

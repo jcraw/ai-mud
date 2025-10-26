@@ -165,17 +165,8 @@ object CombatHandlers {
                 game.trackQuests(QuestAction.KilledNPC(npc.id))
             }
             attackResult.playerDied -> {
-                println("\nYou have been defeated! Game over.")
-                println("\nPress any key to play again...")
-                readLine()
-
-                // Restart the game
-                game.worldState = game.initialWorldState
-                println("\n" + "=".repeat(60))
-                println("  Restarting Adventure...")
-                println("=".repeat(60))
-                game.printWelcome()
-                game.describeCurrentRoom()
+                // Use new permadeath system
+                game.handlePlayerDeath()
             }
         }
     }
