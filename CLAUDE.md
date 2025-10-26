@@ -271,8 +271,25 @@ Completed:
 - ✅ `StatusEffectApplicator.kt` - Fixed Map-based component operations
 - ✅ All reasoning module compilation errors resolved
 
+**Phase 5 Testing (COMPLETE)** ✅
+
+Completed:
+- ✅ `MonsterAIHandlerTest.kt` - Unit tests for AI decision-making (18 tests, reasoning:test)
+  - Temperature calculation based on wisdom
+  - Prompt complexity scaling with intelligence
+  - Fallback decision-making when LLM unavailable
+  - Decision parsing from LLM responses (Attack, Defend, Flee)
+  - Personality integration with cowardly traits
+- ✅ `PersonalityAITest.kt` - Unit tests for personality behavior (22 tests, reasoning:test)
+  - Flee threshold variations by personality (cowardly 50%, brave 10%, normal 30%)
+  - Defense preference by personality
+  - Aggressive behavior enforcement (never flee/wait/defend)
+  - Decision modification based on traits
+  - Action preference weights
+  - Flavor text generation
+- ✅ All 40 tests passing
+
 Next tasks:
-- Add unit tests for MonsterAIHandler and integration
 - Phase 6: Optimized Flavor Narration
 
 Key features for V2:
