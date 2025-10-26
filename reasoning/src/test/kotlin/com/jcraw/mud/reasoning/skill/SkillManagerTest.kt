@@ -20,7 +20,7 @@ class SkillManagerTest {
         skillRepo = FakeSkillRepository()
         componentRepo = FakeSkillComponentRepository()
         // Use seeded random for deterministic tests
-        manager = SkillManager(skillRepo, componentRepo, Random(42))
+        manager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(42))
     }
 
     // ========== XP Granting Tests ==========
@@ -171,7 +171,7 @@ class SkillManagerTest {
         componentRepo.save(entityId, SkillComponent())
 
         // Use different seed to force success
-        val luckyManager = SkillManager(skillRepo, componentRepo, Random(1))
+        val luckyManager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(1))
 
         val result = luckyManager.unlockSkill(entityId, skillName, UnlockMethod.Attempt)
 
