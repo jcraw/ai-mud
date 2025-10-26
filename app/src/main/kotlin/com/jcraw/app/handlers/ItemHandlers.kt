@@ -296,4 +296,118 @@ object ItemHandlers {
             }
         }
     }
+
+    fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?) {
+        val room = game.worldState.getCurrentRoom() ?: return
+
+        // Find the corpse in the room
+        val corpse = room.entities.filterIsInstance<Entity.Corpse>()
+            .find { entity ->
+                entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                entity.id.lowercase().contains(corpseTarget.lowercase())
+            }
+
+        if (corpse == null) {
+            println("There's no corpse here by that name.")
+            return
+        }
+
+        // If no item target specified, list contents
+        if (itemTarget == null) {
+            if (corpse.contents.isEmpty()) {
+                println("The corpse is empty.")
+            } else {
+                println("${corpse.name} contains:")
+                corpse.contents.forEach { item ->
+                    val extra = when (item.itemType) {
+                        ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
+                        ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
+                        ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
+                        else -> ""
+                    }
+                    println("  - ${item.name}$extra")
+                }
+            }
+            return
+        }
+
+        // Find the item in the corpse
+        val item = corpse.contents.find { item ->
+            item.name.lowercase().contains(itemTarget.lowercase()) ||
+            item.id.lowercase().contains(itemTarget.lowercase())
+        }
+
+        if (item == null) {
+            println("That item isn't in the corpse.")
+            return
+        }
+
+        // Remove item from corpse and add to player inventory
+        val updatedCorpse = corpse.removeItem(item.id)
+        val updatedPlayer = game.worldState.player.addToInventory(item)
+
+        val newState = game.worldState
+            .removeEntityFromRoom(room.id, corpse.id)
+            ?.addEntityToRoom(room.id, updatedCorpse)
+            ?.updatePlayer(updatedPlayer)
+
+        if (newState != null) {
+            game.worldState = newState
+            println("You take the ${item.name} from ${corpse.name}.")
+
+            // Track item collection for quests
+            game.trackQuests(QuestAction.CollectedItem(item.id))
+        } else {
+            println("Something went wrong.")
+        }
+    }
+
+    fun handleLootAll(game: MudGame, corpseTarget: String) {
+        val room = game.worldState.getCurrentRoom() ?: return
+
+        // Find the corpse in the room
+        val corpse = room.entities.filterIsInstance<Entity.Corpse>()
+            .find { entity ->
+                entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                entity.id.lowercase().contains(corpseTarget.lowercase())
+            }
+
+        if (corpse == null) {
+            println("There's no corpse here by that name.")
+            return
+        }
+
+        if (corpse.contents.isEmpty()) {
+            println("The corpse is empty.")
+            return
+        }
+
+        var lootedCount = 0
+        var currentCorpse = corpse
+        var currentPlayer = game.worldState.player
+
+        corpse.contents.forEach { item ->
+            currentCorpse = currentCorpse.removeItem(item.id)
+            currentPlayer = currentPlayer.addToInventory(item)
+            println("You take the ${item.name}.")
+            lootedCount++
+        }
+
+        val newState = game.worldState
+            .removeEntityFromRoom(room.id, corpse.id)
+            ?.addEntityToRoom(room.id, currentCorpse)
+            ?.updatePlayer(currentPlayer)
+
+        if (newState != null) {
+            game.worldState = newState
+            println("\nYou looted $lootedCount item${if (lootedCount > 1) "s" else ""} from ${corpse.name}.")
+
+            // Track item collection for quests
+            corpse.contents.forEach { item ->
+                game.trackQuests(QuestAction.CollectedItem(item.id))
+            }
+        } else {
+            println("Something went wrong.")
+        }
+    }
 }

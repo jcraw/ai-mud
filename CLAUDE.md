@@ -59,7 +59,7 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **~684 tests** across all modules, 100% pass rate
+- **~708 tests** across all modules, 100% pass rate
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -112,7 +112,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
   - `MultiUserGame.kt` (248 lines) - Multi-user server mode
 - **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (5 handler files)
   - `MovementHandlers.kt` (171 lines) - Navigation and exploration
-  - `ItemHandlers.kt` (348 lines) - Inventory and equipment
+  - `ItemHandlers.kt` (413 lines) - Inventory, equipment, corpse looting
   - `CombatHandlers.kt` (136 lines) - Combat system
   - `SocialHandlers.kt` (348 lines) - NPC interactions
   - `SkillQuestHandlers.kt` (522 lines) - Skills, quests, persistence, meta-commands
@@ -165,7 +165,7 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - ~684 tests passing across all modules
+- **All modules building** - ~708 tests passing across all modules
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -191,11 +191,12 @@ Memory (store for RAG)
 - ✅ Quest system with auto-tracking
 - ✅ Social system (11 phases complete)
 - ✅ Skill system V2 (11 phases complete)
+- ✅ Combat System V2 (7 phases complete)
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ All known bugs resolved
 
-**Current Feature: Combat System V2** 🚧
+**Combat System V2 (COMPLETE)** ✅
 
 Implementation plan: [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 
@@ -309,7 +310,7 @@ Completed:
   - Equipment-aware descriptions (weapon/armor names included)
   - Maintains backward compatibility with existing narrateCombatRound()
 
-**Phase 7: Death, Corpses & Item Recovery (IN PROGRESS)** 🚧
+**Phase 7: Death, Corpses & Item Recovery (COMPLETE)** ✅
 
 Completed:
 - ✅ `Entity.Corpse` - New entity type with contents and decay timer (core/Entity.kt:175)
@@ -346,19 +347,27 @@ Completed:
   - Removed modal combat flee mechanics
   - V2 combat is emergent - movement always allowed
   - NPCs in turn queue attack when timer expires
-- ✅ `ItemHandlers.kt` - Removed old combat mode references (app/handlers:299)
-  - Removed consumable usage combat checks
-  - V2 combat handled naturally through turn queue
+- ✅ `ItemHandlers.kt` - Corpse looting functionality (app/handlers:413)
+  - handleLoot() - Inspect or loot specific item from corpse
+  - handleLootAll() - Take all items from corpse
+  - Quest tracking integration for looted items
 
-Remaining tasks:
-- **ItemHandlers updates** - Add corpse looting functionality
-- **Unit and integration tests** - DeathHandler, CorpseDecayManager, handlePlayerDeath
-- **Integration testing** - End-to-end death and recovery flow
-- **GameServer migration** - Multi-user mode still uses V1 combat (separate task)
-- **Documentation updates** - Complete Phase 7 docs
+**Phase 7 Testing (COMPLETE)** ✅
 
-**Known Issues:**
-- GameServer.kt (multi-user mode) still uses V1 combat system - needs separate migration
+Completed:
+- ✅ `DeathHandlerTest.kt` - Unit tests for death and corpse creation (11 tests, reasoning:test)
+  - NPC death with corpse creation
+  - Player death with full inventory transfer
+  - Edge cases (nonexistent entities, items, features)
+  - shouldDie() health checks
+  - Empty corpse handling
+- ✅ `CorpseDecayManagerTest.kt` - Unit tests for decay mechanics (13 tests, reasoning:test)
+  - Timer decrement and expiration
+  - Item drop probability (30% chance)
+  - Multi-corpse and multi-room processing
+  - Helper methods (getCorpsesInRoom, getTotalCorpses)
+  - Corpse tick() and removeItem() methods
+- ✅ All 24 tests passing
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)
@@ -372,4 +381,5 @@ Key features for V2:
 
 **Latest updates** can be found in the git commit history and individual documentation files.
 
-See [Implementation Log (archived)](docs/archive/IMPLEMENTATION_LOG.md) for complete feature history.
+**Known Limitations:**
+- GameServer.kt (multi-user mode) still uses V1 combat system - separate migration task for future
