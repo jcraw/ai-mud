@@ -108,7 +108,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 ### Key Files
 - **Console app**: `app/src/main/kotlin/com/jcraw/app/`
   - `App.kt` (145 lines) - Main entry point and initialization
-  - `MudGameEngine.kt` (254 lines) - Core game engine and loop
+  - `MudGameEngine.kt` (430 lines) - Core game engine and loop with Combat V2 integration
   - `MultiUserGame.kt` (248 lines) - Multi-user server mode
 - **Intent handlers**: `app/src/main/kotlin/com/jcraw/app/handlers/` (5 handler files)
   - `MovementHandlers.kt` (171 lines) - Navigation and exploration
@@ -255,10 +255,22 @@ Completed:
   - Personality-specific flee thresholds (cowardly 50%, brave 10%, normal 30%)
   - Action preferences and flavor text generation
 - ✅ Integration - MonsterAIHandler uses PersonalityAI to modify LLM decisions
+- ✅ `MudGameEngine.kt` - Integrated MonsterAIHandler with turn queue execution (app:430)
+  - Added turnQueue, monsterAIHandler, attackResolver, llmService fields
+  - Added processNPCTurns() - Executes AI decisions for NPCs whose timer <= gameTime
+  - Added executeNPCDecision() - Handles Attack, Defend, UseItem, Flee, Wait decisions
+  - Added executeNPCAttack() - Resolves NPC attacks on player with damage and death handling
+  - Game loop calls processNPCTurns() before player input
+  - Game loop advances gameTime after player actions
+
+Known issues (compilation errors in existing code):
+- CombatResolver.kt references removed `activeCombat` field (legacy V1 code)
+- AttackResolver.kt Entity.NPC constructor parameter mismatches
+- StatusEffectApplicator.kt entity operation errors
 
 Next tasks:
-- Integrate MonsterAIHandler into MudGameEngine turn queue execution
-- Add unit tests for AI components
+- Fix compilation errors in Combat V2 components
+- Add unit tests for MonsterAIHandler and integration
 - Phase 6: Optimized Flavor Narration
 
 Key features for V2:

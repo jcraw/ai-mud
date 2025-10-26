@@ -14,6 +14,12 @@ import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.SkillCheckResolver
 import com.jcraw.mud.reasoning.QuestTracker
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.combat.TurnQueueManager
+import com.jcraw.mud.reasoning.combat.MonsterAIHandler
+import com.jcraw.mud.reasoning.combat.AttackResolver
+import com.jcraw.mud.reasoning.combat.ActionCosts
+import com.jcraw.mud.reasoning.combat.SpeedCalculator
+import com.jcraw.mud.reasoning.combat.AIDecision
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.mud.memory.social.SocialDatabase
@@ -45,6 +51,12 @@ class MudGame(
     internal val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
     internal var lastConversationNpcId: String? = null
 
+    // Combat System V2 components
+    internal val turnQueue: TurnQueueManager? = if (llmClient != null) TurnQueueManager() else null
+    internal val monsterAIHandler: MonsterAIHandler? = if (llmClient != null) MonsterAIHandler(llmClient) else null
+    internal val attackResolver: AttackResolver? = if (llmClient != null) AttackResolver() else null
+    internal val llmService = llmClient
+
     // Social system components
     private val socialDatabase = SocialDatabase("social.db")
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
@@ -70,6 +82,9 @@ class MudGame(
         describeCurrentRoom()
 
         while (running) {
+            // Process NPC turns before player input (Combat V2)
+            processNPCTurns()
+
             print("\n> ")
             val input = readLine()?.trim() ?: continue
 
@@ -82,6 +97,11 @@ class MudGame(
                 intentRecognizer.parseIntent(input, roomContext, exitsWithNames)
             }
             processIntent(intent)
+
+            // Advance game time after player action (Combat V2)
+            // Note: This is a basic implementation - real action costs would come from ActionCosts
+            val actionCost = 5L // Default cost for most actions
+            worldState = worldState.advanceTime(actionCost)
         }
 
         println("\nThanks for playing!")
@@ -233,6 +253,159 @@ class MudGame(
 
             // Update both player and world state (world may have NPC disposition changes)
             worldState = updatedWorld.updatePlayer(updatedPlayer)
+        }
+    }
+
+    /**
+     * Process NPC turns that are ready to act (Combat V2 integration)
+     *
+     * Executes all NPC actions whose actionTimerEnd <= current game time.
+     * This should be called before processing player input.
+     */
+    private fun processNPCTurns() {
+        val queue = turnQueue ?: return
+        val aiHandler = monsterAIHandler ?: return
+
+        // Process all NPCs whose turn has come
+        while (true) {
+            val currentTime = worldState.gameTime
+            val nextEntry = queue.peek() ?: break
+
+            // Check if it's time for this entity to act
+            if (nextEntry.second > currentTime) {
+                break // No more entities ready to act
+            }
+
+            // Dequeue the entity
+            val entityId = queue.dequeue(currentTime) ?: break
+
+            // Find the NPC
+            val room = worldState.rooms.values.find { r ->
+                r.entities.any { it.id == entityId }
+            }
+            val npc = room?.entities?.filterIsInstance<Entity.NPC>()?.find { it.id == entityId }
+
+            if (npc == null) {
+                // NPC not found (died or fled), skip
+                continue
+            }
+
+            // Only process if NPC is in player's room
+            val playerRoom = worldState.getCurrentRoom()
+            if (room?.id != playerRoom?.id) {
+                // NPC not in player's room, re-enqueue for later
+                val combatComponent = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
+                if (combatComponent != null) {
+                    val cost = SpeedCalculator.calculateActionCost(ActionCosts.MELEE_ATTACK, combatComponent, npc)
+                    queue.enqueue(entityId, currentTime + cost)
+                }
+                continue
+            }
+
+            // Get AI decision
+            val decision = runBlocking {
+                aiHandler.decideAction(entityId, worldState)
+            }
+
+            // Execute the decision
+            executeNPCDecision(npc, decision, room)
+
+            // Re-enqueue the NPC for next turn
+            val combatComponent = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
+            if (combatComponent != null && !combatComponent.isDead()) {
+                val cost = SpeedCalculator.calculateActionCost(ActionCosts.MELEE_ATTACK, combatComponent, npc)
+                queue.enqueue(entityId, currentTime + cost)
+            }
+        }
+    }
+
+    /**
+     * Execute an NPC's AI decision
+     */
+    private fun executeNPCDecision(npc: Entity.NPC, decision: AIDecision, room: com.jcraw.mud.core.Room) {
+        when (decision) {
+            is AIDecision.Attack -> {
+                // NPC attacks player
+                println("\n${npc.name} attacks you!")
+                executeNPCAttack(npc, room)
+            }
+            is AIDecision.Defend -> {
+                println("\n${npc.name} takes a defensive stance.")
+                // TODO: Apply defensive buff
+            }
+            is AIDecision.UseItem -> {
+                println("\n${npc.name} attempts to use an item.")
+                // TODO: Implement NPC item usage
+            }
+            is AIDecision.Flee -> {
+                println("\n${npc.name} attempts to flee!")
+                // TODO: Implement NPC flee mechanics
+            }
+            is AIDecision.Wait -> {
+                println("\n${npc.name} waits, watching carefully.")
+            }
+            is AIDecision.Error -> {
+                // Silent error, NPC does nothing
+            }
+        }
+    }
+
+    /**
+     * Execute NPC attack on player
+     */
+    private fun executeNPCAttack(npc: Entity.NPC, room: com.jcraw.mud.core.Room) {
+        val resolver = attackResolver
+        if (resolver != null && llmService != null) {
+            // Use new attack resolver
+            val result = runBlocking {
+                resolver.resolveAttack(
+                    attackerId = npc.id,
+                    defenderId = worldState.player.id,
+                    action = "${npc.name} attacks",
+                    worldState = worldState,
+                    llmService = llmService
+                )
+            }
+
+            if (result.hit && result.damage > 0) {
+                // Apply damage to player
+                val newPlayer = worldState.player.takeDamage(result.damage)
+                worldState = worldState.updatePlayer(newPlayer)
+
+                println(result.narrative)
+
+                // Check if player died
+                if (newPlayer.isDead()) {
+                    println("\nYou have been defeated! Game over.")
+                    println("\nPress any key to play again...")
+                    readLine()
+
+                    // Restart the game
+                    worldState = initialWorldState
+                    println("\n" + "=".repeat(60))
+                    println("  Restarting Adventure...")
+                    println("=".repeat(60))
+                    printWelcome()
+                    describeCurrentRoom()
+                }
+            } else {
+                println(result.narrative)
+            }
+        } else {
+            // Fallback to simple damage
+            val damage = (1..6).random()
+            val newPlayer = worldState.player.takeDamage(damage)
+            worldState = worldState.updatePlayer(newPlayer)
+            println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
+
+            if (newPlayer.isDead()) {
+                println("\nYou have been defeated! Game over.")
+                println("\nPress any key to play again...")
+                readLine()
+                worldState = initialWorldState
+                printWelcome()
+                describeCurrentRoom()
+            }
         }
     }
 
