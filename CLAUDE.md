@@ -223,16 +223,17 @@ Completed:
 - ✅ `SpeedCalculatorTest.kt` - Unit tests for speed calculations (13 tests, reasoning:test)
 - ✅ `TurnQueueManagerTest.kt` - Unit tests for turn queue operations (21 tests, reasoning:test)
 
-**Phase 3: Damage Resolution & Multi-Skill Checks (IN PROGRESS)** 🚧
+**Phase 3: Damage Resolution & Multi-Skill Checks (COMPLETE)** ✅
 
 Completed:
 - ✅ `SkillClassifier.kt` - LLM-based skill classification with weighted multi-skill detection (reasoning/combat:211)
 - ✅ `SkillClassifierTest.kt` - Unit tests for skill classification (20 tests, reasoning:test)
+- ✅ `AttackResolver.kt` - Multi-skill attack resolution with d20 rolls and weighted modifiers (reasoning/combat:234)
+- ✅ `DamageCalculator.kt` - Configurable damage formulas with resistance and variance (reasoning/combat:167)
+- ✅ `StatusEffectApplicator.kt` - Status effect application with stacking rules and event logging (reasoning/combat:205)
 
-Next tasks:
-- Create AttackResolver with multi-skill checks
-- Add DamageCalculator with configurable formulas
-- Implement StatusEffectApplicator for buff/debuff management
+Next phase:
+- Phase 4: Combat Initiation & Disposition Integration
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)
