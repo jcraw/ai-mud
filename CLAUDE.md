@@ -232,8 +232,19 @@ Completed:
 - ✅ `DamageCalculator.kt` - Configurable damage formulas with resistance and variance (reasoning/combat:167)
 - ✅ `StatusEffectApplicator.kt` - Status effect application with stacking rules and event logging (reasoning/combat:205)
 
+**Phase 4: Combat Initiation & Disposition Integration (COMPLETE)** ✅
+
+Completed:
+- ✅ `CombatInitiator.kt` - Disposition threshold logic for hostile entity detection (reasoning/combat:95)
+- ✅ `CombatBehavior.kt` - Automatic counter-attack and combat de-escalation (reasoning/combat:166)
+- ✅ `PlayerState.kt` - Removed activeCombat field (emergent combat replaces modal combat)
+- ✅ `CombatHandlers.kt` - Refactored to use AttackResolver and CombatBehavior (app/handlers:182)
+- ✅ `MudGameEngine.kt` - Updated describeCurrentRoom with disposition-based combat status
+- ✅ `CombatInitiatorTest.kt` - Unit tests for hostility detection (9 tests, reasoning:test)
+- ✅ `CombatBehaviorTest.kt` - Unit tests for counter-attack and de-escalation (10 tests, reasoning:test)
+
 Next phase:
-- Phase 4: Combat Initiation & Disposition Integration
+- Phase 5: Monster AI & Quality Modulation
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

@@ -15,7 +15,6 @@ data class PlayerState(
     val equippedArmor: Entity.Item? = null,
     val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap(),
-    val activeCombat: CombatState? = null,
     val activeQuests: List<Quest> = emptyList(),
     val completedQuests: List<QuestId> = emptyList(),
     val experiencePoints: Int = 0,
@@ -105,19 +104,6 @@ data class PlayerState(
         } else {
             this
         }
-    }
-
-    fun isInCombat(): Boolean = activeCombat?.isActive() == true
-
-    fun updateCombat(newCombatState: CombatState?): PlayerState = copy(activeCombat = newCombatState)
-
-    fun endCombat(): PlayerState {
-        // Preserve health from combat state when ending combat
-        val combatHealth = activeCombat?.playerHealth ?: health
-        return copy(
-            activeCombat = null,
-            health = combatHealth
-        )
     }
 
     // Quest management

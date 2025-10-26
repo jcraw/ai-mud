@@ -1,104 +1,38 @@
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
-import com.jcraw.app.times
-import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.*
+import com.jcraw.mud.reasoning.combat.AttackResolver
+import com.jcraw.mud.reasoning.combat.CombatBehavior
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
 
 /**
  * Combat handlers - attack, damage resolution, victory/defeat
+ *
+ * Phase 4: Refactored to use emergent combat system
+ * - No combat modes, combat emerges from hostile dispositions
+ * - Uses AttackResolver for attack resolution
+ * - Uses CombatBehavior for counter-attack triggers
  */
 object CombatHandlers {
 
+    /**
+     * Handle player attack action
+     *
+     * @param game MudGame instance with world state and systems
+     * @param target Target identifier (NPC name or ID)
+     */
     fun handleAttack(game: MudGame, target: String?) {
         val room = game.worldState.getCurrentRoom() ?: return
 
-        // If already in combat
-        if (game.worldState.player.isInCombat()) {
-            val result = game.combatResolver.executePlayerAttack(game.worldState)
-
-            // Generate narrative
-            val narrative = if (game.combatNarrator != null && !result.playerDied && !result.npcDied) {
-                val combat = game.worldState.player.activeCombat!!
-                val npc = room.entities.filterIsInstance<Entity.NPC>()
-                    .find { it.id == combat.combatantNpcId }
-
-                if (npc != null) {
-                    runBlocking {
-                        game.combatNarrator.narrateCombatRound(
-                            game.worldState, npc, result.playerDamage, result.npcDamage,
-                            result.npcDied, result.playerDied
-                        )
-                    }
-                } else {
-                    result.narrative
-                }
-            } else {
-                result.narrative
-            }
-
-            println("\n$narrative")
-
-            // Update world state
-            val combatState = result.newCombatState
-            if (combatState != null) {
-                // Sync player's actual health with combat state
-                val updatedPlayer = game.worldState.player
-                    .updateCombat(combatState)
-                    .copy(health = combatState.playerHealth)
-                game.worldState = game.worldState.updatePlayer(updatedPlayer)
-                game.describeCurrentRoom()  // Show updated combat status
-            } else {
-                // Combat ended - save combat info before ending
-                val endedCombat = game.worldState.player.activeCombat
-                // Sync final health before ending combat
-                val playerWithHealth = if (endedCombat != null) {
-                    game.worldState.player.copy(health = endedCombat.playerHealth)
-                } else {
-                    game.worldState.player
-                }
-                game.worldState = game.worldState.updatePlayer(playerWithHealth.endCombat())
-
-                when {
-                    result.npcDied -> {
-                        println("\nVictory! The enemy has been defeated!")
-                        // Remove NPC from room
-                        if (endedCombat != null) {
-                            game.worldState = game.worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: game.worldState
-
-                            // Track NPC kill for quests
-                            game.trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
-                        }
-                    }
-                    result.playerDied -> {
-                        println("\nYou have been defeated! Game over.")
-                        println("\nPress any key to play again...")
-                        readLine()  // Wait for any input
-
-                        // Restart the game
-                        game.worldState = game.initialWorldState
-                        println("\n" + "=" * 60)
-                        println("  Restarting Adventure...")
-                        println("=" * 60)
-                        game.printWelcome()
-                        game.describeCurrentRoom()
-                    }
-                    result.playerFled -> {
-                        println("\nYou have fled from combat.")
-                    }
-                }
-            }
-            return
-        }
-
-        // Initiate combat with target
+        // Validate target
         if (target.isNullOrBlank()) {
             println("Attack whom?")
             return
         }
 
-        // Find the NPC
+        // Find the target NPC
         val npc = room.entities.filterIsInstance<Entity.NPC>()
             .find { entity ->
                 entity.name.lowercase().contains(target.lowercase()) ||
@@ -110,7 +44,78 @@ object CombatHandlers {
             return
         }
 
-        // Start combat
+        // Resolve attack using AttackResolver (Phase 3)
+        val attackResult = if (game.attackResolver != null && game.llmService != null) {
+            try {
+                runBlocking {
+                    game.attackResolver.resolveAttack(
+                        attackerId = game.worldState.player.id,
+                        defenderId = npc.id,
+                        action = "attack ${npc.name}",
+                        worldState = game.worldState,
+                        llmService = game.llmService
+                    )
+                }
+            } catch (e: Exception) {
+                // Fallback to simple attack if resolver fails
+                println("Debug: AttackResolver failed: ${e.message}, using fallback")
+                null
+            }
+        } else {
+            null
+        }
+
+        if (attackResult != null) {
+            // Apply damage to NPC if hit
+            if (attackResult.hit && attackResult.damage > 0) {
+                val npcCombat = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
+                if (npcCombat != null) {
+                    val updatedNpcCombat = npcCombat.applyDamage(attackResult.damage, attackResult.damageType)
+                    val updatedNpc = npc.withComponent(updatedNpcCombat) as Entity.NPC
+
+                    // Update room with damaged NPC
+                    val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
+                    game.worldState = game.worldState.updateRoom(updatedRoom)
+
+                    // Check if NPC died
+                    if (updatedNpcCombat.isDead()) {
+                        println("\nVictory! ${npc.name} has been defeated!")
+                        game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
+
+                        // Track NPC kill for quests
+                        game.trackQuests(QuestAction.KilledNPC(npc.id))
+                        return
+                    }
+                }
+            }
+
+            // Display attack narrative
+            println("\n${attackResult.narrative}")
+
+            // Trigger counter-attack behavior (Phase 4)
+            // This makes the NPC hostile and adds them to the turn queue
+            if (game.turnQueue != null) {
+                game.worldState = CombatBehavior.triggerCounterAttack(
+                    npcId = npc.id,
+                    roomId = room.id,
+                    worldState = game.worldState,
+                    turnQueue = game.turnQueue
+                )
+            }
+        } else {
+            // Fallback: Use old combat system for backward compatibility
+            handleLegacyAttack(game, npc)
+        }
+    }
+
+    /**
+     * Legacy attack handler for backward compatibility
+     * Uses the old CombatResolver system
+     *
+     * TODO: Remove this once all combat is migrated to V2
+     */
+    private fun handleLegacyAttack(game: MudGame, npc: Entity.NPC) {
+        // Start combat using old system
         val result = game.combatResolver.initiateCombat(game.worldState, npc.id)
         if (result == null) {
             println("You cannot initiate combat with that target.")
@@ -128,9 +133,50 @@ object CombatHandlers {
 
         println("\n$narrative")
 
-        if (result.newCombatState != null) {
-            game.worldState = game.worldState.updatePlayer(game.worldState.player.updateCombat(result.newCombatState))
-            game.describeCurrentRoom()  // Show combat status
+        // Execute the attack
+        val attackResult = game.combatResolver.executePlayerAttack(game.worldState)
+
+        // Display combat narrative
+        val combatNarrative = if (game.combatNarrator != null && !attackResult.playerDied && !attackResult.npcDied) {
+            val room = game.worldState.getCurrentRoom()
+            val combatNpc = room?.entities?.filterIsInstance<Entity.NPC>()?.find { it.id == npc.id }
+
+            if (combatNpc != null) {
+                runBlocking {
+                    game.combatNarrator.narrateCombatRound(
+                        game.worldState, combatNpc, attackResult.playerDamage, attackResult.npcDamage,
+                        attackResult.npcDied, attackResult.playerDied
+                    )
+                }
+            } else {
+                attackResult.narrative
+            }
+        } else {
+            attackResult.narrative
+        }
+
+        println("\n$combatNarrative")
+
+        // Handle combat results
+        when {
+            attackResult.npcDied -> {
+                println("\nVictory! The enemy has been defeated!")
+                game.worldState = game.worldState.removeEntityFromRoom(game.worldState.getCurrentRoom()!!.id, npc.id) ?: game.worldState
+                game.trackQuests(QuestAction.KilledNPC(npc.id))
+            }
+            attackResult.playerDied -> {
+                println("\nYou have been defeated! Game over.")
+                println("\nPress any key to play again...")
+                readLine()
+
+                // Restart the game
+                game.worldState = game.initialWorldState
+                println("\n" + "=".repeat(60))
+                println("  Restarting Adventure...")
+                println("=".repeat(60))
+                game.printWelcome()
+                game.describeCurrentRoom()
+            }
         }
     }
 }

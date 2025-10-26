@@ -113,8 +113,42 @@ Disposition changes based on interactions:
 Disposition tier affects:
 - **Dialogue tone** - LLM generates responses matching relationship status
 - **Quest availability** - Some quests require minimum disposition
+- **Combat initiation** - Hostile NPCs (< -75 disposition) automatically attack
+- **Combat de-escalation** - Persuasion/intimidation can end combat by improving disposition
 - **Shop prices** - Allied NPCs may offer discounts (future feature)
-- **Combat behavior** - Friendly NPCs less likely to attack (future feature)
+
+### Combat Integration
+
+**Combat System V2** integrates with disposition for emergent combat:
+
+**Hostility Threshold: -75**
+- NPCs with disposition < -75 are considered **HOSTILE**
+- Hostile NPCs automatically engage in combat when player enters their room
+- Attacking a neutral/friendly NPC sets their disposition to -100 (immediately hostile)
+
+**Combat Initiation:**
+```
+> look
+Ancient Crypt
+-------------
+A dark, musty chamber.
+
+You see:
+  - Skeletal Warrior ⚔️  (hostile - glares at you!)
+
+> attack Warrior
+[Combat ensues...]
+```
+
+**Combat De-escalation:**
+- Persuading a hostile NPC during combat can improve their disposition
+- If disposition rises to -75 or higher, NPC stops attacking
+- Combat becomes emergent from social interactions rather than a separate mode
+
+**Visual Indicators:**
+- ⚔️  **HOSTILE** (< -75): "glares at you!" - Will initiate combat
+- ⚠️  **UNFRIENDLY** (-75 to -50): "watches you warily" - Won't attack unless provoked
+- Neutral/friendly NPCs have no combat indicators
 
 ### Example Progression
 

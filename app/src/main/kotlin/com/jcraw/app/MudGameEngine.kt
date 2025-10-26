@@ -114,18 +114,6 @@ class MudGame(
             lastConversationNpcId = null
         }
 
-        // Show combat status if in combat
-        if (worldState.player.isInCombat()) {
-            val combat = worldState.player.activeCombat!!
-            val npc = room.entities.filterIsInstance<Entity.NPC>()
-                .find { it.id == combat.combatantNpcId }
-            println("\n⚔️  IN COMBAT with ${npc?.name ?: "Unknown Enemy"}")
-            println("Your Health: ${combat.playerHealth}/${worldState.player.maxHealth}")
-            println("Enemy Health: ${combat.npcHealth}/${npc?.maxHealth ?: 100}")
-            println()
-            return
-        }
-
         println("\n${room.name}")
         println("-" * room.name.length)
         println(generateRoomDescription(room))
@@ -137,7 +125,22 @@ class MudGame(
         if (room.entities.isNotEmpty()) {
             println("\nYou see:")
             room.entities.forEach { entity ->
-                println("  - ${entity.name}")
+                when (entity) {
+                    is Entity.NPC -> {
+                        // Show disposition-based combat status
+                        val disposition = entity.getDisposition()
+                        val statusText = when {
+                            disposition < -75 -> " ⚔️  (hostile - glares at you!)"
+                            disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
+                            disposition < -25 -> " (neutral)"
+                            disposition < 25 -> " (neutral)"
+                            disposition < 75 -> " ✓ (friendly)"
+                            else -> " ★ (allied)"
+                        }
+                        println("  - ${entity.name}$statusText")
+                    }
+                    else -> println("  - ${entity.name}")
+                }
             }
         }
     }
