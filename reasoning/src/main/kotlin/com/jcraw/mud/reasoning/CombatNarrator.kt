@@ -3,16 +3,171 @@ package com.jcraw.mud.reasoning
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.memory.MemoryManager
+import com.jcraw.mud.memory.combat.NarrationMatcher
+import com.jcraw.mud.memory.combat.CombatContext
 import com.jcraw.sophia.llm.LLMClient
 
 /**
  * Generates vivid, atmospheric combat narratives using LLM with combat history.
  * Transforms simple combat mechanics into engaging descriptive text.
+ *
+ * Uses vector DB caching to optimize performance:
+ * 1. Attempts to find pre-generated narration variant via semantic search
+ * 2. Falls back to live LLM generation if no suitable cache hit
+ * 3. Stores LLM responses for future reuse
  */
 class CombatNarrator(
     private val llmClient: LLMClient,
-    private val memoryManager: MemoryManager? = null
+    private val memoryManager: MemoryManager? = null,
+    private val narrationMatcher: NarrationMatcher? = null
 ) {
+
+    /**
+     * Narrates a single combat action with caching optimization.
+     * Tries to find a pre-generated variant first, falls back to LLM if needed.
+     */
+    suspend fun narrateAction(
+        weapon: String,
+        damage: Int,
+        maxHp: Int,
+        isHit: Boolean,
+        isCritical: Boolean = false,
+        isDeath: Boolean = false,
+        isSpell: Boolean = false,
+        targetName: String = "enemy"
+    ): String {
+        // Determine context for cache lookup
+        val damageTier = when {
+            isDeath -> "lethal"
+            isCritical -> "critical"
+            damage == 0 -> "none"
+            else -> narrationMatcher?.determineDamageTier(damage, maxHp) ?: "medium"
+        }
+
+        val outcome = when {
+            isDeath -> "death"
+            isCritical -> "critical"
+            isHit -> "hit"
+            else -> "miss"
+        }
+
+        val scenario = when {
+            isDeath -> "death_blow"
+            isCritical -> "critical_hit"
+            else -> narrationMatcher?.determineScenario(weapon, isHit, isSpell) ?: "melee_hit"
+        }
+
+        val context = CombatContext(
+            scenario = scenario,
+            weapon = weapon,
+            damageTier = damageTier,
+            outcome = outcome
+        )
+
+        // Try cache first
+        val cachedNarration = narrationMatcher?.findNarration(context)
+        if (cachedNarration != null) {
+            return cachedNarration
+        }
+
+        // Fall back to LLM
+        return generateLiveNarration(weapon, damage, isHit, isCritical, isDeath, targetName)
+    }
+
+    /**
+     * Generates a live narration using LLM when cache misses.
+     */
+    private suspend fun generateLiveNarration(
+        weapon: String,
+        damage: Int,
+        isHit: Boolean,
+        isCritical: Boolean,
+        isDeath: Boolean,
+        targetName: String
+    ): String {
+        val systemPrompt = """
+            You are a dungeon master narrating combat.
+            Create a vivid, brief description (under 15 words) of this combat action.
+            Focus on the visceral action, not numbers.
+        """.trimIndent()
+
+        val userContext = when {
+            isDeath -> "Describe the killing blow with $weapon against $targetName."
+            isCritical -> "Describe a devastating critical hit with $weapon."
+            isHit -> "Describe a successful strike with $weapon for $damage damage."
+            else -> "Describe a missed attack with $weapon."
+        }
+
+        return try {
+            val response = llmClient.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 30,
+                temperature = 0.8
+            )
+            val narrative = response.choices.firstOrNull()?.message?.content?.trim()
+                ?: getFallbackActionNarrative(weapon, damage, isHit, isDeath)
+
+            // Store in cache for future use
+            storeNarrationInCache(weapon, damage, isHit, isCritical, isDeath, narrative)
+
+            narrative
+        } catch (e: Exception) {
+            getFallbackActionNarrative(weapon, damage, isHit, isDeath)
+        }
+    }
+
+    /**
+     * Stores a newly generated narration in the cache with appropriate tags.
+     */
+    private suspend fun storeNarrationInCache(
+        weapon: String,
+        damage: Int,
+        isHit: Boolean,
+        isCritical: Boolean,
+        isDeath: Boolean,
+        narrative: String
+    ) {
+        val scenario = when {
+            isDeath -> "death_blow"
+            isCritical -> "critical_hit"
+            isHit -> if (weapon.contains("bow") || weapon.contains("arrow")) "ranged_hit" else "melee_hit"
+            else -> if (weapon.contains("bow") || weapon.contains("arrow")) "ranged_miss" else "melee_miss"
+        }
+
+        val outcome = when {
+            isDeath -> "death"
+            isCritical -> "critical"
+            isHit -> "hit"
+            else -> "miss"
+        }
+
+        val tags = mapOf(
+            "type" to "combat_narration",
+            "scenario" to scenario,
+            "weapon" to weapon,
+            "outcome" to outcome
+        )
+
+        memoryManager?.remember(narrative, tags)
+    }
+
+    /**
+     * Provides simple fallback narration for single actions.
+     */
+    private fun getFallbackActionNarrative(
+        weapon: String,
+        damage: Int,
+        isHit: Boolean,
+        isDeath: Boolean
+    ): String {
+        return when {
+            isDeath -> "Your $weapon delivers the killing blow!"
+            isHit -> "Your $weapon strikes for $damage damage!"
+            else -> "Your $weapon attack misses!"
+        }
+    }
 
     /**
      * Narrates a combat round with player attack and enemy counter-attack.

@@ -289,8 +289,28 @@ Completed:
   - Flavor text generation
 - ✅ All 40 tests passing
 
+**Phase 6: Optimized Flavor Narration (COMPLETE)** ✅
+
+Completed:
+- ✅ `NarrationVariantGenerator.kt` - Pre-generates combat narration variants for common scenarios (memory/combat:330)
+  - Generates 50+ variants per scenario (melee, ranged, spell, critical, death, status effects)
+  - Tags variants with metadata (weapon type, damage tier, outcome) for semantic search
+  - Uses LLM to create diverse, vivid combat descriptions offline
+  - Stores in vector DB for fast runtime retrieval
+- ✅ `NarrationMatcher.kt` - Semantic search for cached narrations (memory/combat:150)
+  - CombatContext data class for matching (scenario, weapon, damage tier, outcome)
+  - findNarration() method with semantic search via MemoryManager
+  - Helper methods: determineDamageTier(), determineScenario()
+  - Weapon category matching for flexible retrieval
+- ✅ `CombatNarrator.kt` - Refactored to use caching with LLM fallback (reasoning:320)
+  - narrateAction() - New method for single action narration with caching
+  - Tries cache first, falls back to live LLM generation on miss
+  - Stores new LLM responses in cache for future use
+  - Equipment-aware descriptions (weapon/armor names included)
+  - Maintains backward compatibility with existing narrateCombatRound()
+
 Next tasks:
-- Phase 6: Optimized Flavor Narration
+- Phase 7: Death, Corpses & Item Recovery
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

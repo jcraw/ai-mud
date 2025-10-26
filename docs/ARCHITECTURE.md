@@ -205,6 +205,33 @@ Memory (store for RAG)
 - Procedurally generated NPC personalities and traits based on dungeon theme
 - See [Social System Documentation](./SOCIAL_SYSTEM.md) for complete details
 
+### Combat Narration Caching System
+- **Vector DB caching** for optimized LLM performance
+- **Three-tier approach**:
+  1. **Pre-generated variants** - Offline generation of 50+ narration variants per scenario
+  2. **Semantic search** - Runtime matching of combat context to cached narrations
+  3. **LLM fallback** - Live generation for unique scenarios with automatic caching
+- **NarrationVariantGenerator** (`memory/combat/NarrationVariantGenerator.kt`)
+  - Pre-generates variants for common scenarios (melee, ranged, spell, critical, death, status effects)
+  - Tags variants with metadata (weapon type, damage tier, outcome) for semantic search
+  - Uses LLM offline to create diverse, vivid combat descriptions
+  - Stores in vector DB with embeddings for fast retrieval
+- **NarrationMatcher** (`memory/combat/NarrationMatcher.kt`)
+  - CombatContext data class captures combat situation (scenario, weapon, damage, outcome)
+  - Semantic search via MemoryManager to find best matching cached narration
+  - Helper methods: determineDamageTier(), determineScenario() for context classification
+  - Weapon category matching for flexible retrieval (e.g., "dagger" matches "blade" variants)
+- **CombatNarrator** (`reasoning/CombatNarrator.kt`)
+  - narrateAction() - New method for single action narration with caching
+  - Flow: Try cache → LLM fallback on miss → Store response in cache
+  - Equipment-aware descriptions (includes actual weapon/armor names)
+  - Maintains backward compatibility with existing narrateCombatRound()
+- **Performance benefits**:
+  - Target >60% cache hit rate reduces LLM calls
+  - Cached narratives return in <50ms vs. 1-3sec for live LLM
+  - Cost savings: $0 for cached vs. ~$0.001 per LLM generation
+  - Growing cache improves over time as more scenarios are stored
+
 ## File Locations (Important)
 
 ### Main Application
