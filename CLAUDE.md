@@ -243,8 +243,23 @@ Completed:
 - ✅ `CombatInitiatorTest.kt` - Unit tests for hostility detection (9 tests, reasoning:test)
 - ✅ `CombatBehaviorTest.kt` - Unit tests for counter-attack and de-escalation (10 tests, reasoning:test)
 
-Next phase:
-- Phase 5: Monster AI & Quality Modulation
+**Phase 5: Monster AI & Quality Modulation (COMPLETE)** ✅
+
+Completed:
+- ✅ `MonsterAIHandler.kt` - LLM-driven AI with intelligence/wisdom modulation (reasoning/combat:348)
+  - Intelligence determines prompt complexity (low/medium/high tactical depth)
+  - Wisdom determines temperature (0.3-1.2 for consistent to erratic decisions)
+  - Fallback rules for robustness when LLM unavailable
+- ✅ `PersonalityAI.kt` - Personality-based behavior modulation (reasoning/combat:251)
+  - Trait-based decision modifications (aggressive, cowardly, defensive, brave, greedy, honorable)
+  - Personality-specific flee thresholds (cowardly 50%, brave 10%, normal 30%)
+  - Action preferences and flavor text generation
+- ✅ Integration - MonsterAIHandler uses PersonalityAI to modify LLM decisions
+
+Next tasks:
+- Integrate MonsterAIHandler into MudGameEngine turn queue execution
+- Add unit tests for AI components
+- Phase 6: Optimized Flavor Narration
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)
