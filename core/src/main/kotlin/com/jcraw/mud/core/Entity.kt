@@ -145,4 +145,31 @@ sealed class Entity {
         val equippedWeapon: String? = null,
         val equippedArmor: String? = null
     ) : Entity()
+
+    /**
+     * Corpse created when an entity dies, contains their inventory for retrieval
+     */
+    @Serializable
+    data class Corpse(
+        override val id: String,
+        override val name: String,
+        override val description: String,
+        val contents: List<Item> = emptyList(),
+        val decayTimer: Int = 100  // Ticks until despawn
+    ) : Entity() {
+        /**
+         * Tick down decay timer, returns null if corpse has decayed
+         */
+        fun tick(): Corpse? {
+            val newTimer = decayTimer - 1
+            return if (newTimer <= 0) null else copy(decayTimer = newTimer)
+        }
+
+        /**
+         * Remove item from corpse
+         */
+        fun removeItem(itemId: String): Corpse {
+            return copy(contents = contents.filter { it.id != itemId })
+        }
+    }
 }

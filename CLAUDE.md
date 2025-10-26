@@ -309,8 +309,33 @@ Completed:
   - Equipment-aware descriptions (weapon/armor names included)
   - Maintains backward compatibility with existing narrateCombatRound()
 
-Next tasks:
-- Phase 7: Death, Corpses & Item Recovery
+**Phase 7: Death, Corpses & Item Recovery (IN PROGRESS)** 🚧
+
+Completed:
+- ✅ `Entity.Corpse` - New entity type with contents and decay timer (core/Entity.kt:175)
+  - Contents hold List<Item> for loot retrieval
+  - DecayTimer field (default 100 ticks for NPCs, 200 for players)
+  - tick() method decrements timer, returns null when expired
+  - removeItem() method for looting
+- ✅ `DeathHandler.kt` - Handles entity death and corpse creation (reasoning/combat:149)
+  - handleDeath() - Creates corpses from dead NPCs and players
+  - NPC death: Creates corpse with basic description (no items yet - basic item system)
+  - Player death: Creates corpse with full inventory + equipped items
+  - DeathResult sealed class (NPCDeath, PlayerDeath) for type-safe handling
+  - shouldDie() method checks if entity health <= 0
+- ✅ `CorpseDecayManager.kt` - Manages corpse decay over time (reasoning/combat:121)
+  - tickDecay() - Processes all corpses in world, decrements timers
+  - Removes expired corpses from rooms
+  - 30% chance per item to drop to room on decay
+  - Remaining items are destroyed
+  - DecayResult with detailed decay information
+- ✅ `CombatDatabase.corpses` - Table already exists in schema (memory/combat/CombatDatabase.kt:94)
+
+Remaining tasks:
+- Permadeath sequence integration in MudGameEngine
+- ItemHandlers updates for corpse looting
+- Unit and integration tests
+- Documentation updates
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

@@ -232,6 +232,28 @@ Memory (store for RAG)
   - Cost savings: $0 for cached vs. ~$0.001 per LLM generation
   - Growing cache improves over time as more scenarios are stored
 
+### Death & Corpse System
+- **Entity.Corpse** - New entity type for dead entities (`core/Entity.kt`)
+  - Contents: List<Item> for loot retrieval
+  - DecayTimer: Ticks until despawn (100 for NPCs, 200 for players)
+  - tick() method decrements timer, returns null when expired
+  - removeItem() method for looting items
+- **DeathHandler** (`reasoning/combat/DeathHandler.kt`)
+  - Handles entity death and corpse creation
+  - NPC death: Creates corpse with basic description
+  - Player death: Creates corpse with full inventory + equipped items
+  - DeathResult sealed class for type-safe handling (NPCDeath, PlayerDeath)
+  - shouldDie() checks if entity health <= 0
+- **CorpseDecayManager** (`reasoning/combat/CorpseDecayManager.kt`)
+  - Manages corpse decay over time
+  - tickDecay() processes all corpses, decrements timers
+  - Removes expired corpses from rooms
+  - 30% chance per item to drop to room on decay
+  - Remaining items are destroyed
+- **Persistence** - Corpses table in CombatDatabase
+  - SQLite schema with id, name, location, contents (JSON), decay_timer
+  - Indices on location_room_id and decay_timer for efficient queries
+
 ## File Locations (Important)
 
 ### Main Application
