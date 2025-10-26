@@ -17,11 +17,17 @@ import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.combat.TurnQueueManager
 import com.jcraw.mud.reasoning.combat.MonsterAIHandler
 import com.jcraw.mud.reasoning.combat.AttackResolver
+import com.jcraw.mud.reasoning.combat.AttackResult
+import com.jcraw.mud.reasoning.combat.SkillClassifier
 import com.jcraw.mud.reasoning.combat.ActionCosts
 import com.jcraw.mud.reasoning.combat.SpeedCalculator
 import com.jcraw.mud.reasoning.combat.AIDecision
 import com.jcraw.mud.reasoning.combat.DeathHandler
 import com.jcraw.mud.reasoning.combat.CorpseDecayManager
+import com.jcraw.mud.core.Component
+import com.jcraw.mud.core.ComponentType
+import com.jcraw.mud.core.CombatComponent
+import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.mud.memory.social.SocialDatabase
@@ -56,7 +62,8 @@ class MudGame(
     // Combat System V2 components
     internal val turnQueue: TurnQueueManager? = if (llmClient != null) TurnQueueManager() else null
     internal val monsterAIHandler: MonsterAIHandler? = if (llmClient != null) MonsterAIHandler(llmClient) else null
-    internal val attackResolver: AttackResolver? = if (llmClient != null) AttackResolver() else null
+    private val skillClassifier: SkillClassifier? = if (llmClient != null) SkillClassifier(llmClient) else null
+    internal val attackResolver: AttackResolver? = if (skillClassifier != null) AttackResolver(skillClassifier) else null
     internal val llmService = llmClient
     internal val deathHandler = DeathHandler()
     internal val corpseDecayManager = CorpseDecayManager()
@@ -298,11 +305,10 @@ class MudGame(
             val playerRoom = worldState.getCurrentRoom()
             if (room?.id != playerRoom?.id) {
                 // NPC not in player's room, re-enqueue for later
-                val combatComponent = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
-                if (combatComponent != null) {
-                    val cost = SpeedCalculator.calculateActionCost(ActionCosts.MELEE_ATTACK, combatComponent, npc)
-                    queue.enqueue(entityId, currentTime + cost)
-                }
+                val skillComponent = npc.components[ComponentType.SKILL] as? SkillComponent
+                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
+                val cost = SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
+                queue.enqueue(entityId, currentTime + cost)
                 continue
             }
 
@@ -314,10 +320,12 @@ class MudGame(
             // Execute the decision
             executeNPCDecision(npc, decision, room)
 
-            // Re-enqueue the NPC for next turn
-            val combatComponent = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
-            if (combatComponent != null && !combatComponent.isDead()) {
-                val cost = SpeedCalculator.calculateActionCost(ActionCosts.MELEE_ATTACK, combatComponent, npc)
+            // Re-enqueue the NPC for next turn (if not dead)
+            val combatComponent = npc.components[ComponentType.COMBAT] as? CombatComponent
+            if (combatComponent == null || !combatComponent.isDead()) {
+                val skillComponent = npc.components[ComponentType.SKILL] as? SkillComponent
+                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
+                val cost = SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
                 queue.enqueue(entityId, currentTime + cost)
             }
         }
@@ -359,31 +367,68 @@ class MudGame(
      */
     private fun executeNPCAttack(npc: Entity.NPC, room: com.jcraw.mud.core.Room) {
         val resolver = attackResolver
-        if (resolver != null && llmService != null) {
+        if (resolver != null) {
             // Use new attack resolver
             val result = runBlocking {
                 resolver.resolveAttack(
                     attackerId = npc.id,
                     defenderId = worldState.player.id,
                     action = "${npc.name} attacks",
-                    worldState = worldState,
-                    llmService = llmService
+                    worldState = worldState
                 )
             }
 
-            if (result.hit && result.damage > 0) {
-                // Apply damage to player
-                val newPlayer = worldState.player.takeDamage(result.damage)
-                worldState = worldState.updatePlayer(newPlayer)
+            when (result) {
+                is AttackResult.Hit -> {
+                    // Apply damage to player
+                    val newPlayer = worldState.player.takeDamage(result.damage)
+                    worldState = worldState.updatePlayer(newPlayer)
 
-                println(result.narrative)
+                    // Generate narrative
+                    // NPCs don't have equipment in V2 yet, use a generic weapon
+                    val npcWeapon = "weapon"
+                    val narrative = if (combatNarrator != null) {
+                        runBlocking {
+                            combatNarrator.narrateAction(
+                                weapon = npcWeapon,
+                                damage = result.damage,
+                                maxHp = worldState.player.maxHealth,
+                                isHit = true,
+                                isCritical = false,
+                                isDeath = newPlayer.isDead(),
+                                isSpell = false,
+                                targetName = worldState.player.name
+                            )
+                        }
+                    } else {
+                        "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
+                    }
+                    println(narrative)
 
-                // Check if player died
-                if (newPlayer.isDead()) {
-                    handlePlayerDeath()
+                    // Check if player died
+                    if (newPlayer.isDead()) {
+                        handlePlayerDeath()
+                    }
                 }
-            } else {
-                println(result.narrative)
+                is AttackResult.Miss -> {
+                    val narrative = if (result.wasDodged) {
+                        "You dodge ${npc.name}'s attack!"
+                    } else {
+                        "${npc.name} misses you!"
+                    }
+                    println(narrative)
+                }
+                is AttackResult.Failure -> {
+                    // Silent failure, fall back to simple damage
+                    val damage = (1..6).random()
+                    val newPlayer = worldState.player.takeDamage(damage)
+                    worldState = worldState.updatePlayer(newPlayer)
+                    println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
+
+                    if (newPlayer.isDead()) {
+                        handlePlayerDeath()
+                    }
+                }
             }
         } else {
             // Fallback to simple damage

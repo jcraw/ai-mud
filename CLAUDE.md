@@ -331,26 +331,34 @@ Completed:
   - DecayResult with detailed decay information
 - ✅ `CombatDatabase.corpses` - Table already exists in schema (memory/combat/CombatDatabase.kt:94)
 - ✅ `AttackResolver.kt` - Added Entity.Corpse branch to when expression (reasoning/combat:290)
-- 🚧 `MudGameEngine.kt` - Partial permadeath integration (app:460)
+- ✅ `MudGameEngine.kt` - Permadeath integration complete (app:524)
   - Added DeathHandler and CorpseDecayManager instances
   - Added handlePlayerDeath() method with corpse creation and respawn logic
-  - Updated both death locations to call handlePlayerDeath()
-  - ⚠️ **Compilation errors** - AttackResolver API mismatch needs resolution
-- 🚧 `CombatHandlers.kt` - Updated legacy death handler to use permadeath (app/handlers:169)
-  - ⚠️ **Compilation errors** - AttackResult type mismatch
+  - Fixed AttackResolver integration (SkillClassifier construction, proper AttackResult handling)
+  - Fixed NPC attack execution with proper sealed class handling
+  - All compilation errors resolved
+- ✅ `CombatHandlers.kt` - Updated to use V2 combat system (app/handlers:141)
+  - Fixed AttackResolver.resolveAttack() API calls
+  - Proper AttackResult sealed class handling (Hit, Miss, Failure)
+  - Added combat narration integration
+  - All compilation errors resolved
+- ✅ `MovementHandlers.kt` - Removed old combat mode references (app/handlers:171)
+  - Removed modal combat flee mechanics
+  - V2 combat is emergent - movement always allowed
+  - NPCs in turn queue attack when timer expires
+- ✅ `ItemHandlers.kt` - Removed old combat mode references (app/handlers:299)
+  - Removed consumable usage combat checks
+  - V2 combat handled naturally through turn queue
 
 Remaining tasks:
-- **Fix compilation errors** - Resolve AttackResolver API mismatches in CombatHandlers
-- **Remove old combat mode references** - ItemHandlers and MovementHandlers have obsolete `isInCombat` checks
 - **ItemHandlers updates** - Add corpse looting functionality
 - **Unit and integration tests** - DeathHandler, CorpseDecayManager, handlePlayerDeath
 - **Integration testing** - End-to-end death and recovery flow
+- **GameServer migration** - Multi-user mode still uses V1 combat (separate task)
 - **Documentation updates** - Complete Phase 7 docs
 
 **Known Issues:**
-- AttackResolver.resolveAttack() called with incorrect parameters in CombatHandlers.kt
-- Legacy combat mode properties (isInCombat, activeCombat) still referenced in handlers
-- Need to reconcile V1 and V2 combat system APIs
+- GameServer.kt (multi-user mode) still uses V1 combat system - needs separate migration
 
 Key features for V2:
 - Emergent combat (no mode switches, disposition-triggered)

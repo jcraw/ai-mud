@@ -13,62 +13,8 @@ import kotlinx.coroutines.runBlocking
 object MovementHandlers {
 
     fun handleMove(game: MudGame, direction: Direction) {
-        // Check if in combat - must flee first
-        if (game.worldState.player.isInCombat()) {
-            println("\nYou attempt to flee from combat...")
-
-            val result = game.combatResolver.attemptFlee(game.worldState)
-            println(result.narrative)
-
-            if (result.playerFled) {
-                // Flee successful - update state and move
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.endCombat())
-
-                val newState = game.worldState.movePlayer(direction)
-                if (newState == null) {
-                    println("You can't go that way.")
-                    return
-                }
-
-                game.worldState = newState
-                println("You move ${direction.displayName}.")
-
-                // Track room exploration for quests
-                val room = game.worldState.getCurrentRoom()
-                if (room != null) {
-                    game.trackQuests(QuestAction.VisitedRoom(room.id))
-                }
-
-                game.describeCurrentRoom()
-            } else if (result.playerDied) {
-                // Player died trying to flee
-                println("\nYou have been defeated! Game over.")
-                println("\nPress any key to play again...")
-                readLine()  // Wait for any input
-
-                // Restart the game
-                game.worldState = game.initialWorldState
-                println("\n" + "=" * 60)
-                println("  Restarting Adventure...")
-                println("=" * 60)
-                game.printWelcome()
-                game.describeCurrentRoom()
-            } else {
-                // Failed to flee - update combat state and stay in place
-                val combatState = result.newCombatState
-                if (combatState != null) {
-                    // Sync player's actual health with combat state
-                    val updatedPlayer = game.worldState.player
-                        .updateCombat(combatState)
-                        .copy(health = combatState.playerHealth)
-                    game.worldState = game.worldState.updatePlayer(updatedPlayer)
-                }
-                game.describeCurrentRoom()
-            }
-            return
-        }
-
-        // Normal movement (not in combat)
+        // V2 combat is emergent - no modal combat state, so movement is always allowed
+        // Hostile NPCs in turn queue will get their attacks when their timer expires
         val newState = game.worldState.movePlayer(direction)
 
         if (newState == null) {

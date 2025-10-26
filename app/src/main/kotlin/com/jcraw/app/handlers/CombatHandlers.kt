@@ -3,6 +3,7 @@ package com.jcraw.app.handlers
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.combat.AttackResolver
+import com.jcraw.mud.reasoning.combat.AttackResult
 import com.jcraw.mud.reasoning.combat.CombatBehavior
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
@@ -45,15 +46,14 @@ object CombatHandlers {
         }
 
         // Resolve attack using AttackResolver (Phase 3)
-        val attackResult = if (game.attackResolver != null && game.llmService != null) {
+        val attackResult = if (game.attackResolver != null) {
             try {
                 runBlocking {
                     game.attackResolver.resolveAttack(
                         attackerId = game.worldState.player.id,
                         defenderId = npc.id,
                         action = "attack ${npc.name}",
-                        worldState = game.worldState,
-                        llmService = game.llmService
+                        worldState = game.worldState
                     )
                 }
             } catch (e: Exception) {
@@ -65,46 +65,82 @@ object CombatHandlers {
             null
         }
 
-        if (attackResult != null) {
-            // Apply damage to NPC if hit
-            if (attackResult.hit && attackResult.damage > 0) {
-                val npcCombat = npc.getComponent<CombatComponent>(ComponentType.COMBAT)
-                if (npcCombat != null) {
-                    val updatedNpcCombat = npcCombat.applyDamage(attackResult.damage, attackResult.damageType)
-                    val updatedNpc = npc.withComponent(updatedNpcCombat) as Entity.NPC
+        when (attackResult) {
+            is AttackResult.Hit -> {
+                // Apply damage from AttackResolver - damage already applied to component
+                val updatedNpc = npc.withComponent(attackResult.updatedDefenderCombat) as Entity.NPC
 
-                    // Update room with damaged NPC
-                    val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
-                    game.worldState = game.worldState.updateRoom(updatedRoom)
+                // Update room with damaged NPC
+                val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
+                game.worldState = game.worldState.updateRoom(updatedRoom)
 
-                    // Check if NPC died
-                    if (updatedNpcCombat.isDead()) {
-                        println("\nVictory! ${npc.name} has been defeated!")
-                        game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
-
-                        // Track NPC kill for quests
-                        game.trackQuests(QuestAction.KilledNPC(npc.id))
-                        return
+                // Generate and display attack narrative
+                val weapon = game.worldState.player.equippedWeapon?.name ?: "bare fists"
+                val narrative = if (game.combatNarrator != null) {
+                    runBlocking {
+                        game.combatNarrator.narrateAction(
+                            weapon = weapon,
+                            damage = attackResult.damage,
+                            maxHp = npc.maxHealth,
+                            isHit = true,
+                            isCritical = false,
+                            isDeath = attackResult.wasKilled,
+                            isSpell = false,
+                            targetName = npc.name
+                        )
                     }
+                } else {
+                    "You hit ${npc.name} for ${attackResult.damage} damage!"
+                }
+                println("\n$narrative")
+
+                // Check if NPC died
+                if (attackResult.wasKilled) {
+                    println("\nVictory! ${npc.name} has been defeated!")
+                    game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
+
+                    // Track NPC kill for quests
+                    game.trackQuests(QuestAction.KilledNPC(npc.id))
+                    return
+                }
+
+                // Trigger counter-attack behavior (Phase 4)
+                // This makes the NPC hostile and adds them to the turn queue
+                if (game.turnQueue != null) {
+                    game.worldState = CombatBehavior.triggerCounterAttack(
+                        npcId = npc.id,
+                        roomId = room.id,
+                        worldState = game.worldState,
+                        turnQueue = game.turnQueue
+                    )
                 }
             }
+            is AttackResult.Miss -> {
+                // Generate and display miss narrative
+                val narrative = if (attackResult.wasDodged) {
+                    "${npc.name} dodges your attack!"
+                } else {
+                    "You miss ${npc.name}!"
+                }
+                println("\n$narrative")
 
-            // Display attack narrative
-            println("\n${attackResult.narrative}")
-
-            // Trigger counter-attack behavior (Phase 4)
-            // This makes the NPC hostile and adds them to the turn queue
-            if (game.turnQueue != null) {
-                game.worldState = CombatBehavior.triggerCounterAttack(
-                    npcId = npc.id,
-                    roomId = room.id,
-                    worldState = game.worldState,
-                    turnQueue = game.turnQueue
-                )
+                // Trigger counter-attack even on miss
+                if (game.turnQueue != null) {
+                    game.worldState = CombatBehavior.triggerCounterAttack(
+                        npcId = npc.id,
+                        roomId = room.id,
+                        worldState = game.worldState,
+                        turnQueue = game.turnQueue
+                    )
+                }
             }
-        } else {
-            // Fallback: Use old combat system for backward compatibility
-            handleLegacyAttack(game, npc)
+            is AttackResult.Failure -> {
+                println("Attack failed: ${attackResult.reason}")
+            }
+            null -> {
+                // Fallback: Use old combat system for backward compatibility
+                handleLegacyAttack(game, npc)
+            }
         }
     }
 

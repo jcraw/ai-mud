@@ -273,7 +273,6 @@ object ItemHandlers {
         when (item.itemType) {
             ItemType.CONSUMABLE -> {
                 val oldHealth = game.worldState.player.health
-                val inCombat = game.worldState.player.isInCombat()
 
                 // Consume the item and heal
                 game.worldState = game.worldState.updatePlayer(game.worldState.player.useConsumable(item))
@@ -286,44 +285,8 @@ object ItemHandlers {
                     println("\nYou consume the ${item.name}, but you're already at full health.")
                 }
 
-                // If in combat, the NPC gets a free attack (using an item consumes your turn)
-                if (inCombat) {
-                    val combat = game.worldState.player.activeCombat!!
-                    val room = game.worldState.getCurrentRoom() ?: return
-                    val npc = room.entities.filterIsInstance<Entity.NPC>()
-                        .find { it.id == combat.combatantNpcId }
-
-                    if (npc != null) {
-                        // Calculate NPC damage
-                        val npcDamage = calculateNpcDamage(game, npc)
-                        val afterNpcAttack = combat.applyNpcDamage(npcDamage)
-
-                        println("\nThe enemy strikes back for $npcDamage damage while you drink!")
-
-                        // Check if player died
-                        if (afterNpcAttack.playerHealth <= 0) {
-                            game.worldState = game.worldState.updatePlayer(game.worldState.player.endCombat())
-                            println("\nYou have been defeated! Game over.")
-                            println("\nPress any key to play again...")
-                            readLine()  // Wait for any input
-
-                            // Restart the game
-                            game.worldState = game.initialWorldState
-                            println("\n" + "=" * 60)
-                            println("  Restarting Adventure...")
-                            println("=" * 60)
-                            game.printWelcome()
-                            game.describeCurrentRoom()
-                        } else {
-                            // Update combat state with new health
-                            val updatedPlayer = game.worldState.player
-                                .updateCombat(afterNpcAttack)
-                                .copy(health = afterNpcAttack.playerHealth)
-                            game.worldState = game.worldState.updatePlayer(updatedPlayer)
-                            game.describeCurrentRoom()  // Show updated combat status
-                        }
-                    }
-                }
+                // V2 combat: Using items takes game time, so NPCs in turn queue may act
+                // This happens naturally through the turn queue system
             }
             ItemType.WEAPON -> {
                 println("Try 'equip ${item.name}' to equip this weapon.")
@@ -332,17 +295,5 @@ object ItemHandlers {
                 println("You're not sure how to use that.")
             }
         }
-    }
-
-    /**
-     * Calculate damage dealt by NPC attack (helper for potion use during combat).
-     * Base damage + STR modifier - player armor defense.
-     */
-    private fun calculateNpcDamage(game: MudGame, npc: Entity.NPC): Int {
-        // Base damage 3-12 + STR modifier - armor defense
-        val baseDamage = kotlin.random.Random.nextInt(3, 13)
-        val strModifier = npc.stats.strModifier()
-        val armorDefense = game.worldState.player.getArmorDefenseBonus()
-        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
     }
 }
