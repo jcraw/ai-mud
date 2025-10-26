@@ -263,13 +263,15 @@ Completed:
   - Game loop calls processNPCTurns() before player input
   - Game loop advances gameTime after player actions
 
-Known issues (compilation errors in existing code):
-- CombatResolver.kt references removed `activeCombat` field (legacy V1 code)
-- AttackResolver.kt Entity.NPC constructor parameter mismatches
-- StatusEffectApplicator.kt entity operation errors
+**Compilation Fixes (COMPLETE)** ✅
+
+Completed:
+- ✅ `CombatResolver.kt` - Deprecated legacy V1 methods (made stubs for backward compatibility)
+- ✅ `AttackResolver.kt` - Fixed Entity.Player construction and component access
+- ✅ `StatusEffectApplicator.kt` - Fixed Map-based component operations
+- ✅ All reasoning module compilation errors resolved
 
 Next tasks:
-- Fix compilation errors in Combat V2 components
 - Add unit tests for MonsterAIHandler and integration
 - Phase 6: Optimized Flavor Narration
 

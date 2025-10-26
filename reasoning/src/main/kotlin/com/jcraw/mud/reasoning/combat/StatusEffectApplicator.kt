@@ -228,7 +228,7 @@ private fun WorldState.findEntity(entityId: String): Entity? {
 private inline fun <reified T : Component> Entity.getComponent(type: ComponentType): T? {
     return when (this) {
         is Entity.NPC -> {
-            components.filterIsInstance<T>().firstOrNull { it.componentType == type }
+            components[type] as? T
         }
         else -> null
     }
@@ -250,9 +250,8 @@ private fun WorldState.updateEntityCombat(
     // Update the entity in the room
     val updatedEntities = roomWithEntity.entities.map { entity ->
         if (entity.id == entityId && entity is Entity.NPC) {
-            // Replace combat component
-            val updatedComponents = entity.components.filter { it.componentType != ComponentType.COMBAT } + updatedCombat
-            entity.copy(components = updatedComponents)
+            // Replace combat component using ComponentHost interface
+            entity.withComponent(updatedCombat)
         } else {
             entity
         }

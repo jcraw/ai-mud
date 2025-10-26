@@ -43,64 +43,18 @@ class CombatResolver {
 
     /**
      * Executes a player attack action during combat.
+     *
+     * DEPRECATED: This is legacy V1 code. Use AttackResolver for V2 combat system.
+     * Kept for backward compatibility only.
      */
+    @Deprecated("Use AttackResolver from Combat V2 system", ReplaceWith("AttackResolver.resolveAttack()"))
     fun executePlayerAttack(worldState: WorldState, player: PlayerState): CombatResult {
-        val combat = player.activeCombat
-            ?: return CombatResult(
-                narrative = "You are not in combat.",
-                newCombatState = null,
-                playerDied = false,
-                npcDied = false
-            )
-
-        if (!combat.isPlayerTurn) {
-            return CombatResult(
-                narrative = "It's not your turn!",
-                newCombatState = combat,
-                playerDied = false,
-                npcDied = false
-            )
-        }
-
-        // Calculate damage (simple random for now)
-        val damage = calculatePlayerDamage(player)
-        val updatedCombat = combat.applyPlayerDamage(damage)
-
-        // Check if NPC died
-        if (updatedCombat.npcHealth <= 0) {
-            return CombatResult(
-                narrative = "You strike for $damage damage! Your enemy has been defeated!",
-                newCombatState = null,  // Combat ends
-                playerDied = false,
-                npcDied = true,
-                playerDamage = damage,
-                npcDamage = 0
-            )
-        }
-
-        // NPC's turn to attack (simultaneous turn - player can attack again immediately)
-        val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
-        val afterNpcAttack = updatedCombat.applyNpcDamage(npcDamage)
-
-        // Check if player died
-        if (afterNpcAttack.playerHealth <= 0) {
-            return CombatResult(
-                narrative = "You strike for $damage damage! The enemy retaliates for $npcDamage damage!\n\nYou have been defeated! Your vision fades as you fall to the ground...",
-                newCombatState = null,  // Combat ends
-                playerDied = true,
-                npcDied = false,
-                playerDamage = damage,
-                npcDamage = npcDamage
-            )
-        }
-
+        // V2 uses emergent combat, no modal combat state
         return CombatResult(
-            narrative = "You strike for $damage damage! The enemy retaliates for $npcDamage damage!",
-            newCombatState = afterNpcAttack,
+            narrative = "Combat system V1 is deprecated. Use the new AttackResolver system.",
+            newCombatState = null,
             playerDied = false,
-            npcDied = false,
-            playerDamage = damage,
-            npcDamage = npcDamage
+            npcDied = false
         )
     }
 
@@ -111,48 +65,20 @@ class CombatResolver {
 
     /**
      * Attempts to flee from combat.
+     *
+     * DEPRECATED: This is legacy V1 code. Use CombatBehavior for V2 combat system.
+     * Kept for backward compatibility only.
      */
+    @Deprecated("Use CombatBehavior from Combat V2 system", ReplaceWith("CombatBehavior"))
     fun attemptFlee(worldState: WorldState, player: PlayerState): CombatResult {
-        val combat = player.activeCombat
-            ?: return CombatResult(
-                narrative = "You are not in combat.",
-                newCombatState = null,
-                playerDied = false,
-                npcDied = false
-            )
-
-        // Simple flee chance - 50%
-        val fleeSuccessful = Random.nextBoolean()
-
-        if (fleeSuccessful) {
-            return CombatResult(
-                narrative = "You successfully flee from combat!",
-                newCombatState = null,  // Combat ends
-                playerDied = false,
-                npcDied = false,
-                playerFled = true
-            )
-        } else {
-            // Failed flee, NPC gets free attack (but player can still act after)
-            val npcDamage = calculateNpcDamage(worldState, player, combat.combatantNpcId)
-            val afterNpcAttack = combat.applyNpcDamage(npcDamage)
-
-            if (afterNpcAttack.playerHealth <= 0) {
-                return CombatResult(
-                    narrative = "You fail to escape! The enemy strikes you for $npcDamage damage!\n\nYou have been defeated! Your vision fades as you fall to the ground...",
-                    newCombatState = null,
-                    playerDied = true,
-                    npcDied = false
-                )
-            }
-
-            return CombatResult(
-                narrative = "You fail to escape! The enemy strikes you for $npcDamage damage!",
-                newCombatState = afterNpcAttack,
-                playerDied = false,
-                npcDied = false
-            )
-        }
+        // V2 uses emergent combat with disposition-based fleeing
+        return CombatResult(
+            narrative = "Combat system V1 is deprecated. Movement now handles fleeing from hostile NPCs automatically.",
+            newCombatState = null,
+            playerDied = false,
+            npcDied = false,
+            playerFled = true
+        )
     }
 
     // Backward compatibility overload

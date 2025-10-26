@@ -257,8 +257,12 @@ private fun WorldState.findEntity(entityId: String): Entity? {
         return Entity.Player(
             id = player.id,
             name = player.name,
-            location = player.currentRoomId,
-            components = emptyList() // Components accessed via player directly
+            description = "Player character",
+            playerId = player.id,
+            health = player.health,
+            maxHealth = player.maxHealth,
+            equippedWeapon = player.equippedWeapon?.id,
+            equippedArmor = player.equippedArmor?.id
         )
     }
 
@@ -279,7 +283,7 @@ private inline fun <reified T : Component> Entity.getComponent(type: ComponentTy
             null
         }
         is Entity.NPC -> {
-            components.filterIsInstance<T>().firstOrNull { it.componentType == type }
+            components[type] as? T
         }
         is Entity.Item -> null
         is Entity.Feature -> null
