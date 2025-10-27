@@ -1,0 +1,234 @@
+Items, Inventory, and Crafting System Requirements (Flexible Multipurpose Items with Weight Management and Gathering)
+Overview
+The Items, Inventory, and Crafting system introduces flexible, multipurpose items integrated into the ECS architecture, enabling emergent uses (e.g., pot as weapon/trap/potion mixer via hybrid tag-based rules + LLM intent parsing + skill checks). Supports weight-based inventory limits (derived from Strength skill + augmentations), simple equipping/wielding (time-costly in combat), realistic corpse loot, rare magical drops/quest rewards, environmental gathering (tool/skill-dependent, skill-highlighted in room desc), and DB recipe-based crafting. V2: Single-player focus with multiplayer stubs (DB concurrency via timestamps/locks). Ties to skills (gathering/crafting XP, capacity mods), combat (equip penalties, corpse loot), social (trading with finite merchant gold, pickpocketing enemies/NPCs), future world/quests. Keeps simple: No sub-containers; bags as capacity boosters. Gold: Consolidated total. Items: Templates + instances (no durability in V2). Procedural gen via LLM for descriptions/flavor.
+Key Goals
+
+Flexible items: Tags/properties enable multi-use via intents (e.g., "hit goblin with pot" → improvised weapon check; "place dynamite in goblin's pocket" → pickpocket + timed detonation).
+Realistic inventory: Weight limits carrying (e.g., full armor impractical); augment via skills/items; enemies/NPCs have inventories for interactions like pickpocketing.
+Gathering: Location/tool/skill-gated; low skill = subtle room hints, high = explicit; nodes finite/depletable (no replenish in V2).
+Crafting: Simple DB recipes + skill rolls; outputs items/ingredients.
+Loot: Corpse-based (equipped gear probable, gold/rare RNG); not loot-explosion.
+Equip: Slots/hands; combat swap = high time cost + agility penalty (free enemy action).
+Trade: Merchants buy/sell with finite gold/stock; disposition-modded prices.
+Modularity: ECS components; stubs for multiplayer/trading/quests/tech trees.
+Balance: Rare upgrades; weight encourages choices (sell/craft/discard/drop).
+
+Tech Stack: Kotlin coroutines, immutable data, sealed classes, SQLite (PostgreSQL stub), existing modules (:core ECS, :perception intents, :reasoning, :persistence, :skills, :combat, :social). RNG via Kotlin Random for loot. LLM for intent parsing, flavor, ad-hoc uses (with caching in vector DB).
+
+Functional Requirements
+
+COMPONENT-BASED ARCHITECTURE (ECS Extension)
+1.1 New Component Types (add to ComponentType enum)
+
+
+INVENTORY: Storage and equipped items (attachable to players, enemies/NPCs, merchants, corpses).
+ITEM: For lootable entities (corpses, nodes); templates reference shared DB.
+TRADING: Stub for merchants (gold limit, stock, buy/sell logic).
+
+1.2 InventoryComponent
+Data Class: InventoryComponent(
+items: List<ItemInstance> = emptyList(),  // Stacked by itemId/quality
+equipped: Map<EquipSlot, ItemInstance> = emptyMap(),  // WEAPON_MAIN, WEAPON_OFF, ARMOR_CHEST, etc.
+gold: Long = 0L,                          // Consolidated currency (finite for merchants/NPCs)
+capacityWeight: Double,                   // Derived: Strength level * 5 + bag bonuses
+componentType: ComponentType = ComponentType.INVENTORY
+) : Component
+Methods:
+
+currentWeight(): Double - Sum item weights (stackable resources lighter).
+canAdd(item: ItemInstance): Boolean - Weight check + slot limits.
+equip(slot: EquipSlot, item: ItemInstance): InventoryComponent - Swap/unequip.
+addGold(amount: Long): InventoryComponent - Check finite limits for NPCs.
+augmentCapacity(bonus: Double): InventoryComponent - From bags/skills/spells.
+
+EquipSlots Enum: HANDS_MAIN, HANDS_OFF, HEAD, CHEST, LEGS, FEET, BACK (bags), HANDS_BOTH (2H weapons), ACCESSORY_1..4.
+Weight Formula: Config DB (e.g., sword=5kg, potion=0.5kg, ore stack=2kg).
+1.3 Item Template (DB) + ItemInstance
+Data Class: ItemTemplate(
+id: String,
+name: String,
+type: ItemType,  // WEAPON, ARMOR, CONSUMABLE, RESOURCE, QUEST, TOOL, CONTAINER, SPELL_BOOK, SKILL_BOOK
+tags: List<String>,  // 5-10 per item, e.g., ["blunt", "container", "metal", "flammable", "sharp", "edible", "mineable"]
+properties: Map<String, Double>,  // "damage":10.0, "weight":5.0, "mana_cost":20
+rarity: Rarity,  // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY (affects drop rates)
+description: String,
+equipSlot: EquipSlot? = null
+)
+Data Class: ItemInstance(templateId: String, quality: Int=1, charges: Int?=null)  // References template; no durability in V2.
+Multipurpose Hybrid:
+
+DB Tags (code-enforced): Check for feasibility/bonuses (e.g., "blunt" → improvised weapon damage = weight * 0.5; missing → fail/high difficulty).
+LLM (emergent): Parse intents with tags (e.g., "place dynamite in pocket" → pickpocket intent + tag check "explosive" → timed detonation in combat tick).
+
+1.4 TradingComponent (Stub Enhancement)
+Data Class: TradingComponent(
+merchantGold: Long,                       // Finite limit for buying
+stock: List<ItemInstance>,                // Items for sale
+buyAnything: Boolean = true,              // Merchants buy any sellable item
+priceModBase: Double = 1.0,               // Disposition/social mods applied
+componentType: ComponentType = ComponentType.TRADING
+) : Component
+Methods:
+
+canBuyFromPlayer(item: ItemInstance, price: Long): Boolean - Gold check.
+updateStockAfterTrade().
+
+Enemies/NPCs: Attach InventoryComponent for pickpocketing/theft (e.g., dynamite placement → auto-effect on timer/use).
+
+
+DATABASE PERSISTENCE
+2.1 Schema Extension
+
+
+item_templates - (id, name, type, tags JSON, properties JSON, rarity, description, equip_slot)
+inventories - (entity_id, items JSON, equipped JSON, gold, capacity_weight)
+item_instances - (id, template_id, owner_entity_id, quality, charges)  // For persistence
+recipes - (id, name, input_items JSON Map<ItemId,Int>, output_item: ItemInstance JSON, req_skill: String, min_level: Int, tools: List<String>, difficulty: Int)
+gathering_nodes - (id, room_id, resource_template_id, quantity: Int, difficulty: Int)  // Finite; deplete to 0 (no respawn in V2; V3 replenish)
+loot_tables - (mob_type, rarity, item_template_id, drop_chance: Double, min_max_quantity)
+trading_stocks - (entity_id, stock JSON, merchant_gold)
+
+Indexes: inventories.entity_id; gathering_nodes.room_id; loot_tables.mob_type.
+2.2 Repositories (:core/repository/)
+
+ItemRepository: CRUD templates/instances, findByTag/Rarity.
+InventoryRepository: Update equipped/gold/weight.
+RecipeRepository: findViable(inputItems: Map<ItemId,Int>).
+GatheringRepository: findInRoom(roomId), harvest(quantity) - Deplete to 0.
+TradingRepository: Update merchantGold/stock.
+
+Impl: SQLiteItemRepository etc. (:persistence). Multiplayer stub: Add version/timestamp for optimistic locking.
+
+
+ACTION PIPELINE
+3.1 New Intents (:perception)
+
+
+Intent.Loot(target: String)  // Corpse/node.
+Intent.Gather(resource: String, tool?: String)  // "mine ore" (pickaxe req for rocks/ore; axe for trees; hands for herbs/honey).
+Intent.Craft(recipeName: String).
+Intent.Equip(slot: EquipSlot, itemName: String).
+Intent.Drop(itemName: String, quantity?: Int).
+Intent.UseItem(itemName: String, target?: String)  // Consume/throw/etc.; multipurpose via tags/LLM.
+Intent.Pickpocket(target: String, action: String)  // "steal gold from goblin" or "place dynamite in pocket" (Stealth/Sleight checks).
+Intent.Trade(action: String, itemName: String, quantity?: Int)  // "sell sword" or "buy potion".
+
+LLM parses freeform (e.g., "bash goblin with pot" → Attack with improvised item; "sneak dynamite into pocket" → Pickpocket + explosive tag check).
+3.2 Inventory Management
+
+Add: Weight check fail → "Too heavy!".
+Equip: In combat → high action cost (20 ticks) + Agility penalty (-20 effective level, 2 turns); free enemy action.
+Gold: Auto-consolidate on loot; finite for NPCs/merchants.
+
+3.3 Gathering
+
+Spot: On "look", LLM includes if skill (e.g., Mining) >= threshold (low: "odd rocks", high: "mineable ore vein"); better spotting with skill growth.
+Harvest: Skill check (e.g., Mining vs. node difficulty) + tool req (tag match, e.g., "mining_tool"). Success: Add to inv, reduce quantity (deplete to 0). Fail: Damage self/low yield.
+Nodes: Finite per room; integrate with future world gen (procedural placement).
+
+3.4 Crafting
+
+Find recipe: Match inputs (exact/partial via repo).
+Check: Req skill level + roll vs. difficulty; consume inputs/tools.
+Output: ItemInstance (quality = skill level / 10); XP to skill.
+Flexible: LLM for ad-hoc (e.g., "mix pot + herbs" → gen simple recipe if no match, using tags).
+
+3.5 Loot Generation
+
+Corpse: 80% equipped items/gold; + RNG table (rarity-weighted, e.g., RARE 5%); realistic (armor/weapon from equipped).
+Rarity Balance: COMMON 70%, UNCOMMON 25%, RARE 4%, EPIC 0.9%, LEGENDARY 0.1%.
+Quest Tie: Stub QuestSystem.awardItem().
+
+3.6 Pickpocketing
+
+Success: Stealth/Sleight vs. target Perception; add/remove from target inv (e.g., place dynamite → detonate on tick/use).
+Failure: Disposition drop (-20 to -50), wariness status (temp +difficulty to future attempts, e.g., +20 to target Perception for 10 turns).
+
+3.7 Trade
+
+Merchants: Finite gold for buying; buy anything sellable (price = base * disposition mod); sell from stock (rare/magic possible).
+Handler: Check merchantGold; update inventories; XP to Diplomacy if haggled.
+
+3.8 Skill/Combat Ties
+
+Capacity: Strength level * 5kg base; perks/spells/bags add %/flat.
+Mods: Equipped items → skill bonuses (e.g., sword +Sword Fighting), combat damage/HP.
+XP: Gather/craft success → full XP, fail 20%.
+
+
+
+INTEGRATIONS
+4.1 Skills: Checks for gather/craft/spot/pickpocket; capacity from Strength.
+4.2 Combat: Equipped mods (damage, resists); corpse on death; equip time cost; item effects (e.g., dynamite detonation).
+4.3 Social: Trading with disposition price mods; pickpocket failure → disposition/wariness.
+4.4 World: Room desc gen includes nodes (skill-filtered); future procedural resources.
+4.5 Stubs:
+
+
+MultiplayerInventorySystem: Lock on update.
+QuestItemSystem: Non-droppable tag.
+TechTree: Recipe prereqs (future).
+
+4.6 Memory/RAG: Recall item uses ("pot as weapon").
+
+
+MODULE STRUCTURE
+:core: InventoryComponent, ItemTemplate/Instance, TradingComponent, EquipSlot/Rarity/ItemType enums.
+:perception: New intents; enhance LLM for item uses/pickpocket.
+:reasoning: InventoryManager (add/equip/weight), CraftingManager, GatheringHandler, LootGenerator, TradeHandler, PickpocketHandler.
+:persistence: Repos.
+:memory: Item history.
+:app/:client: Handle intents, UI panels (inv list, equip slots).
+
+Data Flow: Input → Intent → Manager (skill/weight/check) → DB → Narration (LLM flavor).
+
+
+NON-FUNCTIONAL
+Performance: Async DB/LLM; cache templates/tags.
+Scalability: JSON for lists; multiplayer locks.
+Security: Sanitize names/inputs.
+Testability: Mocks for RNG/LLM/Skills.
+
+
+
+TESTING
+7.1 Unit: Weight calc, recipe match, loot RNG (seeded), tag checks, finite gold trade.
+7.2 Integration: Gather→craft→equip→combat mod; weight overflow; pickpocket success/fail (dynamite example); trade finite gold depletion.
+7.3 Bot: Gather resources, craft gear, pickpocket enemy, trade with merchant, win via upgraded weapon (no infinite buys).
+
+
+
+IMPLEMENTATION STRATEGY
+Phase 1: Components/Schema/Templates (4h) - Preload 50 items/recipes (swords, ores, pots, potions, dynamite, bags, books).
+Phase 2: Inventory/Equip/Pickpocket Logic (4h).
+Phase 3: Gathering/Loot (4h).
+Phase 4: Crafting/Flexible Uses/Trade (5h).
+Phase 5: Integrations/Stubs (3h).
+Phase 6: Tests/Docs (4h).
+Total: 24h.
+
+
+
+FUTURE ENHANCEMENTS
+
+
+Durability/repair (V3).
+Node replenish over time (V3).
+Sub-containers (bags in bags).
+Multi-currency/factions.
+Tech trees/dynamic recipes (LLM gen).
+Multiplayer trading/auctions.
+Procedural tag gen on LLM item creation.
+
+
+
+SUCCESS CRITERIA
+✅ Flexible multi-use items via tags/LLM intents (e.g., pot multipurpose, dynamite pocket).
+✅ Weight-limited inv with equip/capacity augments.
+✅ Finite/depletable gathering nodes + skill spotting.
+✅ DB recipes + realistic/rare corpse loot.
+✅ Combat equip penalty; pickpocket with failure consequences.
+✅ Merchant trade with finite gold/stock.
+✅ 50+ templates, 20 recipes preloaded.
+✅ Integrates skills/combat/social (trade/pickpocket).
+✅ Tests pass; bot crafts gear, pickpockets, trades to win dungeon.
