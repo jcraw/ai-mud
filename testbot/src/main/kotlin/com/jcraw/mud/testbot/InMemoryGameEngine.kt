@@ -86,41 +86,7 @@ class InMemoryGameEngine(
     }
 
     private suspend fun handleMove(direction: Direction): String {
-        // Check if in combat - must flee first
-        if (worldState.player.isInCombat()) {
-            val result = combatResolver.attemptFlee(worldState)
-
-            return if (result.playerFled) {
-                // Flee successful - update state and move
-                worldState = worldState.updatePlayer(worldState.player.endCombat())
-
-                val newState = worldState.movePlayer(direction)
-                if (newState != null) {
-                    worldState = newState
-                    val room = worldState.getCurrentRoom()!!
-                    "${result.narrative}\nYou move ${direction.displayName}.\n${buildRoomDescription(room)}"
-                } else {
-                    "${result.narrative}\nYou can't go that way."
-                }
-            } else if (result.playerDied) {
-                // Player died trying to flee
-                running = false
-                result.narrative
-            } else {
-                // Failed to flee - update combat state and stay in place
-                val combatState = result.newCombatState
-                if (combatState != null) {
-                    // Sync player's actual health with combat state
-                    val updatedPlayer = worldState.player
-                        .updateCombat(combatState)
-                        .copy(health = combatState.playerHealth)
-                    worldState = worldState.updatePlayer(updatedPlayer)
-                }
-                result.narrative
-            }
-        }
-
-        // Normal movement (not in combat)
+        // Movement is always allowed in Combat System V2
         val newState = worldState.movePlayer(direction)
         return if (newState != null) {
             worldState = newState
@@ -400,58 +366,58 @@ class InMemoryGameEngine(
     private suspend fun handleAttack(target: String?): String {
         val room = worldState.getCurrentRoom() ?: return "You are nowhere."
 
-        // In combat
-        if (worldState.player.isInCombat()) {
-            val result = combatResolver.executePlayerAttack(worldState)
-            val narrative = result.narrative
-
-            val combatState = result.newCombatState
-            if (combatState != null) {
-                // Sync player's actual health with combat state
-                val updatedPlayer = worldState.player
-                    .updateCombat(combatState)
-                    .copy(health = combatState.playerHealth)
-                worldState = worldState.updatePlayer(updatedPlayer)
-            } else {
-                // Combat ended - save combat info BEFORE ending
-                val endedCombat = worldState.player.activeCombat
-                // Sync final health before ending combat
-                val playerWithHealth = if (endedCombat != null) {
-                    worldState.player.copy(health = endedCombat.playerHealth)
-                } else {
-                    worldState.player
-                }
-                worldState = worldState.updatePlayer(playerWithHealth.endCombat())
-
-                if (result.npcDied && endedCombat != null) {
-                    worldState = worldState.removeEntityFromRoom(room.id, endedCombat.combatantNpcId) ?: worldState
-                    val questNotifications = trackQuests(QuestAction.KilledNPC(endedCombat.combatantNpcId))
-                    return narrative + questNotifications
-                }
-                if (result.playerDied) {
-                    running = false
-                }
-            }
-            return narrative
-        }
-
-        // Start combat
+        // Validate target
         if (target.isNullOrBlank()) return "Attack whom?"
 
+        // Find the target NPC
         val npc = room.entities.filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
-        return if (npc != null) {
-            val result = combatResolver.initiateCombat(worldState, npc.id)
-            if (result != null) {
-                worldState = worldState.updatePlayer(worldState.player.updateCombat(result.newCombatState!!))
-                result.narrative
-            } else {
-                "Cannot attack that."
-            }
-        } else {
-            "No one by that name here."
+        if (npc == null) {
+            return "No one by that name here."
         }
+
+        // Calculate player damage: base + weapon + STR modifier
+        val playerBaseDamage = kotlin.random.Random.nextInt(5, 16)
+        val weaponBonus = worldState.player.getWeaponDamageBonus()
+        val strModifier = worldState.player.stats.strModifier()
+        val playerDamage = (playerBaseDamage + weaponBonus + strModifier).coerceAtLeast(1)
+
+        // Calculate NPC damage: base + STR modifier - armor defense
+        val npcBaseDamage = kotlin.random.Random.nextInt(3, 13)
+        val npcStrModifier = npc.stats.strModifier()
+        val armorDefense = worldState.player.getArmorDefenseBonus()
+        val npcDamage = (npcBaseDamage + npcStrModifier - armorDefense).coerceAtLeast(1)
+
+        // Apply damage to NPC
+        val npcHealth = npc.health - playerDamage
+        val npcDied = npcHealth <= 0
+
+        // Generate narrative
+        val weapon = worldState.player.equippedWeapon?.name ?: "bare fists"
+        val attackNarrative = "You attack ${npc.name} with $weapon for $playerDamage damage!"
+
+        // Check if NPC died
+        if (npcDied) {
+            worldState = worldState.removeEntityFromRoom(room.id, npc.id) ?: worldState
+            val questNotifications = trackQuests(QuestAction.KilledNPC(npc.id))
+            return "$attackNarrative\nVictory! ${npc.name} has been defeated!" + questNotifications
+        }
+
+        // NPC counter-attacks
+        val counterNarrative = "\n${npc.name} strikes back for $npcDamage damage!"
+
+        // Apply damage to player
+        val updatedPlayer = worldState.player.takeDamage(npcDamage)
+        worldState = worldState.updatePlayer(updatedPlayer)
+
+        // Check if player died
+        if (updatedPlayer.isDead()) {
+            running = false
+            return "$attackNarrative$counterNarrative\nYou have been defeated! Game over."
+        }
+
+        return "$attackNarrative$counterNarrative"
     }
 
     private fun handleEquip(target: String): String {

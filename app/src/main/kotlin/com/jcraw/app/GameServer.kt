@@ -241,72 +241,7 @@ class GameServer(
         playerState: PlayerState,
         direction: Direction
     ): Triple<String, WorldState, GameEvent?> {
-        // Check if in combat - must flee first
-        if (playerState.isInCombat()) {
-            val result = combatResolver.attemptFlee(worldState, playerState)
-
-            return if (result.playerFled) {
-                // Flee successful - update state and move
-                val playerAfterFlee = playerState.endCombat()
-                val worldAfterFlee = worldState.updatePlayer(playerAfterFlee)
-
-                val oldRoomId = playerAfterFlee.currentRoomId
-                val newWorldState = worldAfterFlee.movePlayer(playerId, direction)
-
-                if (newWorldState != null) {
-                    val newPlayerState = newWorldState.getPlayer(playerId)!!
-                    val newRoomId = newPlayerState.currentRoomId
-                    val newRoom = newWorldState.getRoom(newRoomId)!!
-
-                    // Generate room description
-                    val description = roomDescriptionGenerator.generateDescription(newRoom)
-
-                    // Track room exploration for quests
-                    val questResult = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
-                    val finalWorldState = questResult.updatedWorld
-
-                    // Create movement events
-                    val leaveEvent = GameEvent.PlayerMoved(
-                        playerId = playerId,
-                        playerName = playerAfterFlee.name,
-                        fromRoomId = oldRoomId,
-                        toRoomId = newRoomId,
-                        direction = direction.name.lowercase(),
-                        roomId = oldRoomId,
-                        excludePlayer = playerId
-                    )
-
-                    val enterEvent = GameEvent.PlayerJoined(
-                        playerId = playerId,
-                        playerName = playerAfterFlee.name,
-                        roomId = newRoomId,
-                        excludePlayer = playerId
-                    )
-
-                    // Broadcast both events
-                    broadcastEvent(leaveEvent)
-                    broadcastEvent(enterEvent)
-
-                    Triple(result.narrative + "\nYou move ${direction.displayName}.\n" + description + questResult.notifications, finalWorldState, null)
-                } else {
-                    Triple(result.narrative + "\nBut there's nowhere to go in that direction!", worldAfterFlee, null)
-                }
-            } else if (result.playerDied) {
-                // Player died trying to flee
-                val updatedPlayer = playerState.endCombat()
-                Triple(result.narrative, worldState.updatePlayer(updatedPlayer), null)
-            } else {
-                // Failed to flee - update combat state and stay in place
-                val updatedPlayer = if (result.newCombatState != null) {
-                    playerState.updateCombat(result.newCombatState)
-                } else {
-                    playerState
-                }
-                Triple(result.narrative, worldState.updatePlayer(updatedPlayer), null)
-            }
-        }
-
-        // Normal movement (not in combat)
+        // V2: No modal combat, movement always allowed
         val oldRoomId = playerState.currentRoomId
         val newWorldState = worldState.movePlayer(playerId, direction)
 
@@ -440,52 +375,8 @@ class GameServer(
         playerState: PlayerState,
         targetId: String?
     ): Triple<String, WorldState, GameEvent?> {
-        val currentRoom = worldState.getCurrentRoom(playerId)!!
-
-        // If in combat, continue combat
-        if (playerState.isInCombat()) {
-            val combat = playerState.activeCombat
-            val result = combatResolver.executePlayerAttack(worldState, playerState)
-            val updatedPlayer = playerState.updateCombat(result.newCombatState)
-            val newWorldState = worldState.updatePlayer(updatedPlayer)
-
-            val narrative = buildString {
-                append(result.narrative)
-                if (result.npcDied) append("\nYou are victorious!")
-                if (result.playerDied) append("\nYou have been defeated!")
-            }
-
-            // Track NPC kill for quests
-            val questResult = if (result.npcDied && combat != null) {
-                trackQuests(updatedPlayer, QuestAction.KilledNPC(combat.combatantNpcId))
-            } else {
-                QuestTrackingResult(updatedPlayer, newWorldState, "")
-            }
-
-            return Triple(narrative + questResult.notifications, questResult.updatedWorld, null)
-        }
-
-        // Initiate combat
-        if (targetId == null) {
-            return Triple("Who do you want to attack?", worldState, null)
-        }
-
-        val target = currentRoom.entities.filterIsInstance<Entity.NPC>()
-            .find { it.name.equals(targetId, ignoreCase = true) }
-
-        if (target == null) {
-            return Triple("There's no one here by that name.", worldState, null)
-        }
-
-        val result = combatResolver.initiateCombat(worldState, playerState, target.id)
-        if (result == null) {
-            return Triple("Cannot start combat.", worldState, null)
-        }
-
-        val updatedPlayer = playerState.updateCombat(result.newCombatState)
-        val newWorldState = worldState.updatePlayer(updatedPlayer)
-
-        return Triple(result.narrative, newWorldState, null)
+        // Combat not yet migrated to V2 in multi-user mode
+        return Triple("Combat is not yet supported in multi-user mode. Coming soon!", worldState, null)
     }
 
     private suspend fun handleTalk(
@@ -725,7 +616,7 @@ class GameServer(
 
         return if (item != null && item.isConsumable) {
             val oldHealth = playerState.health
-            val inCombat = playerState.isInCombat()
+            val inCombat = false  // V2: No modal combat
 
             // Consume the item and heal
             var updatedPlayer = playerState.useConsumable(item)
@@ -739,30 +630,7 @@ class GameServer(
                     append("You consume the ${item.name}, but you're already at full health.")
                 }
 
-                // If in combat, the NPC gets a free attack (using an item consumes your turn)
-                if (inCombat) {
-                    val combat = playerState.activeCombat!!
-                    val currentRoom = worldState.getCurrentRoom(playerId)
-                    val npc = currentRoom?.entities?.filterIsInstance<Entity.NPC>()
-                        ?.find { it.id == combat.combatantNpcId }
-
-                    if (npc != null) {
-                        // Calculate NPC damage
-                        val npcDamage = calculateNpcDamage(npc, updatedPlayer)
-                        val afterNpcAttack = combat.applyNpcDamage(npcDamage)
-
-                        append("\n\nThe enemy strikes back for $npcDamage damage while you drink!")
-
-                        // Check if player died
-                        if (afterNpcAttack.playerHealth <= 0) {
-                            append("\n\nYou have been defeated!")
-                            updatedPlayer = updatedPlayer.endCombat()
-                        } else {
-                            // Update combat state with new health
-                            updatedPlayer = updatedPlayer.updateCombat(afterNpcAttack)
-                        }
-                    }
-                }
+                // V2: No modal combat in multi-user mode, consumables simply heal
             }
 
             val newWorldState = worldState.updatePlayer(updatedPlayer)

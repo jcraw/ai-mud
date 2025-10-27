@@ -191,7 +191,6 @@ class TestBotRunner(
             Current room: ${currentRoom?.name ?: "Unknown"}
             Player health: ${player.health}/${player.maxHealth}
             Inventory: ${player.inventory.joinToString { it.name }}
-            In combat: ${player.isInCombat()}
             Steps completed: ${state.currentStep}/${state.scenario.maxSteps}$questInfo
         """.trimIndent()
     }

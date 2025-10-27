@@ -345,7 +345,8 @@ object CodeValidationRules {
                 }
             }
 
-            val inCombatNow = worldState.player.isInCombat()
+            // Combat V2: No modal combat state, combat is emergent
+            val inCombatNow = false
 
             // Check if NPC exists in room NOW (after action)
             val npcStillInRoom = currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {

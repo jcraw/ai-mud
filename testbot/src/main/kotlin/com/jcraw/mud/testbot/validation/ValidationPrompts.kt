@@ -108,7 +108,6 @@ object ValidationPrompts {
             - Player location: ${currentRoom?.name ?: "Unknown"}$roomTransitionInfo
             - Available exits: ${currentRoom?.exits?.keys?.joinToString(", ") { it.displayName } ?: "none"}
             - Player health: ${player.health}/${player.maxHealth}
-            - In combat: ${player.isInCombat()}
             - Room entities: ${currentRoom?.entities?.joinToString(", ") { it.name } ?: "none"}$inventoryInfo
             """.trimIndent()
         } else {

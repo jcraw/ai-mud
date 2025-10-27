@@ -11,63 +11,7 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
-        // Check if in combat - must flee first
-        if (game.worldState.player.isInCombat()) {
-            game.emitEvent(GameEvent.Narrative("\nYou attempt to flee from combat..."))
-
-            val result = game.combatResolver.attemptFlee(game.worldState)
-            game.emitEvent(GameEvent.Combat(result.narrative))
-
-            if (result.playerFled) {
-                // Flee successful - update state and move
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.endCombat())
-
-                val newState = game.worldState.movePlayer(direction)
-                if (newState == null) {
-                    game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
-                    return
-                }
-
-                game.worldState = newState
-                game.emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
-
-                // Update status
-                game.emitEvent(GameEvent.StatusUpdate(
-                    hp = game.worldState.player.health,
-                    maxHp = game.worldState.player.maxHealth
-                ))
-
-                game.describeCurrentRoom()
-            } else if (result.playerDied) {
-                // Player died trying to flee
-                game.running = false
-                game.emitEvent(GameEvent.StatusUpdate(
-                    hp = 0,
-                    maxHp = game.worldState.player.maxHealth
-                ))
-            } else {
-                // Failed to flee - update combat state and stay in place
-                val combatState = result.newCombatState
-                if (combatState != null) {
-                    // Sync player's actual health with combat state
-                    val updatedPlayer = game.worldState.player
-                        .updateCombat(combatState)
-                        .copy(health = combatState.playerHealth)
-                    game.worldState = game.worldState.updatePlayer(updatedPlayer)
-                }
-
-                // Update status
-                game.emitEvent(GameEvent.StatusUpdate(
-                    hp = game.worldState.player.health,
-                    maxHp = game.worldState.player.maxHealth
-                ))
-
-                game.describeCurrentRoom()
-            }
-            return
-        }
-
-        // Normal movement (not in combat)
+        // Movement is always allowed in Combat System V2
         val newState = game.worldState.movePlayer(direction)
 
         if (newState == null) {

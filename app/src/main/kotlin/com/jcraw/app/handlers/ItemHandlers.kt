@@ -383,7 +383,7 @@ object ItemHandlers {
         }
 
         var lootedCount = 0
-        var currentCorpse = corpse
+        var currentCorpse: Entity.Corpse = corpse
         var currentPlayer = game.worldState.player
 
         corpse.contents.forEach { item ->

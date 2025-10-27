@@ -184,20 +184,6 @@ class EngineGameClient(
     internal fun describeCurrentRoom() {
         val room = worldState.getCurrentRoom() ?: return
 
-        // Check if in combat
-        if (worldState.player.isInCombat()) {
-            val combat = worldState.player.activeCombat!!
-            val npc = room.entities.filterIsInstance<Entity.NPC>()
-                .find { it.id == combat.combatantNpcId }
-
-            emitEvent(GameEvent.Combat(
-                "⚔️ IN COMBAT with ${npc?.name ?: "Unknown Enemy"}\n" +
-                "Your Health: ${combat.playerHealth}/${worldState.player.maxHealth}\n" +
-                "Enemy Health: ${combat.npcHealth}/${npc?.maxHealth ?: 100}"
-            ))
-            return
-        }
-
         // Generate room description
         val description = if (descriptionGenerator != null) {
             runBlocking { descriptionGenerator.generateDescription(room) }
