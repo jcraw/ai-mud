@@ -141,14 +141,16 @@ sealed class Entity {
     ) : Entity()
 
     /**
-     * Corpse created when an entity dies, contains their inventory for retrieval
+     * Corpse created when an entity dies, contains their inventory for retrieval.
+     * Uses ItemInstance (new item system V2) instead of Entity.Item (legacy).
      */
     @Serializable
     data class Corpse(
         override val id: String,
         override val name: String,
         override val description: String,
-        val contents: List<Item> = emptyList(),
+        val contents: List<ItemInstance> = emptyList(),
+        val goldAmount: Int = 0,  // Gold dropped with corpse
         val decayTimer: Int = 100  // Ticks until despawn
     ) : Entity() {
         /**
@@ -160,10 +162,18 @@ sealed class Entity {
         }
 
         /**
-         * Remove item from corpse
+         * Remove item from corpse by instance ID
          */
-        fun removeItem(itemId: String): Corpse {
-            return copy(contents = contents.filter { it.id != itemId })
+        fun removeItem(instanceId: String): Corpse {
+            return copy(contents = contents.filter { it.id != instanceId })
+        }
+
+        /**
+         * Remove gold from corpse
+         */
+        fun removeGold(amount: Int): Corpse {
+            val newAmount = (goldAmount - amount).coerceAtLeast(0)
+            return copy(goldAmount = newAmount)
         }
     }
 }

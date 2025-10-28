@@ -1,16 +1,24 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.repository.ItemRepository
+import com.jcraw.mud.reasoning.loot.LootGenerator
+import com.jcraw.mud.reasoning.loot.LootSource
+import com.jcraw.mud.reasoning.loot.LootTableRegistry
 import java.util.UUID
 
 /**
  * Handles entity death, corpse creation, and permadeath mechanics.
  *
  * When an entity dies:
- * - NPC: Creates corpse with loot, removes from room
+ * - NPC: Creates corpse with loot from loot tables, removes from room
  * - Player: Creates corpse with inventory, triggers permadeath sequence
+ *
+ * @property lootGenerator Generator for creating item drops from loot tables
  */
-class DeathHandler {
+class DeathHandler(
+    private val lootGenerator: LootGenerator
+) {
 
     /**
      * Result of death handling
@@ -58,19 +66,43 @@ class DeathHandler {
     }
 
     /**
-     * Handle NPC death - create corpse with basic loot
+     * Handle NPC death - create corpse with loot from loot tables
      */
     private fun handleNPCDeath(
         npc: Entity.NPC,
         room: Room,
         worldState: WorldState
     ): DeathResult.NPCDeath {
-        // Create corpse with basic description
+        // Generate loot from loot table if NPC has one
+        val lootTableId = npc.lootTableId
+        val loot = if (lootTableId != null) {
+            val table = LootTableRegistry.getTable(lootTableId)
+            if (table != null) {
+                // Determine loot source based on NPC properties
+                val source = determineLootSource(npc)
+                lootGenerator.generateLoot(table, source).getOrElse { emptyList() }
+            } else {
+                emptyList()
+            }
+        } else {
+            emptyList()
+        }
+
+        // Generate gold drop
+        val gold = if (npc.goldDrop > 0) {
+            val source = determineLootSource(npc)
+            lootGenerator.generateGoldDrop(npc.goldDrop, source)
+        } else {
+            0
+        }
+
+        // Create corpse with loot
         val corpse = Entity.Corpse(
             id = "corpse_${npc.id}_${UUID.randomUUID()}",
             name = "Corpse of ${npc.name}",
             description = "The lifeless body of ${npc.name}.",
-            contents = emptyList(), // NPCs don't carry items yet (basic item system)
+            contents = loot,
+            goldAmount = gold,
             decayTimer = 100
         )
 
@@ -85,33 +117,34 @@ class DeathHandler {
     }
 
     /**
-     * Handle player death - create corpse with inventory
+     * Determine loot source type based on NPC properties.
+     * Uses maxHealth as a rough indicator of difficulty.
+     */
+    private fun determineLootSource(npc: Entity.NPC): LootSource {
+        return when {
+            npc.maxHealth >= 200 -> LootSource.BOSS
+            npc.maxHealth >= 150 -> LootSource.ELITE_MOB
+            else -> LootSource.COMMON_MOB
+        }
+    }
+
+    /**
+     * Handle player death - create corpse with inventory.
+     * Note: Inventory migration is pending. For now, creates empty corpse.
+     * TODO: Update when InventoryComponent is fully integrated with PlayerState
      */
     private fun handlePlayerDeath(
         player: Entity.Player,
         room: Room,
         worldState: WorldState
     ): DeathResult.PlayerDeath {
-        val playerState = worldState.getPlayer(player.playerId) ?: return DeathResult.PlayerDeath(
-            corpse = createEmptyCorpse(player),
-            playerId = player.playerId,
-            deathRoomId = room.id,
-            updatedWorld = worldState
-        )
-
-        // Collect all player items (inventory + equipped)
-        val allItems = buildList {
-            addAll(playerState.inventory)
-            playerState.equippedWeapon?.let { add(it) }
-            playerState.equippedArmor?.let { add(it) }
-        }
-
-        // Create corpse with player's belongings
+        // Create corpse (inventory will be added when InventoryComponent migration completes)
         val corpse = Entity.Corpse(
             id = "corpse_${player.id}_${UUID.randomUUID()}",
             name = "Corpse of ${player.name}",
             description = "Your lifeless body. Your belongings are scattered nearby.",
-            contents = allItems,
+            contents = emptyList(),  // TODO: Extract from InventoryComponent when integrated
+            goldAmount = 0,  // TODO: Extract from InventoryComponent when integrated
             decayTimer = 200  // Player corpses last longer
         )
 
@@ -127,19 +160,6 @@ class DeathHandler {
             playerId = player.playerId,
             deathRoomId = room.id,
             updatedWorld = updatedWorld
-        )
-    }
-
-    /**
-     * Create empty corpse for edge cases
-     */
-    private fun createEmptyCorpse(player: Entity.Player): Entity.Corpse {
-        return Entity.Corpse(
-            id = "corpse_${player.id}_${UUID.randomUUID()}",
-            name = "Corpse of ${player.name}",
-            description = "A lifeless body.",
-            contents = emptyList(),
-            decayTimer = 200
         )
     }
 

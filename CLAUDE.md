@@ -499,17 +499,41 @@ Completed:
   - Factory method tests (createCommonMobTable, createEliteMobTable, createChestTable)
   - Full integration test with multiple items
 
-**Next Chunk: Chunk 4 - Integration with Game Systems**
-- Estimated Time: 2.5 hours
-- Integrate LootGenerator with combat (NPC death drops)
-- Integrate with room features (mining, harvesting)
-- Update corpse creation to use loot tables
-- Add loot command handlers (take from corpse, harvest feature)
-- Update quest system to generate quest items via loot tables
-- Files to modify:
-  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/DeathHandler.kt`
-  - `app/src/main/kotlin/com/jcraw/app/handlers/ItemHandlers.kt`
-  - `app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt`
-  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/QuestTracker.kt`
+**Chunk 4: Integration with Game Systems (IN PROGRESS)** ⏳
+
+Completed:
+- ✅ `Entity.Corpse` - Migrated to ItemInstance system (core/Entity.kt:148)
+  - Changed contents from List<Entity.Item> to List<ItemInstance>
+  - Added goldAmount field for gold drops
+  - Added removeGold() method
+  - Updated removeItem() to work with ItemInstance IDs
+- ✅ `DeathHandler.kt` - Integrated LootGenerator for NPC drops (reasoning/combat:163)
+  - Added LootGenerator dependency
+  - handleNPCDeath() uses loot tables via LootTableRegistry
+  - Generates loot based on NPC.lootTableId and goldDrop fields
+  - determineLootSource() classifies NPCs by health (common/elite/boss)
+  - Player death creates empty corpse (TODO: integrate InventoryComponent)
+- ✅ `CorpseDecayManager.kt` - Updated for ItemInstance system (reasoning/combat:118)
+  - Removed item dropping on decay (items destroyed with corpse)
+  - Updated DecayResult to track destroyedItems and destroyedGold
+  - Simplified decay logic for new item system
+- ✅ `MudGameEngine.kt` - Initialized item system components (app:77)
+  - Added ItemDatabase initialization
+  - Added SQLiteItemRepository initialization
+  - Added LootGenerator initialization
+  - Updated DeathHandler to use LootGenerator
+
+In Progress:
+- ⏳ Fix unit tests for new Corpse/ItemInstance system
+  - DeathHandlerTest needs mock ItemRepository
+  - CorpseDecayManagerTest needs ItemInstance updates
+
+TODO (Remaining Chunk 4 Tasks):
+- Update ItemHandlers with corpse looting using new item system
+- Add feature harvesting to MovementHandlers
+- Update QuestTracker to use LootGenerator for quest items
+- Write integration tests
+
+**Next Chunk: Chunk 5 - Command Handlers & UI**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

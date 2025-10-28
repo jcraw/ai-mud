@@ -34,6 +34,9 @@ import com.jcraw.mud.memory.social.SocialDatabase
 import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
 import com.jcraw.mud.memory.social.SqliteSocialEventRepository
 import com.jcraw.mud.reasoning.DispositionManager
+import com.jcraw.mud.memory.item.ItemDatabase
+import com.jcraw.mud.memory.item.SQLiteItemRepository
+import com.jcraw.mud.reasoning.loot.LootGenerator
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
 
@@ -65,7 +68,12 @@ class MudGame(
     private val skillClassifier: SkillClassifier? = if (llmClient != null) SkillClassifier(llmClient) else null
     internal val attackResolver: AttackResolver? = if (skillClassifier != null) AttackResolver(skillClassifier) else null
     internal val llmService = llmClient
-    internal val deathHandler = DeathHandler()
+
+    // Item System V2 components
+    private val itemDatabase = ItemDatabase("items.db")
+    private val itemRepository = SQLiteItemRepository(itemDatabase)
+    private val lootGenerator = LootGenerator(itemRepository)
+    internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
 
     // Social system components

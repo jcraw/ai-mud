@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.Room
 import com.jcraw.mud.core.WorldState
 import kotlin.random.Random
@@ -10,11 +11,12 @@ import kotlin.random.Random
  *
  * Corpses tick down their decay timer each turn. When timer reaches 0:
  * - Corpse is removed from the room
- * - Items have a chance to be dropped to the room (30% per item)
- * - Remaining items are destroyed
+ * - All items and gold are lost (destroyed with corpse)
+ *
+ * Note: Items are not dropped to room as entities in V2 system.
+ * TODO: Future enhancement could store items in room loot containers.
  */
 class CorpseDecayManager(
-    private val itemDropChance: Float = 0.3f,
     private val random: Random = Random.Default
 ) {
 
@@ -24,7 +26,8 @@ class CorpseDecayManager(
     data class DecayResult(
         val worldState: WorldState,
         val decayedCorpses: List<Entity.Corpse>,
-        val droppedItems: Map<String, List<Entity.Item>> // roomId -> items
+        val destroyedItems: Map<String, List<ItemInstance>>, // roomId -> items (for logging)
+        val destroyedGold: Map<String, Int> // roomId -> gold amount (for logging)
     )
 
     /**
@@ -35,41 +38,57 @@ class CorpseDecayManager(
      */
     fun tickDecay(worldState: WorldState): DecayResult {
         val decayedCorpses = mutableListOf<Entity.Corpse>()
-        val droppedItems = mutableMapOf<String, MutableList<Entity.Item>>()
+        val destroyedItems = mutableMapOf<String, MutableList<ItemInstance>>()
+        val destroyedGold = mutableMapOf<String, Int>()
         var updatedWorld = worldState
 
         // Process each room
         worldState.rooms.values.forEach { room ->
-            val (updatedRoom, roomDecayed, roomDropped) = processRoomCorpses(room)
+            val result = processRoomCorpses(room)
 
-            if (updatedRoom != room) {
-                updatedWorld = updatedWorld.updateRoom(updatedRoom)
+            if (result.updatedRoom != room) {
+                updatedWorld = updatedWorld.updateRoom(result.updatedRoom)
             }
 
-            decayedCorpses.addAll(roomDecayed)
-            if (roomDropped.isNotEmpty()) {
-                droppedItems[room.id] = roomDropped.toMutableList()
+            decayedCorpses.addAll(result.decayedCorpses)
+            if (result.destroyedItems.isNotEmpty()) {
+                destroyedItems[room.id] = result.destroyedItems.toMutableList()
+            }
+            if (result.destroyedGold > 0) {
+                destroyedGold[room.id] = result.destroyedGold
             }
         }
 
         return DecayResult(
             worldState = updatedWorld,
             decayedCorpses = decayedCorpses,
-            droppedItems = droppedItems
+            destroyedItems = destroyedItems,
+            destroyedGold = destroyedGold
         )
     }
 
     /**
+     * Result of processing corpses in a single room
+     */
+    private data class RoomDecayResult(
+        val updatedRoom: Room,
+        val decayedCorpses: List<Entity.Corpse>,
+        val destroyedItems: List<ItemInstance>,
+        val destroyedGold: Int
+    )
+
+    /**
      * Process all corpses in a single room
      */
-    private fun processRoomCorpses(room: Room): Triple<Room, List<Entity.Corpse>, List<Entity.Item>> {
+    private fun processRoomCorpses(room: Room): RoomDecayResult {
         val corpses = room.entities.filterIsInstance<Entity.Corpse>()
         if (corpses.isEmpty()) {
-            return Triple(room, emptyList(), emptyList())
+            return RoomDecayResult(room, emptyList(), emptyList(), 0)
         }
 
         val decayedCorpses = mutableListOf<Entity.Corpse>()
-        val droppedItems = mutableListOf<Entity.Item>()
+        val destroyedItems = mutableListOf<ItemInstance>()
+        var destroyedGold = 0
         var updatedRoom = room
 
         corpses.forEach { corpse ->
@@ -79,25 +98,18 @@ class CorpseDecayManager(
             if (tickedCorpse == null) {
                 // Corpse has fully decayed
                 decayedCorpses.add(corpse)
+                destroyedItems.addAll(corpse.contents)
+                destroyedGold += corpse.goldAmount
 
-                // Drop some items to the room
-                val itemsToDrop = corpse.contents.filter { random.nextFloat() < itemDropChance }
-                droppedItems.addAll(itemsToDrop)
-
-                // Remove corpse from room
+                // Remove corpse from room (items and gold destroyed)
                 updatedRoom = updatedRoom.removeEntity(corpse.id)
-
-                // Add dropped items to room
-                itemsToDrop.forEach { item ->
-                    updatedRoom = updatedRoom.addEntity(item)
-                }
             } else {
                 // Update corpse with decremented timer
                 updatedRoom = updatedRoom.removeEntity(corpse.id).addEntity(tickedCorpse)
             }
         }
 
-        return Triple(updatedRoom, decayedCorpses, droppedItems)
+        return RoomDecayResult(updatedRoom, decayedCorpses, destroyedItems, destroyedGold)
     }
 
     /**
