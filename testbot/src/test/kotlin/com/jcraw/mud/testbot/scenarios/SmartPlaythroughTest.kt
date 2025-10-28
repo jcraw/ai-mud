@@ -1,10 +1,10 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
-import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.testbot.*
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -58,12 +58,8 @@ class SmartPlaythroughTest {
         @Test
         @DisplayName("Bot completes smart playthrough using social skills and intelligence")
         fun `bot completes smart playthrough successfully`() = runBlocking {
-            // ARRANGE: Create procedural Crypt dungeon
-            val dungeonSize = 5
-            val worldState = ProceduralDungeonBuilder.generateCrypt(
-                roomCount = dungeonSize,
-                seed = 42424 // Deterministic generation for reproducibility
-            )
+            // ARRANGE: Create SampleDungeon (designed for social/skill testing)
+            val worldState = SampleDungeon.createInitialWorldState()
 
             // Initialize LLM components
             val llmClient = OpenAIClient(apiKey!!)
@@ -151,7 +147,7 @@ class SmartPlaythroughTest {
         @DisplayName("Bot attempts social interactions before resorting to combat")
         fun `bot prioritizes social skills over combat`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 77777)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
@@ -201,7 +197,7 @@ class SmartPlaythroughTest {
         @DisplayName("Bot explores secret areas and completes skill checks")
         fun `bot navigates and solves environmental puzzles`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 13579)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)

@@ -1,10 +1,10 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
-import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.testbot.*
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -58,12 +58,8 @@ class BruteForcePlaythroughTest {
         @Test
         @DisplayName("Bot completes brute force playthrough by collecting gear and defeating boss")
         fun `bot completes brute force playthrough successfully`() = runBlocking {
-            // ARRANGE: Create procedural Crypt dungeon
-            val dungeonSize = 5
-            val worldState = ProceduralDungeonBuilder.generateCrypt(
-                roomCount = dungeonSize,
-                seed = 12345 // Deterministic generation for reproducibility
-            )
+            // ARRANGE: Create SampleDungeon (designed for gear collection testing)
+            val worldState = SampleDungeon.createInitialWorldState()
 
             // Initialize LLM components
             val llmClient = OpenAIClient(apiKey!!)
@@ -155,7 +151,7 @@ class BruteForcePlaythroughTest {
         @DisplayName("Bot explores multiple rooms during brute force playthrough")
         fun `bot explores multiple rooms looking for gear`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 54321)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
@@ -205,7 +201,7 @@ class BruteForcePlaythroughTest {
         @DisplayName("Bot takes damage but survives with proper gear")
         fun `bot takes damage but survives with equipment`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 98765)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)

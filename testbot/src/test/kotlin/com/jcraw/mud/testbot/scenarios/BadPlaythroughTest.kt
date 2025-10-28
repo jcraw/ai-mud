@@ -1,10 +1,10 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
-import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.testbot.*
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -56,12 +56,8 @@ class BadPlaythroughTest {
         @Test
         @DisplayName("Bot rushes to boss and dies without gear")
         fun `bot dies to boss without preparation`() = runBlocking {
-            // ARRANGE: Create procedural Crypt dungeon
-            val dungeonSize = 5
-            val worldState = ProceduralDungeonBuilder.generateCrypt(
-                roomCount = dungeonSize,
-                seed = 66666 // Deterministic generation for reproducibility
-            )
+            // ARRANGE: Create SampleDungeon (designed for testing with/without gear)
+            val worldState = SampleDungeon.createInitialWorldState()
 
             // Initialize LLM components
             val llmClient = OpenAIClient(apiKey!!)
@@ -142,7 +138,7 @@ class BadPlaythroughTest {
         @DisplayName("Bot reaches boss room quickly without collecting gear")
         fun `bot rushes to boss without gear collection`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 99999)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
@@ -198,7 +194,7 @@ class BadPlaythroughTest {
         @DisplayName("Bot takes fatal damage from boss encounter")
         fun `bot takes lethal damage without equipment`() = runBlocking {
             // ARRANGE
-            val worldState = ProceduralDungeonBuilder.generateCrypt(5, seed = 11111)
+            val worldState = SampleDungeon.createInitialWorldState()
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
