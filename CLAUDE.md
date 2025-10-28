@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-5/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements
+- **Item System V2**: ⏳ **Chunks 1-6/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -86,6 +86,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 - **Equipment**: equip <item>
 - **Consumables**: use <item>
 - **Gathering**: interact/harvest/gather <resource>
+- **Crafting**: craft <recipe>
 - **Skill checks**: check <feature>, persuade <npc>, intimidate <npc>
 - **Social**: smile/wave/nod/bow [at <npc>], ask <npc> about <topic>
 - **Skills**: skills, use <skill>, train <skill> with <npc>, choose perk <1-2> for <skill>
@@ -575,6 +576,59 @@ Completed:
 - TODO placeholders for InventoryComponent integration (tool validation, item addition)
 - TODO placeholders for gathering skill XP rewards
 
-**Next Chunk: Chunk 6 - Crafting System**
+**Chunk 6: Crafting System (COMPLETE)** ✅
+
+Completed:
+- ✅ `ItemDatabase.kt` - Added recipes schema (memory/item:127)
+  - recipes table (id, name, input_items JSON, output_item, required_skill, min_skill_level, required_tools JSON, difficulty)
+  - Index on required_skill for efficient queries
+  - clearAll() updated to include recipes
+- ✅ `Recipe.kt` - Recipe data class (core/crafting:38)
+  - inputItems: Map<String, Int> (templateId -> quantity)
+  - outputItem: String (templateId)
+  - requiredSkill, minSkillLevel, requiredTools, difficulty
+  - meetsSkillRequirement() and hasRequiredTools() helper methods
+- ✅ `RecipeRepository.kt` - Repository interface (core/repository:51)
+  - saveRecipe, saveRecipes (batch), getRecipe, getAllRecipes
+  - findBySkill, findViable (filters by skill and available items)
+- ✅ `SQLiteRecipeRepository.kt` - SQLite implementation (memory/item:219)
+  - JSON serialization for inputItems and requiredTools
+  - findViable() filters by skill level and available materials
+- ✅ `Intent.Craft` - Added to perception layer (perception:114)
+- ✅ `CraftingManager.kt` - Recipe matching and skill checks (reasoning/crafting:236)
+  - findRecipe() - Case-insensitive name matching
+  - getViableRecipes() - Returns recipes player can craft
+  - craft() - Validates skill, tools, materials; performs d20 skill check
+  - Success: Creates crafted item with quality based on skill level
+  - Failure: Consumes 50% of inputs
+  - CraftResult sealed class (Success, Failure, Invalid)
+- ✅ `SkillQuestHandlers.handleCraft()` - Crafting handler (app/handlers:57)
+  - Recipe lookup and validation
+  - Crafting attempt with CraftingManager
+  - Result formatting with skill check details
+  - TODO placeholders for InventoryComponent integration
+- ✅ `recipes.json` - 24 crafting recipes (memory/resources)
+  - 5 weapons (Iron Sword, Steel Axe, Longbow, Dagger, Wooden Club)
+  - 4 armor pieces (Leather Armor, Chain Mail, Iron Helm, Leather Boots)
+  - 5 consumables (Health Potion, Mana Potion, Antidote, Greater Healing Elixir, Bandage)
+  - 3 tools (Pickaxe, Woodcutter's Axe, Fishing Rod)
+  - 2 containers (Leather Bag, Large Backpack)
+  - 5 misc items (Dynamite, Torch, Rope, Arrow Batch, Campfire Kit)
+  - Skills: Blacksmithing, Woodworking, Leatherworking, Alchemy, Healing, Crafting, Survival
+- ✅ Help text updated with craft command (app/handlers:496)
+- ✅ CLAUDE.md updated with crafting documentation
+
+**System Design:**
+- Recipe-based crafting with DB storage (24 preloaded recipes)
+- D&D-style skill checks (d20 + skill level vs DC)
+- Quality scaling based on skill level (level/10, clamped 1-10)
+- Tool requirements via tag matching (e.g., "blacksmith_tool")
+- Failure consumes 50% of inputs (encourages multiple attempts)
+- Automatic charge calculation for consumables/tools/books
+- TODO: LLM-based ad-hoc recipes (future enhancement)
+- TODO: XP rewards for crafting success/failure
+- TODO: InventoryComponent integration for input consumption and output addition
+
+**Next Chunk: Chunk 7 - Trading & TradingComponent**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

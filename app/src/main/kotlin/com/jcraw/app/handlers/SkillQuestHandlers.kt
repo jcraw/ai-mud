@@ -330,6 +330,65 @@ object SkillQuestHandlers {
     }
 
     /**
+     * Handle crafting an item using a recipe
+     */
+    fun handleCraft(game: MudGame, target: String) {
+        val craftingManager = com.jcraw.mud.reasoning.crafting.CraftingManager(
+            game.recipeRepository,
+            game.itemRepository
+        )
+
+        // Find the recipe
+        val recipeResult = craftingManager.findRecipe(target)
+        if (recipeResult.isFailure) {
+            println("Failed to find recipe: ${recipeResult.exceptionOrNull()?.message}")
+            return
+        }
+
+        val recipe = recipeResult.getOrNull()
+        if (recipe == null) {
+            println("No recipe found for '$target'.")
+            println("Tip: Use 'craft' alone to see available recipes.")
+            return
+        }
+
+        println("\nAttempting to craft: ${recipe.name}")
+        println("Required skill: ${recipe.requiredSkill} (level ${recipe.minSkillLevel})")
+        println("Difficulty: DC ${recipe.difficulty}")
+        println()
+
+        // Attempt crafting
+        val result = craftingManager.craft(game.worldState.player, recipe)
+
+        when (result) {
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Success -> {
+                println("✅ ${result.message}")
+
+                // TODO: Add crafted item to player inventory when InventoryComponent is integrated
+                // For now, just track for quests
+                game.trackQuests(QuestAction.CollectedItem(result.craftedItem.id))
+
+                // TODO: Award XP to crafting skill
+                // This will be integrated when Skills V2 supports crafting skills
+            }
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Failure -> {
+                println("❌ ${result.message}")
+                if (result.inputsLost.isNotEmpty()) {
+                    println("Materials lost:")
+                    result.inputsLost.forEach { (templateId, qty) ->
+                        val templateResult = game.itemRepository.findTemplateById(templateId)
+                        val templateName = templateResult.getOrNull()?.name ?: templateId
+                        println("  - $qty x $templateName")
+                    }
+                }
+            }
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Invalid -> {
+                println("❌ ${result.message}")
+            }
+        }
+    }
+
+    /**
      * Handle choosing a perk for a skill at milestone levels
      */
     fun handleChoosePerk(game: MudGame, skillName: String, choice: Int) {
@@ -434,6 +493,7 @@ object SkillQuestHandlers {
             |    use/consume <item>   - Use a consumable item (potion, etc.)
             |    check/test <feature> - Attempt a skill check on an interactive feature
             |    interact/harvest/gather <resource> - Harvest resources (ore, herbs, etc.)
+            |    craft <recipe>       - Craft an item using a recipe
             |    persuade <npc>       - Attempt to persuade an NPC (CHA check)
             |    intimidate <npc>     - Attempt to intimidate an NPC (CHA check)
             |    inventory, i         - View your inventory and equipped items

@@ -1,0 +1,315 @@
+[
+  {
+    "id": "iron_sword_recipe",
+    "name": "Iron Sword",
+    "inputItems": {
+      "iron_ore": 2,
+      "wood_log": 1
+    },
+    "outputItem": "iron_sword",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 10,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 12
+  },
+  {
+    "id": "steel_axe_recipe",
+    "name": "Steel Axe",
+    "inputItems": {
+      "iron_ore": 3,
+      "wood_log": 1
+    },
+    "outputItem": "steel_axe",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 15,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 15
+  },
+  {
+    "id": "longbow_recipe",
+    "name": "Longbow",
+    "inputItems": {
+      "wood_log": 2,
+      "sinew": 1
+    },
+    "outputItem": "longbow",
+    "requiredSkill": "Woodworking",
+    "minSkillLevel": 12,
+    "requiredTools": ["carving_tool"],
+    "difficulty": 14
+  },
+  {
+    "id": "dagger_recipe",
+    "name": "Dagger",
+    "inputItems": {
+      "iron_ore": 1,
+      "leather": 1
+    },
+    "outputItem": "dagger",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 5,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 10
+  },
+  {
+    "id": "wooden_club_recipe",
+    "name": "Wooden Club",
+    "inputItems": {
+      "wood_log": 1
+    },
+    "outputItem": "wooden_club",
+    "requiredSkill": "Woodworking",
+    "minSkillLevel": 1,
+    "requiredTools": [],
+    "difficulty": 8
+  },
+  {
+    "id": "leather_armor_recipe",
+    "name": "Leather Armor",
+    "inputItems": {
+      "leather": 3,
+      "thread": 1
+    },
+    "outputItem": "leather_armor",
+    "requiredSkill": "Leatherworking",
+    "minSkillLevel": 8,
+    "requiredTools": [],
+    "difficulty": 10
+  },
+  {
+    "id": "chain_mail_recipe",
+    "name": "Chain Mail",
+    "inputItems": {
+      "iron_ore": 5,
+      "leather": 1
+    },
+    "outputItem": "chain_mail",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 20,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 18
+  },
+  {
+    "id": "iron_helm_recipe",
+    "name": "Iron Helm",
+    "inputItems": {
+      "iron_ore": 2
+    },
+    "outputItem": "iron_helm",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 12,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 13
+  },
+  {
+    "id": "leather_boots_recipe",
+    "name": "Leather Boots",
+    "inputItems": {
+      "leather": 2,
+      "thread": 1
+    },
+    "outputItem": "leather_boots",
+    "requiredSkill": "Leatherworking",
+    "minSkillLevel": 5,
+    "requiredTools": [],
+    "difficulty": 9
+  },
+  {
+    "id": "health_potion_recipe",
+    "name": "Health Potion",
+    "inputItems": {
+      "herb_medicinal": 2,
+      "honey": 1
+    },
+    "outputItem": "health_potion",
+    "requiredSkill": "Alchemy",
+    "minSkillLevel": 5,
+    "requiredTools": ["alchemy_tool"],
+    "difficulty": 8
+  },
+  {
+    "id": "mana_potion_recipe",
+    "name": "Mana Potion",
+    "inputItems": {
+      "herb_magical": 2,
+      "crystal_shard": 1
+    },
+    "outputItem": "mana_potion",
+    "requiredSkill": "Alchemy",
+    "minSkillLevel": 8,
+    "requiredTools": ["alchemy_tool"],
+    "difficulty": 10
+  },
+  {
+    "id": "antidote_recipe",
+    "name": "Antidote",
+    "inputItems": {
+      "herb_medicinal": 1,
+      "venom_sac": 1
+    },
+    "outputItem": "antidote",
+    "requiredSkill": "Alchemy",
+    "minSkillLevel": 10,
+    "requiredTools": ["alchemy_tool"],
+    "difficulty": 12
+  },
+  {
+    "id": "greater_healing_elixir_recipe",
+    "name": "Greater Healing Elixir",
+    "inputItems": {
+      "herb_medicinal": 3,
+      "honey": 2,
+      "crystal_shard": 1
+    },
+    "outputItem": "greater_healing_elixir",
+    "requiredSkill": "Alchemy",
+    "minSkillLevel": 15,
+    "requiredTools": ["alchemy_tool"],
+    "difficulty": 15
+  },
+  {
+    "id": "dynamite_recipe",
+    "name": "Dynamite",
+    "inputItems": {
+      "sulfur": 1,
+      "charcoal": 1,
+      "cloth": 1
+    },
+    "outputItem": "dynamite",
+    "requiredSkill": "Alchemy",
+    "minSkillLevel": 15,
+    "requiredTools": ["alchemy_tool"],
+    "difficulty": 18
+  },
+  {
+    "id": "bandage_recipe",
+    "name": "Bandage",
+    "inputItems": {
+      "cloth": 2
+    },
+    "outputItem": "bandage",
+    "requiredSkill": "Healing",
+    "minSkillLevel": 1,
+    "requiredTools": [],
+    "difficulty": 5
+  },
+  {
+    "id": "torch_recipe",
+    "name": "Torch",
+    "inputItems": {
+      "wood_log": 1,
+      "cloth": 1,
+      "oil": 1
+    },
+    "outputItem": "torch",
+    "requiredSkill": "Crafting",
+    "minSkillLevel": 1,
+    "requiredTools": [],
+    "difficulty": 5
+  },
+  {
+    "id": "rope_recipe",
+    "name": "Rope",
+    "inputItems": {
+      "hemp_fiber": 3
+    },
+    "outputItem": "rope",
+    "requiredSkill": "Crafting",
+    "minSkillLevel": 3,
+    "requiredTools": [],
+    "difficulty": 7
+  },
+  {
+    "id": "leather_bag_recipe",
+    "name": "Leather Bag",
+    "inputItems": {
+      "leather": 2,
+      "thread": 1
+    },
+    "outputItem": "leather_bag",
+    "requiredSkill": "Leatherworking",
+    "minSkillLevel": 5,
+    "requiredTools": [],
+    "difficulty": 8
+  },
+  {
+    "id": "large_backpack_recipe",
+    "name": "Large Backpack",
+    "inputItems": {
+      "leather": 4,
+      "thread": 2,
+      "iron_ore": 1
+    },
+    "outputItem": "large_backpack",
+    "requiredSkill": "Leatherworking",
+    "minSkillLevel": 12,
+    "requiredTools": [],
+    "difficulty": 13
+  },
+  {
+    "id": "pickaxe_recipe",
+    "name": "Pickaxe",
+    "inputItems": {
+      "iron_ore": 3,
+      "wood_log": 1
+    },
+    "outputItem": "pickaxe",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 8,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 11
+  },
+  {
+    "id": "woodcutters_axe_recipe",
+    "name": "Woodcutter's Axe",
+    "inputItems": {
+      "iron_ore": 2,
+      "wood_log": 1
+    },
+    "outputItem": "woodcutters_axe",
+    "requiredSkill": "Blacksmithing",
+    "minSkillLevel": 6,
+    "requiredTools": ["blacksmith_tool"],
+    "difficulty": 10
+  },
+  {
+    "id": "fishing_rod_recipe",
+    "name": "Fishing Rod",
+    "inputItems": {
+      "wood_log": 1,
+      "sinew": 1
+    },
+    "outputItem": "fishing_rod",
+    "requiredSkill": "Woodworking",
+    "minSkillLevel": 4,
+    "requiredTools": [],
+    "difficulty": 8
+  },
+  {
+    "id": "arrow_batch_recipe",
+    "name": "Arrow Batch (10)",
+    "inputItems": {
+      "wood_log": 1,
+      "feather": 3,
+      "iron_ore": 1
+    },
+    "outputItem": "arrow",
+    "requiredSkill": "Woodworking",
+    "minSkillLevel": 6,
+    "requiredTools": ["carving_tool"],
+    "difficulty": 9
+  },
+  {
+    "id": "campfire_kit_recipe",
+    "name": "Campfire Kit",
+    "inputItems": {
+      "wood_log": 3,
+      "flint": 1
+    },
+    "outputItem": "campfire_kit",
+    "requiredSkill": "Survival",
+    "minSkillLevel": 2,
+    "requiredTools": [],
+    "difficulty": 6
+  }
+]

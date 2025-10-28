@@ -107,6 +107,13 @@ sealed class Intent {
     data class Use(val target: String) : Intent()
 
     /**
+     * Craft an item using a recipe
+     * @param target The name/identifier of the recipe or item to craft
+     */
+    @Serializable
+    data class Craft(val target: String) : Intent()
+
+    /**
      * Perform a skill check against a target or feature
      * @param target The name/identifier of what to check against
      */

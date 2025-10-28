@@ -86,11 +86,28 @@ class ItemDatabase(
                 """.trimIndent()
             )
 
+            // Recipes table (crafting recipes)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS recipes (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    input_items TEXT NOT NULL,
+                    output_item TEXT NOT NULL,
+                    required_skill TEXT NOT NULL,
+                    min_skill_level INTEGER NOT NULL,
+                    required_tools TEXT,
+                    difficulty INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+
             // Create indices for common queries
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_templates_type ON item_templates(type)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_templates_rarity ON item_templates(rarity)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_instances_template ON item_instances(template_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_instances_quality ON item_instances(quality)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_recipes_skill ON recipes(required_skill)")
         }
     }
 
@@ -103,6 +120,7 @@ class ItemDatabase(
             stmt.execute("DELETE FROM inventories")
             stmt.execute("DELETE FROM item_instances")
             stmt.execute("DELETE FROM item_templates")
+            stmt.execute("DELETE FROM recipes")
         }
     }
 }
