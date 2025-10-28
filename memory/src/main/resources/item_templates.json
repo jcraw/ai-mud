@@ -1,0 +1,726 @@
+[
+  {
+    "id": "iron_sword",
+    "name": "Iron Sword",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed"],
+    "properties": {
+      "weight": "3.5",
+      "damage": "12",
+      "value": "50"
+    },
+    "rarity": "COMMON",
+    "description": "A sturdy iron blade with a leather-wrapped hilt.",
+    "equipSlot": "HANDS_MAIN"
+  },
+  {
+    "id": "steel_longsword",
+    "name": "Steel Longsword",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed"],
+    "properties": {
+      "weight": "4.0",
+      "damage": "18",
+      "value": "120"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A well-forged steel blade with excellent balance.",
+    "equipSlot": "HANDS_MAIN"
+  },
+  {
+    "id": "mithril_rapier",
+    "name": "Mithril Rapier",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed", "finesse"],
+    "properties": {
+      "weight": "1.5",
+      "damage": "15",
+      "value": "300",
+      "skill_bonus_agility": "2"
+    },
+    "rarity": "RARE",
+    "description": "A lightweight rapier forged from mithril, perfectly balanced for quick strikes.",
+    "equipSlot": "HANDS_MAIN"
+  },
+  {
+    "id": "battle_axe",
+    "name": "Battle Axe",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "two_handed"],
+    "properties": {
+      "weight": "7.0",
+      "damage": "25",
+      "value": "100"
+    },
+    "rarity": "COMMON",
+    "description": "A heavy double-bladed axe that requires both hands to wield.",
+    "equipSlot": "HANDS_BOTH"
+  },
+  {
+    "id": "enchanted_staff",
+    "name": "Enchanted Staff",
+    "type": "WEAPON",
+    "tags": ["magic", "two_handed", "wood"],
+    "properties": {
+      "weight": "2.5",
+      "damage": "8",
+      "value": "400",
+      "skill_bonus_magic": "3"
+    },
+    "rarity": "EPIC",
+    "description": "An ornate staff crackling with arcane energy.",
+    "equipSlot": "HANDS_BOTH"
+  },
+  {
+    "id": "dragonbone_greatsword",
+    "name": "Dragonbone Greatsword",
+    "type": "WEAPON",
+    "tags": ["bone", "sharp", "two_handed", "legendary"],
+    "properties": {
+      "weight": "8.5",
+      "damage": "40",
+      "value": "2000",
+      "skill_bonus_strength": "5"
+    },
+    "rarity": "LEGENDARY",
+    "description": "A massive blade forged from ancient dragon bones, humming with primal power.",
+    "equipSlot": "HANDS_BOTH"
+  },
+  {
+    "id": "wooden_bow",
+    "name": "Wooden Bow",
+    "type": "WEAPON",
+    "tags": ["wood", "ranged", "two_handed"],
+    "properties": {
+      "weight": "1.5",
+      "damage": "10",
+      "value": "30"
+    },
+    "rarity": "COMMON",
+    "description": "A simple hunting bow made from yew wood.",
+    "equipSlot": "HANDS_BOTH"
+  },
+  {
+    "id": "leather_armor",
+    "name": "Leather Armor",
+    "type": "ARMOR",
+    "tags": ["leather", "light"],
+    "properties": {
+      "weight": "5.0",
+      "defense": "5",
+      "value": "40"
+    },
+    "rarity": "COMMON",
+    "description": "Hardened leather armor that provides basic protection.",
+    "equipSlot": "CHEST"
+  },
+  {
+    "id": "chainmail",
+    "name": "Chainmail",
+    "type": "ARMOR",
+    "tags": ["metal", "medium"],
+    "properties": {
+      "weight": "15.0",
+      "defense": "12",
+      "value": "150"
+    },
+    "rarity": "UNCOMMON",
+    "description": "Interlocking metal rings that provide excellent protection.",
+    "equipSlot": "CHEST"
+  },
+  {
+    "id": "plate_armor",
+    "name": "Plate Armor",
+    "type": "ARMOR",
+    "tags": ["metal", "heavy"],
+    "properties": {
+      "weight": "25.0",
+      "defense": "20",
+      "value": "500"
+    },
+    "rarity": "RARE",
+    "description": "Full plate armor forged from tempered steel.",
+    "equipSlot": "CHEST"
+  },
+  {
+    "id": "dragon_scale_mail",
+    "name": "Dragon Scale Mail",
+    "type": "ARMOR",
+    "tags": ["scale", "heavy", "legendary"],
+    "properties": {
+      "weight": "18.0",
+      "defense": "30",
+      "value": "3000",
+      "skill_bonus_endurance": "5"
+    },
+    "rarity": "LEGENDARY",
+    "description": "Armor crafted from the scales of an ancient dragon, incredibly light yet nearly impenetrable.",
+    "equipSlot": "CHEST"
+  },
+  {
+    "id": "iron_helmet",
+    "name": "Iron Helmet",
+    "type": "ARMOR",
+    "tags": ["metal"],
+    "properties": {
+      "weight": "2.5",
+      "defense": "3",
+      "value": "30"
+    },
+    "rarity": "COMMON",
+    "description": "A simple iron helmet that protects the head.",
+    "equipSlot": "HEAD"
+  },
+  {
+    "id": "steel_boots",
+    "name": "Steel Boots",
+    "type": "ARMOR",
+    "tags": ["metal"],
+    "properties": {
+      "weight": "3.0",
+      "defense": "4",
+      "value": "50"
+    },
+    "rarity": "COMMON",
+    "description": "Heavy boots reinforced with steel plates.",
+    "equipSlot": "FEET"
+  },
+  {
+    "id": "enchanted_cloak",
+    "name": "Enchanted Cloak",
+    "type": "ARMOR",
+    "tags": ["cloth", "magic"],
+    "properties": {
+      "weight": "1.0",
+      "defense": "2",
+      "value": "200",
+      "skill_bonus_agility": "3"
+    },
+    "rarity": "EPIC",
+    "description": "A midnight blue cloak that shimmers with protective enchantments.",
+    "equipSlot": "BACK"
+  },
+  {
+    "id": "health_potion",
+    "name": "Health Potion",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "healing"],
+    "properties": {
+      "weight": "0.5",
+      "healing": "30",
+      "value": "20"
+    },
+    "rarity": "COMMON",
+    "description": "A red liquid that restores health when consumed."
+  },
+  {
+    "id": "greater_health_potion",
+    "name": "Greater Health Potion",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "healing"],
+    "properties": {
+      "weight": "0.5",
+      "healing": "80",
+      "value": "60"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A potent healing potion that glows with crimson light."
+  },
+  {
+    "id": "elixir_of_vitality",
+    "name": "Elixir of Vitality",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "healing", "buff"],
+    "properties": {
+      "weight": "0.3",
+      "healing": "150",
+      "value": "300",
+      "buff_endurance": "5",
+      "buff_duration": "300"
+    },
+    "rarity": "RARE",
+    "description": "A golden elixir that fully restores health and temporarily increases endurance."
+  },
+  {
+    "id": "bread",
+    "name": "Bread",
+    "type": "CONSUMABLE",
+    "tags": ["food"],
+    "properties": {
+      "weight": "0.3",
+      "healing": "5",
+      "value": "2"
+    },
+    "rarity": "COMMON",
+    "description": "A loaf of fresh bread."
+  },
+  {
+    "id": "cheese",
+    "name": "Cheese",
+    "type": "CONSUMABLE",
+    "tags": ["food"],
+    "properties": {
+      "weight": "0.2",
+      "healing": "8",
+      "value": "5"
+    },
+    "rarity": "COMMON",
+    "description": "A wedge of aged cheese."
+  },
+  {
+    "id": "iron_ore",
+    "name": "Iron Ore",
+    "type": "RESOURCE",
+    "tags": ["metal", "mineral"],
+    "properties": {
+      "weight": "2.0",
+      "value": "5"
+    },
+    "rarity": "COMMON",
+    "description": "Raw iron ore ready for smelting."
+  },
+  {
+    "id": "mithril_ore",
+    "name": "Mithril Ore",
+    "type": "RESOURCE",
+    "tags": ["metal", "mineral", "precious"],
+    "properties": {
+      "weight": "1.5",
+      "value": "50"
+    },
+    "rarity": "RARE",
+    "description": "Rare mithril ore with a silvery-blue sheen."
+  },
+  {
+    "id": "wood_planks",
+    "name": "Wood Planks",
+    "type": "RESOURCE",
+    "tags": ["wood"],
+    "properties": {
+      "weight": "1.5",
+      "value": "3"
+    },
+    "rarity": "COMMON",
+    "description": "Processed wooden planks suitable for crafting."
+  },
+  {
+    "id": "leather_scraps",
+    "name": "Leather Scraps",
+    "type": "RESOURCE",
+    "tags": ["leather"],
+    "properties": {
+      "weight": "0.5",
+      "value": "4"
+    },
+    "rarity": "COMMON",
+    "description": "Scraps of tanned leather."
+  },
+  {
+    "id": "dragon_scale",
+    "name": "Dragon Scale",
+    "type": "RESOURCE",
+    "tags": ["scale", "precious"],
+    "properties": {
+      "weight": "0.8",
+      "value": "200"
+    },
+    "rarity": "LEGENDARY",
+    "description": "A single scale from a dragon's hide, incredibly tough and valuable."
+  },
+  {
+    "id": "herb_bundle",
+    "name": "Herb Bundle",
+    "type": "RESOURCE",
+    "tags": ["plant", "alchemy"],
+    "properties": {
+      "weight": "0.1",
+      "value": "8"
+    },
+    "rarity": "COMMON",
+    "description": "A bundle of common medicinal herbs."
+  },
+  {
+    "id": "moonflower",
+    "name": "Moonflower",
+    "type": "RESOURCE",
+    "tags": ["plant", "alchemy", "magic"],
+    "properties": {
+      "weight": "0.05",
+      "value": "40"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A rare flower that only blooms under moonlight, used in potent potions."
+  },
+  {
+    "id": "phoenix_feather",
+    "name": "Phoenix Feather",
+    "type": "RESOURCE",
+    "tags": ["magic", "precious"],
+    "properties": {
+      "weight": "0.01",
+      "value": "500"
+    },
+    "rarity": "EPIC",
+    "description": "A shimmering feather from a phoenix, still warm to the touch."
+  },
+  {
+    "id": "pickaxe",
+    "name": "Pickaxe",
+    "type": "TOOL",
+    "tags": ["metal", "mining"],
+    "properties": {
+      "weight": "4.0",
+      "value": "25",
+      "charges": "50"
+    },
+    "rarity": "COMMON",
+    "description": "A sturdy pickaxe for mining ore."
+  },
+  {
+    "id": "logging_axe",
+    "name": "Logging Axe",
+    "type": "TOOL",
+    "tags": ["metal", "woodcutting"],
+    "properties": {
+      "weight": "3.5",
+      "value": "20",
+      "charges": "50"
+    },
+    "rarity": "COMMON",
+    "description": "An axe designed for felling trees."
+  },
+  {
+    "id": "fishing_rod",
+    "name": "Fishing Rod",
+    "type": "TOOL",
+    "tags": ["wood", "fishing"],
+    "properties": {
+      "weight": "1.5",
+      "value": "15",
+      "charges": "30"
+    },
+    "rarity": "COMMON",
+    "description": "A wooden fishing rod with line and hook."
+  },
+  {
+    "id": "alchemy_kit",
+    "name": "Alchemy Kit",
+    "type": "TOOL",
+    "tags": ["alchemy", "crafting"],
+    "properties": {
+      "weight": "3.0",
+      "value": "100",
+      "charges": "20"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A portable kit containing vials, mortar, and pestle for potion brewing."
+  },
+  {
+    "id": "smithing_hammer",
+    "name": "Smithing Hammer",
+    "type": "TOOL",
+    "tags": ["metal", "smithing"],
+    "properties": {
+      "weight": "5.0",
+      "value": "50",
+      "charges": "100"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A heavy hammer used for forging weapons and armor."
+  },
+  {
+    "id": "leather_backpack",
+    "name": "Leather Backpack",
+    "type": "CONTAINER",
+    "tags": ["leather"],
+    "properties": {
+      "weight": "2.0",
+      "value": "40",
+      "capacity": "10"
+    },
+    "rarity": "COMMON",
+    "description": "A sturdy leather backpack that increases carrying capacity.",
+    "equipSlot": "BACK"
+  },
+  {
+    "id": "enchanted_satchel",
+    "name": "Enchanted Satchel",
+    "type": "CONTAINER",
+    "tags": ["magic", "leather"],
+    "properties": {
+      "weight": "1.0",
+      "value": "300",
+      "capacity": "25"
+    },
+    "rarity": "RARE",
+    "description": "A magically enhanced satchel that holds far more than it should.",
+    "equipSlot": "BACK"
+  },
+  {
+    "id": "bag_of_holding",
+    "name": "Bag of Holding",
+    "type": "CONTAINER",
+    "tags": ["magic"],
+    "properties": {
+      "weight": "0.5",
+      "value": "2000",
+      "capacity": "100"
+    },
+    "rarity": "LEGENDARY",
+    "description": "A legendary bag with an extradimensional space inside, nearly weightless yet holds a massive amount."
+  },
+  {
+    "id": "fireball_scroll",
+    "name": "Scroll of Fireball",
+    "type": "SPELL_BOOK",
+    "tags": ["magic", "fire", "combat"],
+    "properties": {
+      "weight": "0.1",
+      "value": "80",
+      "spell_damage": "30",
+      "spell_area": "5"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A scroll containing the fireball spell, consumed upon use."
+  },
+  {
+    "id": "healing_tome",
+    "name": "Tome of Healing",
+    "type": "SPELL_BOOK",
+    "tags": ["magic", "healing"],
+    "properties": {
+      "weight": "1.5",
+      "value": "200"
+    },
+    "rarity": "RARE",
+    "description": "A thick tome containing advanced healing magic knowledge."
+  },
+  {
+    "id": "combat_manual",
+    "name": "Combat Manual",
+    "type": "SKILL_BOOK",
+    "tags": ["knowledge"],
+    "properties": {
+      "weight": "1.0",
+      "value": "50",
+      "skill_gain_sword_fighting": "100"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A manual detailing advanced sword fighting techniques."
+  },
+  {
+    "id": "thieves_guide",
+    "name": "Thief's Guide",
+    "type": "SKILL_BOOK",
+    "tags": ["knowledge"],
+    "properties": {
+      "weight": "0.8",
+      "value": "120",
+      "skill_gain_stealth": "100",
+      "skill_gain_lockpicking": "50"
+    },
+    "rarity": "RARE",
+    "description": "A comprehensive guide to stealth and lockpicking."
+  },
+  {
+    "id": "ring_of_strength",
+    "name": "Ring of Strength",
+    "type": "ARMOR",
+    "tags": ["magic", "jewelry"],
+    "properties": {
+      "weight": "0.05",
+      "value": "150",
+      "skill_bonus_strength": "2"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A simple silver ring that enhances physical strength.",
+    "equipSlot": "ACCESSORY_1"
+  },
+  {
+    "id": "amulet_of_wisdom",
+    "name": "Amulet of Wisdom",
+    "type": "ARMOR",
+    "tags": ["magic", "jewelry"],
+    "properties": {
+      "weight": "0.1",
+      "value": "200",
+      "skill_bonus_wisdom": "3"
+    },
+    "rarity": "RARE",
+    "description": "A golden amulet set with a sapphire, sharpens the mind.",
+    "equipSlot": "ACCESSORY_2"
+  },
+  {
+    "id": "crown_of_kings",
+    "name": "Crown of Kings",
+    "type": "ARMOR",
+    "tags": ["gold", "legendary", "jewelry"],
+    "properties": {
+      "weight": "1.5",
+      "defense": "5",
+      "value": "5000",
+      "skill_bonus_charisma": "10",
+      "skill_bonus_wisdom": "5"
+    },
+    "rarity": "LEGENDARY",
+    "description": "An ornate golden crown worn by ancient kings, radiating authority and wisdom.",
+    "equipSlot": "HEAD"
+  },
+  {
+    "id": "rusty_key",
+    "name": "Rusty Key",
+    "type": "QUEST",
+    "tags": ["metal"],
+    "properties": {
+      "weight": "0.1",
+      "value": "0"
+    },
+    "rarity": "COMMON",
+    "description": "An old rusty key, might open something important."
+  },
+  {
+    "id": "ancient_scroll",
+    "name": "Ancient Scroll",
+    "type": "QUEST",
+    "tags": ["paper", "magic"],
+    "properties": {
+      "weight": "0.2",
+      "value": "0"
+    },
+    "rarity": "RARE",
+    "description": "A weathered scroll with mysterious writing."
+  },
+  {
+    "id": "dragon_egg",
+    "name": "Dragon Egg",
+    "type": "QUEST",
+    "tags": ["precious", "legendary"],
+    "properties": {
+      "weight": "5.0",
+      "value": "10000"
+    },
+    "rarity": "LEGENDARY",
+    "description": "A petrified dragon egg, warm to the touch and covered in ancient runes."
+  },
+  {
+    "id": "torch",
+    "name": "Torch",
+    "type": "TOOL",
+    "tags": ["fire", "light"],
+    "properties": {
+      "weight": "1.0",
+      "value": "2",
+      "charges": "60"
+    },
+    "rarity": "COMMON",
+    "description": "A wooden torch wrapped in oil-soaked cloth, provides light in darkness."
+  },
+  {
+    "id": "rope",
+    "name": "Rope",
+    "type": "TOOL",
+    "tags": ["utility"],
+    "properties": {
+      "weight": "2.0",
+      "value": "5"
+    },
+    "rarity": "COMMON",
+    "description": "50 feet of sturdy hemp rope."
+  },
+  {
+    "id": "lockpick_set",
+    "name": "Lockpick Set",
+    "type": "TOOL",
+    "tags": ["metal", "thievery"],
+    "properties": {
+      "weight": "0.3",
+      "value": "30",
+      "charges": "10"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A set of fine metal tools for picking locks."
+  },
+  {
+    "id": "antidote",
+    "name": "Antidote",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "cure"],
+    "properties": {
+      "weight": "0.2",
+      "value": "25",
+      "cure_poison": "1"
+    },
+    "rarity": "COMMON",
+    "description": "A bitter liquid that cures poison."
+  },
+  {
+    "id": "stamina_elixir",
+    "name": "Stamina Elixir",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "buff"],
+    "properties": {
+      "weight": "0.3",
+      "value": "40",
+      "buff_endurance": "3",
+      "buff_duration": "180"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A greenish elixir that temporarily boosts stamina and endurance."
+  },
+  {
+    "id": "invisibility_potion",
+    "name": "Invisibility Potion",
+    "type": "CONSUMABLE",
+    "tags": ["liquid", "magic", "stealth"],
+    "properties": {
+      "weight": "0.2",
+      "value": "150",
+      "buff_invisibility": "1",
+      "buff_duration": "60"
+    },
+    "rarity": "RARE",
+    "description": "A shimmering potion that renders the drinker invisible for a short time."
+  },
+  {
+    "id": "silver_dagger",
+    "name": "Silver Dagger",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed", "silver"],
+    "properties": {
+      "weight": "0.8",
+      "damage": "8",
+      "value": "100"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A finely crafted dagger made of pure silver, effective against supernatural creatures.",
+    "equipSlot": "HANDS_OFF"
+  },
+  {
+    "id": "wooden_shield",
+    "name": "Wooden Shield",
+    "type": "ARMOR",
+    "tags": ["wood"],
+    "properties": {
+      "weight": "3.0",
+      "defense": "6",
+      "value": "20"
+    },
+    "rarity": "COMMON",
+    "description": "A simple wooden shield reinforced with iron bands.",
+    "equipSlot": "HANDS_OFF"
+  },
+  {
+    "id": "steel_shield",
+    "name": "Steel Shield",
+    "type": "ARMOR",
+    "tags": ["metal"],
+    "properties": {
+      "weight": "6.0",
+      "defense": "12",
+      "value": "80"
+    },
+    "rarity": "UNCOMMON",
+    "description": "A sturdy steel shield that provides excellent protection.",
+    "equipSlot": "HANDS_OFF"
+  }
+]

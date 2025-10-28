@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunk 1/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots
+- **Item System V2**: ⏳ **Chunks 1-2/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -410,18 +410,64 @@ Completed:
   - Capacity management (augment, set with minimum enforcement)
   - Integration tests (full lifecycle, complex scenarios)
 
-**Next Chunk: Chunk 2 - Database Schema & Repositories**
-- Estimated Time: 4 hours
-- Create SQLite schema for item persistence (item_templates, inventories, item_instances)
-- Implement ItemRepository, InventoryRepository interfaces and SQLite implementations
-- Preload 50+ item templates from JSON (weapons, armor, consumables, resources, tools)
-- Integration tests for roundtrip save/load, queries
+**Chunk 2: Database Schema & Repositories (COMPLETE)** ✅
+
+Completed:
+- ✅ `ItemDatabase.kt` - SQLite database schema for item persistence (memory/item:113)
+  - item_templates table (id, name, type, tags, properties, rarity, description, equip_slot)
+  - item_instances table (id, template_id, quality, charges, quantity)
+  - inventories table (entity_id, items JSON, equipped JSON, gold, capacity_weight)
+  - Indices for type, rarity, template_id, quality queries
+- ✅ `ItemRepository.kt` - Repository interface for item templates and instances (core/repository:69)
+  - CRUD operations for templates and instances
+  - Query by type, rarity, template
+  - Bulk save operations for initial load
+- ✅ `SQLiteItemRepository.kt` - SQLite implementation of ItemRepository (memory/item:327)
+  - JSON serialization for tags/properties
+  - Batch operations for bulk template loading
+  - Type-safe enum conversions
+- ✅ `InventoryRepository.kt` - Repository interface for inventory persistence (core/repository:40)
+  - Save/load complete inventory state
+  - Optimized gold and capacity updates
+  - Query all inventories
+- ✅ `SQLiteInventoryRepository.kt` - SQLite implementation of InventoryRepository (memory/item:145)
+  - JSON serialization for items and equipped maps
+  - Full roundtrip persistence of inventory state
+- ✅ `item_templates.json` - 53 item templates across all types (memory/resources)
+  - 8 weapons (swords, axes, bows, staves) with varying rarities
+  - 8 armor pieces (head, chest, legs, feet, back, accessories)
+  - 7 consumables (potions, food, elixirs)
+  - 8 resources (ores, wood, leather, dragon scales, herbs)
+  - 5 tools (pickaxe, axe, fishing rod, alchemy kit, smithing hammer)
+  - 3 containers (backpack, satchel, bag of holding)
+  - 2 spell books and 2 skill books
+  - 3 quest items
+  - 7 accessories (rings, amulets, crown)
+- ✅ `ItemDatabaseTest.kt` - Integration tests for item persistence (26 tests, memory:test)
+  - Template save/load roundtrip
+  - Instance save/load with nullable fields
+  - Query by type, rarity, template
+  - Bulk operations and updates
+  - JSON template loading from resources
+  - Full lifecycle integration tests
+- ✅ `InventoryDatabaseTest.kt` - Integration tests for inventory persistence (24 tests, memory:test)
+  - Empty and populated inventory persistence
+  - Equipped items serialization
+  - Gold and capacity updates
+  - Complex scenarios (many items, all slots filled, two-handed weapons)
+  - Multi-entity inventory management
+
+**Next Chunk: Chunk 3 - Loot Generation & Drop Tables**
+- Estimated Time: 3 hours
+- Create LootTable data structure with weighted entries
+- Implement LootGenerator for random item generation based on rarity
+- Add loot tables to NPC templates and room features
+- Quality variance based on loot source (boss vs common mob)
+- Integration with quest objectives (quest items drop from specific sources)
 - Files to create:
-  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/ItemDatabase.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/repository/ItemRepository.kt`
-  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/SQLiteItemRepository.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/repository/InventoryRepository.kt`
-  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/SQLiteInventoryRepository.kt`
-  - `memory/src/main/resources/item_templates.json`
+  - `core/src/main/kotlin/com/jcraw/mud/core/LootTable.kt`
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/loot/LootGenerator.kt`
+  - `core/src/test/kotlin/com/jcraw/mud/core/LootTableTest.kt`
+  - `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/loot/LootGeneratorTest.kt`
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).
