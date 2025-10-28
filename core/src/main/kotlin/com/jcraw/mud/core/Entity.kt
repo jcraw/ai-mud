@@ -3,17 +3,6 @@ package com.jcraw.mud.core
 import kotlinx.serialization.Serializable
 
 /**
- * Type of item for usage/equipping behavior
- */
-@Serializable
-enum class ItemType {
-    WEAPON,      // Can be equipped for damage bonus
-    ARMOR,       // Can be equipped for defense (future)
-    CONSUMABLE,  // Can be used once (potions, food)
-    MISC         // Generic items
-}
-
-/**
  * Character stats (D&D-style)
  * Default values represent average human stats (10)
  */

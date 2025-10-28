@@ -22,6 +22,7 @@ enum class ComponentType {
     SKILL,
     STORY,
     REPUTATION,
+    INVENTORY,
     // Future component types can be added here
 }
 

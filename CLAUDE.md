@@ -38,6 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
+- **Item System V2**: ⏳ **Chunk 1/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -390,19 +391,37 @@ Key features for V2:
 
 **Implementation Plan:** [Items and Crafting System Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
 
-**Next Chunk: Chunk 1 - Core Components & Data Model (Foundation)**
-- Estimated Time: 3 hours
-- Create InventoryComponent, ItemTemplate, ItemInstance data classes
-- Add EquipSlot, Rarity, ItemType enums
-- Implement weight calculations and capacity formulas
-- Basic add/remove/equip methods with unit tests
+**Chunk 1: Core Components & Data Model (COMPLETE)** ✅
+
+Completed:
+- ✅ `ItemType.kt` - Item type enum with 10 types (WEAPON, ARMOR, CONSUMABLE, RESOURCE, QUEST, TOOL, CONTAINER, SPELL_BOOK, SKILL_BOOK, MISC) (core:41)
+- ✅ `EquipSlot.kt` - Equipment slot enum with 12 slots (HANDS_MAIN, HANDS_OFF, HEAD, CHEST, LEGS, FEET, BACK, HANDS_BOTH, ACCESSORY_1-4) (core:44)
+- ✅ `Rarity.kt` - Rarity enum with 5 levels (COMMON, UNCOMMON, RARE, EPIC, LEGENDARY) with drop rate documentation (core:30)
+- ✅ `ItemTemplate.kt` - Template data class with flexible properties map, tag system, helper methods for weight/property access (core:56)
+- ✅ `ItemInstance.kt` - Instance data class with quality (1-10), charges, quantity, stack management methods (core:68)
+- ✅ `InventoryComponent.kt` - Component with weight-based capacity, equipped map, gold, add/remove/equip/unequip methods (core:261)
+- ✅ `Component.kt` - Updated ComponentType enum to include INVENTORY (core:26)
+- ✅ `InventoryComponentTest.kt` - Comprehensive unit tests (39 tests passing, core:test:567)
+  - Weight calculation (empty, single, multiple, stacked, equipped items)
+  - Capacity enforcement (canAdd checks with quantity)
+  - Add/remove operations (stacking, quantity reduction)
+  - Equip/unequip mechanics (2H weapon slot clearing, item validation)
+  - Gold management (add/remove with limits)
+  - Capacity management (augment, set with minimum enforcement)
+  - Integration tests (full lifecycle, complex scenarios)
+
+**Next Chunk: Chunk 2 - Database Schema & Repositories**
+- Estimated Time: 4 hours
+- Create SQLite schema for item persistence (item_templates, inventories, item_instances)
+- Implement ItemRepository, InventoryRepository interfaces and SQLite implementations
+- Preload 50+ item templates from JSON (weapons, armor, consumables, resources, tools)
+- Integration tests for roundtrip save/load, queries
 - Files to create:
-  - `core/src/main/kotlin/com/jcraw/mud/core/components/InventoryComponent.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/components/ItemTemplate.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/components/ItemInstance.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/enums/ItemType.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/enums/EquipSlot.kt`
-  - `core/src/main/kotlin/com/jcraw/mud/core/enums/Rarity.kt`
-  - Update `core/src/main/kotlin/com/jcraw/mud/core/ComponentType.kt` (add INVENTORY)
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/ItemDatabase.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/repository/ItemRepository.kt`
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/SQLiteItemRepository.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/repository/InventoryRepository.kt`
+  - `memory/src/main/kotlin/com/jcraw/mud/memory/persistence/SQLiteInventoryRepository.kt`
+  - `memory/src/main/resources/item_templates.json`
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).
