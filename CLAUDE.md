@@ -383,3 +383,26 @@ Key features for V2:
 
 **Known Limitations:**
 - GameServer.kt (multi-user mode) still uses V1 combat system - separate migration task for future
+
+---
+
+## Next TODO: Items and Crafting System V2
+
+**Implementation Plan:** [Items and Crafting System Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
+
+**Next Chunk: Chunk 1 - Core Components & Data Model (Foundation)**
+- Estimated Time: 3 hours
+- Create InventoryComponent, ItemTemplate, ItemInstance data classes
+- Add EquipSlot, Rarity, ItemType enums
+- Implement weight calculations and capacity formulas
+- Basic add/remove/equip methods with unit tests
+- Files to create:
+  - `core/src/main/kotlin/com/jcraw/mud/core/components/InventoryComponent.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/components/ItemTemplate.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/components/ItemInstance.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/enums/ItemType.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/enums/EquipSlot.kt`
+  - `core/src/main/kotlin/com/jcraw/mud/core/enums/Rarity.kt`
+  - Update `core/src/main/kotlin/com/jcraw/mud/core/ComponentType.kt` (add INVENTORY)
+
+See implementation plan for complete 10-chunk breakdown (24 hours total).
