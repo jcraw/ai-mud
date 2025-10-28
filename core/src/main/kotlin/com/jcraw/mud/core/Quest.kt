@@ -90,12 +90,14 @@ sealed class QuestObjective {
 
 /**
  * Quest rewards
+ * TODO: Migrate items from List<Entity.Item> to List<String> (templateIds) when InventoryComponent is integrated
+ * Reward items should be generated using LootGenerator or ItemRepository.findTemplateById()
  */
 @Serializable
 data class QuestReward(
     val experiencePoints: Int = 0,
     val goldAmount: Int = 0,
-    val items: List<Entity.Item> = emptyList(),
+    val items: List<Entity.Item> = emptyList(), // Legacy - migrate to templateIds
     val description: String = ""
 )
 

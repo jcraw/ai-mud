@@ -4,12 +4,58 @@ import com.jcraw.app.MudGame
 import com.jcraw.app.times
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemType
+import com.jcraw.mud.core.ItemInstance
+import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.reasoning.QuestAction
 
 /**
  * Handlers for item interactions: inventory, take, drop, equip, use
  */
 object ItemHandlers {
+
+    /**
+     * Format item display info from ItemInstance and ItemTemplate
+     * Returns a string like " [weapon, +10 damage, quality 7/10]"
+     */
+    private fun formatItemInfo(instance: ItemInstance, template: ItemTemplate): String {
+        val parts = mutableListOf<String>()
+
+        // Add type
+        parts.add(template.type.name.lowercase())
+
+        // Add relevant properties based on type
+        when (template.type) {
+            ItemType.WEAPON -> {
+                val baseDamage = template.getPropertyInt("damage", 0)
+                val damage = (baseDamage * instance.getQualityMultiplier()).toInt()
+                if (damage > 0) parts.add("+$damage damage")
+            }
+            ItemType.ARMOR -> {
+                val baseDefense = template.getPropertyInt("defense", 0)
+                val defense = (baseDefense * instance.getQualityMultiplier()).toInt()
+                if (defense > 0) parts.add("+$defense defense")
+            }
+            ItemType.CONSUMABLE -> {
+                val healing = template.getPropertyInt("healing", 0)
+                if (healing > 0) parts.add("heals $healing HP")
+                if (instance.charges != null) parts.add("${instance.charges} charges")
+            }
+            ItemType.TOOL -> {
+                if (instance.charges != null) parts.add("${instance.charges} charges")
+            }
+            ItemType.RESOURCE -> {
+                if (instance.quantity > 1) parts.add("x${instance.quantity}")
+            }
+            else -> {}
+        }
+
+        // Add quality if not average
+        if (instance.quality != 5) {
+            parts.add("quality ${instance.quality}/10")
+        }
+
+        return if (parts.isEmpty()) "" else " [${parts.joinToString(", ")}]"
+    }
 
     fun handleInventory(game: MudGame) {
         println("Inventory:")
@@ -314,49 +360,83 @@ object ItemHandlers {
 
         // If no item target specified, list contents
         if (itemTarget == null) {
-            if (corpse.contents.isEmpty()) {
+            if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
                 println("The corpse is empty.")
             } else {
                 println("${corpse.name} contains:")
-                corpse.contents.forEach { item ->
-                    val extra = when (item.itemType) {
-                        ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
-                        ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
-                        ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
-                        else -> ""
+                corpse.contents.forEach { instance ->
+                    val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                    templateResult.onSuccess { template ->
+                        if (template != null) {
+                            val extra = formatItemInfo(instance, template)
+                            println("  - ${template.name}$extra")
+                        } else {
+                            println("  - Unknown item (${instance.id})")
+                        }
+                    }.onFailure {
+                        println("  - Unknown item (${instance.id})")
                     }
-                    println("  - ${item.name}$extra")
+                }
+                if (corpse.goldAmount > 0) {
+                    println("  - ${corpse.goldAmount} gold")
                 }
             }
             return
         }
 
-        // Find the item in the corpse
-        val item = corpse.contents.find { item ->
-            item.name.lowercase().contains(itemTarget.lowercase()) ||
-            item.id.lowercase().contains(itemTarget.lowercase())
+        // Special case: looting gold
+        if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
+            if (corpse.goldAmount > 0) {
+                val updatedCorpse = corpse.removeGold(corpse.goldAmount)
+                // TODO: Add gold to player inventory when InventoryComponent is integrated
+                val newState = game.worldState
+                    .removeEntityFromRoom(room.id, corpse.id)
+                    ?.addEntityToRoom(room.id, updatedCorpse)
+
+                if (newState != null) {
+                    game.worldState = newState
+                    println("You take ${corpse.goldAmount} gold from ${corpse.name}.")
+                } else {
+                    println("Something went wrong.")
+                }
+            } else {
+                println("There's no gold in the corpse.")
+            }
+            return
         }
 
-        if (item == null) {
+        // Find the item in the corpse by matching against template names
+        val matchingItem = corpse.contents.find { instance ->
+            val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+            templateResult.getOrNull()?.let { template ->
+                template.name.lowercase().contains(itemTarget.lowercase()) ||
+                instance.id.lowercase().contains(itemTarget.lowercase())
+            } ?: false
+        }
+
+        if (matchingItem == null) {
             println("That item isn't in the corpse.")
             return
         }
 
-        // Remove item from corpse and add to player inventory
-        val updatedCorpse = corpse.removeItem(item.id)
-        val updatedPlayer = game.worldState.player.addToInventory(item)
+        // Get template for display
+        val templateResult = game.itemRepository.findTemplateById(matchingItem.templateId)
+        val templateName = templateResult.getOrNull()?.name ?: "item"
+
+        // Remove item from corpse
+        // TODO: Add item to player inventory when InventoryComponent is integrated
+        val updatedCorpse = corpse.removeItem(matchingItem.id)
 
         val newState = game.worldState
             .removeEntityFromRoom(room.id, corpse.id)
             ?.addEntityToRoom(room.id, updatedCorpse)
-            ?.updatePlayer(updatedPlayer)
 
         if (newState != null) {
             game.worldState = newState
-            println("You take the ${item.name} from ${corpse.name}.")
+            println("You take the $templateName from ${corpse.name}.")
 
             // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(item.id))
+            game.trackQuests(QuestAction.CollectedItem(matchingItem.id))
         } else {
             println("Something went wrong.")
         }
@@ -377,35 +457,56 @@ object ItemHandlers {
             return
         }
 
-        if (corpse.contents.isEmpty()) {
+        if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
             println("The corpse is empty.")
             return
         }
 
         var lootedCount = 0
         var currentCorpse: Entity.Corpse = corpse
-        var currentPlayer = game.worldState.player
 
-        corpse.contents.forEach { item ->
-            currentCorpse = currentCorpse.removeItem(item.id)
-            currentPlayer = currentPlayer.addToInventory(item)
-            println("You take the ${item.name}.")
+        // Loot all items
+        // TODO: Add items to player inventory when InventoryComponent is integrated
+        corpse.contents.forEach { instance ->
+            val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+            val templateName = templateResult.getOrNull()?.name ?: "item"
+
+            currentCorpse = currentCorpse.removeItem(instance.id)
+            println("You take the $templateName.")
             lootedCount++
+
+            // Track item collection for quests
+            game.trackQuests(QuestAction.CollectedItem(instance.id))
+        }
+
+        // Loot gold
+        if (corpse.goldAmount > 0) {
+            println("You take ${corpse.goldAmount} gold.")
+            currentCorpse = currentCorpse.removeGold(corpse.goldAmount)
+            // TODO: Add gold to player inventory when InventoryComponent is integrated
         }
 
         val newState = game.worldState
             .removeEntityFromRoom(room.id, corpse.id)
             ?.addEntityToRoom(room.id, currentCorpse)
-            ?.updatePlayer(currentPlayer)
 
         if (newState != null) {
             game.worldState = newState
-            println("\nYou looted $lootedCount item${if (lootedCount > 1) "s" else ""} from ${corpse.name}.")
 
-            // Track item collection for quests
-            corpse.contents.forEach { item ->
-                game.trackQuests(QuestAction.CollectedItem(item.id))
+            val summary = buildString {
+                append("\nYou looted ")
+                if (lootedCount > 0) {
+                    append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
+                }
+                if (lootedCount > 0 && corpse.goldAmount > 0) {
+                    append(" and ")
+                }
+                if (corpse.goldAmount > 0) {
+                    append("${corpse.goldAmount} gold")
+                }
+                append(" from ${corpse.name}.")
             }
+            println(summary)
         } else {
             println("Something went wrong.")
         }

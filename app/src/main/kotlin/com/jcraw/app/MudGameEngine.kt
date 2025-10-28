@@ -71,7 +71,7 @@ class MudGame(
 
     // Item System V2 components
     private val itemDatabase = ItemDatabase("items.db")
-    private val itemRepository = SQLiteItemRepository(itemDatabase)
+    internal val itemRepository = SQLiteItemRepository(itemDatabase)
     private val lootGenerator = LootGenerator(itemRepository)
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()

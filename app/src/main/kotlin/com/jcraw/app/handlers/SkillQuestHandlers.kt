@@ -12,10 +12,73 @@ import com.jcraw.mud.action.SkillFormatter
  */
 object SkillQuestHandlers {
     /**
-     * Handle interaction with objects (stub - not yet implemented)
+     * Handle interaction with objects (features, containers, harvestable resources)
      */
     fun handleInteract(game: MudGame, target: String) {
-        println("Interaction system not yet implemented. (Target: $target)")
+        val room = game.worldState.getCurrentRoom() ?: return
+
+        // Normalize target for matching
+        val normalizedTarget = target.lowercase().replace("_", " ")
+
+        // Find the feature in the room
+        val feature = room.entities.filterIsInstance<Entity.Feature>()
+            .find { entity ->
+                val normalizedName = entity.name.lowercase()
+                val normalizedId = entity.id.lowercase().replace("_", " ")
+
+                normalizedName.contains(normalizedTarget) ||
+                normalizedId.contains(normalizedTarget) ||
+                normalizedTarget.contains(normalizedName) ||
+                normalizedTarget.contains(normalizedId) ||
+                normalizedTarget.split(" ").all { word ->
+                    normalizedName.contains(word) || normalizedId.contains(word)
+                }
+            }
+
+        if (feature == null) {
+            println("You don't see that here.")
+            return
+        }
+
+        // Check if feature is harvestable (has lootTableId)
+        if (feature.lootTableId == null) {
+            println("There's nothing to harvest from that.")
+            return
+        }
+
+        // Check if already completed (harvested)
+        if (feature.isCompleted) {
+            println("This resource has already been harvested.")
+            return
+        }
+
+        println("\nYou harvest ${feature.name}...")
+
+        // Generate loot using LootGenerator
+        val lootGenerator = com.jcraw.mud.reasoning.loot.LootGenerator(game.itemRepository)
+        val instances = lootGenerator.generateLoot(
+            feature.lootTableId!!,
+            com.jcraw.mud.reasoning.loot.LootSource.FEATURE
+        )
+
+        if (instances.isEmpty()) {
+            println("You didn't find anything useful.")
+        } else {
+            println("\nYou harvested:")
+            instances.forEach { instance ->
+                val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                val templateName = templateResult.getOrNull()?.name ?: "item"
+                println("  - $templateName")
+
+                // TODO: Add items to player inventory when InventoryComponent is integrated
+                // For now, just track for quests
+                game.trackQuests(QuestAction.CollectedItem(instance.id))
+            }
+        }
+
+        // Mark feature as completed (harvested)
+        val updatedFeature = feature.copy(isCompleted = true)
+        game.worldState = game.worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: game.worldState
     }
 
     /**

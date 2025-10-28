@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-3/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables
+- **Item System V2**: ⏳ **Chunks 1-4/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -534,11 +534,22 @@ Completed:
   - Removed Random dependency
   - 12 tests passing
 
-TODO (Remaining Chunk 4 Tasks):
-- Update ItemHandlers with corpse looting using new item system
-- Add feature harvesting to MovementHandlers
-- Update QuestTracker to use LootGenerator for quest items
-- Write integration tests
+- ✅ `ItemHandlers.kt` - Updated corpse looting for ItemInstance system (app/handlers:515)
+  - Added formatItemInfo() helper to display item stats from template+instance
+  - handleLoot() - Updated to use ItemRepository for template lookups
+  - handleLootAll() - Updated for ItemInstance with gold support
+  - Gold looting support (corpse.goldAmount)
+  - TODO comments for InventoryComponent integration
+- ✅ `SkillQuestHandlers.kt` - Implemented feature harvesting (app/handlers:82)
+  - handleInteract() - Complete implementation for harvestable features
+  - Finds features with lootTableId in room
+  - Uses LootGenerator with FEATURE source for appropriate quality
+  - Marks features as completed after harvest
+  - Quest tracking integration
+- ✅ `Quest.kt` - Added TODO for quest reward migration (core:102)
+  - Documented need to migrate QuestReward.items from Entity.Item to templateIds
+  - Will use ItemRepository/LootGenerator when InventoryComponent is integrated
+  - Legacy system still functional for now
 
 **Next Chunk: Chunk 5 - Command Handlers & UI**
 
