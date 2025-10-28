@@ -1,7 +1,6 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -81,19 +80,21 @@ class CorpseDecayManagerTest {
     }
 
     @Test
-    fun `tickDecay drops items from decayed corpse based on drop chance`() {
-        val sword = Entity.Item(
+    fun `tickDecay destroys items from decayed corpse`() {
+        val sword = ItemInstance(
             id = "sword1",
-            name = "Sword",
-            description = "A sword",
-            itemType = ItemType.WEAPON
+            templateId = "iron_sword",
+            quality = 5,
+            charges = null,
+            quantity = 1
         )
 
-        val potion = Entity.Item(
+        val potion = ItemInstance(
             id = "potion1",
-            name = "Potion",
-            description = "A potion",
-            itemType = ItemType.CONSUMABLE
+            templateId = "health_potion",
+            quality = 3,
+            charges = 1,
+            quantity = 1
         )
 
         val corpse = Entity.Corpse(
@@ -101,7 +102,8 @@ class CorpseDecayManagerTest {
             name = "Corpse",
             description = "A corpse",
             decayTimer = 1,
-            contents = listOf(sword, potion)
+            contents = listOf(sword, potion),
+            goldAmount = 50
         )
 
         val room = Room(
@@ -116,76 +118,31 @@ class CorpseDecayManagerTest {
             players = emptyMap()
         )
 
-        // Use deterministic random that always drops items (return 0.0 < 0.3)
-        val deterministicRandom = object : Random() {
-            override fun nextBits(bitCount: Int): Int = 0
-            override fun nextFloat(): Float = 0.0f
-        }
-
-        val manager = CorpseDecayManager(itemDropChance = 0.3f, random = deterministicRandom)
+        val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        // Both items should be dropped (100% chance with our mock random)
-        assertEquals(1, result.droppedItems.size)
-        assertEquals(2, result.droppedItems["room1"]?.size ?: 0)
+        // Corpse should be removed
+        assertEquals(1, result.decayedCorpses.size)
+
+        // Items should be destroyed (tracked in result by room)
+        assertEquals(1, result.destroyedItems.size)
+        val destroyedItemsInRoom = result.destroyedItems["room1"]
+        assertNotNull(destroyedItemsInRoom)
+        assertEquals(2, destroyedItemsInRoom.size)
+        assertTrue(destroyedItemsInRoom.any { it.id == "sword1" })
+        assertTrue(destroyedItemsInRoom.any { it.id == "potion1" })
+
+        // Gold should be tracked by room
+        assertEquals(50, result.destroyedGold["room1"])
 
         val updatedRoom = result.worldState.rooms["room1"]
         assertNotNull(updatedRoom)
 
-        // Items should be in room
-        val droppedSword = updatedRoom.entities.filterIsInstance<Entity.Item>().find { it.id == "sword1" }
-        val droppedPotion = updatedRoom.entities.filterIsInstance<Entity.Item>().find { it.id == "potion1" }
-        assertNotNull(droppedSword)
-        assertNotNull(droppedPotion)
+        // Corpse and items should not be in room
+        val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
+        assertTrue(corpses.isEmpty())
     }
 
-    @Test
-    fun `tickDecay destroys items that don't drop`() {
-        val sword = Entity.Item(
-            id = "sword1",
-            name = "Sword",
-            description = "A sword"
-        )
-
-        val corpse = Entity.Corpse(
-            id = "corpse1",
-            name = "Corpse",
-            description = "A corpse",
-            decayTimer = 1,
-            contents = listOf(sword)
-        )
-
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
-
-        // Use deterministic random that never drops items (return 1.0 > 0.3)
-        val neverDropRandom = object : Random() {
-            override fun nextBits(bitCount: Int): Int = Int.MAX_VALUE
-            override fun nextFloat(): Float = 1.0f
-        }
-
-        val manager = CorpseDecayManager(itemDropChance = 0.3f, random = neverDropRandom)
-        val result = manager.tickDecay(worldState)
-
-        // No items should be dropped
-        assertTrue(result.droppedItems.isEmpty())
-
-        val updatedRoom = result.worldState.rooms["room1"]
-        assertNotNull(updatedRoom)
-
-        // Items should not be in room (destroyed)
-        val items = updatedRoom.entities.filterIsInstance<Entity.Item>()
-        assertTrue(items.isEmpty())
-    }
 
     @Test
     fun `tickDecay processes multiple corpses in same room`() {
@@ -283,17 +240,17 @@ class CorpseDecayManagerTest {
 
     @Test
     fun `tickDecay handles rooms with no corpses`() {
-        val item = Entity.Item(
-            id = "item1",
-            name = "Torch",
-            description = "A torch"
+        val npc = Entity.NPC(
+            id = "npc1",
+            name = "Guard",
+            description = "A guard"
         )
 
         val room = Room(
             id = "room1",
             name = "Cave",
             traits = listOf("dark"),
-            entities = listOf(item)
+            entities = listOf(npc)
         )
 
         val worldState = WorldState(
@@ -307,7 +264,8 @@ class CorpseDecayManagerTest {
         // Should not modify room
         assertEquals(worldState, result.worldState)
         assertTrue(result.decayedCorpses.isEmpty())
-        assertTrue(result.droppedItems.isEmpty())
+        assertTrue(result.destroyedItems.isEmpty())
+        assertTrue(result.destroyedGold.isEmpty())
     }
 
     @Test
@@ -427,8 +385,21 @@ class CorpseDecayManagerTest {
 
     @Test
     fun `corpse removeItem removes item and returns updated corpse`() {
-        val sword = Entity.Item(id = "sword1", name = "Sword", description = "A sword")
-        val potion = Entity.Item(id = "potion1", name = "Potion", description = "A potion")
+        val sword = ItemInstance(
+            id = "sword1",
+            templateId = "iron_sword",
+            quality = 5,
+            charges = null,
+            quantity = 1
+        )
+
+        val potion = ItemInstance(
+            id = "potion1",
+            templateId = "health_potion",
+            quality = 3,
+            charges = 1,
+            quantity = 1
+        )
 
         val corpse = Entity.Corpse(
             id = "corpse1",

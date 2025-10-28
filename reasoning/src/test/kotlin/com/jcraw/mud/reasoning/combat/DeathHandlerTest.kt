@@ -1,6 +1,8 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.repository.ItemRepository
+import com.jcraw.mud.reasoning.loot.LootGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -13,7 +15,24 @@ import kotlin.test.assertNull
  */
 class DeathHandlerTest {
 
-    private val deathHandler = DeathHandler()
+    // Mock ItemRepository that returns no templates
+    private val mockItemRepository = object : ItemRepository {
+        override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(null)
+        override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(emptyMap())
+        override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> = Result.success(emptyList())
+        override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> = Result.success(emptyList())
+        override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
+        override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
+        override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
+        override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
+        override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
+        override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
+        override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
+        override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
+    }
+
+    private val mockLootGenerator = LootGenerator(mockItemRepository)
+    private val deathHandler = DeathHandler(mockLootGenerator)
 
     @Test
     fun `handleDeath creates corpse from dead NPC`() {
@@ -59,22 +78,9 @@ class DeathHandlerTest {
     }
 
     @Test
-    fun `handleDeath creates corpse from dead Player with inventory`() {
-        val sword = Entity.Item(
-            id = "sword1",
-            name = "Iron Sword",
-            description = "A sturdy sword",
-            itemType = ItemType.WEAPON,
-            damageBonus = 5
-        )
-
-        val potion = Entity.Item(
-            id = "potion1",
-            name = "Health Potion",
-            description = "Restores health",
-            itemType = ItemType.CONSUMABLE,
-            healAmount = 20
-        )
+    fun `handleDeath creates corpse from dead Player`() {
+        // TODO: Update when InventoryComponent is integrated for players
+        // Currently creates empty corpse - player inventory transfer not yet implemented
 
         val playerEntity = Entity.Player(
             id = "player_entity1",
@@ -90,9 +96,7 @@ class DeathHandlerTest {
             name = "Hero",
             currentRoomId = "room1",
             health = 0,
-            maxHealth = 40,
-            inventory = listOf(potion),
-            equippedWeapon = sword
+            maxHealth = 40
         )
 
         val room = Room(
@@ -115,9 +119,7 @@ class DeathHandlerTest {
         val playerDeath = result as DeathHandler.DeathResult.PlayerDeath
         assertEquals("Corpse of Hero", playerDeath.corpse.name)
         assertEquals(200, playerDeath.corpse.decayTimer) // Player corpses last longer
-        assertEquals(2, playerDeath.corpse.contents.size) // Sword + Potion
-        assertTrue(playerDeath.corpse.contents.any { it.id == "sword1" })
-        assertTrue(playerDeath.corpse.contents.any { it.id == "potion1" })
+        assertTrue(playerDeath.corpse.contents.isEmpty()) // Empty until InventoryComponent integration
 
         // Verify player entity removed from room
         val updatedRoom = playerDeath.updatedWorld.rooms["room1"]
@@ -150,13 +152,7 @@ class DeathHandlerTest {
     }
 
     @Test
-    fun `handleDeath returns null for items and features`() {
-        val item = Entity.Item(
-            id = "item1",
-            name = "Torch",
-            description = "A burning torch"
-        )
-
+    fun `handleDeath returns null for features`() {
         val feature = Entity.Feature(
             id = "feature1",
             name = "Boulder",
@@ -167,7 +163,7 @@ class DeathHandlerTest {
             id = "room1",
             name = "Cave",
             traits = listOf("dark"),
-            entities = listOf(item, feature)
+            entities = listOf(feature)
         )
 
         val worldState = WorldState(
@@ -175,7 +171,6 @@ class DeathHandlerTest {
             players = emptyMap()
         )
 
-        assertNull(deathHandler.handleDeath("item1", worldState))
         assertNull(deathHandler.handleDeath("feature1", worldState))
     }
 
@@ -253,120 +248,11 @@ class DeathHandlerTest {
     }
 
     @Test
-    fun `shouldDie returns false for items and features`() {
-        val item = Entity.Item(id = "item1", name = "Sword", description = "A sword")
+    fun `shouldDie returns false for features and corpses`() {
         val feature = Entity.Feature(id = "feature1", name = "Door", description = "A door")
         val corpse = Entity.Corpse(id = "corpse1", name = "Corpse", description = "A corpse")
 
-        assertFalse(deathHandler.shouldDie(item))
         assertFalse(deathHandler.shouldDie(feature))
         assertFalse(deathHandler.shouldDie(corpse))
-    }
-
-    @Test
-    fun `handleDeath creates corpse with both equipped weapon and armor`() {
-        val sword = Entity.Item(
-            id = "sword1",
-            name = "Steel Sword",
-            description = "A steel sword",
-            itemType = ItemType.WEAPON,
-            damageBonus = 8
-        )
-
-        val armor = Entity.Item(
-            id = "armor1",
-            name = "Chainmail",
-            description = "Metal armor",
-            itemType = ItemType.ARMOR,
-            defenseBonus = 5
-        )
-
-        val potion = Entity.Item(
-            id = "potion1",
-            name = "Potion",
-            description = "A potion",
-            itemType = ItemType.CONSUMABLE
-        )
-
-        val playerEntity = Entity.Player(
-            id = "player_entity1",
-            name = "Knight",
-            description = "A brave knight",
-            playerId = "player1",
-            health = 0,
-            maxHealth = 50
-        )
-
-        val playerState = PlayerState(
-            id = "player1",
-            name = "Knight",
-            currentRoomId = "room1",
-            health = 0,
-            maxHealth = 50,
-            inventory = listOf(potion),
-            equippedWeapon = sword,
-            equippedArmor = armor
-        )
-
-        val room = Room(
-            id = "room1",
-            name = "Battlefield",
-            traits = listOf("bloody"),
-            entities = listOf(playerEntity)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to playerState)
-        )
-
-        val result = deathHandler.handleDeath("player_entity1", worldState) as? DeathHandler.DeathResult.PlayerDeath
-
-        assertNotNull(result)
-        assertEquals(3, result.corpse.contents.size) // Sword + Armor + Potion
-        assertTrue(result.corpse.contents.any { it.id == "sword1" })
-        assertTrue(result.corpse.contents.any { it.id == "armor1" })
-        assertTrue(result.corpse.contents.any { it.id == "potion1" })
-    }
-
-    @Test
-    fun `handleDeath creates empty corpse when player has no items`() {
-        val playerEntity = Entity.Player(
-            id = "player_entity1",
-            name = "Peasant",
-            description = "A poor peasant",
-            playerId = "player1",
-            health = 0,
-            maxHealth = 20
-        )
-
-        val playerState = PlayerState(
-            id = "player1",
-            name = "Peasant",
-            currentRoomId = "room1",
-            health = 0,
-            maxHealth = 20,
-            inventory = emptyList(),
-            equippedWeapon = null,
-            equippedArmor = null
-        )
-
-        val room = Room(
-            id = "room1",
-            name = "Village",
-            traits = listOf("peaceful"),
-            entities = listOf(playerEntity)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to playerState)
-        )
-
-        val result = deathHandler.handleDeath("player_entity1", worldState) as? DeathHandler.DeathResult.PlayerDeath
-
-        assertNotNull(result)
-        assertTrue(result.corpse.contents.isEmpty())
-        assertEquals(200, result.corpse.decayTimer)
     }
 }
