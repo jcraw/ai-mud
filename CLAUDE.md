@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-4/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting
+- **Item System V2**: ⏳ **Chunks 1-5/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -85,6 +85,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 - **Combat**: attack <npc>
 - **Equipment**: equip <item>
 - **Consumables**: use <item>
+- **Gathering**: interact/harvest/gather <resource>
 - **Skill checks**: check <feature>, persuade <npc>, intimidate <npc>
 - **Social**: smile/wave/nod/bow [at <npc>], ask <npc> about <topic>
 - **Skills**: skills, use <skill>, train <skill> with <npc>, choose perk <1-2> for <skill>
@@ -551,6 +552,29 @@ Completed:
   - Will use ItemRepository/LootGenerator when InventoryComponent is integrated
   - Legacy system still functional for now
 
-**Next Chunk: Chunk 5 - Command Handlers & UI**
+**Chunk 5: Gathering System Enhancements (COMPLETE)** ✅
+
+Completed:
+- ✅ `SkillQuestHandlers.handleInteract()` - Enhanced with skill checks and tool requirements (app/handlers:135)
+  - Integrated skill check system using Entity.Feature.skillChallenge
+  - D&D-style skill checks (d20 + modifier vs DC) with roll display
+  - Critical success/failure messaging
+  - Tool requirement checking via properties["required_tool_tag"]
+  - Failure handling (returns empty-handed)
+  - Ready for InventoryComponent tool validation and XP rewards integration
+  - Loot generation on success via LootGenerator with FEATURE source
+- ✅ Help text updated with harvest/gather/interact commands (app/handlers:436)
+- ✅ Command reference updated in CLAUDE.md (Quick reference section)
+
+**System Design:**
+- Uses Entity.Feature for harvestable resources (KISS - no new schema)
+- Properties map stores tool requirements flexibly (e.g., "required_tool_tag": "mining_tool")
+- skillChallenge field provides harvest difficulty and stat requirement
+- isCompleted boolean tracks finite resources (one harvest per feature)
+- LootTableRegistry with FEATURE source generates appropriate loot quality
+- TODO placeholders for InventoryComponent integration (tool validation, item addition)
+- TODO placeholders for gathering skill XP rewards
+
+**Next Chunk: Chunk 6 - Crafting System**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

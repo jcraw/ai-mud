@@ -13,6 +13,7 @@ import com.jcraw.mud.action.SkillFormatter
 object SkillQuestHandlers {
     /**
      * Handle interaction with objects (features, containers, harvestable resources)
+     * Supports skill checks, tool requirements, and XP rewards for gathering
      */
     fun handleInteract(game: MudGame, target: String) {
         val room = game.worldState.getCurrentRoom() ?: return
@@ -52,7 +53,56 @@ object SkillQuestHandlers {
             return
         }
 
-        println("\nYou harvest ${feature.name}...")
+        // Check tool requirement (if specified in properties)
+        val requiredToolTag = feature.properties["required_tool_tag"]
+        if (requiredToolTag != null) {
+            // TODO: Check player's InventoryComponent for tool with matching tag
+            // For now, assume player has the tool (will be implemented with InventoryComponent)
+            // val hasTool = player.getComponent<InventoryComponent>()?.items
+            //     ?.any { item -> itemTemplate.tags.contains(requiredToolTag) } ?: false
+            // if (!hasTool) {
+            //     println("You need a ${requiredToolTag.replace("_", " ")} to harvest this.")
+            //     return
+            // }
+        }
+
+        println("\nYou attempt to harvest ${feature.name}...")
+
+        // Perform skill check if specified
+        var harvestSuccess = true
+        var skillCheckResult: com.jcraw.mud.reasoning.skill.SkillCheckResult? = null
+
+        if (feature.skillChallenge != null) {
+            val challenge = feature.skillChallenge!!
+            val result = game.skillCheckResolver.checkPlayer(
+                game.worldState.player,
+                challenge.statType,
+                challenge.difficulty
+            )
+            skillCheckResult = result
+
+            // Display roll details
+            println("Rolling ${challenge.statType.name} check...")
+            println("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+            if (result.isCriticalSuccess) {
+                println("🎲 CRITICAL SUCCESS! (Natural 20)")
+            } else if (result.isCriticalFailure) {
+                println("💀 CRITICAL FAILURE! (Natural 1)")
+            }
+
+            harvestSuccess = result.success
+
+            if (!result.success) {
+                println("❌ You failed to harvest the resource properly.")
+
+                // TODO: Award 20% XP on failure (when skill system integration complete)
+                // For now, just return empty-handed
+                return
+            }
+
+            println("✅ Success!")
+        }
 
         // Generate loot using LootGenerator
         val lootGenerator = com.jcraw.mud.reasoning.loot.LootGenerator(game.itemRepository)
@@ -75,6 +125,9 @@ object SkillQuestHandlers {
                 game.trackQuests(QuestAction.CollectedItem(instance.id))
             }
         }
+
+        // TODO: Award XP for gathering skill based on feature's skill requirement
+        // This will be integrated when gathering skills are added to SkillDefinitions
 
         // Mark feature as completed (harvested)
         val updatedFeature = feature.copy(isCompleted = true)
@@ -380,9 +433,9 @@ object SkillQuestHandlers {
             |    equip/wield <item>   - Equip a weapon or armor from inventory
             |    use/consume <item>   - Use a consumable item (potion, etc.)
             |    check/test <feature> - Attempt a skill check on an interactive feature
+            |    interact/harvest/gather <resource> - Harvest resources (ore, herbs, etc.)
             |    persuade <npc>       - Attempt to persuade an NPC (CHA check)
             |    intimidate <npc>     - Attempt to intimidate an NPC (CHA check)
-            |    interact <item>      - Interact with an object (not yet implemented)
             |    inventory, i         - View your inventory and equipped items
             |
             |  Quests:
