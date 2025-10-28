@@ -67,6 +67,9 @@ sealed class Entity {
         val intimidationChallenge: SkillChallenge? = null,
         val hasBeenPersuaded: Boolean = false,
         val hasBeenIntimidated: Boolean = false,
+        // Loot system
+        val lootTableId: String? = null,
+        val goldDrop: Int = 0, // Base gold amount
         // Component system
         override val components: Map<ComponentType, Component> = emptyMap()
     ) : Entity(), ComponentHost {
@@ -120,7 +123,9 @@ sealed class Entity {
         val isInteractable: Boolean = false,
         val properties: Map<String, String> = emptyMap(),
         val skillChallenge: SkillChallenge? = null,
-        val isCompleted: Boolean = false  // Track if challenge has been overcome
+        val isCompleted: Boolean = false,  // Track if challenge has been overcome
+        // Loot system (for harvestable features like ore nodes, herb patches)
+        val lootTableId: String? = null
     ) : Entity()
 
     @Serializable

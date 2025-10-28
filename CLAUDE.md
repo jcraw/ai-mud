@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-2/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates
+- **Item System V2**: ⏳ **Chunks 1-3/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -60,7 +60,7 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **~708 tests** across all modules, 100% pass rate
+- **~751 tests** across all modules, 100% pass rate
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -166,7 +166,7 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - ~708 tests passing across all modules
+- **All modules building** - ~751 tests passing across all modules
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -457,17 +457,59 @@ Completed:
   - Complex scenarios (many items, all slots filled, two-handed weapons)
   - Multi-entity inventory management
 
-**Next Chunk: Chunk 3 - Loot Generation & Drop Tables**
-- Estimated Time: 3 hours
-- Create LootTable data structure with weighted entries
-- Implement LootGenerator for random item generation based on rarity
-- Add loot tables to NPC templates and room features
-- Quality variance based on loot source (boss vs common mob)
-- Integration with quest objectives (quest items drop from specific sources)
-- Files to create:
-  - `core/src/main/kotlin/com/jcraw/mud/core/LootTable.kt`
-  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/loot/LootGenerator.kt`
-  - `core/src/test/kotlin/com/jcraw/mud/core/LootTableTest.kt`
-  - `reasoning/src/test/kotlin/com/jcraw/mud/reasoning/loot/LootGeneratorTest.kt`
+**Chunk 3: Loot Generation & Drop Tables (COMPLETE)** ✅
+
+Completed:
+- ✅ `LootTable.kt` - Weighted loot table system with flexible drop rules (core:179)
+  - LootEntry data class with weight, quality/quantity ranges, drop chance
+  - LootTable with guaranteedDrops, maxDrops, qualityModifier
+  - Weighted random selection with rollDrop/rollQuality/rollQuantity methods
+  - Companion factory methods (commonBias, bossDrop)
+  - Quality clamping and modifier application
+- ✅ `LootGenerator.kt` - Item instance generation from loot tables (reasoning/loot:206)
+  - LootSource enum (COMMON_MOB, ELITE_MOB, BOSS, CHEST, QUEST, FEATURE)
+  - generateLoot() with source-based quality modifiers (+0/+1/+2)
+  - generateQuestItem() for guaranteed quest drops
+  - generateGoldDrop() with source multipliers and variance
+  - Automatic charge calculation for consumables/tools/books
+  - Companion factory methods for mob/chest loot tables
+- ✅ `LootTableRegistry.kt` - Predefined loot tables by ID (reasoning/loot:142)
+  - Registry maps lootTableId to LootTable instances
+  - 9 default tables (goblin, skeleton, orc, dragon, chests, mining, herbs)
+  - Common mob, elite mob, and boss archetypes
+  - Resource gathering tables (iron/gold mining, herbs)
+- ✅ `Entity.NPC` - Added lootTableId and goldDrop fields (core/Entity.kt:72)
+  - lootTableId: String? - References LootTableRegistry
+  - goldDrop: Int - Base gold amount
+- ✅ `Entity.Feature` - Added lootTableId field (core/Entity.kt:128)
+  - For harvestable features (mining nodes, herb patches)
+- ✅ `LootTableTest.kt` - Comprehensive unit tests (22 tests passing, core:test)
+  - LootEntry validation (weight, quality, quantity, dropChance)
+  - Roll methods (rollDrop, rollQuality, rollQuantity)
+  - LootTable validation and totalWeight calculation
+  - Weighted selection and drop generation
+  - Quality modifier and clamping
+  - Factory method tests (commonBias, bossDrop)
+- ✅ `LootGeneratorTest.kt` - Comprehensive unit tests (21 tests passing, reasoning:test)
+  - Item generation from tables with source modifiers
+  - Quest item generation with guaranteed quality
+  - Gold drop with source multipliers and variance
+  - Charge calculation for consumables/tools/books
+  - Missing template handling
+  - Factory method tests (createCommonMobTable, createEliteMobTable, createChestTable)
+  - Full integration test with multiple items
+
+**Next Chunk: Chunk 4 - Integration with Game Systems**
+- Estimated Time: 2.5 hours
+- Integrate LootGenerator with combat (NPC death drops)
+- Integrate with room features (mining, harvesting)
+- Update corpse creation to use loot tables
+- Add loot command handlers (take from corpse, harvest feature)
+- Update quest system to generate quest items via loot tables
+- Files to modify:
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/DeathHandler.kt`
+  - `app/src/main/kotlin/com/jcraw/app/handlers/ItemHandlers.kt`
+  - `app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt`
+  - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/QuestTracker.kt`
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).
