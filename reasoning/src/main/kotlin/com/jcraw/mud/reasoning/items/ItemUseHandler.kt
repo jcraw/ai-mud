@@ -160,7 +160,7 @@ class ItemUseHandler(
             ?: return ItemUseResult.Failure("You don't have that item")
 
         // Get item template
-        val templateResult = itemRepository.findById(instance.templateId)
+        val templateResult = itemRepository.findTemplateById(instance.templateId)
         if (templateResult.isFailure || templateResult.getOrNull() == null) {
             return ItemUseResult.Failure("Item template not found")
         }

@@ -4,7 +4,6 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.core.crafting.Recipe
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.core.repository.RecipeRepository
-import com.jcraw.mud.core.skills.Skill
 import java.util.UUID
 import kotlin.random.Random
 
@@ -44,18 +43,18 @@ class CraftingManager(
     /**
      * Get all viable recipes for a player
      */
-    fun getViableRecipes(player: Entity.Player): Result<List<Recipe>> {
-        val inventory = player.components[ComponentType.INVENTORY] as? InventoryComponent
-            ?: return Result.success(emptyList())
-
+    fun getViableRecipes(
+        skillComponent: SkillComponent,
+        inventory: InventoryComponent
+    ): Result<List<Recipe>> {
         // Get available items as map of template IDs to quantities
         val availableItems = inventory.items.groupBy { it.templateId }
             .mapValues { (_, instances) -> instances.sumOf { it.quantity } }
 
         // Get skills and check each skill for viable recipes
         val viableRecipes = mutableListOf<Recipe>()
-        player.skills.forEach { (skillName, skill) ->
-            recipeRepository.findViable(skillName, skill.level, availableItems)
+        skillComponent.skills.forEach { (skillName, skillState) ->
+            recipeRepository.findViable(skillName, skillState.level, availableItems)
                 .onSuccess { recipes -> viableRecipes.addAll(recipes) }
         }
 
@@ -66,17 +65,16 @@ class CraftingManager(
      * Attempt to craft an item using a recipe
      */
     fun craft(
-        player: Entity.Player,
+        skillComponent: SkillComponent,
+        inventory: InventoryComponent,
         recipe: Recipe
     ): CraftResult {
-        val inventory = player.components[ComponentType.INVENTORY] as? InventoryComponent
-            ?: return CraftResult.Invalid("You don't have an inventory")
-
         // Check skill level requirement
-        val skill = player.skills[recipe.requiredSkill]
-        if (skill == null || !recipe.meetsSkillRequirement(skill.level)) {
+        val skillState = skillComponent.getSkill(recipe.requiredSkill)
+        val skillLevel = skillState?.level ?: 0
+        if (skillState == null || !recipe.meetsSkillRequirement(skillLevel)) {
             return CraftResult.Invalid(
-                "Your ${recipe.requiredSkill} level (${skill?.level ?: 0}) is too low. " +
+                "Your ${recipe.requiredSkill} level ($skillLevel) is too low. " +
                 "Required: ${recipe.minSkillLevel}"
             )
         }
@@ -116,12 +114,12 @@ class CraftingManager(
         }
 
         // Perform skill check
-        val skillCheck = performSkillCheck(skill, recipe.difficulty)
+        val skillCheck = performSkillCheck(skillLevel, recipe.difficulty)
 
         return if (skillCheck.success) {
             // Success - consume inputs and create output
             val consumedInputs = consumeInputs(inventory, recipe.inputItems)
-            val quality = calculateQuality(skill.level)
+            val quality = calculateQuality(skillLevel)
             val outputItem = createCraftedItem(recipe.outputItem, quality)
 
             CraftResult.Success(
@@ -145,13 +143,12 @@ class CraftingManager(
     /**
      * Perform a skill check for crafting
      */
-    private fun performSkillCheck(skill: Skill, dc: Int): SkillCheckResult {
+    private fun performSkillCheck(skillLevel: Int, dc: Int): SkillCheckResult {
         val roll = random.nextInt(1, 21) // d20
-        val modifier = skill.getModifier()
-        val total = roll + modifier
+        val total = roll + skillLevel
         return SkillCheckResult(
             roll = roll,
-            modifier = modifier,
+            modifier = skillLevel,
             total = total,
             success = total >= dc
         )

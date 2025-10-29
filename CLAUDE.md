@@ -943,13 +943,14 @@ Completed:
   - Uses gpt-4o-mini with temperature 0.7 for cost-effective generation
   - Direction-aware spatial hints (e.g., "north" = colder)
   - Maintains consistency while introducing local details
-- ✅ `WorldGenerator.kt` - Primary generation engine (reasoning/world:327)
+- ⏳ `WorldGenerator.kt` - Primary generation engine (reasoning/world:327) **NEEDS FIXES**
   - generateChunk() - Creates WORLD/REGION/ZONE/SUBZONE chunks with LLM
   - generateSpace() - Creates SPACE (room) with exits, traps, resources
   - generateTrap() - Theme-based trap selection (15% probability)
   - generateResource() - Theme-based resource nodes (5% probability)
   - Hidden exits (20% of exits require Perception checks)
   - JSON-structured LLM prompts for consistent parsing
+  - **Issue:** Uses incorrect component ID architecture (components don't have `id` field)
 - ✅ `DungeonInitializer.kt` - Deep dungeon MVP starter (reasoning/world:145)
   - initializeDeepDungeon() - Creates hierarchical dungeon structure
   - WORLD: "Ancient Abyss Dungeon" with global lore
@@ -957,6 +958,7 @@ Completed:
   - Pre-generates starting location (ZONE → SUBZONE → SPACE)
   - Saves complete hierarchy to database
   - Returns starting space ID for player spawn
+  - Fixed: Added missing `GenerationContext` import
 
 **Testing (31 tests written):**
 - ✅ `ChunkIdGeneratorTest.kt` - ID generation and parsing tests (10 tests, reasoning:test)
@@ -980,13 +982,25 @@ Completed:
   - Model and temperature configuration
   - Prompt structure validation
 
+**Compilation Fixes Completed:**
+- ✅ `CraftingManager.kt` - Fixed V1 skill system references (reasoning/crafting:240)
+  - Removed deprecated `Skill` import
+  - Refactored `getViableRecipes()` to accept SkillComponent and InventoryComponent as parameters
+  - Refactored `craft()` to accept SkillComponent and InventoryComponent as parameters
+  - Updated `performSkillCheck()` to use skill level directly (d20 + skillLevel vs DC)
+  - Components now passed from caller instead of extracted from Entity.Player
+  - **Rationale:** Components are managed via managers (e.g., `skillManager.getSkillComponent(playerId)`), not stored in PlayerState/Entity.Player
+- ✅ `ItemUseHandler.kt` - Fixed repository method name (reasoning/items:254)
+  - Changed `itemRepository.findById()` to `itemRepository.findTemplateById()`
+- ✅ `DungeonInitializer.kt` - Added missing import
+  - Added `import com.jcraw.mud.core.world.GenerationContext`
+
 **Remaining Work:**
+- ⏳ Fix WorldGenerator.kt component ID architecture issues
 - ⏳ Additional unit tests for WorldGenerator and DungeonInitializer (~54 tests planned)
 - ⏳ Chunk 4: Exit System & Navigation
 - ⏳ Chunk 5: Content Placement & Spawning
 - ⏳ Chunk 6: State Changes & Persistence
 - ⏳ Chunk 7: Integration, Testing & Documentation
 
-**Note:** Some pre-existing compilation errors in CraftingManager.kt need to be resolved before tests can run. These are unrelated to Chunk 3 implementation.
-
-**Next Step:** Resolve compilation issues and continue writing WorldGenerator/DungeonInitializer tests
+**Next Step:** Fix WorldGenerator.kt to work with component architecture (IDs managed separately from components)

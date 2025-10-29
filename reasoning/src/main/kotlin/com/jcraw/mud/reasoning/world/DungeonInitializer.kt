@@ -5,6 +5,7 @@ import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.repository.WorldSeedRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.world.ChunkLevel
+import com.jcraw.mud.core.world.GenerationContext
 
 /**
  * Initializes the V2 MVP deep dungeon structure.
