@@ -57,5 +57,8 @@ enum class StatusEffectType {
     HIDDEN,
 
     /** Defensive stance - reduces incoming damage */
-    DEFENSIVE_STANCE
+    DEFENSIVE_STANCE,
+
+    /** Heightened awareness after failed pickpocket - temporary Perception boost */
+    WARINESS
 }

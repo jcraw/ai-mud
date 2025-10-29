@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-7/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes, trading system with disposition-based pricing
+- **Item System V2**: ⏳ **Chunks 1-8/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes, trading system with disposition-based pricing, pickpocketing with disposition consequences & wariness status, multipurpose item uses via tag-based system
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -675,6 +675,66 @@ Completed:
 - TODO: Unit tests for TradeHandler (20 tests planned)
 - TODO: Integration tests for TradingRepository persistence (10 tests planned)
 
-**Next Chunk: Chunk 8 - Pickpocketing & Advanced Item Use**
+**Chunk 8: Pickpocketing & Advanced Item Use (COMPLETE)** ✅
+
+Completed:
+- ✅ `Intent.Pickpocket` - Added to perception layer (perception:125)
+  - npcTarget: Target NPC to pickpocket
+  - action: "steal" or "place"
+  - itemTarget: Optional item to steal or place
+- ✅ `Intent.UseItem` - Added to perception layer (perception:116)
+  - target: Item name to use
+  - action: Specific action to perform
+  - actionTarget: Optional target for the action
+- ✅ `StatusEffectType.WARINESS` - Added to enum (core:63)
+  - Heightened awareness after failed pickpocket (+20 Perception for 10 turns)
+- ✅ `PickpocketHandler.kt` - Stealth/Agility skill checks vs Perception (reasoning/pickpocket:354)
+  - stealFromNPC(): Steal gold or items from NPCs
+  - placeItemOnNPC(): Place items in NPC inventory (sneaky tactics)
+  - performPickpocketCheck(): max(Stealth, Agility) vs Perception passive DC
+  - handleCaughtPickpocketing(): Disposition penalty (-20 to -50) and wariness status
+  - PickpocketResult sealed class (Success, Caught, Failure)
+  - Wariness bonus: +20 to Perception DC for 10 turns after failure
+- ✅ `ItemUseHandler.kt` - Multipurpose item uses via tags (reasoning/items:254)
+  - useAsImprovisedWeapon(): Damage = weight * 0.5 for "blunt"/"sharp" tagged items
+  - useAsExplosive(): AoE damage and timer for "explosive" tagged items
+  - useAsContainer(): Capacity bonus for "container" tagged items
+  - determineUse(): Main entry point matching action keywords to uses
+  - getPossibleUses(): Returns all possible uses for an item
+  - ItemUseResult sealed class (ImprovisedWeapon, ExplosiveUse, ContainerUse, EnvironmentalUse, Failure)
+  - Supports environmental uses: flammable (burn), fragile (break), liquid (pour)
+- ✅ `PickpocketHandlers.kt` - Handler stubs (app/handlers:42)
+  - handlePickpocket() stub with TODO for InventoryComponent integration
+  - Shows skill check mechanics and consequences
+- ✅ `ItemUseHandlers.kt` - Handler stubs (app/handlers:62)
+  - handleUseItem() stub with TODO for InventoryComponent integration
+  - handleExamineItemUses() shows possible uses for items
+- ✅ `PickpocketHandlerTest.kt` - Comprehensive unit tests (12 tests passing, reasoning:test)
+  - Success cases: steal gold, steal item, place item
+  - Failure cases: disposition drop, wariness status, no inventory, no gold
+  - High Stealth overcomes low Perception
+  - Wariness increases difficulty on retry
+  - Agility can substitute for Stealth
+- ✅ `ItemUseHandlerTest.kt` - Comprehensive unit tests (20 tests passing, reasoning:test)
+  - Improvised weapons (pot with "blunt", sword with "sharp")
+  - Explosives (dynamite with "explosive" tag)
+  - Containers (pot, backpack with "container" tag)
+  - Environmental uses (burn flammable, break fragile, pour liquid)
+  - Action matching (bash→weapon, throw→explosive, store→container)
+  - Damage scaling with weight
+  - Tag requirement validation
+
+**System Design:**
+- Pickpocketing uses max(Stealth, Agility) vs target's Perception (10 + WIS modifier + skill)
+- Failure consequences: Disposition -20 to -50 (based on margin), Wariness status (+20 Perception)
+- Wariness stacks with existing Perception, makes retries much harder
+- Multipurpose items via hybrid tag-based rules + LLM intent parsing
+- Tags enable flexible uses: blunt→weapon, explosive→detonate, fragile→break, etc.
+- Improvised weapon damage = weight * 0.5 (encourages creative tactics)
+- TODO: Full integration with InventoryComponent for actual item transfers
+- TODO: Integration with combat system for improvised weapon attacks
+- TODO: Environmental effects for burn/break/pour actions
+
+**Next Chunk: Chunk 9 - Skills & Combat Integration**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

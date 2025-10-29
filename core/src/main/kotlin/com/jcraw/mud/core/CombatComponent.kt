@@ -151,7 +151,8 @@ data class CombatComponent(
 
             StatusEffectType.SLOW,
             StatusEffectType.HIDDEN,
-            StatusEffectType.DEFENSIVE_STANCE -> {
+            StatusEffectType.DEFENSIVE_STANCE,
+            StatusEffectType.WARINESS -> {
                 // Single-instance effects: Replace if exists
                 if (existingIndex >= 0) {
                     existingEffects[existingIndex] = effect

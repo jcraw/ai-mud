@@ -36,7 +36,7 @@ data class TradingComponent(
      * @return Price in gold
      */
     fun calculateSellPrice(template: ItemTemplate, instance: ItemInstance, disposition: Int): Int {
-        val baseValue = template.getValue()
+        val baseValue = template.getPropertyInt("value", 10)
         val dispositionMod = 1.0 + (disposition - 50) / 100.0
         val qualityMod = instance.quality / 10.0
         val totalMod = priceModBase * dispositionMod * qualityMod
@@ -53,7 +53,7 @@ data class TradingComponent(
      * @return Price in gold
      */
     fun calculateBuyPrice(template: ItemTemplate, instance: ItemInstance, disposition: Int): Int {
-        val baseValue = template.getValue()
+        val baseValue = template.getPropertyInt("value", 10)
         val dispositionMod = 1.0 + (disposition - 50) / 100.0
         val qualityMod = instance.quality / 10.0
         val totalMod = priceModBase * dispositionMod * qualityMod

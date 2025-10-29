@@ -107,6 +107,24 @@ sealed class Intent {
     data class Use(val target: String) : Intent()
 
     /**
+     * Use an item in a multipurpose way (improvised weapon, placing items, etc.)
+     * @param target The name/identifier of the item to use
+     * @param action The specific action to perform with the item
+     * @param actionTarget Optional target for the action (e.g., NPC to bash with pot)
+     */
+    @Serializable
+    data class UseItem(val target: String, val action: String, val actionTarget: String? = null) : Intent()
+
+    /**
+     * Attempt to pickpocket an NPC (steal items or place items)
+     * @param npcTarget The name/identifier of the NPC to pickpocket
+     * @param action "steal" or "place"
+     * @param itemTarget Optional item to steal or place
+     */
+    @Serializable
+    data class Pickpocket(val npcTarget: String, val action: String = "steal", val itemTarget: String? = null) : Intent()
+
+    /**
      * Craft an item using a recipe
      * @param target The name/identifier of the recipe or item to craft
      */
