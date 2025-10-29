@@ -919,4 +919,49 @@ Completed:
   - Incremental item addition
   - Edge cases (brightness extremes, long descriptions, nested data)
 
-**Next Step:** Start Chunk 3 - Generation Pipeline Core
+**Chunk 3: Generation Pipeline Core (IN PROGRESS)** 🔄
+
+Completed:
+- ✅ `GenerationContext.kt` - Context data class for LLM generation (reasoning/world:21)
+  - Encapsulates seed, globalLore, parentChunk, level, direction
+  - Provides full context for LLM prompts
+- ✅ `ChunkIdGenerator.kt` - ID generation utilities (reasoning/world:67)
+  - generate() method with hierarchical ID format (level_parent_uuid)
+  - parse() method to extract ChunkLevel from ID
+  - extractParentId() helper for hierarchy queries
+  - WORLD level special case: "WORLD_root"
+- ✅ `GenerationCache.kt` - In-memory LRU cache (memory/world:123)
+  - Thread-safe with Kotlin coroutines and Mutex
+  - cachePending() and cacheComplete() for generation state
+  - getCached() and isPending() for duplicate prevention
+  - LRU eviction with 1000 chunk limit
+  - Helper methods: getPendingContext(), clear(), size(), pendingCount()
+- ✅ `LoreInheritanceEngine.kt` - Lore variation and theme blending (reasoning/world:124)
+  - varyLore() - Generates child lore from parent (2-4 sentences)
+  - blendThemes() - Creates cohesive theme names (2-4 words)
+  - Uses gpt-4o-mini with temperature 0.7 for cost-effective generation
+  - Direction-aware spatial hints (e.g., "north" = colder)
+  - Maintains consistency while introducing local details
+- ✅ `WorldGenerator.kt` - Primary generation engine (reasoning/world:327)
+  - generateChunk() - Creates WORLD/REGION/ZONE/SUBZONE chunks with LLM
+  - generateSpace() - Creates SPACE (room) with exits, traps, resources
+  - generateTrap() - Theme-based trap selection (15% probability)
+  - generateResource() - Theme-based resource nodes (5% probability)
+  - Hidden exits (20% of exits require Perception checks)
+  - JSON-structured LLM prompts for consistent parsing
+- ✅ `DungeonInitializer.kt` - Deep dungeon MVP starter (reasoning/world:145)
+  - initializeDeepDungeon() - Creates hierarchical dungeon structure
+  - WORLD: "Ancient Abyss Dungeon" with global lore
+  - 3 REGIONS: Upper Depths (1-10), Mid Depths (11-50), Lower Depths (51-100+)
+  - Pre-generates starting location (ZONE → SUBZONE → SPACE)
+  - Saves complete hierarchy to database
+  - Returns starting space ID for player spawn
+
+**Remaining Work:**
+- ⏳ Comprehensive unit tests (~85 tests planned)
+- ⏳ Chunk 4: Exit System & Navigation
+- ⏳ Chunk 5: Content Placement & Spawning
+- ⏳ Chunk 6: State Changes & Persistence
+- ⏳ Chunk 7: Integration, Testing & Documentation
+
+**Next Step:** Write comprehensive tests for Chunk 3 implementation
