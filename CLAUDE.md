@@ -38,7 +38,7 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-6/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes
+- **Item System V2**: ⏳ **Chunks 1-7/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes, trading system with disposition-based pricing
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -629,6 +629,52 @@ Completed:
 - TODO: XP rewards for crafting success/failure
 - TODO: InventoryComponent integration for input consumption and output addition
 
-**Next Chunk: Chunk 7 - Trading & TradingComponent**
+**Chunk 7: Trading & TradingComponent (COMPLETE)** ✅
+
+Completed:
+- ✅ `TradingComponent.kt` - Merchant trading component (core:169)
+  - merchantGold: Finite gold available for buying from players
+  - stock: List<ItemInstance> available for purchase
+  - buyAnything: Boolean flag for general merchants
+  - priceModBase: Base price modifier (1.0 = normal)
+  - calculateBuyPrice/calculateSellPrice with disposition modifiers
+  - addToStock/removeFromStock with stacking support
+  - addGold/removeGold with finite limits
+- ✅ `ComponentType.TRADING` - Added to enum (core:26)
+- ✅ `ItemDatabase.kt` - Added trading_stocks schema (memory/item:140)
+  - trading_stocks table (entity_id, merchant_gold, stock JSON, buy_anything, price_mod_base)
+  - clearAll() updated to include trading_stocks
+- ✅ `TradingRepository.kt` - Repository interface (core/repository:45)
+  - findByEntityId, save, delete, updateGold, updateStock
+  - findAll for multi-entity queries
+- ✅ `SQLiteTradingRepository.kt` - SQLite implementation (memory/item:160)
+  - JSON serialization for stock (List<ItemInstance>)
+  - Optimized gold and stock update methods
+  - Type-safe boolean conversion (1/0 for buyAnything)
+- ✅ `Intent.Trade` - Added to perception layer (perception:130)
+  - action: "buy" or "sell"
+  - target: Item name to trade
+  - quantity: Optional quantity (default 1)
+  - merchantTarget: Optional merchant name
+- ✅ `TradeHandler.kt` - Buy/sell logic with disposition modifiers (reasoning/trade:215)
+  - buyFromMerchant: Player buys from merchant (gold check, weight check, stock depletion)
+  - sellToMerchant: Player sells to merchant (gold check, buyAnything check, equipped check)
+  - Disposition price formula: price = base * (1.0 + (disposition - 50) / 100)
+  - TradeResult sealed class (Success, Failure) for type-safe handling
+  - findMerchant helper for locating merchants in room
+- ✅ `TradeHandlers.kt` - Handler stubs (app/handlers:79)
+  - handleTrade stub with TODO for InventoryComponent integration
+  - handleListStock for viewing merchant inventory with disposition-based pricing
+
+**System Design:**
+- Finite merchant gold prevents infinite sell exploits
+- Disposition affects pricing (friendly NPCs give discounts: disposition 70 = 0.8x price, hostile 30 = 1.2x)
+- Stock depletion on buy, replenishment on sell
+- Weight checks prevent over-encumbrance
+- TODO: Full integration with InventoryComponent when available
+- TODO: Unit tests for TradeHandler (20 tests planned)
+- TODO: Integration tests for TradingRepository persistence (10 tests planned)
+
+**Next Chunk: Chunk 8 - Pickpocketing & Advanced Item Use**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

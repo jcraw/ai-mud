@@ -102,6 +102,19 @@ class ItemDatabase(
                 """.trimIndent()
             )
 
+            // Trading stocks table (merchant stock and gold)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS trading_stocks (
+                    entity_id TEXT PRIMARY KEY,
+                    merchant_gold INTEGER NOT NULL DEFAULT 500,
+                    stock TEXT NOT NULL,
+                    buy_anything INTEGER NOT NULL DEFAULT 1,
+                    price_mod_base REAL NOT NULL DEFAULT 1.0
+                )
+                """.trimIndent()
+            )
+
             // Create indices for common queries
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_templates_type ON item_templates(type)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_templates_rarity ON item_templates(rarity)")
@@ -117,6 +130,7 @@ class ItemDatabase(
     fun clearAll() {
         val conn = getConnection()
         conn.createStatement().use { stmt ->
+            stmt.execute("DELETE FROM trading_stocks")
             stmt.execute("DELETE FROM inventories")
             stmt.execute("DELETE FROM item_instances")
             stmt.execute("DELETE FROM item_templates")

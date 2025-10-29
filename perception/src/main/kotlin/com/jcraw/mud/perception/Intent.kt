@@ -114,6 +114,21 @@ sealed class Intent {
     data class Craft(val target: String) : Intent()
 
     /**
+     * Buy or sell items with a merchant
+     * @param action "buy" or "sell"
+     * @param target The name/identifier of the item to trade
+     * @param quantity Optional quantity to trade (defaults to 1)
+     * @param merchantTarget Optional name of merchant (defaults to any merchant in room)
+     */
+    @Serializable
+    data class Trade(
+        val action: String,
+        val target: String,
+        val quantity: Int = 1,
+        val merchantTarget: String? = null
+    ) : Intent()
+
+    /**
      * Perform a skill check against a target or feature
      * @param target The name/identifier of what to check against
      */
