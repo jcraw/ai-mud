@@ -1,6 +1,6 @@
 # Known Bugs
 
-*Last Updated: 2025-10-24*
+*Last Updated: 2025-10-28*
 
 ## Current Status
 
@@ -19,7 +19,7 @@ gradle :testbot:test --tests "com.jcraw.mud.testbot.scenarios.AllPlaythroughsTes
 ```
 
 **Test Results:**
-- ✅ ~640 tests passing across all modules
+- ✅ ~751 tests passing across all modules
 - ✅ All bot playthrough scenarios passing
 - ✅ 100% pass rate
 
