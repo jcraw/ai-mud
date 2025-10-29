@@ -922,7 +922,8 @@ Completed:
 **Chunk 3: Generation Pipeline Core (IN PROGRESS)** 🔄
 
 Completed:
-- ✅ `GenerationContext.kt` - Context data class for LLM generation (reasoning/world:21)
+- ✅ `GenerationContext.kt` - Context data class for LLM generation (core/world:25)
+  - Moved to core module for proper dependency management
   - Encapsulates seed, globalLore, parentChunk, level, direction
   - Provides full context for LLM prompts
 - ✅ `ChunkIdGenerator.kt` - ID generation utilities (reasoning/world:67)
@@ -957,11 +958,35 @@ Completed:
   - Saves complete hierarchy to database
   - Returns starting space ID for player spawn
 
+**Testing (31 tests written):**
+- ✅ `ChunkIdGeneratorTest.kt` - ID generation and parsing tests (10 tests, reasoning:test)
+  - Format validation (level_parent_uuid)
+  - Uniqueness verification
+  - Parse method correctness
+  - Parent ID extraction
+  - WORLD level special case handling
+- ✅ `GenerationCacheTest.kt` - LRU cache and thread safety tests (12 tests, memory:test)
+  - Cache pending/complete flow
+  - Duplicate prevention with isPending()
+  - LRU eviction with max size limit
+  - Access order updates
+  - Concurrent access thread safety
+  - Helper method validation
+- ✅ `LoreInheritanceEngineTest.kt` - LLM lore generation tests (9 tests, reasoning:test)
+  - Lore variation with parent keywords
+  - Direction hint integration
+  - Theme blending
+  - LLM failure handling
+  - Model and temperature configuration
+  - Prompt structure validation
+
 **Remaining Work:**
-- ⏳ Comprehensive unit tests (~85 tests planned)
+- ⏳ Additional unit tests for WorldGenerator and DungeonInitializer (~54 tests planned)
 - ⏳ Chunk 4: Exit System & Navigation
 - ⏳ Chunk 5: Content Placement & Spawning
 - ⏳ Chunk 6: State Changes & Persistence
 - ⏳ Chunk 7: Integration, Testing & Documentation
 
-**Next Step:** Write comprehensive tests for Chunk 3 implementation
+**Note:** Some pre-existing compilation errors in CraftingManager.kt need to be resolved before tests can run. These are unrelated to Chunk 3 implementation.
+
+**Next Step:** Resolve compilation issues and continue writing WorldGenerator/DungeonInitializer tests

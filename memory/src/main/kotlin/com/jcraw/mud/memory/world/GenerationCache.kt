@@ -1,7 +1,7 @@
 package com.jcraw.mud.memory.world
 
 import com.jcraw.mud.core.WorldChunkComponent
-import com.jcraw.mud.reasoning.world.GenerationContext
+import com.jcraw.mud.core.world.GenerationContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 

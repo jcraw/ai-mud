@@ -1,7 +1,6 @@
-package com.jcraw.mud.reasoning.world
+package com.jcraw.mud.core.world
 
 import com.jcraw.mud.core.WorldChunkComponent
-import com.jcraw.mud.core.world.ChunkLevel
 
 /**
  * Context for LLM-driven world generation.

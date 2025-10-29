@@ -115,7 +115,7 @@ class WorldGenerator(
             description = spaceData.description,
             exits = exits.toMutableList(),
             brightness = spaceData.brightness.coerceIn(0, 100),
-            terrainType = spaceData.terrainType,
+            terrainType = TerrainType.valueOf(spaceData.terrainType),
             traps = traps.toMutableList(),
             resources = resources.toMutableList(),
             entities = emptyList(), // Populated later via MobSpawner
@@ -146,8 +146,7 @@ class WorldGenerator(
             type = trapType,
             difficulty = difficulty,
             triggered = false,
-            damageType = DamageType.PHYSICAL,
-            baseDamage = (5 + difficultyLevel / 2).coerceIn(5, 30)
+            description = "A $trapType lurks here"
         )
     }
 
