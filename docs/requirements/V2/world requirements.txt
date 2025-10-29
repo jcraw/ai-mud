@@ -1,0 +1,131 @@
+World Generation System Requirements (Hierarchical Procedural Generation for Open Worlds)
+Overview
+The World Generation system extends the AI-powered MUD engine with a hierarchical, on-demand procedural generation framework for creating infinite, consistent open worlds. It builds on classic MUD room-based navigation, allowing flexible movement via natural language directions while supporting emergent exploration (e.g., players can theoretically reach extreme locations like the moon if they acquire the means through skills/items/crafting). Generation occurs lazily as players approach boundaries, using LLM for rich, lore-consistent content (descriptions, politics, weather, inhabitants) inherited/modified from parent levels. V2 focuses on a deep dungeon starter world (top-to-bottom progression with respawns), integrating with existing systems for persistence, skills (e.g., perception for hidden exits), combat (mob placement), items (resources/loot), and social (NPCs/politics). Emphasizes modularity via ECS extension, RAG for lore coherence, and DB persistence. Future: Full open-world biomes, multiplayer sharing.
+Key Goals
+Infinite open world: Hierarchical chunks (World > Region > Zone > Subzone > Space) generate on-demand, allowing boundless exploration with lore-guided consistency (e.g., no moon without tech/magic paths).
+Rich, emergent spaces: Each level has lore (politics, inhabitants, weather stubs), variable sizes (e.g., Subzone: 5-100 Spaces), themes inherited/varied (e.g., snowy zone with hot cave subzone).
+Flexible navigation: Hybrid exits (cardinal + natural language like "climb ladder"); conditional/hidden based on skills/items.
+Integration: Ties to skills (spot traps/resources, traverse terrain), combat (mob spawns by theme/level), items (drops/nodes/corpses), social (NPCs with politics).
+V2 MVP: Deep dungeon hierarchy (100+ floors possible; start at top, progress deeper; respawn mobs on restart, persist changes/corpses).
+Balance: Varied difficulty (deeper = harder mobs/items); scarce resources with plentiful pockets; murder-hobo viable but alternatives encouraged.
+Modularity: ECS components for spaces; stubs for V3 (weather/events, mob wandering, multiplayer gen).
+Tech Stack: Kotlin, coroutines for async gen, immutable data classes, sealed classes for events, SQLite DB (PostgreSQL stub), existing modules (:core ECS, :reasoning, :perception, :memory, :persistence, :skills, :combat, :social, :items). RNG for variations; LLM for desc/lore/gen (cached in vector DB).
+Functional Requirements
+
+COMPONENT-BASED ARCHITECTURE (ECS Extension)
+1.1 New Component Types (add to ComponentType enum)
+
+WORLD_CHUNK: For hierarchical levels (attachable to entities representing chunks).
+SPACE_PROPERTIES: For space-specific traits (brightness, terrain, traps).
+1.2 WorldChunkComponent
+Data Class: WorldChunkComponent(
+level: ChunkLevel,                     // Enum: WORLD, REGION, ZONE, SUBZONE, SPACE
+parentId: String? = null,              // Link to parent chunk
+children: List<String> = emptyList(),  // Child chunk IDs
+lore: String,                          // LLM-generated text (politics, inhabitants, weather stubs, etc.)
+biomeTheme: String,                    // e.g., "dark forest", "magma cave"
+sizeEstimate: Int,                     // Abstract units (e.g., for Subzone: 5-100 spaces)
+mobDensity: Double = 0.5,              // 0-1; chance per space
+difficultyLevel: Int,                  // Scales mob/item rarity (deeper dungeon = higher)
+componentType: ComponentType = ComponentType.WORLD_CHUNK
+) : Component
+Methods:
+inheritFromParent(parentLore: String): WorldChunkComponent - LLM-modify lore/theme for variation.
+addChild(childId: String): WorldChunkComponent
+ChunkLevel Enum: WORLD (global seed/lore), REGION (large areas ~100km², e.g., wilderness), ZONE (themed sub-areas, e.g., snowy peak), SUBZONE (clustered spaces, e.g., cave floor; 5-100 spaces), SPACE (atomic room-like; variable size, e.g., 100m tunnel).
+1.3 SpacePropertiesComponent
+Data Class: SpacePropertiesComponent(
+description: String,                   // Cached LLM-generated; regen on state change
+exits: Map<String, ExitData> = emptyMap(), // Key: desc (e.g., "north", "climb ladder"); Value: target chunk ID + conditions
+brightness: Int = 50,                  // 0-100; affects stealth (higher = harder hide)
+terrainType: TerrainType,              // Enum: NORMAL, DIFFICULT (slows movement), IMPASSABLE (skill/item req)
+traps: List<TrapData> = emptyList(),   // ID, type, difficulty
+resources: List<ResourceNode> = emptyList(), // Ties to items gathering
+entities: List<String> = emptyList(),  // Mob/NPC IDs; spawns on gen/respawn
+itemsDropped: List<ItemInstance> = emptyList(), // Persist corpses/drops
+stateFlags: Map<String, Boolean> = emptyMap(), // e.g., "boulder_moved": true
+componentType: ComponentType = ComponentType.SPACE_PROPERTIES
+) : Component
+Methods:
+updateDescription(): SpacePropertiesComponent - LLM regen if flags changed.
+resolveExit(intent: String): String? - Hybrid: Exact/fuzzy match + LLM parse; fallback "unclear direction".
+applyChange(flag: String, value: Boolean): SpacePropertiesComponent - Update state, trigger desc regen.
+ExitData: Data Class (targetId: String, conditions: List<Condition>); Condition: Skill check (name, difficulty) or item req.
+TerrainType Enum: NORMAL, DIFFICULT (time cost +dmg risk), IMPASSABLE (fail w/ dmg unless condition met).
+TrapData: ID, type (e.g., pit), difficulty (skill check to spot/disarm).
+
+DATABASE PERSISTENCE
+2.1 Schema Extension
+
+world_chunks - (id, level, parent_id, children JSON, lore, biome_theme, size_estimate, mob_density, difficulty_level)
+space_properties - (chunk_id, description, exits JSON, brightness, terrain_type, traps JSON, resources JSON, entities JSON, items_dropped JSON, state_flags JSON)
+world_seed - (id, seed_string, global_lore)
+Indexes: world_chunks.parent_id; space_properties.chunk_id.
+2.2 Repositories (:core/repository/)
+WorldChunkRepository: CRUD chunks, findAdjacent(parentId, direction).
+SpacePropertiesRepository: Update desc/flags/exits.
+Impl: SQLiteWorldChunkRepository etc. (:persistence). Optimistic locking for changes.
+
+GENERATION PIPELINE
+3.1 Trigger and Cascade
+
+On-demand: When player nears boundary (e.g., Intent.Travel near edge), gen adjacent chunk via coroutines.
+Cascade: Gen from parent (inherit lore/theme, vary via LLM prompt: "Generate [level] in [parent biome]: lore, theme, size 5-100").
+V2 Starter: Deep dungeon (WORLD: "Ancient Abyss Dungeon"; REGIONS: "Upper/Mid/Lower Depths"; ZONES: themed floors; SUBZONES: floor sections; SPACES: rooms). Gen deeper on progress.
+Seed: Fixed MVP string ("dark fantasy DnD"); LLM uses for consistency (e.g., fantasy denizens, no spaceships unless lore evolves).
+3.2 Content Generation
+LLM Prompt: "Based on seed [seed] and parent lore [parentLore], generate [level] details: rich lore (politics, inhabitants, weather stubs), theme, size, mob density, difficulty (deeper=harder)."
+Spaces: Add exits (3-6 avg; cardinal + descriptive), traps (theme-based, 10-20% chance), resources (scarce; plentiful veins rare), entities (mobs/NPCs via theme/density; respawn on restart).
+Hidden/Conditional: 20% exits hidden (Perception check); conditions via skills/items (e.g., "climb": Agility diff 15 or climbing kit).
+Verticality: Exits like "down shaft" (fly/climb req); support air/water if skills allow.
+3.3 Movement and Resolution
+Intents: Intent.Scout(direction: String) - Reveal desc/hints (skill-filtered).
+Intent.Travel(direction: String) - Resolve exit (hybrid match/LLM), check conditions (skill roll/item), apply time cost (terrain mods via combat ticks), risks (fall dmg on fail).
+Ambiguity: "I'm not sure which direction that is." + suggest visibles.
+3.4 State and Changes
+Persist all (infinite but lazy; DB grows outward from start).
+Player Mods: Update flags (e.g., "destroy boulder" -> set flag, regen desc).
+Restart: Respawn mobs (regen entities list); persist chunks/changes/corpses/drops; new player at top with beginner setup.
+
+INTEGRATIONS
+4.1 Skills: Checks for exits/terrain/traps/resources (e.g., Perception spots hidden; Agility traverses difficult).
+4.2 Combat: Mob spawns tie to difficulty/theme; space properties affect (e.g., brightness mods stealth).
+4.3 Items: Resources as gathering nodes; drops/corpses persist in spaces.
+4.4 Social: NPCs with lore politics; inhabitants in spaces.
+4.5 Memory/RAG: Embed lore for queries (e.g., "politics here"); recall changes.
+4.6 Stubs: WeatherSystem (V3: day-night/events affecting brightness/terrain/mobs); MultiplayerGen (shared seeds/locks).
+MODULE STRUCTURE
+:core: WorldChunkComponent, SpacePropertiesComponent, ChunkLevel/TerrainType enums.
+:perception: New intents (Scout, Travel).
+:reasoning: WorldGenerator (LLM prompts, cascade), ExitResolver (hybrid parse), SpaceModifier (changes).
+:memory: Lore embeddings.
+:persistence: Repos.
+:app/:client: Gen triggers, UI display (desc + lists: exits/entities/resources; text minimap stub for dungeon floors).
+Data Flow: Intent → Generator/Resolver → LLM/DB → Update → Narration.
+NON-FUNCTIONAL
+Performance: Async gen; cache desc/lore; limit active chunks in memory.
+Scalability: Hierarchical queries; no practical bounds (DB handles infinite via lazy).
+Security: Sanitize inputs.
+Testability: Mocks for LLM/RNG/Skills.
+TESTING
+7.1 Unit: Gen logic, exit resolution, state changes.
+7.2 Integration: Full traversal (gen, move, modify, persist).
+7.3 Bot: Dungeon playthrough (explore deep, die, respawn, retrieve corpse).
+IMPLEMENTATION STRATEGY
+Phase 1: Components/Schema (4h) - Hierarchy setup.
+Phase 2: Generation Cascade (5h) - LLM prompts, inheritance.
+Phase 3: Exits/Movement (4h) - Hybrid resolve, conditions.
+Phase 4: Content Placement (4h) - Traps/resources/entities.
+Phase 5: Changes/Persistence (3h) - Flags, respawn.
+Phase 6: Integrations/UI (4h).
+Phase 7: Tests/Docs (5h).
+Total: 29h.
+FUTURE ENHANCEMENTS
+V3: Weather/events/day-night; mob wandering; full biomes/open world; multiplayer shared gen; procedural evolutions (e.g., player actions alter lore); dynamic seeds.
+SUCCESS CRITERIA
+✅ Hierarchical on-demand gen with rich lore inheritance.
+✅ Flexible exits/movement with skills integration.
+✅ Persistent changes/corpses; mob respawn on restart.
+✅ V2 deep dungeon MVP (start top, progress deep).
+✅ Integrates skills/combat/items/social.
+✅ Tests pass; bot explores/wins via progression.
