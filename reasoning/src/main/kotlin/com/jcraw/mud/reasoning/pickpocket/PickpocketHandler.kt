@@ -105,7 +105,7 @@ class PickpocketHandler(
         } else {
             // Stealing specific item - find it
             val item = targetInventory.items.firstOrNull { instance ->
-                val templateResult = itemRepository.findById(instance.templateId)
+                val templateResult = itemRepository.findTemplateById(instance.templateId)
                 templateResult.getOrNull()?.name?.equals(itemTarget, ignoreCase = true) == true
             }
             if (item == null) {
@@ -138,10 +138,10 @@ class PickpocketHandler(
             } else {
                 // Steal specific item
                 val item = targetInventory.items.first { instance ->
-                    val templateResult = itemRepository.findById(instance.templateId)
+                    val templateResult = itemRepository.findTemplateById(instance.templateId)
                     templateResult.getOrNull()?.name?.equals(itemTarget, ignoreCase = true) == true
                 }
-                val template = itemRepository.findById(item.templateId).getOrNull()!!
+                val template = itemRepository.findTemplateById(item.templateId).getOrNull()!!
 
                 // Check if player can carry it
                 if (!playerInventory.canAdd(template, 1, templates)) {
@@ -192,7 +192,7 @@ class PickpocketHandler(
             ?: return PickpocketResult.Failure("You don't have that item")
 
         // Get item template
-        val templateResult = itemRepository.findById(item.templateId)
+        val templateResult = itemRepository.findTemplateById(item.templateId)
         if (templateResult.isFailure || templateResult.getOrNull() == null) {
             return PickpocketResult.Failure("Item template not found")
         }
@@ -300,7 +300,7 @@ class PickpocketHandler(
     ): PickpocketResult.Caught {
         // Calculate disposition penalty based on how badly they failed
         // Margin is negative, so we negate it and scale: -20 to -50
-        val dispositionDelta = (-20 - (skillCheckResult.margin.absoluteValue * 3)).coerceAtMost(-20).coerceAtLeast(-50)
+        val dispositionDelta = (-20 - (kotlin.math.abs(skillCheckResult.margin) * 3)).coerceAtMost(-20).coerceAtLeast(-50)
 
         // Apply disposition change
         val updatedSocial = (targetSocial ?: SocialComponent(personality = "ordinary", traits = emptyList()))

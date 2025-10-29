@@ -735,6 +735,43 @@ Completed:
 - TODO: Integration with combat system for improvised weapon attacks
 - TODO: Environmental effects for burn/break/pour actions
 
-**Next Chunk: Chunk 9 - Skills & Combat Integration**
+**Chunk 9: Skills & Combat Integration (COMPLETE)** ✅
+
+Completed:
+- ✅ `CapacityCalculator.kt` - Strength-based capacity calculation with bag/perk bonuses (reasoning/skills:113)
+  - Base formula: Strength * 5kg
+  - Bag bonuses from equipped containers (e.g., +10kg from backpack)
+  - Perk multipliers (Pack Mule +20%, Strong Back +15%, Hoarder +25%)
+  - calculateFullCapacity() integrates all systems
+- ✅ `SkillModifierCalculator.kt` - Equipped item skill bonuses and damage/defense (reasoning/skills:144)
+  - calculateSkillBonus() - Reads "skill_name_bonus" properties from items
+  - getWeaponDamage() - Extracts weapon damage from equipped weapon
+  - getQualityMultiplier() - Quality 1-10 scales damage (0.8x to 2.0x)
+  - getTotalArmorDefense() - Sums defense from all equipped armor
+- ✅ `DamageCalculator.kt` - Updated for weapon damage and armor integration (reasoning/combat:202)
+  - Now accepts attackerEquipped, defenderEquipped, templates parameters
+  - Weapon damage added to base damage
+  - Quality multiplier applied to damage
+  - Armor defense subtracted from final damage
+  - Formula: (base + weapon + skill + item) * quality ± variance - resistance - armor
+- ✅ `AttackResolver.kt` - Updated for equipped item parameters (reasoning/combat:293)
+  - resolveAttack() now accepts attackerEquipped, defenderEquipped, templates
+  - Passes equipped items to DamageCalculator
+- ✅ `InventoryManager.kt` - High-level inventory operations with capacity integration (reasoning/inventory:155)
+  - updateCapacity() - Recalculates capacity when Strength changes or perks acquired
+  - addItem() - Validates weight before adding
+  - equipItem() - Validates slot and inventory presence
+  - Sealed result classes (AddResult, RemoveResult, EquipResult)
+- ✅ `SkillQuestHandlers.kt` - Gathering and crafting XP rewards
+  - handleInteract() - Awards XP for gathering (50 base on success, 25 on failure)
+  - handleCraft() - Awards XP for crafting (50 + difficulty*5 on success, 10 + difficulty on failure)
+- ✅ `CapacityCalculatorTest.kt` - Comprehensive unit tests (14 tests passing, reasoning:test)
+
+**XP Reward Integration:**
+- Gathering: 50 XP on success, 25 XP on failure (20% of success)
+- Crafting: (50 + difficulty*5) XP on success, (10 + difficulty) XP on failure
+- Both support level-ups and perk milestone notifications
+
+**Next Chunk: Chunk 10 - Documentation & Final Testing**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).

@@ -96,8 +96,28 @@ object SkillQuestHandlers {
             if (!result.success) {
                 println("❌ You failed to harvest the resource properly.")
 
-                // TODO: Award 20% XP on failure (when skill system integration complete)
-                // For now, just return empty-handed
+                // Award 20% XP on failure
+                val skillName = challenge.statType.name
+                val baseXp = 25L // Lower than success
+                val xpEvents = game.skillManager.grantXp(
+                    entityId = game.worldState.player.id,
+                    skillName = skillName,
+                    baseXp = baseXp,
+                    success = false
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            println("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            println("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}")
+                        }
+                        else -> {}
+                    }
+                }
+
                 return
             }
 
@@ -126,8 +146,32 @@ object SkillQuestHandlers {
             }
         }
 
-        // TODO: Award XP for gathering skill based on feature's skill requirement
-        // This will be integrated when gathering skills are added to SkillDefinitions
+        // Award XP for gathering skill based on feature's skill requirement
+        if (feature.skillChallenge != null && skillCheckResult != null) {
+            val skillName = feature.skillChallenge!!.statType.name
+            val baseXp = 50L // Full XP for successful harvest
+            val xpEvents = game.skillManager.grantXp(
+                entityId = game.worldState.player.id,
+                skillName = skillName,
+                baseXp = baseXp,
+                success = skillCheckResult.success
+            ).getOrNull() ?: emptyList()
+
+            xpEvents.forEach { event ->
+                when (event) {
+                    is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                        println("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")
+                    }
+                    is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                        println("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}")
+                        if (event.isAtPerkMilestone) {
+                            println("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.")
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
 
         // Mark feature as completed (harvested)
         val updatedFeature = feature.copy(isCompleted = true)
@@ -368,8 +412,29 @@ object SkillQuestHandlers {
                 // For now, just track for quests
                 game.trackQuests(QuestAction.CollectedItem(result.craftedItem.id))
 
-                // TODO: Award XP to crafting skill
-                // This will be integrated when Skills V2 supports crafting skills
+                // Award XP to crafting skill (full XP on success)
+                val baseXp = 50L + (recipe.difficulty * 5L) // Scale with difficulty
+                val xpEvents = game.skillManager.grantXp(
+                    entityId = game.worldState.player.id,
+                    skillName = recipe.requiredSkill,
+                    baseXp = baseXp,
+                    success = true
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            println("+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})")
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            println("🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel}")
+                            if (event.isAtPerkMilestone) {
+                                println("⚡ Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk.")
+                            }
+                        }
+                        else -> {}
+                    }
+                }
             }
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Failure -> {
                 println("❌ ${result.message}")
@@ -379,6 +444,27 @@ object SkillQuestHandlers {
                         val templateResult = game.itemRepository.findTemplateById(templateId)
                         val templateName = templateResult.getOrNull()?.name ?: templateId
                         println("  - $qty x $templateName")
+                    }
+                }
+
+                // Award 20% XP on failure
+                val baseXp = 10L + (recipe.difficulty * 1L) // Lower than success
+                val xpEvents = game.skillManager.grantXp(
+                    entityId = game.worldState.player.id,
+                    skillName = recipe.requiredSkill,
+                    baseXp = baseXp,
+                    success = false
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            println("+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})")
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            println("🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel}")
+                        }
+                        else -> {}
                     }
                 }
             }

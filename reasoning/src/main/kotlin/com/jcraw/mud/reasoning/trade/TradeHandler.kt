@@ -68,7 +68,7 @@ class TradeHandler(
         }
 
         // Get template for price calculation
-        val templateResult = itemRepository.findById(item.templateId)
+        val templateResult = itemRepository.findTemplateById(item.templateId)
         if (templateResult.isFailure || templateResult.getOrNull() == null) {
             return TradeResult.Failure("Item template not found")
         }
@@ -159,7 +159,7 @@ class TradeHandler(
         }
 
         // Get template for price calculation
-        val templateResult = itemRepository.findById(item.templateId)
+        val templateResult = itemRepository.findTemplateById(item.templateId)
         if (templateResult.isFailure || templateResult.getOrNull() == null) {
             return TradeResult.Failure("Item template not found")
         }
@@ -212,8 +212,8 @@ class TradeHandler(
      * @return Merchant NPC or null if not found
      */
     fun findMerchant(room: Room, merchantName: String? = null): Entity.NPC? {
-        return room.npcs.find { npc ->
-            npc.hasComponent(ComponentType.TRADING) &&
+        return room.entities.filterIsInstance<Entity.NPC>().find { npc ->
+            npc.components.containsKey(ComponentType.TRADING) &&
             (merchantName == null || npc.name.equals(merchantName, ignoreCase = true))
         }
     }

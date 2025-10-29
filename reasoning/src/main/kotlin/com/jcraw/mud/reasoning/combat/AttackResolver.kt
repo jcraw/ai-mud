@@ -26,13 +26,19 @@ class AttackResolver(
      * @param defenderId ID of defending entity
      * @param action Description of the attack action (for skill classification)
      * @param worldState Current world state
+     * @param attackerEquipped Attacker's equipped items (for weapon damage/bonuses)
+     * @param defenderEquipped Defender's equipped items (for armor defense)
+     * @param templates Map of item templates for property lookup
      * @return AttackResult with outcome and updated state
      */
     suspend fun resolveAttack(
         attackerId: String,
         defenderId: String,
         action: String,
-        worldState: WorldState
+        worldState: WorldState,
+        attackerEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
+        defenderEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
+        templates: Map<String, ItemTemplate> = emptyMap()
     ): AttackResult {
         // Get entities
         val attacker = worldState.findEntity(attackerId)
@@ -103,7 +109,13 @@ class AttackResolver(
             defenseRoll = defenseRoll
         )
 
-        val damageResult = damageCalculator.calculateDamage(damageContext, worldState)
+        val damageResult = damageCalculator.calculateDamage(
+            damageContext,
+            worldState,
+            attackerEquipped,
+            defenderEquipped,
+            templates
+        )
 
         // 7. Apply damage to defender's CombatComponent
         val updatedDefenderCombat = defenderCombat.applyDamage(
@@ -244,6 +256,7 @@ data class DamageResult(
     val skillModifier: Int,
     val itemBonus: Int,
     val resistanceReduction: Int,
+    val armorDefense: Int = 0,
     val variance: Int,
     val finalDamage: Int,
     val damageType: DamageType

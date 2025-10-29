@@ -1,17 +1,19 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.reasoning.skills.SkillModifierCalculator
 import kotlin.random.Random
 
 /**
  * Calculates damage for attacks using configurable formulas
  *
- * Formula: (baseDamage + skillMod + itemBonus) * typeMult - resistReduction ± variance
+ * Formula: (baseDamage + skillMod + itemBonus) * qualityMult - resistReduction - armorDefense ± variance
  * - Base damage: Weapon/ability base value (e.g., sword = 10, fireball = 15)
  * - Skill mod: Primary skill level contributing to damage
- * - Item bonus: Enchantments and bonuses (future feature)
- * - Type mult: Damage type multipliers for weaknesses/resistances
+ * - Item bonus: Weapon damage property from equipped weapon
+ * - Quality mult: Quality 1-10 scales damage (0.8x to 2.0x)
  * - Resist reduction: Target's resistance skill reduces damage (resistSkillLevel / 2%)
+ * - Armor defense: Target's armor defense property reduces damage
  * - Variance: ±20% random variation
  *
  * Design principles:
@@ -20,6 +22,7 @@ import kotlin.random.Random
  * - Configurable: Formulas can be tuned via parameters
  */
 class DamageCalculator(
+    private val skillModifierCalculator: SkillModifierCalculator = SkillModifierCalculator(),
     private val random: Random = Random.Default,
     private val damageVariance: Double = 0.2 // ±20%
 ) {
@@ -74,11 +77,17 @@ class DamageCalculator(
      *
      * @param context All information about the attack
      * @param worldState Current world state (for equipment lookups)
+     * @param attackerEquipped Attacker's equipped items (for weapon damage)
+     * @param defenderEquipped Defender's equipped items (for armor defense)
+     * @param templates Map of item templates for property lookup
      * @return DamageResult with breakdown and final damage
      */
     fun calculateDamage(
         context: DamageContext,
-        worldState: WorldState
+        worldState: WorldState,
+        attackerEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
+        defenderEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
+        templates: Map<String, ItemTemplate> = emptyMap()
     ): DamageResult {
         // 1. Determine base damage from weapon/action
         val (baseDamage, damageType) = getBaseDamageAndType(context.action)
@@ -88,27 +97,40 @@ class DamageCalculator(
             (context.attackerSkills.getEffectiveLevel(weight.skill) * weight.weight).toInt()
         } ?: 0
 
-        // 3. Item bonus (future feature - weapons with +damage)
-        val itemBonus = 0 // TODO: Implement when equipment component is integrated
+        // 3. Get weapon damage from equipped weapon
+        val weaponDamage = skillModifierCalculator.getWeaponDamage(attackerEquipped, templates)
 
-        // 4. Calculate resistance reduction
+        // 4. Get weapon quality multiplier
+        val weaponInstance = attackerEquipped[EquipSlot.HANDS_BOTH]
+            ?: attackerEquipped[EquipSlot.HANDS_MAIN]
+        val qualityMultiplier = skillModifierCalculator.getQualityMultiplier(weaponInstance)
+
+        // 5. Calculate base + item bonus before multiplier
+        val baseWithWeapon = baseDamage + weaponDamage
+        val itemBonus = (baseWithWeapon * (qualityMultiplier - 1.0)).toInt()
+
+        // 6. Calculate resistance reduction
         val resistanceReduction = calculateResistanceReduction(
             damageType,
             context.defenderSkills
         )
 
-        // 5. Apply variance (±20% by default)
-        val varianceAmount = applyVariance(baseDamage + skillModifier + itemBonus)
+        // 7. Get armor defense from equipped armor
+        val armorDefense = skillModifierCalculator.getTotalArmorDefense(defenderEquipped, templates)
 
-        // 6. Calculate final damage
-        val rawDamage = baseDamage + skillModifier + itemBonus + varianceAmount - resistanceReduction
+        // 8. Apply variance (±20% by default)
+        val varianceAmount = applyVariance(baseWithWeapon + skillModifier + itemBonus)
+
+        // 9. Calculate final damage: base + skill + item + variance - resistance - armor
+        val rawDamage = baseWithWeapon + skillModifier + itemBonus + varianceAmount - resistanceReduction - armorDefense
         val finalDamage = rawDamage.coerceAtLeast(1) // Minimum 1 damage
 
         return DamageResult(
             baseDamage = baseDamage,
             skillModifier = skillModifier,
-            itemBonus = itemBonus,
+            itemBonus = weaponDamage + itemBonus,
             resistanceReduction = resistanceReduction,
+            armorDefense = armorDefense,
             variance = varianceAmount,
             finalDamage = finalDamage,
             damageType = damageType
