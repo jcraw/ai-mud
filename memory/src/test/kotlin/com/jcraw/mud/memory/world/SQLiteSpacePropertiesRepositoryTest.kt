@@ -85,7 +85,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `update space properties overwrites existing`() {
         val original = SpacePropertiesComponent(
             description = "Original",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -110,9 +110,9 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `exits list serializes correctly`() {
         val exits = listOf(
-            ExitData("north", "target1", emptyList(), "North exit", false),
-            ExitData("south", "target2", listOf(Condition.SkillCheck("Perception", 10)), "Hidden south", true),
-            ExitData("up", "target3", listOf(Condition.ItemRequired("climbing_gear")), "Climb up", false)
+            ExitData("target1", "north", "North exit", emptyList(), false),
+            ExitData("target2", "south", "Hidden south", listOf(Condition.SkillCheck("Perception", 10)), true),
+            ExitData("target3", "up", "Climb up", listOf(Condition.ItemRequired("climbing_gear")), false)
         )
 
         val props = SpacePropertiesComponent(
@@ -164,7 +164,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         TerrainType.entries.forEach { terrain ->
             val props = SpacePropertiesComponent(
                 description = "Test $terrain",
-                exits = emptyMap(),
+                exits = emptyList(),
                 brightness = 50,
                 terrainType = terrain,
                 traps = emptyList(),
@@ -210,7 +210,7 @@ class SQLiteSpacePropertiesRepositoryTest {
 
         val props = SpacePropertiesComponent(
             description = "Trapped room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = traps,
@@ -240,7 +240,7 @@ class SQLiteSpacePropertiesRepositoryTest {
 
         val props = SpacePropertiesComponent(
             description = "Resource-rich area",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -268,7 +268,7 @@ class SQLiteSpacePropertiesRepositoryTest {
 
         val props = SpacePropertiesComponent(
             description = "Populated room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -296,7 +296,7 @@ class SQLiteSpacePropertiesRepositoryTest {
 
         val props = SpacePropertiesComponent(
             description = "Room with loot",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -327,7 +327,7 @@ class SQLiteSpacePropertiesRepositoryTest {
 
         val props = SpacePropertiesComponent(
             description = "Stateful room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -351,7 +351,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `updateDescription updates only description`() {
         val props = SpacePropertiesComponent(
             description = "Original",
-            exits = listOf(ExitData("north", "target", emptyList(), "Exit", false)),
+            exits = listOf(ExitData("target", "north", "Exit", emptyList(), false)),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -374,7 +374,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `updateFlags updates only flags`() {
         val props = SpacePropertiesComponent(
             description = "Test",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -397,7 +397,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `addItems appends to existing items`() {
         val props = SpacePropertiesComponent(
             description = "Test",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -424,7 +424,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `delete removes space properties`() {
         val props = SpacePropertiesComponent(
             description = "Delete me",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -453,7 +453,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `brightness extremes persist correctly`() {
         val darkProps = SpacePropertiesComponent(
             description = "Pitch black",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 0,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -496,7 +496,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         val longDesc = "A".repeat(10000)
         val props = SpacePropertiesComponent(
             description = longDesc,
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -517,9 +517,9 @@ class SQLiteSpacePropertiesRepositoryTest {
         val complexProps = SpacePropertiesComponent(
             description = "Complex room with everything",
             exits = listOf(
-                ExitData("north", "t1", listOf(Condition.SkillCheck("Perception", 15)), "Hidden", true),
-                ExitData("south", "t2", emptyList(), "Open", false),
-                ExitData("up", "t3", listOf(Condition.ItemRequired("key")), "Locked", false)
+                ExitData("t1", "north", "Hidden", listOf(Condition.SkillCheck("Perception", 15)), true),
+                ExitData("t2", "south", "Open", emptyList(), false),
+                ExitData("t3", "up", "Locked", listOf(Condition.ItemRequired("key")), false)
             ),
             brightness = 75,
             terrainType = TerrainType.DIFFICULT,
