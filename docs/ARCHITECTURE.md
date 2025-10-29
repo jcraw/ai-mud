@@ -205,6 +205,53 @@ Memory (store for RAG)
 - Procedurally generated NPC personalities and traits based on dungeon theme
 - See [Social System Documentation](./SOCIAL_SYSTEM.md) for complete details
 
+### Item System V2
+- **Component-based architecture** for inventory and trading systems
+  - `InventoryComponent` - Weight-limited inventory with 12 equip slots (`core/InventoryComponent.kt`)
+  - `TradingComponent` - Merchant trading with finite gold and stock (`core/TradingComponent.kt`)
+- **ECS-based item model**:
+  - `ItemTemplate` - Shared definitions with properties and tags (53 templates loaded from JSON)
+  - `ItemInstance` - Quality (1-10), charges, quantity with stacking support
+  - 10 item types: WEAPON, ARMOR, CONSUMABLE, RESOURCE, QUEST, TOOL, CONTAINER, SPELL_BOOK, SKILL_BOOK, MISC
+  - 5 rarity tiers: COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
+- **Loot system** - Weighted drop tables with rarity-based distribution (`reasoning/loot/`)
+  - LootTable with quality modifiers and drop chances
+  - LootGenerator with source-based quality (+0/+1/+2 for common/elite/boss)
+  - 9 predefined loot tables in LootTableRegistry
+  - Corpse-based loot generation integrated with DeathHandler
+- **Gathering system** - Skill-based resource harvesting from features
+  - D&D-style skill checks (d20 + modifier vs DC)
+  - Tool requirements via tag matching ("mining_tool", "chopping_tool", etc.)
+  - Finite resources tracked via Entity.Feature.isCompleted
+  - XP rewards (50 on success, 25 on failure)
+- **Crafting system** - Recipe-based with 24 preloaded recipes (`reasoning/crafting/`)
+  - D&D-style skill checks determine success
+  - Quality scaling based on skill level (level/10, clamped 1-10)
+  - Failure consumes 50% of inputs
+  - Tool requirements and material consumption
+  - XP rewards (50 + difficulty*5 on success, 10 + difficulty on failure)
+- **Trading system** - Disposition-aware merchant interactions (`reasoning/trade/`)
+  - Finite merchant gold prevents exploits
+  - Disposition price formula: price = base * (1.0 + (disposition - 50) / 100)
+  - Stock depletion on buy, replenishment on sell
+  - Weight checks prevent over-encumbrance
+- **Pickpocketing system** - Stealth/consequence mechanics (`reasoning/pickpocket/`)
+  - Skill check: max(Stealth, Agility) vs target Perception
+  - Disposition penalty (-20 to -50) on failure
+  - Wariness status (+20 Perception for 10 turns) after caught
+- **Multipurpose items** - Tag-based system for emergent uses (`reasoning/items/`)
+  - Tags enable flexible uses: "blunt"→weapon, "explosive"→detonate, "container"→storage
+  - Improvised weapon damage = weight * 0.5
+  - Environmental uses: flammable (burn), fragile (break), liquid (pour)
+- **Database persistence** - SQLite schema with 5 tables (`memory/item/ItemDatabase.kt`)
+  - item_templates, item_instances, inventories, recipes, trading_stocks
+  - JSON serialization for complex fields (tags, properties, equipped items)
+- **Skills & combat integration**:
+  - Capacity = Strength * 5kg + bag bonuses + perk multipliers
+  - Equipped items provide skill bonuses, weapon damage, armor defense
+  - Quality multiplier affects damage (0.8x to 2.0x for quality 1-10)
+- See [Items and Crafting Documentation](./ITEMS_AND_CRAFTING.md) for complete details
+
 ### Combat Narration Caching System
 - **Vector DB caching** for optimized LLM performance
 - **Three-tier approach**:
@@ -321,6 +368,45 @@ Memory (store for RAG)
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/social/EmoteHandler.kt` - Emote processing
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/social/NPCKnowledgeManager.kt` - Knowledge queries
 - `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - Emote and AskQuestion intents
+
+### Item System V2
+- **Core components** (`core/src/main/kotlin/com/jcraw/mud/core/`)
+  - `InventoryComponent.kt` - Weight-limited inventory with 12 equip slots
+  - `TradingComponent.kt` - Merchant trading with finite gold and stock
+  - `ItemTemplate.kt` - Shared item definitions
+  - `ItemInstance.kt` - Item instances with quality, charges, quantity
+  - `ItemType.kt`, `EquipSlot.kt`, `Rarity.kt` - Item type enums
+  - `LootTable.kt` - Weighted loot table system
+  - `Recipe.kt` - Crafting recipe data model
+- **Repositories** (`core/src/main/kotlin/com/jcraw/mud/core/repository/`)
+  - `ItemRepository.kt`, `InventoryRepository.kt`, `RecipeRepository.kt`, `TradingRepository.kt`
+- **Database** (`memory/src/main/kotlin/com/jcraw/mud/memory/item/`)
+  - `ItemDatabase.kt` - SQLite schema (5 tables)
+  - `SQLiteItemRepository.kt`, `SQLiteInventoryRepository.kt`, `SQLiteRecipeRepository.kt`, `SQLiteTradingRepository.kt`
+- **Loot system** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/loot/`)
+  - `LootGenerator.kt` - Item generation from loot tables
+  - `LootTableRegistry.kt` - Predefined loot tables
+- **Crafting** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/crafting/`)
+  - `CraftingManager.kt` - Recipe matching and skill checks
+- **Trading** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/trade/`)
+  - `TradeHandler.kt` - Buy/sell logic with disposition modifiers
+- **Pickpocketing** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/pickpocket/`)
+  - `PickpocketHandler.kt` - Stealth/Agility checks vs Perception
+- **Item uses** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/items/`)
+  - `ItemUseHandler.kt` - Multipurpose uses via tags
+- **Skills integration** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skills/`)
+  - `CapacityCalculator.kt` - Strength-based capacity calculation
+  - `SkillModifierCalculator.kt` - Equipped item bonuses
+- **Inventory management** (`reasoning/src/main/kotlin/com/jcraw/mud/reasoning/inventory/`)
+  - `InventoryManager.kt` - High-level inventory operations
+- **Resources**
+  - `memory/src/main/resources/item_templates.json` - 53 item templates
+  - `memory/src/main/resources/recipes.json` - 24 crafting recipes
+- **Handlers** (`app/src/main/kotlin/com/jcraw/app/handlers/`)
+  - `ItemHandlers.kt`, `TradeHandlers.kt`, `PickpocketHandlers.kt`, `ItemUseHandlers.kt`
+  - `SkillQuestHandlers.kt` - Gathering (handleInteract) and crafting (handleCraft)
+- **Intents** (`perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`)
+  - Craft, Trade, Pickpocket, UseItem intents
 
 ### Sample Content
 - `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`

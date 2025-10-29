@@ -104,6 +104,34 @@ Test logs are saved to `test-logs/` directory (JSON + human-readable text).
 - `use <item>` - Use a healing potion or consumable
 - `consume <item>`, `drink <item>`, `eat <item>` - Alternative use commands
 
+### Looting
+- `loot <corpse>` - Inspect corpse contents
+- `loot <item> from <corpse>` - Loot a specific item from a corpse
+- `loot all from <corpse>` - Take all items and gold from a corpse
+
+### Gathering
+- `interact <feature>` - Harvest resources from harvestable features
+- `harvest <feature>`, `gather <resource>` - Alternative gathering commands
+- Features may require specific tools (pickaxe for mining, axe for trees, etc.)
+
+### Crafting
+- `craft <recipe>` - Craft an item using a recipe
+- Requires materials, tools, and sufficient skill level
+- Recipes can be discovered through experimentation
+
+### Trading
+- `buy <item>` - Buy an item from a merchant in the room
+- `sell <item>` - Sell an item to a merchant
+- `buy <item> from <merchant>` - Buy from a specific merchant
+- `sell <item> to <merchant>` - Sell to a specific merchant
+- `list stock` - View merchant inventory and prices (affected by disposition)
+
+### Pickpocketing
+- `pickpocket <npc>` - Attempt to steal from an NPC
+- `steal <item> from <npc>` - Steal a specific item
+- `place <item> on <npc>` - Secretly place an item on an NPC
+- Failed attempts damage disposition and apply wariness status (+20 Perception)
+
 ### Skill Checks
 - `check <feature>` - Attempt a skill check on an interactive feature
 - `test <feature>`, `attempt <feature>`, `try <feature>` - Alternative check commands
@@ -146,12 +174,16 @@ Test logs are saved to `test-logs/` directory (JSON + human-readable text).
 
 ### Game Mechanics
 
-**Item System**
-- Pick up items with `take`
-- Drop items with `drop`
-- Equip weapons to increase damage
-- Equip armor to reduce damage taken
-- Use consumables (potions) to restore health
+**Item System V2**
+- **Inventory**: Weight-based capacity (Strength * 5kg + bonuses from bags/perks)
+- **53 item templates**: Weapons, armor, consumables, resources, tools, containers, quest items
+- **Equipment**: 12 equip slots with quality scaling (1-10), skill bonuses, damage/defense modifiers
+- **Looting**: Corpses contain items and gold based on loot tables and equipped gear
+- **Gathering**: Harvest resources from features with skill checks and tool requirements
+- **Crafting**: 24 recipes using materials, tools, and skills (D&D-style checks)
+- **Trading**: Buy/sell from merchants with disposition-based pricing and finite gold
+- **Pickpocketing**: Steal from NPCs (Stealth/Agility vs Perception) with consequences
+- **Multipurpose items**: Tag-based system (blunt→weapon, explosive→detonate, container→storage)
 
 **NPC Interaction**
 - Talk to NPCs with `talk` command
@@ -248,5 +280,6 @@ Once you're comfortable with the basics:
 For more details, see:
 - [Architecture Documentation](./ARCHITECTURE.md)
 - [Social System Documentation](./SOCIAL_SYSTEM.md)
+- [Items and Crafting Documentation](./ITEMS_AND_CRAFTING.md)
 - [Multi-User Details](./MULTI_USER.md)
 - [Implementation Log](./IMPLEMENTATION_LOG.md)

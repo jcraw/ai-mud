@@ -38,7 +38,15 @@ For complete documentation, see:
 - **Persistence**: JSON-based save/load for game state
 - **Procedural generation**: 4 themed dungeons (Crypt, Castle, Cave, Temple)
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
-- **Item System V2**: ⏳ **Chunks 1-8/10 COMPLETE** - ECS-based inventory, weight limits, templates/instances, equipment slots, database persistence, 53 item templates, loot generation & drop tables, corpse looting, feature harvesting with skill checks and tool requirements, crafting system with 24 recipes, trading system with disposition-based pricing, pickpocketing with disposition consequences & wariness status, multipurpose item uses via tag-based system
+- **Item System V2**: ✅ **COMPLETE** - Comprehensive item system with inventory management, gathering, crafting, trading, and pickpocketing
+  - **Inventory**: ECS-based InventoryComponent, weight limits (Strength * 5kg + bonuses), 53 item templates across 10 types
+  - **Equipment**: 12 equip slots, quality scaling (1-10), skill bonuses, damage/defense modifiers
+  - **Loot**: Weighted drop tables, rarity tiers, corpse-based loot with gold
+  - **Gathering**: Finite harvestable features, skill checks, tool requirements, XP rewards
+  - **Crafting**: 24 recipes, D&D-style skill checks, quality scaling, failure mechanics
+  - **Trading**: Disposition-based pricing, finite merchant gold, stock management
+  - **Pickpocketing**: Stealth/Agility checks, disposition penalties, wariness status
+  - **Multipurpose items**: Tag-based system (blunt→weapon, explosive→detonate, container→storage)
 
 ### AI/LLM Features ✅
 - **RAG memory system**: Vector embeddings with semantic search
@@ -83,10 +91,13 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 - **Movement**: n/s/e/w, go <direction>, go to <room name>
 - **Interaction**: look, take, drop, talk, inventory
 - **Combat**: attack <npc>
-- **Equipment**: equip <item>
+- **Equipment**: equip <item>, unequip <item>
 - **Consumables**: use <item>
+- **Looting**: loot <corpse>, loot <item> from <corpse>, loot all from <corpse>
 - **Gathering**: interact/harvest/gather <resource>
 - **Crafting**: craft <recipe>
+- **Trading**: buy <item> [from <merchant>], sell <item> [to <merchant>], list stock
+- **Pickpocketing**: pickpocket <npc>, steal <item> from <npc>, place <item> on <npc>
 - **Skill checks**: check <feature>, persuade <npc>, intimidate <npc>
 - **Social**: smile/wave/nod/bow [at <npc>], ask <npc> about <topic>
 - **Skills**: skills, use <skill>, train <skill> with <npc>, choose perk <1-2> for <skill>
@@ -185,6 +196,7 @@ Memory (store for RAG)
 
 ### System Documentation
 - **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
+- **[Items and Crafting](docs/ITEMS_AND_CRAFTING.md)** - Item system, inventory, gathering, crafting, trading, pickpocketing
 
 ## Current Status
 
@@ -195,6 +207,7 @@ Memory (store for RAG)
 - ✅ Social system (11 phases complete)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ Combat System V2 (7 phases complete)
+- ✅ **Item System V2 (10 chunks complete)** - Inventory, gathering, crafting, trading, pickpocketing
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ All known bugs resolved
@@ -389,9 +402,11 @@ Key features for V2:
 
 ---
 
-## Next TODO: Items and Crafting System V2
+## Item System V2 (COMPLETE) ✅
 
 **Implementation Plan:** [Items and Crafting System Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
+
+**All 10 chunks complete!** Full item system with inventory management, gathering, crafting, trading, and pickpocketing.
 
 **Chunk 1: Core Components & Data Model (COMPLETE)** ✅
 
