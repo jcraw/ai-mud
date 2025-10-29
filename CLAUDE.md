@@ -790,3 +790,42 @@ Completed:
 **Next Chunk: Chunk 10 - Documentation & Final Testing**
 
 See implementation plan for complete 10-chunk breakdown (24 hours total).
+
+---
+
+## World Generation System V2 (READY TO IMPLEMENT) 🎯
+
+**Implementation Plan:** [World Generation System Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
+
+**Status:** Planning complete, ready for implementation. This is the **NEXT MAJOR FEATURE** to implement.
+
+**Overview:**
+Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds. The V2 MVP focuses on a deep dungeon (top-to-bottom progression with mob respawns), integrating with existing skills, combat, items, and social systems.
+
+**Key Features (Planned):**
+- **Hierarchical chunks**: 5 levels (WORLD > REGION > ZONE > SUBZONE > SPACE) with lazy generation
+- **Rich, emergent spaces**: LLM-generated lore, themes, descriptions with parent inheritance
+- **Flexible navigation**: Hybrid exits (cardinal + natural language) with skill/item conditions
+- **Content placement**: Theme-based traps, resources, mobs scaled by difficulty
+- **State persistence**: Player changes persist; mobs respawn on restart
+- **V2 Deep Dungeon MVP**: Start at top, progress deeper, 100+ floors possible
+
+**Architecture:**
+- **New Components**: WorldChunkComponent, SpacePropertiesComponent (ECS extension)
+- **Database**: 3 new tables (world_chunks, space_properties, world_seed)
+- **Generation Pipeline**: LLM-driven cascade with lore inheritance
+- **Exit System**: Three-phase resolution (exact → fuzzy → LLM)
+- **Integrations**: Skills (Perception for hidden exits), Combat (mob spawning), Items (resources), Social (NPCs)
+
+**Implementation Plan:** 7 chunks, 29 hours total
+1. **Chunk 1**: Foundation - Components & Data Model (4h)
+2. **Chunk 2**: Database Schema & Repositories (4h)
+3. **Chunk 3**: Generation Pipeline Core (5h)
+4. **Chunk 4**: Exit System & Navigation (4h)
+5. **Chunk 5**: Content Placement & Spawning (4h)
+6. **Chunk 6**: State Changes & Persistence (4h)
+7. **Chunk 7**: Integration, Testing & Documentation (5h)
+
+**Testing:** ~576 unit/integration tests + 1 comprehensive bot scenario
+
+**Next Step:** Start with Chunk 1 - Foundation (Components & Data Model)
