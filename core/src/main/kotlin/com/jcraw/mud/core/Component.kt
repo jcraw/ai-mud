@@ -23,6 +23,8 @@ enum class ComponentType {
     STORY,
     REPUTATION,
     INVENTORY,
+    WORLD_CHUNK,
+    SPACE_PROPERTIES,
     // Future component types can be added here
 }
 
