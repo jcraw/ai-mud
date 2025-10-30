@@ -819,11 +819,11 @@ Hierarchical, on-demand procedural world generation for infinite, lore-consisten
 
 **Implementation Plan:** 7 chunks, 29 hours total
 1. **Chunk 1**: Foundation - Components & Data Model ✅ **COMPLETE**
-2. **Chunk 2**: Database Schema & Repositories (4h)
-3. **Chunk 3**: Generation Pipeline Core (5h)
-4. **Chunk 4**: Exit System & Navigation (4h)
-5. **Chunk 5**: Content Placement & Spawning (4h)
-6. **Chunk 6**: State Changes & Persistence (4h)
+2. **Chunk 2**: Database Schema & Repositories ✅ **COMPLETE**
+3. **Chunk 3**: Generation Pipeline Core ✅ **COMPLETE**
+4. **Chunk 4**: Exit System & Navigation ✅ **COMPLETE**
+5. **Chunk 5**: Content Placement & Spawning ✅ **COMPLETE**
+6. **Chunk 6**: State Changes & Persistence ✅ **COMPLETE**
 7. **Chunk 7**: Integration, Testing & Documentation (5h)
 
 **Testing:** ~576 unit/integration tests + 1 comprehensive bot scenario
@@ -1140,11 +1140,73 @@ Completed:
   - Zero and high mob density edge cases
   - Multiple themes and difficulty levels
 
+**Chunk 6: State Changes & Persistence (COMPLETE)** ✅
+
+Completed:
+- ✅ `WorldAction.kt` - Sealed class for type-safe world actions (core/world:71)
+  - DestroyObstacle, TriggerTrap, HarvestResource, PlaceItem, RemoveItem, UnlockExit, SetFlag
+  - Serializable with kotlinx.serialization
+  - Enables exhaustive when statements for state changes
+- ✅ `StateChangeHandler.kt` - Handles player-initiated world modifications (reasoning/world:144)
+  - applyChange() - Applies WorldActions immutably to SpacePropertiesComponent
+  - shouldRegenDescription() - Detects flag changes requiring description update
+  - regenDescription() - LLM-based description regeneration incorporating state changes
+  - Preserves all space properties while updating modified fields
+- ✅ `WorldPersistence.kt` - Save/load integration for world system (memory/world:149)
+  - saveWorldState() - Batch saves loaded chunks and spaces
+  - loadWorldState() - Loads global lore and starting space
+  - saveSpace() - Incremental save for autosave
+  - loadChunk(), loadSpace() - Lazy loading during navigation
+  - prefetchAdjacentSpaces() - Preload exits for smooth movement
+  - saveWorldSeed(), getWorldSeed() - Singleton seed management
+- ✅ `RespawnManager.kt` - Mob respawn on game restart (reasoning/world:138)
+  - respawnWorld() - Recursively respawns mobs across all spaces
+  - Preserves state flags, items, resources, and traps
+  - respawnSpaceMobs() - Regenerates entities using MobSpawner
+  - createFreshStart() - Initializes new dungeon via DungeonInitializer
+  - clearSpaceEntities(), respawnSpaceEntities() - Granular control
+- ✅ `AutosaveManager.kt` - Periodic autosave (memory/world:125)
+  - startPeriodicAutosave() - Coroutine-based autosave every 2 minutes
+  - onPlayerMove() - Triggers autosave after 5 moves
+  - performAutosave() - Manual/immediate save
+  - cancelAutosave() - Stops background coroutine
+  - Move counter and interval tracking
+
+**Testing (57 tests, all passing):**
+- ✅ `WorldActionTest.kt` - WorldAction serialization and type safety (12 tests, core:test)
+  - Roundtrip serialization for all action types
+  - Exhaustive when statement validation
+  - Nullable field handling
+- ✅ `StateChangeHandlerTest.kt` - State change logic (25 tests, reasoning:test)
+  - All WorldAction types applied correctly
+  - State flags updated immutably
+  - Trap triggering, resource harvesting, item management
+  - Exit unlocking with condition removal
+  - Description regeneration detection
+  - LLM failure handling
+- ✅ `WorldPersistenceTest.kt` - Save/load operations (11 tests, memory:test)
+  - Full world state persistence
+  - Incremental space saves
+  - Chunk and space loading
+  - Adjacent space prefetching
+  - Seed singleton management
+- ✅ `RespawnManagerTest.kt` - Respawn logic (8 tests, reasoning:test)
+  - Mob regeneration preserves player changes
+  - Hierarchical chunk processing
+  - State flag and item preservation
+  - Empty space handling
+  - Fresh dungeon initialization
+- ✅ `AutosaveManagerTest.kt` - Autosave triggers (9 tests, memory:test)
+  - Move-based autosave (every 5 moves)
+  - Time-based autosave (every 2 minutes)
+  - Manual save triggers
+  - Counter reset logic
+  - Coroutine cancellation
+
 **Remaining Work:**
-- ⏳ Chunk 6: State Changes & Persistence (4h)
 - ⏳ Chunk 7: Integration, Testing & Documentation (5h)
 
-**Next Chunk:** Chunk 6 - State Changes & Persistence
+**Next Chunk:** Chunk 7 - Integration, Testing & Documentation
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)
