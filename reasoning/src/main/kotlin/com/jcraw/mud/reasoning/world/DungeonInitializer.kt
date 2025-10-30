@@ -43,6 +43,7 @@ class DungeonInitializer(
             seed = seed,
             globalLore = globalLore,
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.WORLD
         )
         val (worldChunk, worldId) = worldGenerator.generateChunk(worldContext).getOrElse { return Result.failure(it) }
@@ -63,6 +64,7 @@ class DungeonInitializer(
                 parentChunk = worldChunk.copy(
                     lore = "${worldChunk.lore}\n\nRegion: ${regionSpec.name} (${regionSpec.description})"
                 ),
+                parentChunkId = worldId,
                 level = ChunkLevel.REGION,
                 direction = "down"
             )
@@ -105,6 +107,7 @@ class DungeonInitializer(
             seed = seed,
             globalLore = globalLore,
             parentChunk = regionChunk,
+            parentChunkId = regionId,
             level = ChunkLevel.ZONE,
             direction = "entrance"
         )
@@ -120,6 +123,7 @@ class DungeonInitializer(
             seed = seed,
             globalLore = globalLore,
             parentChunk = zoneChunk,
+            parentChunkId = zoneId,
             level = ChunkLevel.SUBZONE,
             direction = "entrance hall"
         )
@@ -131,7 +135,7 @@ class DungeonInitializer(
         chunkRepo.save(updatedZone, zoneId).getOrElse { return Result.failure(it) }
 
         // Generate starting SPACE
-        val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk).getOrElse { return Result.failure(it) }
+        val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk, subzoneId).getOrElse { return Result.failure(it) }
         spaceRepo.save(space, spaceId).getOrElse { return Result.failure(it) }
 
         // Update subzone with first child

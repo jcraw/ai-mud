@@ -36,7 +36,7 @@ class WorldGenerator(
      * @return Result with (WorldChunkComponent, chunkId) pair
      */
     suspend fun generateChunk(context: GenerationContext): Result<Pair<WorldChunkComponent, String>> {
-        val chunkId = ChunkIdGenerator.generate(context.level, context.parentChunk?.id)
+        val chunkId = ChunkIdGenerator.generate(context.level, context.parentChunkId)
 
         // Generate lore variation from parent
         val lore = if (context.parentChunk != null) {
@@ -53,9 +53,8 @@ class WorldGenerator(
         val chunkData = generateChunkData(context, lore).getOrElse { return Result.failure(it) }
 
         val chunk = WorldChunkComponent(
-            id = chunkId,
             level = context.level,
-            parentId = context.parentChunk?.id,
+            parentId = context.parentChunkId,
             children = emptyList(),
             lore = lore,
             biomeTheme = chunkData.biomeTheme,
@@ -71,10 +70,14 @@ class WorldGenerator(
      * Generates a space (room) within a subzone.
      *
      * @param parentSubzone Parent subzone chunk
+     * @param parentSubzoneId Entity ID of parent subzone
      * @return Result with (SpacePropertiesComponent, spaceId) pair
      */
-    suspend fun generateSpace(parentSubzone: WorldChunkComponent): Result<Pair<SpacePropertiesComponent, String>> {
-        val spaceId = ChunkIdGenerator.generate(ChunkLevel.SPACE, parentSubzone.id)
+    suspend fun generateSpace(
+        parentSubzone: WorldChunkComponent,
+        parentSubzoneId: String
+    ): Result<Pair<SpacePropertiesComponent, String>> {
+        val spaceId = ChunkIdGenerator.generate(ChunkLevel.SPACE, parentSubzoneId)
 
         // Generate space details via LLM
         val spaceData = generateSpaceData(parentSubzone).getOrElse { return Result.failure(it) }
@@ -111,16 +114,15 @@ class WorldGenerator(
         }
 
         val space = SpacePropertiesComponent(
-            id = spaceId,
             description = spaceData.description,
-            exits = exits.toMutableList(),
+            exits = exits,
             brightness = spaceData.brightness.coerceIn(0, 100),
             terrainType = TerrainType.valueOf(spaceData.terrainType),
-            traps = traps.toMutableList(),
-            resources = resources.toMutableList(),
+            traps = traps,
+            resources = resources,
             entities = emptyList(), // Populated later via MobSpawner
-            itemsDropped = mutableListOf(),
-            stateFlags = mutableMapOf()
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
 
         return Result.success(space to spaceId)

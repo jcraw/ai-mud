@@ -919,13 +919,14 @@ Completed:
   - Incremental item addition
   - Edge cases (brightness extremes, long descriptions, nested data)
 
-**Chunk 3: Generation Pipeline Core (IN PROGRESS)** 🔄
+**Chunk 3: Generation Pipeline Core (COMPLETE)** ✅
 
 Completed:
-- ✅ `GenerationContext.kt` - Context data class for LLM generation (core/world:25)
+- ✅ `GenerationContext.kt` - Context data class for LLM generation (core/world:26)
   - Moved to core module for proper dependency management
-  - Encapsulates seed, globalLore, parentChunk, level, direction
+  - Encapsulates seed, globalLore, parentChunk, parentChunkId, level, direction
   - Provides full context for LLM prompts
+  - Fixed: Added parentChunkId field for ECS architecture compatibility
 - ✅ `ChunkIdGenerator.kt` - ID generation utilities (reasoning/world:67)
   - generate() method with hierarchical ID format (level_parent_uuid)
   - parse() method to extract ChunkLevel from ID
@@ -943,22 +944,23 @@ Completed:
   - Uses gpt-4o-mini with temperature 0.7 for cost-effective generation
   - Direction-aware spatial hints (e.g., "north" = colder)
   - Maintains consistency while introducing local details
-- ⏳ `WorldGenerator.kt` - Primary generation engine (reasoning/world:327) **NEEDS FIXES**
+- ✅ `WorldGenerator.kt` - Primary generation engine (reasoning/world:301)
   - generateChunk() - Creates WORLD/REGION/ZONE/SUBZONE chunks with LLM
   - generateSpace() - Creates SPACE (room) with exits, traps, resources
   - generateTrap() - Theme-based trap selection (15% probability)
   - generateResource() - Theme-based resource nodes (5% probability)
   - Hidden exits (20% of exits require Perception checks)
   - JSON-structured LLM prompts for consistent parsing
-  - **Issue:** Uses incorrect component ID architecture (components don't have `id` field)
-- ✅ `DungeonInitializer.kt` - Deep dungeon MVP starter (reasoning/world:145)
+  - Fixed: Removed incorrect `id` field assignments (components use external IDs)
+  - Fixed: Updated to accept parentSubzoneId parameter for ECS architecture
+- ✅ `DungeonInitializer.kt` - Deep dungeon MVP starter (reasoning/world:149)
   - initializeDeepDungeon() - Creates hierarchical dungeon structure
   - WORLD: "Ancient Abyss Dungeon" with global lore
   - 3 REGIONS: Upper Depths (1-10), Mid Depths (11-50), Lower Depths (51-100+)
   - Pre-generates starting location (ZONE → SUBZONE → SPACE)
   - Saves complete hierarchy to database
   - Returns starting space ID for player spawn
-  - Fixed: Added missing `GenerationContext` import
+  - Fixed: Updated all GenerationContext calls to include parentChunkId parameter
 
 **Testing (31 tests written):**
 - ✅ `ChunkIdGeneratorTest.kt` - ID generation and parsing tests (10 tests, reasoning:test)
@@ -982,25 +984,19 @@ Completed:
   - Model and temperature configuration
   - Prompt structure validation
 
-**Compilation Fixes Completed:**
-- ✅ `CraftingManager.kt` - Fixed V1 skill system references (reasoning/crafting:240)
-  - Removed deprecated `Skill` import
-  - Refactored `getViableRecipes()` to accept SkillComponent and InventoryComponent as parameters
-  - Refactored `craft()` to accept SkillComponent and InventoryComponent as parameters
-  - Updated `performSkillCheck()` to use skill level directly (d20 + skillLevel vs DC)
-  - Components now passed from caller instead of extracted from Entity.Player
-  - **Rationale:** Components are managed via managers (e.g., `skillManager.getSkillComponent(playerId)`), not stored in PlayerState/Entity.Player
-- ✅ `ItemUseHandler.kt` - Fixed repository method name (reasoning/items:254)
-  - Changed `itemRepository.findById()` to `itemRepository.findTemplateById()`
-- ✅ `DungeonInitializer.kt` - Added missing import
-  - Added `import com.jcraw.mud.core.world.GenerationContext`
+**Component ID Architecture Fix:**
+- ✅ Components don't have `id` fields - entity IDs managed separately in ECS
+- ✅ `GenerationContext` now includes both component and entity ID for parent
+- ✅ `WorldGenerator.generateChunk()` uses `context.parentChunkId` for ID generation
+- ✅ `WorldGenerator.generateSpace()` accepts `parentSubzoneId` parameter
+- ✅ All component constructors updated to remove `id` field
+- ✅ `DungeonInitializer` updated with parentChunkId in all GenerationContext calls
 
 **Remaining Work:**
-- ⏳ Fix WorldGenerator.kt component ID architecture issues
 - ⏳ Additional unit tests for WorldGenerator and DungeonInitializer (~54 tests planned)
 - ⏳ Chunk 4: Exit System & Navigation
 - ⏳ Chunk 5: Content Placement & Spawning
 - ⏳ Chunk 6: State Changes & Persistence
 - ⏳ Chunk 7: Integration, Testing & Documentation
 
-**Next Step:** Fix WorldGenerator.kt to work with component architecture (IDs managed separately from components)
+**Next Chunk:** Chunk 4 - Exit System & Navigation
