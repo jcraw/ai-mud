@@ -39,9 +39,10 @@ class WorldGenerator(
         val chunkId = ChunkIdGenerator.generate(context.level, context.parentChunkId)
 
         // Generate lore variation from parent
-        val lore = if (context.parentChunk != null) {
+        val parentChunk = context.parentChunk
+        val lore = if (parentChunk != null) {
             loreEngine.varyLore(
-                context.parentChunk.lore,
+                parentChunk.lore,
                 context.level,
                 context.direction
             ).getOrElse { return Result.failure(it) }
@@ -96,10 +97,13 @@ class WorldGenerator(
             emptyList()
         }
 
-        // Add hidden exits
-        val exits = spaceData.exits.map { exitData ->
+        // Convert ExitDataJson to ExitData and add hidden exits
+        val exits = spaceData.exits.map { exitJson ->
             if (Random.nextDouble() < HIDDEN_EXIT_PROBABILITY) {
-                exitData.copy(
+                ExitData(
+                    targetId = exitJson.targetId,
+                    direction = exitJson.direction,
+                    description = exitJson.description,
                     conditions = listOf(
                         Condition.SkillCheck(
                             skill = "Perception",
@@ -109,7 +113,11 @@ class WorldGenerator(
                     isHidden = true
                 )
             } else {
-                exitData
+                ExitData(
+                    targetId = exitJson.targetId,
+                    direction = exitJson.direction,
+                    description = exitJson.description
+                )
             }
         }
 
