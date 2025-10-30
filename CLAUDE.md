@@ -202,7 +202,7 @@ Memory (store for RAG)
 
 ## Current Status
 
-**⚠️ MAIN CODE OPERATIONAL - TEST FIXES NEEDED**
+**⚠️ MAIN CODE OPERATIONAL - TEST FIXES IN PROGRESS**
 
 - ✅ GUI client with real engine integration
 - ✅ Quest system with auto-tracking
@@ -210,11 +210,11 @@ Memory (store for RAG)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ Combat System V2 (7 phases complete)
 - ✅ **Item System V2 (10 chunks complete)** - Inventory, gathering, crafting, trading, pickpocketing
-- ⚠️ **World Generation System V2 (Chunks 1-6 COMPLETE)** - Main code compiles, test fixes needed
+- ⚠️ **World Generation System V2 (Chunks 1-6 COMPLETE)** - Main code compiles, test fixes in progress
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Main project code compiles successfully
-- ❌ Test compilation errors (ItemRepository API changes, integration test fixes needed)
+- ⚠️ Test compilation errors - 2/6 fixed (ItemUseHandlerTest, PickpocketHandlerTest), 4 remaining
 
 **Combat System V2 (COMPLETE)** ✅
 
@@ -812,8 +812,11 @@ See implementation plan for complete 10-chunk breakdown (24 hours total).
 - ✅ ECS architecture properly implemented (entity IDs separate from components)
 
 **Outstanding Issues:**
-- ❌ ItemUseHandlerTest.kt - ItemRepository API mismatch (method names changed)
-- ❌ PickpocketHandlerTest.kt - ItemRepository API mismatch (method names changed)
+- ✅ ItemUseHandlerTest.kt - Fixed ItemRepository mock implementation (2025-01-30)
+- ✅ PickpocketHandlerTest.kt - Fixed ItemRepository mock implementation (2025-01-30)
+- ❌ CapacityCalculatorTest.kt - Type inference error (line 166)
+- ❌ LootTableGeneratorTest.kt - ItemRepository mock needs update, ItemTemplate properties type mismatch
+- ❌ MobSpawnerTest.kt - LLMClient mock issues, suspend function test wrappers needed
 - ❌ WorldGenerationIntegrationTest.kt - Nullable type handling, API mismatches
 
 **Overview:**
@@ -1257,9 +1260,12 @@ Completed:
 **Next Steps:**
 1. ✅ Fix main code compilation errors - COMPLETE (2025-01-30)
 2. Fix test compilation errors:
-   - ItemUseHandlerTest.kt mock ItemRepository implementation
-   - PickpocketHandlerTest.kt mock ItemRepository implementation
-   - WorldGenerationIntegrationTest.kt nullable types and API calls
+   - ✅ ItemUseHandlerTest.kt mock ItemRepository implementation - COMPLETE (2025-01-30)
+   - ✅ PickpocketHandlerTest.kt mock ItemRepository implementation - COMPLETE (2025-01-30)
+   - ❌ CapacityCalculatorTest.kt - Type inference error needs fixing
+   - ❌ LootTableGeneratorTest.kt - ItemRepository mock and ItemTemplate properties fixes needed
+   - ❌ MobSpawnerTest.kt - LLMClient mock and suspend function wrappers needed
+   - ❌ WorldGenerationIntegrationTest.kt - Nullable types and API calls need fixing
 3. Run WorldGenerationIntegrationTest to validate complete system
 4. Run full test suite to ensure no regressions
 5. Complete integration with game engine
@@ -1274,3 +1280,8 @@ Completed:
 - ✅ Fixed SkillQuestHandlers.kt - Fixed SkillCheckResult type, stubbed crafting handler
 - ✅ Fixed TradeHandlers.kt - Stubbed out until TradingComponent/ECS integration
 - ✅ Added recipeRepository to MudGame for crafting system support
+
+**Test Fixes (2025-01-30):**
+- ✅ ItemUseHandlerTest.kt - Updated ItemRepository mock to use new API (findTemplateById, findAllTemplates, etc.)
+- ✅ PickpocketHandlerTest.kt - Updated ItemRepository mock to use new API
+- Both tests now properly implement all ItemRepository interface methods with Result return types

@@ -63,18 +63,20 @@ class PickpocketHandlerTest {
                 "dynamite_001" to dynamiteTemplate
             )
 
-            override fun save(template: ItemTemplate): Result<ItemTemplate> = Result.success(template)
-            override fun saveAll(templates: List<ItemTemplate>): Result<List<ItemTemplate>> = Result.success(templates)
-            override fun findById(id: String): Result<ItemTemplate?> = Result.success(templates[id])
-            override fun findAll(): Result<List<ItemTemplate>> = Result.success(templates.values.toList())
-            override fun delete(id: String): Result<Boolean> = Result.success(true)
-            override fun findByType(type: ItemType): Result<List<ItemTemplate>> =
+            override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(templates[templateId])
+            override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(templates)
+            override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> =
                 Result.success(templates.values.filter { it.type == type })
-            override fun findByRarity(rarity: Rarity): Result<List<ItemTemplate>> =
+            override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> =
                 Result.success(templates.values.filter { it.rarity == rarity })
-            override fun findByTag(tag: String): Result<List<ItemTemplate>> =
-                Result.success(templates.values.filter { tag in it.tags })
-            override fun update(template: ItemTemplate): Result<ItemTemplate> = Result.success(template)
+            override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
+            override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
+            override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
+            override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
+            override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
+            override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
+            override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
+            override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
         }
     }
 
