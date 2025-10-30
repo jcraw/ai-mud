@@ -206,6 +206,8 @@ class MudGame(
     private fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> com.jcraw.app.handlers.MovementHandlers.handleMove(this, intent.direction)
+            is Intent.Scout -> com.jcraw.app.handlers.WorldHandlers.handleScout(this, intent.direction)
+            is Intent.Travel -> com.jcraw.app.handlers.WorldHandlers.handleTravel(this, intent.direction)
             is Intent.Look -> com.jcraw.app.handlers.MovementHandlers.handleLook(this, intent.target)
             is Intent.Search -> com.jcraw.app.handlers.MovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> com.jcraw.app.handlers.SkillQuestHandlers.handleInteract(this, intent.target)
