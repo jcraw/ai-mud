@@ -1221,12 +1221,18 @@ Completed:
   - Comprehensive documentation with future implementation examples
   - Intent branches added to MudGameEngine.processIntent()
 
+- ✅ **ClientWorldHandlers.kt** - GUI client handlers implemented (client/handlers:223)
+  - handleScout() - Stub for scouting exits without moving
+  - handleTravel() - Stub for natural language navigation
+  - Comprehensive documentation with future implementation examples
+  - Follows EngineGameClient pattern with GameEvent emissions
+  - Uses buildString for formatted output
+
 **Remaining Work:**
-- ⏳ ClientWorldHandlers.kt - GUI client handlers (client/handlers)
 - ⏳ WorldExplorationTest.kt - Comprehensive bot scenario (testbot)
 - ⏳ WorldGenerationIntegrationTest.kt - Integration tests (reasoning:test)
 
-**Next Steps:** GUI client handlers and comprehensive testing (handlers not required for core system to function)
+**Next Steps:** Comprehensive testing (handlers not required for core system to function)
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)
