@@ -214,7 +214,7 @@ Memory (store for RAG)
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Main project code compiles successfully
-- ⚠️ Test compilation errors - 2/6 fixed (ItemUseHandlerTest, PickpocketHandlerTest), 4 remaining
+- ⚠️ Test compilation errors - 5/6 fixed (ItemUseHandlerTest, PickpocketHandlerTest, CapacityCalculatorTest, LootTableGeneratorTest, MobSpawnerTest), 1 remaining (WorldGenerationIntegrationTest)
 
 **Combat System V2 (COMPLETE)** ✅
 
@@ -814,9 +814,9 @@ See implementation plan for complete 10-chunk breakdown (24 hours total).
 **Outstanding Issues:**
 - ✅ ItemUseHandlerTest.kt - Fixed ItemRepository mock implementation (2025-01-30)
 - ✅ PickpocketHandlerTest.kt - Fixed ItemRepository mock implementation (2025-01-30)
-- ❌ CapacityCalculatorTest.kt - Type inference error (line 166)
-- ❌ LootTableGeneratorTest.kt - ItemRepository mock needs update, ItemTemplate properties type mismatch
-- ❌ MobSpawnerTest.kt - LLMClient mock issues, suspend function test wrappers needed
+- ✅ CapacityCalculatorTest.kt - Fixed type inference error (added explicit type to emptyList<String>()) (2025-01-30)
+- ✅ LootTableGeneratorTest.kt - Fixed ItemRepository mock and ItemTemplate properties (List instead of Set, String properties) (2025-01-30)
+- ✅ MobSpawnerTest.kt - Fixed LLMClient mock with suspend functions and runBlocking wrappers (2025-01-30)
 - ❌ WorldGenerationIntegrationTest.kt - Nullable type handling, API mismatches
 
 **Overview:**
@@ -1262,11 +1262,11 @@ Completed:
 2. Fix test compilation errors:
    - ✅ ItemUseHandlerTest.kt mock ItemRepository implementation - COMPLETE (2025-01-30)
    - ✅ PickpocketHandlerTest.kt mock ItemRepository implementation - COMPLETE (2025-01-30)
-   - ❌ CapacityCalculatorTest.kt - Type inference error needs fixing
-   - ❌ LootTableGeneratorTest.kt - ItemRepository mock and ItemTemplate properties fixes needed
-   - ❌ MobSpawnerTest.kt - LLMClient mock and suspend function wrappers needed
+   - ✅ CapacityCalculatorTest.kt - Type inference error fixed (2025-01-30)
+   - ✅ LootTableGeneratorTest.kt - ItemRepository mock and ItemTemplate properties fixed (2025-01-30)
+   - ✅ MobSpawnerTest.kt - LLMClient mock and suspend function wrappers fixed (2025-01-30)
    - ❌ WorldGenerationIntegrationTest.kt - Nullable types and API calls need fixing
-3. Run WorldGenerationIntegrationTest to validate complete system
+3. Run WorldGenerationIntegrationTest to validate complete system (after fixing remaining test)
 4. Run full test suite to ensure no regressions
 5. Complete integration with game engine
 6. Optional: Implement full handlers for Scout/Travel intents
@@ -1284,4 +1284,7 @@ Completed:
 **Test Fixes (2025-01-30):**
 - ✅ ItemUseHandlerTest.kt - Updated ItemRepository mock to use new API (findTemplateById, findAllTemplates, etc.)
 - ✅ PickpocketHandlerTest.kt - Updated ItemRepository mock to use new API
-- Both tests now properly implement all ItemRepository interface methods with Result return types
+- ✅ CapacityCalculatorTest.kt - Fixed type inference error by adding explicit type to emptyList<String>()
+- ✅ LootTableGeneratorTest.kt - Fixed ItemRepository mock and changed ItemTemplate to use List (not Set) and String properties (not Double)
+- ✅ MobSpawnerTest.kt - Replaced MockLLMService with MockLLMClient implementing LLMClient interface, added runBlocking wrappers to all tests
+- ❌ WorldGenerationIntegrationTest.kt - Nullable type handling and API mismatches remain

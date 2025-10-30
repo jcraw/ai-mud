@@ -1,7 +1,11 @@
 package com.jcraw.mud.reasoning.world
 
-import com.jcraw.mud.core.repository.ItemRepository
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
+import com.jcraw.sophia.llm.OpenAIResponse
+import com.jcraw.sophia.llm.OpenAIChoice
+import com.jcraw.sophia.llm.OpenAIMessage
+import com.jcraw.sophia.llm.OpenAIUsage
+import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
 /**
@@ -10,7 +14,7 @@ import kotlin.test.*
  */
 class MobSpawnerTest {
 
-    private class MockLLMService(private val response: String = """
+    private class MockLLMClient(private val jsonResponse: String = """
         [
             {
                 "name": "Wolf Alpha",
@@ -27,23 +31,44 @@ class MobSpawnerTest {
                 "charisma": 8
             }
         ]
-    """.trimIndent()) : LLMService {
+    """.trimIndent()) : LLMClient {
         var callCount = 0
         var shouldFail = false
 
-        override fun complete(prompt: String, model: String, temperature: Double, maxTokens: Int): String {
+        override suspend fun chatCompletion(
+            modelId: String,
+            systemPrompt: String,
+            userContext: String,
+            maxTokens: Int,
+            temperature: Double
+        ): OpenAIResponse {
             callCount++
             if (shouldFail) throw RuntimeException("LLM failure")
-            return response
+
+            return OpenAIResponse(
+                id = "test-id",
+                `object` = "chat.completion",
+                created = System.currentTimeMillis(),
+                model = modelId,
+                choices = listOf(
+                    OpenAIChoice(
+                        message = OpenAIMessage(role = "assistant", content = jsonResponse),
+                        finishReason = "stop"
+                    )
+                ),
+                usage = OpenAIUsage(promptTokens = 100, completionTokens = 50, totalTokens = 150)
+            )
         }
 
-        override fun embed(text: String, model: String): List<Double> {
+        override suspend fun createEmbedding(text: String, model: String): List<Double> {
             throw NotImplementedError("Not needed")
         }
+
+        override fun close() {}
     }
 
     @Test
-    fun `spawnEntities returns correct count based on density`() {
+    fun `spawnEntities returns correct count based on density`() = runBlocking {
         val spawner = MobSpawner()
 
         val low = spawner.spawnEntities("dark forest", 0.2, 5, 10)
@@ -54,7 +79,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities returns empty list for zero density`() {
+    fun `spawnEntities returns empty list for zero density`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.0, 5, 10)
 
@@ -62,7 +87,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities without LLM uses fallback generation`() {
+    fun `spawnEntities without LLM uses fallback generation`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
@@ -76,8 +101,8 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities with LLM uses generated mobs`() {
-        val mockLLM = MockLLMService()
+    fun `spawnEntities with LLM uses generated mobs`() = runBlocking {
+        val mockLLM = MockLLMClient()
         val spawner = MobSpawner(mockLLM)
         val mobs = spawner.spawnEntities("dark forest", 0.1, 5, 10)
 
@@ -88,8 +113,8 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities with LLM handles failure gracefully`() {
-        val mockLLM = MockLLMService().apply { shouldFail = true }
+    fun `spawnEntities with LLM handles failure gracefully`() = runBlocking {
+        val mockLLM = MockLLMClient().apply { shouldFail = true }
         val spawner = MobSpawner(mockLLM)
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
@@ -102,7 +127,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities fallback scales stats with difficulty`() {
+    fun `spawnEntities fallback scales stats with difficulty`() = runBlocking {
         val spawner = MobSpawner()
 
         val lowDiff = spawner.spawnEntities("dark forest", 0.2, 2, 10)
@@ -115,7 +140,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities fallback scales health with difficulty`() {
+    fun `spawnEntities fallback scales health with difficulty`() = runBlocking {
         val spawner = MobSpawner()
 
         val lowDiff = spawner.spawnEntities("dark forest", 0.2, 2, 10)
@@ -128,7 +153,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities fallback scales gold with difficulty`() {
+    fun `spawnEntities fallback scales gold with difficulty`() = runBlocking {
         val spawner = MobSpawner()
 
         val lowDiff = spawner.spawnEntities("dark forest", 0.2, 2, 10)
@@ -141,7 +166,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities generates unique mob IDs`() {
+    fun `spawnEntities generates unique mob IDs`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 1.0, 5, 10)
 
@@ -150,7 +175,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities uses theme-appropriate archetypes`() {
+    fun `spawnEntities uses theme-appropriate archetypes`() = runBlocking {
         val spawner = MobSpawner()
         val forestMobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
@@ -165,7 +190,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities generates proper loot table IDs`() {
+    fun `spawnEntities generates proper loot table IDs`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
@@ -175,7 +200,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities creates hostile mobs by default`() {
+    fun `spawnEntities creates hostile mobs by default`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.5, 5, 10)
 
@@ -185,7 +210,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities coerces stats to valid range`() {
+    fun `spawnEntities coerces stats to valid range`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 1.0, 20, 10)
 
@@ -200,7 +225,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities coerces health to minimum 1`() {
+    fun `spawnEntities coerces health to minimum 1`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.5, 1, 10)
 
@@ -211,7 +236,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities coerces gold to non-negative`() {
+    fun `spawnEntities coerces gold to non-negative`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.5, 1, 10)
 
@@ -221,7 +246,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `respawn generates fresh mob list`() {
+    fun `respawn generates fresh mob list`() = runBlocking {
         val spawner = MobSpawner()
 
         val first = spawner.spawnEntities("dark forest", 0.3, 5, 10)
@@ -233,7 +258,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities works with all theme types`() {
+    fun `spawnEntities works with all theme types`() = runBlocking {
         val spawner = MobSpawner()
         val themes = listOf(
             "dark forest", "magma cave", "ancient crypt", "frozen wasteland",
@@ -251,7 +276,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities with different space sizes`() {
+    fun `spawnEntities with different space sizes`() = runBlocking {
         val spawner = MobSpawner()
 
         val small = spawner.spawnEntities("dark forest", 0.5, 5, 5)
@@ -262,8 +287,8 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities with LLM malformed JSON falls back`() {
-        val mockLLM = MockLLMService("not valid json")
+    fun `spawnEntities with LLM malformed JSON falls back`() = runBlocking {
+        val mockLLM = MockLLMClient("not valid json")
         val spawner = MobSpawner(mockLLM)
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
@@ -272,8 +297,8 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities with LLM incomplete data uses defaults`() {
-        val mockLLM = MockLLMService("""
+    fun `spawnEntities with LLM incomplete data uses defaults`() = runBlocking {
+        val mockLLM = MockLLMClient("""
             [
                 {
                     "name": "Skeleton",
@@ -291,7 +316,7 @@ class MobSpawnerTest {
     }
 
     @Test
-    fun `spawnEntities generates descriptions`() {
+    fun `spawnEntities generates descriptions`() = runBlocking {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 

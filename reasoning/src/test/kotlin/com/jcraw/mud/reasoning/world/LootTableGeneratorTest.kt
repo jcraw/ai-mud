@@ -13,37 +13,35 @@ class LootTableGeneratorTest {
     private class MockItemRepository(
         private val templates: Map<String, ItemTemplate> = emptyMap()
     ) : ItemRepository {
+        override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(templates[templateId])
+        override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(templates)
+        override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> =
+            Result.success(templates.values.filter { it.type == type })
+        override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> =
+            Result.success(templates.values.filter { it.rarity == rarity })
         override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
         override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
-        override fun getTemplate(id: String): Result<ItemTemplate?> = Result.success(templates[id])
-        override fun getAllTemplates(): Result<List<ItemTemplate>> = Result.success(templates.values.toList())
-        override fun getTemplatesByType(type: ItemType): Result<List<ItemTemplate>> =
-            Result.success(templates.values.filter { it.type == type })
-        override fun getTemplatesByRarity(rarity: Rarity): Result<List<ItemRarity>> =
+        override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
+        override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
+        override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> =
             Result.success(emptyList())
-        override fun updateTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
-        override fun deleteTemplate(id: String): Result<Unit> = Result.success(Unit)
         override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun getInstance(id: String): Result<ItemInstance?> = Result.success(null)
-        override fun getInstancesByTemplate(templateId: String): Result<List<ItemInstance>> =
-            Result.success(emptyList())
-        override fun updateInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun deleteInstance(id: String): Result<Unit> = Result.success(Unit)
-        fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(templates)
+        override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
+        override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
     }
 
     private fun createMockTemplates(): Map<String, ItemTemplate> {
         return mapOf(
             "wood" to ItemTemplate("wood", "Wood", ItemType.RESOURCE, rarity = Rarity.COMMON,
-                tags = setOf("wood", "forest"), properties = mapOf("weight" to 1.0), description = "Wood"),
+                tags = listOf("wood", "forest"), properties = mapOf("weight" to "1.0"), description = "Wood"),
             "iron_sword" to ItemTemplate("iron_sword", "Iron Sword", ItemType.WEAPON, rarity = Rarity.UNCOMMON,
-                tags = setOf("metal", "weapon"), properties = mapOf("weight" to 3.0), description = "A sword"),
+                tags = listOf("metal", "weapon"), properties = mapOf("weight" to "3.0"), description = "A sword"),
             "fire_staff" to ItemTemplate("fire_staff", "Fire Staff", ItemType.WEAPON, rarity = Rarity.RARE,
-                tags = setOf("fire", "magic"), properties = mapOf("weight" to 2.0), description = "A fire staff"),
+                tags = listOf("fire", "magic"), properties = mapOf("weight" to "2.0"), description = "A fire staff"),
             "dragon_scale" to ItemTemplate("dragon_scale", "Dragon Scale", ItemType.RESOURCE, rarity = Rarity.EPIC,
-                tags = setOf("dragon", "rare"), properties = mapOf("weight" to 0.5), description = "A scale"),
+                tags = listOf("dragon", "rare"), properties = mapOf("weight" to "0.5"), description = "A scale"),
             "legendary_sword" to ItemTemplate("legendary_sword", "Excalibur", ItemType.WEAPON, rarity = Rarity.LEGENDARY,
-                tags = setOf("legendary", "weapon"), properties = mapOf("weight" to 5.0), description = "Legendary blade")
+                tags = listOf("legendary", "weapon"), properties = mapOf("weight" to "5.0"), description = "Legendary blade")
         )
     }
 
@@ -237,7 +235,7 @@ class LootTableGeneratorTest {
 
         // Should attempt to include legendary items if available
         val hasLegendary = table.entries.any { entry ->
-            mockRepo.getTemplate(entry.templateId).getOrNull()?.rarity == Rarity.LEGENDARY
+            mockRepo.findTemplateById(entry.templateId).getOrNull()?.rarity == Rarity.LEGENDARY
         }
 
         // May or may not have legendary depending on theme match
@@ -267,7 +265,7 @@ class LootTableGeneratorTest {
 
         // Should have entries from multiple rarities
         val rarities = table.entries.mapNotNull { entry ->
-            mockRepo.getTemplate(entry.templateId).getOrNull()?.rarity
+            mockRepo.findTemplateById(entry.templateId).getOrNull()?.rarity
         }.toSet()
 
         assertTrue(rarities.isNotEmpty(), "Should have items from various rarities")
