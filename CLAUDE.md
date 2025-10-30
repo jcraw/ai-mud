@@ -1084,12 +1084,67 @@ Completed:
   - calculateMobCount() - Helper for testing (mobDensity * spaceSize)
   - clearDynamicContent() - Removes traps/resources/entities, preserves player changes
 
-**Remaining Work:**
-- ⏳ Write comprehensive tests for Chunk 5 (~112 tests planned)
-- ⏳ Chunk 6: State Changes & Persistence
-- ⏳ Chunk 7: Integration, Testing & Documentation
+**Chunk 5 Testing (COMPLETE)** ✅
 
-**Next Chunk:** Chunk 5 Tests (112 tests), then Chunk 6 - State Changes & Persistence
+Completed:
+- ✅ `ThemeRegistryTest.kt` - Theme profile matching tests (18 tests passing, reasoning:test)
+  - Exact and case-insensitive matching
+  - Semantic keyword matching for all 8 themes
+  - Edge cases (whitespace, empty strings, non-existent themes)
+  - getAllThemeNames() and getDefaultProfile() helpers
+  - Content validation (non-empty traps, resources, mobs, ambiance)
+- ✅ `TrapGeneratorTest.kt` - Trap generation tests (20 tests passing, reasoning:test)
+  - Valid trap structure and theme-appropriate types
+  - Difficulty scaling with variance (-2 to +2)
+  - Difficulty coercion to 1-25 range
+  - Unique trap IDs
+  - LLM integration and fallback on failure
+  - Probabilistic generation (~15% base, second trap in high difficulty)
+  - Multiple traps for difficulty > 10
+- ✅ `ResourceGeneratorTest.kt` - Resource generation tests (18 tests passing, reasoning:test)
+  - Valid resource node structure and theme-appropriate types
+  - Template ID mapping and fallback generation
+  - Quantity scaling with difficulty
+  - Respawn time calculation (null for low difficulty, formula for high)
+  - Unique node IDs
+  - LLM integration and fallback on failure
+  - Probabilistic generation (~5% base, second resource in rich areas)
+- ✅ `MobSpawnerTest.kt` - Mob spawning tests (22 tests passing, reasoning:test)
+  - Correct mob count based on density formula (mobDensity * spaceSize)
+  - Fallback generation when LLM unavailable
+  - LLM-based mob generation with JSON parsing
+  - Stats, health, and gold scaling with difficulty
+  - Unique mob IDs and hostile flag defaults
+  - Stat coercion to 3-20 range
+  - Theme-appropriate archetypes
+  - Proper loot table ID format
+  - Malformed JSON handling
+- ✅ `LootTableGeneratorTest.kt` - Loot table generation tests (18 tests passing, reasoning:test)
+  - Valid loot table structure with theme filtering
+  - Rarity distribution (Common 50%, Uncommon 30%, Rare 15%, Epic 4%, Legendary 1%)
+  - Quality scaling with difficulty
+  - Guaranteed drops scaling (0/1/2 for common/elite/boss)
+  - Max drops scaling (2/3/4)
+  - Quality modifier scaling (+0 to +3)
+  - Table caching and registration
+  - Gold range formula (10*difficulty..50*difficulty)
+  - Fallback to gold_coin when item pool empty
+- ✅ `SpacePopulatorTest.kt` - Content orchestration tests (16 tests passing, reasoning:test)
+  - Mob population based on density
+  - Trap and resource probabilistic generation
+  - Preservation of existing content
+  - populateWithEntities() returns space + mob list
+  - repopulate() clears entities, preserves traps/resources
+  - calculateMobCount() formula validation
+  - clearDynamicContent() removes generated content, preserves player changes
+  - Zero and high mob density edge cases
+  - Multiple themes and difficulty levels
+
+**Remaining Work:**
+- ⏳ Chunk 6: State Changes & Persistence (4h)
+- ⏳ Chunk 7: Integration, Testing & Documentation (5h)
+
+**Next Chunk:** Chunk 6 - State Changes & Persistence
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)
