@@ -15,6 +15,7 @@ For complete documentation, see:
 - **[Client UI Guide](docs/CLIENT_UI.md)** - Graphical client documentation
 - **[Architecture Documentation](docs/ARCHITECTURE.md)** - Module structure, data flow, component details
 - **[Social System Documentation](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
+- **[World Generation Documentation](docs/WORLD_GENERATION.md)** - Hierarchical world generation system
 - **[Testing Strategy](docs/TESTING.md)** - Comprehensive testing guide, test organization
 - **[Multi-User Architecture](docs/MULTI_USER.md)** - Multi-player system details
 
@@ -197,6 +198,7 @@ Memory (store for RAG)
 ### System Documentation
 - **[Social System](docs/SOCIAL_SYSTEM.md)** - Social interactions, disposition, knowledge system
 - **[Items and Crafting](docs/ITEMS_AND_CRAFTING.md)** - Item system, inventory, gathering, crafting, trading, pickpocketing
+- **[World Generation](docs/WORLD_GENERATION.md)** - Hierarchical world generation, exits, content placement, state persistence
 
 ## Current Status
 
