@@ -16,6 +16,20 @@ sealed class Intent {
     data class Move(val direction: Direction) : Intent()
 
     /**
+     * Scout/peek in a direction without moving (reveals exit description and hints)
+     * @param direction The direction to scout (supports natural language)
+     */
+    @Serializable
+    data class Scout(val direction: String) : Intent()
+
+    /**
+     * Travel to an adjacent space in the world system (supports natural language exits)
+     * @param direction The direction or exit description to travel through
+     */
+    @Serializable
+    data class Travel(val direction: String) : Intent()
+
+    /**
      * Look at the current room or a specific target
      * @param target If null, look at the room; otherwise look at a specific entity/exit
      */

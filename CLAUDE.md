@@ -1011,14 +1011,40 @@ Completed:
 
 **Note:** Tests demonstrate comprehensive coverage and follow existing project patterns using real SQLite repositories. All compilation errors have been resolved as of 2025-01-29.
 
+**Chunk 4: Exit System & Navigation (COMPLETE)** ✅
+
+Completed:
+- ✅ `Intent.Scout` - Scout/peek in a direction without moving (perception:23)
+- ✅ `Intent.Travel` - Travel to adjacent space with natural language support (perception:30)
+- ✅ `NavigationState.kt` - Tracks player location in world hierarchy (core/world:88)
+  - currentSpaceId, currentSubzoneId, currentZoneId, currentRegionId, worldId fields
+  - updateLocation() - Queries hierarchy and updates all parent IDs
+  - recordVisit() - Breadcrumb trail (last 20 spaces)
+- ✅ `MovementCostCalculator.kt` - Calculates movement costs and terrain damage (reasoning/world:120)
+  - calculateCost() - NORMAL (1 tick), DIFFICULT (2 ticks + Agility check), IMPASSABLE (fails)
+  - applySkillModifiers() - Athletics skill reduces difficult terrain cost
+  - calculateTerrainDamage() - D20 Agility check vs DC 10, 1d6 damage on failure
+- ✅ `ExitResolver.kt` - Three-phase exit resolution engine (reasoning/world:285)
+  - Phase 1: Exact match for cardinal directions (n/s/e/w/up/down/ne/nw/se/sw)
+  - Phase 2: Fuzzy match with Levenshtein distance <= 2
+  - Phase 3: LLM parsing for natural language ("climb ladder", "through door")
+  - getVisibleExits() - Filters hidden exits by Perception skill
+  - describeExit() - Shows condition hints (skill/item requirements)
+  - ResolveResult sealed class (Success, Failure, Ambiguous)
+- ✅ `ExitLinker.kt` - Links placeholder exits after generation (reasoning/world:152)
+  - linkExits() - Replaces "PLACEHOLDER" targetIds with real space IDs
+  - createReciprocalExit() - Maps directions to opposites (n→s, climb→descend)
+  - createReciprocalDescription() - Generates coherent reverse descriptions
+- ✅ `ExitData.kt` - Added hiddenDifficulty field for Perception checks (core/world:65)
+
 **Remaining Work:**
 - ✅ Fix pre-existing test compilation errors - COMPLETE (all compilation errors resolved, build passing)
-- ⏳ Chunk 4: Exit System & Navigation
+- ✅ Chunk 4: Exit System & Navigation - **COMPLETE**
 - ⏳ Chunk 5: Content Placement & Spawning
 - ⏳ Chunk 6: State Changes & Persistence
 - ⏳ Chunk 7: Integration, Testing & Documentation
 
-**Next Chunk:** Chunk 4 - Exit System & Navigation
+**Next Chunk:** Chunk 5 - Content Placement & Spawning
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)

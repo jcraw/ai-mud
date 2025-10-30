@@ -61,7 +61,8 @@ data class ExitData(
     val direction: String,
     val description: String,
     val conditions: List<Condition> = emptyList(),
-    val isHidden: Boolean = false
+    val isHidden: Boolean = false,
+    val hiddenDifficulty: Int? = null  // DC for Perception check if hidden
 ) {
     /**
      * Check if player meets all conditions to use this exit
