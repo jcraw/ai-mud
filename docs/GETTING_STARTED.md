@@ -84,6 +84,26 @@ Test logs are saved to `test-logs/` directory (JSON + human-readable text).
 - `u`, `d`, `up`, `down` - Vertical movement
 - `go <direction>` - Explicit movement
 
+### World Generation System (V2 - In Progress)
+The world generation system enables infinite, procedurally-generated worlds with hierarchical chunks and on-demand generation.
+
+**Navigation Commands:**
+- `travel <direction>` - Move to adjacent space (supports natural language like "climb ladder")
+- `scout <direction>` - Peek in a direction without moving (shows what's ahead)
+
+**Features:**
+- **Hierarchical world**: 5 levels (WORLD → REGION → ZONE → SUBZONE → SPACE)
+- **LLM-driven generation**: Rich lore inheritance and theme-based content
+- **Hybrid exits**: Cardinal directions (n/s/e/w/up/down) + natural language ("climb ladder", "through door")
+- **Hidden exits**: Require Perception checks to discover (DC = 10 + difficulty level)
+- **Conditional exits**: May require skill checks or specific items
+- **Terrain types**: NORMAL (1 tick), DIFFICULT (2 ticks + Agility check), IMPASSABLE (blocks)
+- **Content placement**: Theme-based traps (~15%), resources (~5%), and mobs
+- **State persistence**: Player changes persist; mobs respawn on restart
+- **Deep dungeon MVP**: Start at top, descend deeper (100+ floors possible)
+
+For complete details, see [World Generation Documentation](./WORLD_GENERATION.md)
+
 ### Interaction
 - `look` or `look <target>` - Examine room or specific object
 - `take <item>` or `get <item>` - Pick up an item
@@ -281,5 +301,7 @@ For more details, see:
 - [Architecture Documentation](./ARCHITECTURE.md)
 - [Social System Documentation](./SOCIAL_SYSTEM.md)
 - [Items and Crafting Documentation](./ITEMS_AND_CRAFTING.md)
+- [World Generation Documentation](./WORLD_GENERATION.md)
 - [Multi-User Details](./MULTI_USER.md)
+- [Testing Strategy](./TESTING.md)
 - [Implementation Log](./IMPLEMENTATION_LOG.md)
