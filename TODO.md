@@ -19,9 +19,20 @@
 ## Next Major Feature
 
 ### World Generation System V2
-**Status:** Ready to implement
+**Status:** Partially complete - test fixes needed
 **Description:** Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds
 **Implementation Plan:** `docs/requirements/V2/FEATURE_PLAN_world_generation_system.md`
+
+**Progress:**
+- ✅ Chunks 1-6 complete (foundation, database, generation, exits, content, persistence)
+- ✅ Main code compiles successfully
+- ❌ Test compilation errors (ItemRepository API changes, WorldGenerationIntegrationTest needs fixes)
+
+**Next Steps:**
+1. Fix test compilation errors in ItemUseHandlerTest and PickpocketHandlerTest (ItemRepository API mismatch)
+2. Fix WorldGenerationIntegrationTest nullable type issues
+3. Run integration tests to validate complete system
+4. Update CLAUDE.md status when tests pass
 
 **Key Features:**
 - Hierarchical chunks (WORLD > REGION > ZONE > SUBZONE > SPACE)
@@ -30,8 +41,6 @@
 - Theme-based traps, resources, mobs scaled by difficulty
 - State persistence with mob respawns
 - V2 Deep Dungeon MVP (100+ floors possible)
-
-**Implementation:** 7 chunks, 29 hours total
 
 ---
 

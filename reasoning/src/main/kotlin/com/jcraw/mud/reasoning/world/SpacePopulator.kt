@@ -18,7 +18,7 @@ class SpacePopulator(
      * Generates traps (10-20%), resources (5%), and mobs based on density.
      * Returns updated SpacePropertiesComponent with generated content.
      */
-    fun populate(
+    suspend fun populate(
         space: SpacePropertiesComponent,
         theme: String,
         difficulty: Int,
@@ -66,7 +66,7 @@ class SpacePopulator(
      * NOTE: This method only updates the entity ID list in SpacePropertiesComponent.
      * The actual Entity.NPC objects must be managed separately in the world state.
      */
-    fun repopulate(
+    suspend fun repopulate(
         space: SpacePropertiesComponent,
         theme: String,
         difficulty: Int,
@@ -98,7 +98,7 @@ class SpacePopulator(
      * Helper method that spawns mobs and returns both component and entities.
      * Useful for initial world generation.
      */
-    fun populateWithEntities(
+    suspend fun populateWithEntities(
         space: SpacePropertiesComponent,
         theme: String,
         difficulty: Int,

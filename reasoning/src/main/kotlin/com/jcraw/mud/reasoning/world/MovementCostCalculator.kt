@@ -51,11 +51,11 @@ class MovementCostCalculator {
                 val baseTicks = 2
                 val modifiedTicks = applySkillModifiers(baseTicks, playerState)
 
-                // Agility check to avoid 1d6 damage
-                val agilityModifier = playerState.stats.agility / 2 - 5
+                // Dexterity check to avoid 1d6 damage
+                val dexterityModifier = playerState.stats.dexterity / 2 - 5
                 val skillCheckDC = 10
                 val roll = Random.nextInt(1, 21)
-                val skillCheckResult = roll + agilityModifier
+                val skillCheckResult = roll + dexterityModifier
 
                 val damageRisk = if (skillCheckResult < skillCheckDC) {
                     Random.nextInt(1, 7) // 1d6
@@ -110,13 +110,13 @@ class MovementCostCalculator {
      * This should be called after calculateCost() when skillCheckRequired is true.
      *
      * @param playerState Current player state
-     * @param difficulty DC for the Agility check (default 10)
+     * @param difficulty DC for the Dexterity check (default 10)
      * @return Damage dealt (0 if check passed, 1d6 if failed)
      */
     fun calculateTerrainDamage(playerState: PlayerState, difficulty: Int = 10): Int {
-        val agilityModifier = playerState.stats.agility / 2 - 5
+        val dexterityModifier = playerState.stats.dexterity / 2 - 5
         val roll = Random.nextInt(1, 21)
-        val skillCheckResult = roll + agilityModifier
+        val skillCheckResult = roll + dexterityModifier
 
         return if (skillCheckResult < difficulty) {
             Random.nextInt(1, 7) // 1d6

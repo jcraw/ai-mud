@@ -2,8 +2,8 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.world.ExitData
 import com.jcraw.mud.core.world.GenerationContext
-import com.jcraw.mud.core.world.SpacePropertiesComponent
-import com.jcraw.mud.core.world.WorldChunkComponent
+import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.mud.core.WorldChunkComponent
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
 

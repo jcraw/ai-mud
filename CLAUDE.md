@@ -180,7 +180,7 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **✅ PROJECT COMPILES** - All World Generation System V2 compilation errors have been fixed
+- **⚠️ MAIN CODE COMPILES** - World Generation V2 main code fixed (2025-01-30), test fixes needed
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -202,7 +202,7 @@ Memory (store for RAG)
 
 ## Current Status
 
-**✅ ALL SYSTEMS OPERATIONAL - COMPILATION FIXED**
+**⚠️ MAIN CODE OPERATIONAL - TEST FIXES NEEDED**
 
 - ✅ GUI client with real engine integration
 - ✅ Quest system with auto-tracking
@@ -210,10 +210,11 @@ Memory (store for RAG)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ Combat System V2 (7 phases complete)
 - ✅ **Item System V2 (10 chunks complete)** - Inventory, gathering, crafting, trading, pickpocketing
-- ✅ **World Generation System V2 (Chunks 1-6 COMPLETE)** - All compilation errors fixed, ready for testing
+- ⚠️ **World Generation System V2 (Chunks 1-6 COMPLETE)** - Main code compiles, test fixes needed
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
-- ✅ Project compiles successfully
+- ✅ Main project code compiles successfully
+- ❌ Test compilation errors (ItemRepository API changes, integration test fixes needed)
 
 **Combat System V2 (COMPLETE)** ✅
 
@@ -796,19 +797,24 @@ See implementation plan for complete 10-chunk breakdown (24 hours total).
 
 ---
 
-## World Generation System V2 (COMPILATION FIXED - READY FOR TESTING) ✅
+## World Generation System V2 (MAIN CODE FIXED - TEST FIXES NEEDED) ⚠️
 
 **Implementation Plan:** [World Generation System Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
 
-**Status:** Chunks 1-6 complete! All compilation errors have been fixed. Ready for integration testing and validation.
+**Status:** Chunks 1-6 complete! Main code compilation fixed (2025-01-30). Test compilation needs fixes.
 
-**Completed (2025-01-30):** All LLM integration issues and ECS architecture mismatches resolved:
-- ✅ ExitLinker.kt, ExitResolver.kt, MovementCostCalculator.kt - Fixed
-- ✅ MobSpawner.kt, ResourceGenerator.kt, TrapGenerator.kt - Fixed
-- ✅ RespawnManager.kt, StateChangeHandler.kt - Fixed
+**Completed (2025-01-30):** Main code LLM integration and ECS architecture issues resolved:
+- ✅ ExitLinker.kt, ExitResolver.kt, MovementCostCalculator.kt - Fixed (import paths, field names)
+- ✅ MobSpawner.kt, ResourceGenerator.kt, TrapGenerator.kt - Fixed (suspend functions)
+- ✅ SpacePopulator.kt - Fixed (suspend functions)
 - ✅ All files updated to use com.jcraw.sophia.llm.LLMClient
 - ✅ All async operations properly marked as suspend functions
 - ✅ ECS architecture properly implemented (entity IDs separate from components)
+
+**Outstanding Issues:**
+- ❌ ItemUseHandlerTest.kt - ItemRepository API mismatch (method names changed)
+- ❌ PickpocketHandlerTest.kt - ItemRepository API mismatch (method names changed)
+- ❌ WorldGenerationIntegrationTest.kt - Nullable type handling, API mismatches
 
 **Overview:**
 Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds. The V2 MVP focuses on a deep dungeon (top-to-bottom progression with mob respawns), integrating with existing skills, combat, items, and social systems.
@@ -1249,11 +1255,15 @@ Completed:
   - **Ready to run now that compilation errors are fixed**
 
 **Next Steps:**
-1. ✅ Fix compilation errors - COMPLETE (2025-01-30)
-2. Run WorldGenerationIntegrationTest to validate complete system
-3. Run full test suite to ensure no regressions
-4. Complete integration with game engine
-5. Optional: Implement full handlers for Scout/Travel intents
+1. ✅ Fix main code compilation errors - COMPLETE (2025-01-30)
+2. Fix test compilation errors:
+   - ItemUseHandlerTest.kt mock ItemRepository implementation
+   - PickpocketHandlerTest.kt mock ItemRepository implementation
+   - WorldGenerationIntegrationTest.kt nullable types and API calls
+3. Run WorldGenerationIntegrationTest to validate complete system
+4. Run full test suite to ensure no regressions
+5. Complete integration with game engine
+6. Optional: Implement full handlers for Scout/Travel intents
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)

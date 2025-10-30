@@ -2,6 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.world.ExitData
+import com.jcraw.mud.core.world.Condition
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.sophia.llm.LLMClient
 import kotlin.math.min
@@ -181,15 +182,15 @@ class ExitResolver(
      * Checks if the player meets all conditions to use an exit
      */
     private fun checkConditions(exit: ExitData, playerState: PlayerState): ResolveResult {
-        val unmetConditions = exit.conditions.filterNot { it.meetsConditions(playerState) }
+        val unmetConditions = exit.conditions.filterNot { it.meetsCondition(playerState) }
 
         return if (unmetConditions.isEmpty()) {
             ResolveResult.Success(exit, exit.targetId)
         } else {
             val conditionDescriptions = unmetConditions.joinToString(", ") { condition ->
                 when (condition) {
-                    is ExitData.Condition.SkillCheck -> "${condition.skill} ${condition.difficulty}+"
-                    is ExitData.Condition.ItemRequired -> "item: ${condition.itemTag}"
+                    is Condition.SkillCheck -> "${condition.skill} ${condition.difficulty}+"
+                    is Condition.ItemRequired -> "item: ${condition.itemTag}"
                 }
             }
             ResolveResult.Failure(
@@ -226,16 +227,16 @@ class ExitResolver(
     fun describeExit(exit: ExitData, player: PlayerState): String {
         val baseDescription = "${exit.direction}: ${exit.description}"
 
-        val unmetConditions = exit.conditions.filterNot { it.meetsConditions(player) }
+        val unmetConditions = exit.conditions.filterNot { it.meetsCondition(player) }
         if (unmetConditions.isEmpty()) {
             return baseDescription
         }
 
         val conditionHints = unmetConditions.joinToString(", ") { condition ->
             when (condition) {
-                is ExitData.Condition.SkillCheck ->
+                is Condition.SkillCheck ->
                     "requires ${condition.skill} ${condition.difficulty}+"
-                is ExitData.Condition.ItemRequired ->
+                is Condition.ItemRequired ->
                     "requires ${condition.itemTag}"
             }
         }
