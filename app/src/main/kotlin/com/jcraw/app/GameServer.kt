@@ -198,6 +198,8 @@ class GameServer(
 
         return when (intent) {
             is Intent.Move -> handleMove(playerId, playerState, intent.direction)
+            is Intent.Scout -> Triple("Scout not yet integrated with world generation system", worldState, null)
+            is Intent.Travel -> Triple("Travel not yet integrated with world generation system", worldState, null)
             is Intent.Look -> handleLook(playerId, playerState, intent.target)
             is Intent.Search -> handleSearch(playerId, playerState, intent.target, currentRoom)
             is Intent.Craft -> Triple("Crafting not yet supported in multi-user mode", worldState, null)
