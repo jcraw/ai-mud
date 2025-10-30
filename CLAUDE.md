@@ -1037,14 +1037,59 @@ Completed:
   - createReciprocalDescription() - Generates coherent reverse descriptions
 - ✅ `ExitData.kt` - Added hiddenDifficulty field for Perception checks (core/world:65)
 
+**Chunk 5: Content Placement & Spawning (COMPLETE)** ✅
+
+Completed:
+- ✅ `ThemeRegistry.kt` - Registry mapping biome themes to content rules (reasoning/world:137)
+  - ThemeProfile data class (traps, resources, mobArchetypes, ambiance)
+  - 8 predefined profiles (dark forest, magma cave, ancient crypt, frozen wasteland, abandoned castle, swamp, desert ruins, underground lake)
+  - getProfile() - Exact match lookup
+  - getProfileSemantic() - Keyword-based semantic matching for theme variations
+  - getAllThemeNames() and getDefaultProfile() helpers
+- ✅ `TrapGenerator.kt` - Theme-based trap generation with LLM descriptions (reasoning/world:99)
+  - generate() - Creates TrapData from theme profile with difficulty scaling
+  - generateTrapDescription() - Optional LLM-based vivid descriptions
+  - generateTrapsForSpace() - Probability-based generation (~15% base chance)
+  - Difficulty variance (-2 to +2) for natural randomness
+  - Supports second trap in high-difficulty areas (difficulty > 10)
+- ✅ `ResourceGenerator.kt` - Resource node generation tied to ItemRepository (reasoning/world:148)
+  - generate() - Creates ResourceNode from theme with quantity/respawn scaling
+  - Quantity scales with difficulty (baseQuantity + difficulty/5)
+  - Respawn time formula: 100 + difficulty * 10 (deep dungeons = renewable)
+  - generateNodeDescription() - Optional LLM-based descriptions
+  - generateResourcesForSpace() - Probability-based generation (~5% base chance)
+  - 30+ resource name to template ID mappings
+- ✅ `MobSpawner.kt` - Entity spawning with theme-based generation (reasoning/world:190)
+  - spawnEntities() - Creates Entity.NPC list based on mobDensity * spaceSize
+  - spawnEntitiesWithLLM() - Uses LLM for diverse mob generation with JSON parsing
+  - spawnEntitiesFallback() - Deterministic generation when LLM unavailable
+  - respawn() - Regenerates mobs for murder-hobo viable gameplay
+  - Stats scale with difficulty (8 + difficulty/2, coerced to 3-20)
+  - Health formula: difficulty * 10 + variance
+  - Gold formula: difficulty * 5 + variance
+  - Loot table ID format: "{theme}_{difficulty}"
+- ✅ `LootTableGenerator.kt` - Procedural loot table generation (reasoning/world:207)
+  - generateForTheme() - Creates weighted loot tables from ItemRepository queries
+  - Theme keyword extraction with synonyms (forest→wood/leaf/tree/nature/green)
+  - Rarity distribution: COMMON 50%, UNCOMMON 30%, RARE 15%, EPIC 4%, LEGENDARY 1%
+  - Quality scaling with difficulty (scaleQuality method)
+  - Guaranteed drops scale with difficulty (0/1/2 for common/elite/boss)
+  - Max drops scale with difficulty (2/3/4)
+  - Registers generated tables in LootTableRegistry
+  - generateGoldRange() - Gold drop range formula (10*difficulty..50*difficulty)
+- ✅ `SpacePopulator.kt` - Orchestrates all content placement (reasoning/world:143)
+  - populate() - Generates traps, resources, mobs for initial space creation
+  - repopulate() - Respawns mobs only, preserves traps/resources/flags
+  - populateWithEntities() - Returns both SpacePropertiesComponent and Entity.NPC list
+  - calculateMobCount() - Helper for testing (mobDensity * spaceSize)
+  - clearDynamicContent() - Removes traps/resources/entities, preserves player changes
+
 **Remaining Work:**
-- ✅ Fix pre-existing test compilation errors - COMPLETE (all compilation errors resolved, build passing)
-- ✅ Chunk 4: Exit System & Navigation - **COMPLETE**
-- ⏳ Chunk 5: Content Placement & Spawning
+- ⏳ Write comprehensive tests for Chunk 5 (~112 tests planned)
 - ⏳ Chunk 6: State Changes & Persistence
 - ⏳ Chunk 7: Integration, Testing & Documentation
 
-**Next Chunk:** Chunk 5 - Content Placement & Spawning
+**Next Chunk:** Chunk 5 Tests (112 tests), then Chunk 6 - State Changes & Persistence
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)
