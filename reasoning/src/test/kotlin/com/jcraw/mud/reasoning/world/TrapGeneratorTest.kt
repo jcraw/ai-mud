@@ -1,6 +1,11 @@
 package com.jcraw.mud.reasoning.world
 
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
+import com.jcraw.sophia.llm.OpenAIChoice
+import com.jcraw.sophia.llm.OpenAIMessage
+import com.jcraw.sophia.llm.OpenAIResponse
+import com.jcraw.sophia.llm.OpenAIUsage
+import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
 /**
@@ -9,25 +14,39 @@ import kotlin.test.*
  */
 class TrapGeneratorTest {
 
-    private class MockLLMService(private val response: String = "A deadly trap awaits.") : LLMService {
+    private class MockLLMClient(private val response: String = "A deadly trap awaits.") : LLMClient {
         var callCount = 0
         var lastPrompt: String? = null
         var shouldFail = false
 
-        override fun complete(prompt: String, model: String, temperature: Double, maxTokens: Int): String {
+        override suspend fun chatCompletion(
+            modelId: String,
+            systemPrompt: String,
+            userContext: String,
+            maxTokens: Int,
+            temperature: Double
+        ): OpenAIResponse {
             callCount++
-            lastPrompt = prompt
+            lastPrompt = userContext
             if (shouldFail) throw RuntimeException("LLM failure")
-            return response
+            return OpenAIResponse(
+                id = "test",
+                `object` = "chat.completion",
+                created = 0,
+                model = modelId,
+                choices = listOf(OpenAIChoice(OpenAIMessage("assistant", response), "stop")),
+                usage = OpenAIUsage(0, 0, 0)
+            )
         }
 
-        override fun embed(text: String, model: String): List<Double> {
-            throw NotImplementedError("Not needed for trap tests")
-        }
+        override suspend fun createEmbedding(text: String, model: String): List<Double> =
+            List(1536) { 0.0 }
+
+        override fun close() {}
     }
 
     @Test
-    fun `generate creates trap with valid structure`() {
+    fun `generate creates trap with valid structure`() = runBlocking {
         val generator = TrapGenerator()
         val trap = generator.generate("dark forest", 5)
 
@@ -38,7 +57,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate uses theme profile trap types`() {
+    fun `generate uses theme profile trap types`() = runBlocking {
         val generator = TrapGenerator()
         val validTraps = listOf("bear trap", "pit trap", "poisoned spike")
 
@@ -50,12 +69,12 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate scales difficulty with variance`() {
+    fun `generate scales difficulty with variance`() = runBlocking {
         val generator = TrapGenerator()
         val baseDifficulty = 10
 
         // Generate multiple traps to check variance
-        val difficulties = List(20) { generator.generate("dark forest", baseDifficulty).difficulty }
+        val difficulties = MutableList(20) { generator.generate("dark forest", baseDifficulty).difficulty }
 
         // Should have variance (not all same)
         assertTrue(difficulties.toSet().size > 1, "Difficulty should vary")
@@ -67,7 +86,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate coerces difficulty to 1-25 range`() {
+    fun `generate coerces difficulty to 1-25 range`() = runBlocking {
         val generator = TrapGenerator()
 
         // Test low boundary
@@ -80,16 +99,16 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate creates unique trap IDs`() {
+    fun `generate creates unique trap IDs`() = runBlocking {
         val generator = TrapGenerator()
-        val ids = List(20) { generator.generate("dark forest", 5).id }
+        val ids = MutableList(20) { generator.generate("dark forest", 5).id }
 
         // All IDs should be unique
         assertEquals(ids.size, ids.toSet().size, "Trap IDs should be unique")
     }
 
     @Test
-    fun `generate uses default profile for unknown theme`() {
+    fun `generate uses default profile for unknown theme`() = runBlocking {
         val generator = TrapGenerator()
         val trap = generator.generate("nonexistent theme", 5)
 
@@ -99,7 +118,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate without LLM uses simple description`() {
+    fun `generate without LLM uses simple description`() = runBlocking {
         val generator = TrapGenerator()
         val trap = generator.generate("magma cave", 5)
 
@@ -108,8 +127,8 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate with LLM uses generated description`() {
-        val mockLLM = MockLLMService("The ground trembles as molten rock bubbles nearby.")
+    fun `generate with LLM uses generated description`() = runBlocking {
+        val mockLLM = MockLLMClient("The ground trembles as molten rock bubbles nearby.")
         val generator = TrapGenerator(mockLLM)
         val trap = generator.generate("magma cave", 5)
 
@@ -118,7 +137,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapDescription without LLM returns fallback`() {
+    fun `generateTrapDescription without LLM returns fallback`() = runBlocking {
         val generator = TrapGenerator()
         val description = generator.generateTrapDescription("bear trap", "dark forest")
 
@@ -126,8 +145,8 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapDescription with LLM generates vivid description`() {
-        val mockLLM = MockLLMService("Rusted jaws wait beneath fallen leaves, ready to snap shut.")
+    fun `generateTrapDescription with LLM generates vivid description`() = runBlocking {
+        val mockLLM = MockLLMClient("Rusted jaws wait beneath fallen leaves, ready to snap shut.")
         val generator = TrapGenerator(mockLLM)
         val description = generator.generateTrapDescription("bear trap", "dark forest")
 
@@ -138,8 +157,8 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapDescription handles LLM failure gracefully`() {
-        val mockLLM = MockLLMService().apply { shouldFail = true }
+    fun `generateTrapDescription handles LLM failure gracefully`() = runBlocking {
+        val mockLLM = MockLLMClient().apply { shouldFail = true }
         val generator = TrapGenerator(mockLLM)
         val description = generator.generateTrapDescription("poison dart", "ancient crypt")
 
@@ -148,7 +167,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace returns empty list when roll fails`() {
+    fun `generateTrapsForSpace returns empty list when roll fails`() = runBlocking {
         val generator = TrapGenerator()
 
         // With 0% probability, should never generate traps
@@ -159,7 +178,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace generates trap when roll succeeds`() {
+    fun `generateTrapsForSpace generates trap when roll succeeds`() = runBlocking {
         val generator = TrapGenerator()
 
         // With 100% probability, should always generate at least one trap
@@ -170,7 +189,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace can generate second trap in high difficulty`() {
+    fun `generateTrapsForSpace can generate second trap in high difficulty`() = runBlocking {
         val generator = TrapGenerator()
 
         // With difficulty > 10 and 100% probability, sometimes generates 2 traps
@@ -188,7 +207,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace never generates second trap in low difficulty`() {
+    fun `generateTrapsForSpace never generates second trap in low difficulty`() = runBlocking {
         val generator = TrapGenerator()
 
         // With difficulty <= 10, should never generate second trap
@@ -199,7 +218,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace respects custom probability`() {
+    fun `generateTrapsForSpace respects custom probability`() = runBlocking {
         val generator = TrapGenerator()
 
         // With 100% probability, should always generate
@@ -220,7 +239,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generateTrapsForSpace second trap has increased difficulty`() {
+    fun `generateTrapsForSpace second trap has increased difficulty`() = runBlocking {
         val generator = TrapGenerator()
 
         // Find a case with 2 traps
@@ -239,7 +258,7 @@ class TrapGeneratorTest {
     }
 
     @Test
-    fun `generate works with all theme types`() {
+    fun `generate works with all theme types`() = runBlocking {
         val generator = TrapGenerator()
         val themes = listOf(
             "dark forest", "magma cave", "ancient crypt", "frozen wasteland",
