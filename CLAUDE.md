@@ -180,7 +180,9 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **All modules building** - ~751 tests passing across all modules
+- **⚠️ PROJECT DOES NOT COMPILE** - World Generation System V2 Chunks 4-6 have compilation errors
+  - Stubbed files in reasoning/world/ need completion
+  - See World Generation System V2 section below for details
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Requirements**: See `docs/requirements.txt`
 
@@ -202,7 +204,7 @@ Memory (store for RAG)
 
 ## Current Status
 
-**All core systems complete!** 🎉
+**⚠️ PROJECT BLOCKED - COMPILATION ERRORS**
 
 - ✅ GUI client with real engine integration
 - ✅ Quest system with auto-tracking
@@ -210,9 +212,10 @@ Memory (store for RAG)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ Combat System V2 (7 phases complete)
 - ✅ **Item System V2 (10 chunks complete)** - Inventory, gathering, crafting, trading, pickpocketing
-- ✅ All testing migration & cleanup complete
+- ⚠️ **World Generation System V2 (BLOCKED)** - Chunks 4-6 stubbed but have compilation errors
+- ✅ All testing migration & cleanup complete (for working systems)
 - ✅ Code refactoring complete (all files under 600 lines)
-- ✅ All known bugs resolved
+- ⚠️ Known bugs: Project does not compile due to incomplete World Gen V2 implementation
 
 **Combat System V2 (COMPLETE)** ✅
 
@@ -795,11 +798,18 @@ See implementation plan for complete 10-chunk breakdown (24 hours total).
 
 ---
 
-## World Generation System V2 (IN PROGRESS) 🔧
+## World Generation System V2 (BLOCKED - COMPILATION ERRORS) ⚠️
 
 **Implementation Plan:** [World Generation System Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
 
-**Status:** Chunks 1-6 complete (foundation through persistence). Chunk 7 (handlers, UI integration, final testing) **IN PROGRESS**.
+**Status:** Chunks 1-3 complete (foundation through generation core). **Chunks 4-6 are stubbed but have compilation errors.** Chunk 7 (integration testing) has been created but cannot run until compilation issues are fixed.
+
+**CRITICAL:** The project does not currently compile due to incomplete implementations in reasoning/world/*.kt files. The following files exist but have unresolved references and type mismatches:
+- ExitLinker.kt, ExitResolver.kt, MovementCostCalculator.kt
+- MobSpawner.kt, ResourceGenerator.kt, TrapGenerator.kt
+- RespawnManager.kt, StateChangeHandler.kt
+
+**To fix:** Complete the implementation of Chunks 4-6 stub files before proceeding with testing and integration.
 
 **Overview:**
 Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds. The V2 MVP focuses on a deep dungeon (top-to-bottom progression with mob respawns), integrating with existing skills, combat, items, and social systems.
@@ -1013,55 +1023,45 @@ Completed:
 
 **Note:** Tests demonstrate comprehensive coverage and follow existing project patterns using real SQLite repositories. All compilation errors have been resolved as of 2025-01-29.
 
-**Chunk 4: Exit System & Navigation (COMPLETE)** ✅
+**Chunk 4: Exit System & Navigation (STUBBED - INCOMPLETE)** ⚠️
 
-Completed:
-- ✅ `Intent.Scout` - Scout/peek in a direction without moving (perception:23)
-- ✅ `Intent.Travel` - Travel to adjacent space with natural language support (perception:30)
-- ✅ `NavigationState.kt` - Tracks player location in world hierarchy (core/world:88)
+Stubbed (compilation errors):
+- ⚠️ `Intent.Scout` - Scout/peek in a direction without moving (perception:23) - DEFINED
+- ⚠️ `Intent.Travel` - Travel to adjacent space with natural language support (perception:30) - DEFINED
+- ⚠️ `NavigationState.kt` - Tracks player location in world hierarchy (core/world:88) - STUBBED
   - currentSpaceId, currentSubzoneId, currentZoneId, currentRegionId, worldId fields
   - updateLocation() - Queries hierarchy and updates all parent IDs
   - recordVisit() - Breadcrumb trail (last 20 spaces)
-- ✅ `MovementCostCalculator.kt` - Calculates movement costs and terrain damage (reasoning/world:120)
-  - calculateCost() - NORMAL (1 tick), DIFFICULT (2 ticks + Agility check), IMPASSABLE (fails)
-  - applySkillModifiers() - Athletics skill reduces difficult terrain cost
-  - calculateTerrainDamage() - D20 Agility check vs DC 10, 1d6 damage on failure
-- ✅ `ExitResolver.kt` - Three-phase exit resolution engine (reasoning/world:285)
-  - Phase 1: Exact match for cardinal directions (n/s/e/w/up/down/ne/nw/se/sw)
-  - Phase 2: Fuzzy match with Levenshtein distance <= 2
-  - Phase 3: LLM parsing for natural language ("climb ladder", "through door")
-  - getVisibleExits() - Filters hidden exits by Perception skill
-  - describeExit() - Shows condition hints (skill/item requirements)
-  - ResolveResult sealed class (Success, Failure, Ambiguous)
-- ✅ `ExitLinker.kt` - Links placeholder exits after generation (reasoning/world:152)
-  - linkExits() - Replaces "PLACEHOLDER" targetIds with real space IDs
-  - createReciprocalExit() - Maps directions to opposites (n→s, climb→descend)
-  - createReciprocalDescription() - Generates coherent reverse descriptions
-- ✅ `ExitData.kt` - Added hiddenDifficulty field for Perception checks (core/world:65)
+- ⚠️ `MovementCostCalculator.kt` - **HAS COMPILATION ERRORS** (reasoning/world:120)
+  - Unresolved reference 'agility' - needs SkillComponent integration
+  - Comparison operator issues
+- ⚠️ `ExitResolver.kt` - **HAS COMPILATION ERRORS** (reasoning/world:285)
+  - Unresolved references to SpacePropertiesComponent methods
+  - Unresolved LLMService references
+  - Missing Condition type handling
+- ⚠️ `ExitLinker.kt` - **HAS COMPILATION ERRORS** (reasoning/world:152)
+  - Unresolved reference 'exits', 'targetId', 'copy'
+  - Type mismatches with SpacePropertiesComponent
+- ✅ `ExitData.kt` - Added hiddenDifficulty field for Perception checks (core/world:65) - COMPLETE
 
-**Chunk 5: Content Placement & Spawning (COMPLETE)** ✅
+**Chunk 5: Content Placement & Spawning (STUBBED - INCOMPLETE)** ⚠️
 
-Completed:
-- ✅ `ThemeRegistry.kt` - Registry mapping biome themes to content rules (reasoning/world:137)
+Partially completed / stubbed (compilation errors):
+- ✅ `ThemeRegistry.kt` - Registry mapping biome themes to content rules (reasoning/world:137) - COMPLETE
   - ThemeProfile data class (traps, resources, mobArchetypes, ambiance)
   - 8 predefined profiles (dark forest, magma cave, ancient crypt, frozen wasteland, abandoned castle, swamp, desert ruins, underground lake)
   - getProfile() - Exact match lookup
   - getProfileSemantic() - Keyword-based semantic matching for theme variations
   - getAllThemeNames() and getDefaultProfile() helpers
-- ✅ `TrapGenerator.kt` - Theme-based trap generation with LLM descriptions (reasoning/world:99)
-  - generate() - Creates TrapData from theme profile with difficulty scaling
-  - generateTrapDescription() - Optional LLM-based vivid descriptions
-  - generateTrapsForSpace() - Probability-based generation (~15% base chance)
-  - Difficulty variance (-2 to +2) for natural randomness
-  - Supports second trap in high-difficulty areas (difficulty > 10)
-- ✅ `ResourceGenerator.kt` - Resource node generation tied to ItemRepository (reasoning/world:148)
-  - generate() - Creates ResourceNode from theme with quantity/respawn scaling
-  - Quantity scales with difficulty (baseQuantity + difficulty/5)
-  - Respawn time formula: 100 + difficulty * 10 (deep dungeons = renewable)
-  - generateNodeDescription() - Optional LLM-based descriptions
-  - generateResourcesForSpace() - Probability-based generation (~5% base chance)
-  - 30+ resource name to template ID mappings
-- ✅ `MobSpawner.kt` - Entity spawning with theme-based generation (reasoning/world:190)
+- ⚠️ `TrapGenerator.kt` - **HAS COMPILATION ERRORS** (reasoning/world:99)
+  - Unresolved LLM references
+  - Missing 'complete' method
+- ⚠️ `ResourceGenerator.kt` - **HAS COMPILATION ERRORS** (reasoning/world:148)
+  - Unresolved LLM references
+  - Missing 'complete' method
+- ⚠️ `MobSpawner.kt` - **HAS COMPILATION ERRORS** (reasoning/world:190)
+  - Unresolved LLM references
+  - Missing 'complete' method
   - spawnEntities() - Creates Entity.NPC list based on mobDensity * spaceSize
   - spawnEntitiesWithLLM() - Uses LLM for diverse mob generation with JSON parsing
   - spawnEntitiesFallback() - Deterministic generation when LLM unavailable
@@ -1142,32 +1142,28 @@ Completed:
   - Zero and high mob density edge cases
   - Multiple themes and difficulty levels
 
-**Chunk 6: State Changes & Persistence (COMPLETE)** ✅
+**Chunk 6: State Changes & Persistence (STUBBED - INCOMPLETE)** ⚠️
 
-Completed:
-- ✅ `WorldAction.kt` - Sealed class for type-safe world actions (core/world:71)
+Partially completed / stubbed (compilation errors):
+- ✅ `WorldAction.kt` - Sealed class for type-safe world actions (core/world:71) - COMPLETE
   - DestroyObstacle, TriggerTrap, HarvestResource, PlaceItem, RemoveItem, UnlockExit, SetFlag
   - Serializable with kotlinx.serialization
   - Enables exhaustive when statements for state changes
-- ✅ `StateChangeHandler.kt` - Handles player-initiated world modifications (reasoning/world:144)
-  - applyChange() - Applies WorldActions immutably to SpacePropertiesComponent
-  - shouldRegenDescription() - Detects flag changes requiring description update
-  - regenDescription() - LLM-based description regeneration incorporating state changes
-  - Preserves all space properties while updating modified fields
-- ✅ `WorldPersistence.kt` - Save/load integration for world system (memory/world:149)
+- ⚠️ `StateChangeHandler.kt` - **HAS COMPILATION ERRORS** (reasoning/world:144)
+  - Unresolved LLM references
+  - Unresolved 'copy' method references
+  - Type mismatches with SpacePropertiesComponent
+- ✅ `WorldPersistence.kt` - Save/load integration for world system (memory/world:149) - COMPLETE
   - saveWorldState() - Batch saves loaded chunks and spaces
   - loadWorldState() - Loads global lore and starting space
   - saveSpace() - Incremental save for autosave
   - loadChunk(), loadSpace() - Lazy loading during navigation
   - prefetchAdjacentSpaces() - Preload exits for smooth movement
   - saveWorldSeed(), getWorldSeed() - Singleton seed management
-- ✅ `RespawnManager.kt` - Mob respawn on game restart (reasoning/world:138)
-  - respawnWorld() - Recursively respawns mobs across all spaces
-  - Preserves state flags, items, resources, and traps
-  - respawnSpaceMobs() - Regenerates entities using MobSpawner
-  - createFreshStart() - Initializes new dungeon via DungeonInitializer
-  - clearSpaceEntities(), respawnSpaceEntities() - Granular control
-- ✅ `AutosaveManager.kt` - Periodic autosave (memory/world:125)
+- ⚠️ `RespawnManager.kt` - **HAS COMPILATION ERRORS** (reasoning/world:138)
+  - Type mismatch: List<Entity.NPC> vs List<String>
+  - Needs SpacePropertiesComponent field updates
+- ✅ `AutosaveManager.kt` - Periodic autosave (memory/world:125) - COMPLETE
   - startPeriodicAutosave() - Coroutine-based autosave every 2 minutes
   - onPlayerMove() - Triggers autosave after 5 moves
   - performAutosave() - Manual/immediate save
@@ -1205,7 +1201,7 @@ Completed:
   - Counter reset logic
   - Coroutine cancellation
 
-**Chunk 7: Integration, Testing & Documentation (IN PROGRESS)** ⏳
+**Chunk 7: Integration, Testing & Documentation (BLOCKED)** ⚠️
 
 **Completed:**
 - ✅ Compilation fixes (all Intent branches added to MudGameEngine, GameServer, EngineGameClient)
@@ -1213,7 +1209,7 @@ Completed:
   - ✅ WORLD_GENERATION.md - Comprehensive 833-line guide created
   - ✅ ARCHITECTURE.md - World Generation System section added (lines 411-446)
   - ✅ GETTING_STARTED.md - World generation commands and features added
-  - ✅ CLAUDE.md - Status tracking updated
+  - ✅ CLAUDE.md - Status tracking updated to reflect actual state
 
 - ✅ **WorldHandlers.kt** - Intent handlers for travel/scout implemented (app/handlers:203)
   - handleScout() - Stub for scouting exits without moving
@@ -1228,19 +1224,22 @@ Completed:
   - Follows EngineGameClient pattern with GameEvent emissions
   - Uses buildString for formatted output
 
-- ✅ **WorldExplorationTest.kt** - Comprehensive world generation test scenario (testbot:646)
-  - DungeonInitializer hierarchy validation
-  - WorldGenerator chunk consistency tests
-  - Exit resolution (cardinal + natural language + fuzzy)
-  - Theme registry content profiles
-  - State persistence save/load roundtrip
-  - Respawn manager mob regeneration
-  - 6 comprehensive integration tests validating full world generation system
+- ✅ **WorldGenerationIntegrationTest.kt** - Comprehensive integration test suite created (reasoning:test:554)
+  - 10 integration tests covering complete world generation system
+  - Tests dungeon initialization, exit linking, navigation, content placement
+  - State persistence, respawn, navigation tracking, theme registry
+  - Cannot run until compilation errors in Chunks 4-6 are fixed
 
-**Remaining Work:**
-- ⏳ WorldGenerationIntegrationTest.kt - Integration tests (reasoning:test)
+**Blocked:**
+- ⚠️ Cannot run tests or complete integration until Chunks 4-6 compilation errors are resolved
+- ⚠️ Project does not currently compile
 
-**Next Steps:** Final integration testing (core system complete and functional)
+**Next Steps:**
+1. Fix compilation errors in ExitLinker, ExitResolver, MovementCostCalculator
+2. Fix compilation errors in MobSpawner, ResourceGenerator, TrapGenerator
+3. Fix compilation errors in StateChangeHandler, RespawnManager
+4. Run WorldGenerationIntegrationTest to validate complete system
+5. Complete integration with game engine
 
 **Compilation Fixes (2025-01-29):**
 - ✅ Fixed missing Intent branches in MudGameEngine.kt (Craft, Pickpocket, Trade, UseItem)
