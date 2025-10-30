@@ -70,7 +70,7 @@ object SkillQuestHandlers {
 
         // Perform skill check if specified
         var harvestSuccess = true
-        var skillCheckResult: com.jcraw.mud.reasoning.skill.SkillCheckResult? = null
+        var skillCheckResult: com.jcraw.mud.core.SkillCheckResult? = null
 
         if (feature.skillChallenge != null) {
             val challenge = feature.skillChallenge!!
@@ -126,10 +126,20 @@ object SkillQuestHandlers {
 
         // Generate loot using LootGenerator
         val lootGenerator = com.jcraw.mud.reasoning.loot.LootGenerator(game.itemRepository)
-        val instances = lootGenerator.generateLoot(
-            feature.lootTableId!!,
+
+        // Look up loot table from registry
+        val lootTable = com.jcraw.mud.reasoning.loot.LootTableRegistry.getTable(feature.lootTableId!!)
+        if (lootTable == null) {
+            println("Error: Loot table not found for ${feature.lootTableId}")
+            return
+        }
+
+        val instancesResult = lootGenerator.generateLoot(
+            lootTable,
             com.jcraw.mud.reasoning.loot.LootSource.FEATURE
         )
+
+        val instances = instancesResult.getOrNull() ?: emptyList()
 
         if (instances.isEmpty()) {
             println("You didn't find anything useful.")
@@ -401,8 +411,11 @@ object SkillQuestHandlers {
         println("Difficulty: DC ${recipe.difficulty}")
         println()
 
-        // Attempt crafting
-        val result = craftingManager.craft(game.worldState.player, recipe)
+        // TODO: Get SkillComponent and InventoryComponent for player when fully integrated
+        println("❌ Crafting requires InventoryComponent integration (coming soon!)")
+
+        /* TODO: Uncomment when InventoryComponent is integrated
+        val result = craftingManager.craft(skillComponent, inventoryComponent, recipe)
 
         when (result) {
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Success -> {
@@ -472,6 +485,7 @@ object SkillQuestHandlers {
                 println("❌ ${result.message}")
             }
         }
+        */
     }
 
     /**

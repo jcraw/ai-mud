@@ -72,6 +72,7 @@ class MudGame(
     // Item System V2 components
     private val itemDatabase = ItemDatabase("items.db")
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
+    internal val recipeRepository = com.jcraw.mud.memory.item.SQLiteRecipeRepository(itemDatabase)
     private val lootGenerator = LootGenerator(itemRepository)
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
@@ -208,6 +209,10 @@ class MudGame(
             is Intent.Look -> com.jcraw.app.handlers.MovementHandlers.handleLook(this, intent.target)
             is Intent.Search -> com.jcraw.app.handlers.MovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> com.jcraw.app.handlers.SkillQuestHandlers.handleInteract(this, intent.target)
+            is Intent.Craft -> com.jcraw.app.handlers.SkillQuestHandlers.handleCraft(this, intent.target)
+            is Intent.Pickpocket -> println("Pickpocketing not yet integrated") // TODO
+            is Intent.Trade -> println("Trading not yet integrated") // TODO
+            is Intent.UseItem -> println("Item use not yet integrated") // TODO
             is Intent.Inventory -> com.jcraw.app.handlers.ItemHandlers.handleInventory(this)
             is Intent.Take -> com.jcraw.app.handlers.ItemHandlers.handleTake(this, intent.target)
             is Intent.TakeAll -> com.jcraw.app.handlers.ItemHandlers.handleTakeAll(this)

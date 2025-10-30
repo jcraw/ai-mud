@@ -26,7 +26,8 @@ fun handlePickpocket(
         ?: return world to "You are nowhere!"
 
     // Find target NPC in room
-    val targetNpc = currentRoom.npcs.find { it.name.equals(intent.npcTarget, ignoreCase = true) }
+    val targetNpc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+        .find { it.name.equals(intent.npcTarget, ignoreCase = true) }
         ?: return world to "You don't see ${intent.npcTarget} here."
 
     // TODO: Get player's InventoryComponent and SkillComponent when fully integrated

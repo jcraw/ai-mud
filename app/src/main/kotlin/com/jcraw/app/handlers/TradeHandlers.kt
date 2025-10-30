@@ -50,39 +50,7 @@ object TradeHandlers {
     fun handleListStock(game: MudGame, merchantTarget: String?) {
         val room = game.worldState.getCurrentRoom() ?: return
 
-        // Find merchant in room
-        val merchant = room.npcs.find { npc ->
-            npc.hasComponent(ComponentType.TRADING) &&
-            (merchantTarget == null || npc.name.equals(merchantTarget, ignoreCase = true))
-        }
-
-        if (merchant == null) {
-            println("There's no merchant here.")
-            return
-        }
-
-        val tradingComponent = merchant.getComponent<TradingComponent>(ComponentType.TRADING)
-        if (tradingComponent == null) {
-            println("${merchant.name} is not a merchant.")
-            return
-        }
-
-        println("\n${merchant.name}'s Stock:")
-        if (tradingComponent.stock.isEmpty()) {
-            println("  (nothing for sale)")
-        } else {
-            tradingComponent.stock.forEach { instance ->
-                val templateResult = game.itemRepository.findById(instance.templateId)
-                templateResult.onSuccess { template ->
-                    if (template != null) {
-                        // Get disposition for price calculation
-                        val disposition = merchant.getComponent<SocialComponent>(ComponentType.SOCIAL)?.disposition ?: 50
-                        val price = tradingComponent.calculateBuyPrice(template, instance, disposition)
-                        println("  - ${template.name} (${price} gold) [quality ${instance.quality}/10]")
-                    }
-                }
-            }
-        }
-        println("Merchant gold: ${tradingComponent.merchantGold}")
+        // TODO: Implement when TradingComponent is fully integrated with ECS
+        println("Listing stock not yet fully integrated. Coming soon!")
     }
 }

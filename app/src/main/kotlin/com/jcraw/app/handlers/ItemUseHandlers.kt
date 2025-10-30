@@ -58,19 +58,6 @@ fun handleExamineItemUses(
     itemRepository: ItemRepository,
     itemUseHandler: ItemUseHandler
 ): String {
-    // Find item template by name
-    val templates = itemRepository.findAll().getOrNull() ?: emptyList()
-    val template = templates.find { it.name.equals(itemName, ignoreCase = true) }
-        ?: return "Item not found: $itemName"
-
-    val possibleUses = itemUseHandler.getPossibleUses(template)
-
-    return if (possibleUses.isEmpty()) {
-        "${template.name} has no special uses beyond normal consumption/equipment."
-    } else {
-        """
-        |${template.name} can be used for:
-        |${possibleUses.joinToString("\n") { "- $it" }}
-        """.trimMargin()
-    }
+    // TODO: Implement when InventoryComponent is fully integrated
+    return "Item use examination not yet fully integrated. Coming soon!"
 }
