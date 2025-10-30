@@ -2,8 +2,8 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.world.ExitData
-import com.jcraw.mud.core.world.SpacePropertiesComponent
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.sophia.llm.LLMClient
 import kotlin.math.min
 
 /**
@@ -40,7 +40,7 @@ sealed class ResolveResult {
  * and exit conditions (skill/item requirements).
  */
 class ExitResolver(
-    private val llmService: LLMService
+    private val llmClient: LLMClient
 ) {
     companion object {
         // Cardinal directions for exact matching
@@ -136,7 +136,9 @@ class ExitResolver(
             "- ${exit.direction}: ${exit.description}"
         }
 
-        val prompt = """
+        val systemPrompt = "You are a game assistant matching player intent to exits. Output EXIT:<direction> or UNCLEAR."
+
+        val userContext = """
             |Player said: "$intent"
             |
             |Available exits:
@@ -147,11 +149,17 @@ class ExitResolver(
             |If unclear or no match, output: UNCLEAR
         """.trimMargin()
 
-        val response = llmService.complete(
-            prompt = prompt,
-            temperature = 0.3,
-            model = "gpt-4o-mini"
-        ).getOrNull()
+        val response = try {
+            llmClient.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 50,
+                temperature = 0.3
+            ).choices.firstOrNull()?.message?.content
+        } catch (e: Exception) {
+            null
+        }
 
         return when {
             response == null -> LLMMatchResult.NoMatch
@@ -203,7 +211,7 @@ class ExitResolver(
         val perceptionSkill = playerState.getSkillLevel("Perception")
         val passivePerception = 10 + perceptionModifier + perceptionSkill
 
-        return space.exits.values.filter { exit ->
+        return space.exits.filter { exit ->
             !exit.isHidden || passivePerception >= (exit.hiddenDifficulty ?: 10)
         }
     }

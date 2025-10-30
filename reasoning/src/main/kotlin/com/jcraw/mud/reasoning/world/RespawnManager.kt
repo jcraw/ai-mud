@@ -68,7 +68,7 @@ class RespawnManager(
     /**
      * Respawns mobs in a single space while preserving state flags, items, resources, and traps.
      */
-    private fun respawnSpaceMobs(
+    private suspend fun respawnSpaceMobs(
         space: SpacePropertiesComponent,
         chunkMeta: WorldChunkComponent
     ): SpacePropertiesComponent {
@@ -83,8 +83,8 @@ class RespawnManager(
             spaceSize = chunkMeta.sizeEstimate
         )
 
-        // Return space with new mobs, preserving everything else
-        return clearedSpace.copy(entities = newMobs)
+        // Return space with new mobs (entity IDs), preserving everything else
+        return clearedSpace.copy(entities = newMobs.map { it.id })
     }
 
     /**
@@ -136,7 +136,7 @@ class RespawnManager(
             ?: error("Space not found: $chunkId")
 
         val newMobs = mobSpawner.spawnEntities(theme, mobDensity, difficulty, spaceSize)
-        val updatedSpace = space.copy(entities = newMobs)
+        val updatedSpace = space.copy(entities = newMobs.map { it.id })
 
         spacePropertiesRepository.save(updatedSpace, chunkId).getOrThrow()
 

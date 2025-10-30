@@ -3,14 +3,14 @@ package com.jcraw.mud.reasoning.world
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.world.WorldAction
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
 
 /**
  * Handles player-initiated world modifications and description regeneration.
  * Applies WorldActions to SpacePropertiesComponent immutably.
  */
 class StateChangeHandler(
-    private val llmService: LLMService
+    private val llmClient: LLMClient
 ) {
     /**
      * Applies a world action to a space, updating its state immutably.
@@ -56,15 +56,15 @@ class StateChangeHandler(
             }
 
             is WorldAction.UnlockExit -> {
-                val updatedExits = space.exits.map { (direction, exit) ->
-                    if (direction.equals(action.exitDirection, ignoreCase = true)) {
+                val updatedExits = space.exits.map { exit ->
+                    if (exit.direction.equals(action.exitDirection, ignoreCase = true)) {
                         // Remove all conditions (exit now unlocked)
-                        direction to exit.copy(conditions = emptyList(), isHidden = false)
+                        exit.copy(conditions = emptyList(), isHidden = false)
                     } else {
-                        direction to exit
+                        exit
                     }
                 }
-                space.copy(exits = updatedExits.toMap())
+                space.copy(exits = updatedExits)
             }
 
             is WorldAction.SetFlag -> {
@@ -97,7 +97,9 @@ class StateChangeHandler(
     ): Result<String> = runCatching {
         val changedFlags = buildChangedFlagsDescription(oldFlags, space.stateFlags)
 
-        val prompt = buildString {
+        val systemPrompt = "You are a game master describing room changes. Output 2-4 sentences only."
+
+        val userContext = buildString {
             append("Regenerate room description based on state changes.\n\n")
             append("Original description: ${space.description}\n\n")
             append("State changes: $changedFlags\n\n")
@@ -106,11 +108,16 @@ class StateChangeHandler(
             append("while maintaining the overall theme and atmosphere. Focus on what's different now.")
         }
 
-        llmService.generateText(
-            prompt = prompt,
-            temperature = 0.7,
-            maxTokens = 200
-        ).getOrThrow()
+        val response = llmClient.chatCompletion(
+            modelId = "gpt-4o-mini",
+            systemPrompt = systemPrompt,
+            userContext = userContext,
+            maxTokens = 200,
+            temperature = 0.7
+        )
+
+        response.choices.firstOrNull()?.message?.content?.trim()
+            ?: throw Exception("LLM returned empty description")
     }
 
     /**

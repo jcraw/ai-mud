@@ -25,49 +25,51 @@ class ExitLinker(
      *
      * @param spaceId The ID of the space whose exits to link
      * @param space The space properties component
+     * @param parentSubzoneId The ID of the parent subzone entity
      * @param parentSubzone The parent subzone chunk (for context in generation)
      * @return Result containing updated SpacePropertiesComponent with linked exits
      */
     suspend fun linkExits(
         spaceId: String,
         space: SpacePropertiesComponent,
+        parentSubzoneId: String,
         parentSubzone: WorldChunkComponent
     ): Result<SpacePropertiesComponent> = runCatching {
         var updatedSpace = space
-        val linkedExits = mutableMapOf<String, ExitData>()
+        val linkedExits = mutableListOf<ExitData>()
 
         // Process each exit
-        for ((direction, exit) in space.exits) {
+        for (exit in space.exits) {
             if (exit.targetId == "PLACEHOLDER") {
                 // Generate adjacent space in this direction
                 val (newSpace, newSpaceId) = worldGenerator.generateSpace(
-                    parentSubzoneId = parentSubzone.id ?: error("Parent subzone has no ID"),
+                    parentSubzoneId = parentSubzoneId,
                     parentSubzone = parentSubzone
                 ).getOrThrow()
 
                 // Update this exit to point to new space
                 val linkedExit = exit.copy(targetId = newSpaceId)
-                linkedExits[direction] = linkedExit
+                linkedExits.add(linkedExit)
 
                 // Create reciprocal exit in target space
-                val reciprocalDirection = createReciprocalExit(direction)
+                val reciprocalDirection = createReciprocalExit(exit.direction)
                 val reciprocalExit = ExitData(
                     targetId = spaceId,
                     direction = reciprocalDirection,
-                    description = createReciprocalDescription(exit.description, direction, reciprocalDirection),
+                    description = createReciprocalDescription(exit.description, exit.direction, reciprocalDirection),
                     conditions = exit.conditions,  // Same conditions apply in reverse
                     isHidden = exit.isHidden,
                     hiddenDifficulty = exit.hiddenDifficulty
                 )
 
                 // Add reciprocal exit to new space
-                val updatedNewSpace = newSpace.addExit(reciprocalDirection, reciprocalExit)
+                val updatedNewSpace = newSpace.addExit(reciprocalExit)
 
                 // Save new space to DB
                 spacePropsRepo.save(updatedNewSpace, newSpaceId).getOrThrow()
             } else {
                 // Keep existing linked exit
-                linkedExits[direction] = exit
+                linkedExits.add(exit)
             }
         }
 

@@ -2,7 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.Stats
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -31,7 +31,7 @@ private data class MobData(
  * Uses LLM for dynamic mob variety or fallback rules when LLM unavailable.
  */
 class MobSpawner(
-    private val llmService: LLMService? = null,
+    private val llmClient: LLMClient? = null,
     private val lootTableGenerator: LootTableGenerator? = null
 ) {
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
@@ -41,7 +41,7 @@ class MobSpawner(
      * Count determined by mobDensity * spaceSize.
      * Uses LLM for variety or deterministic fallback.
      */
-    fun spawnEntities(
+    suspend fun spawnEntities(
         theme: String,
         mobDensity: Double,
         difficulty: Int,
@@ -50,7 +50,7 @@ class MobSpawner(
         val mobCount = (spaceSize * mobDensity).toInt().coerceAtLeast(0)
         if (mobCount == 0) return emptyList()
 
-        return if (llmService != null) {
+        return if (llmClient != null) {
             spawnEntitiesWithLLM(theme, mobCount, difficulty)
         } else {
             spawnEntitiesFallback(theme, mobCount, difficulty)
@@ -60,7 +60,7 @@ class MobSpawner(
     /**
      * Spawn entities using LLM for variety and theme-appropriate content.
      */
-    private fun spawnEntitiesWithLLM(
+    private suspend fun spawnEntitiesWithLLM(
         theme: String,
         count: Int,
         difficulty: Int
@@ -68,7 +68,12 @@ class MobSpawner(
         val profile = ThemeRegistry.getProfileSemantic(theme)
             ?: ThemeRegistry.getDefaultProfile()
 
-        val prompt = """
+        val systemPrompt = """
+            You are a game master generating NPCs/mobs for a fantasy dungeon.
+            Output valid JSON array only, no additional text.
+        """.trimIndent()
+
+        val userContext = """
             Generate $count NPC/mob entries for a $theme setting at difficulty level $difficulty (scale 1-20).
             Use mob archetypes: ${profile.mobArchetypes.joinToString(", ")}
 
@@ -101,14 +106,20 @@ class MobSpawner(
         """.trimIndent()
 
         return try {
-            val response = llmService.complete(
-                prompt = prompt,
-                model = "gpt-4o-mini",
+            val response = llmClient!!.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 2000,
                 temperature = 0.8
             )
 
+            // Extract content from response
+            val content = response.choices.firstOrNull()?.message?.content?.trim()
+                ?: throw Exception("LLM returned empty response")
+
             // Parse JSON response
-            val mobDataList = json.decodeFromString<List<MobData>>(response.trim())
+            val mobDataList = json.decodeFromString<List<MobData>>(content)
 
             // Convert to Entity.NPC
             mobDataList.map { mobData ->
@@ -186,7 +197,7 @@ class MobSpawner(
      * Clears existing entities and generates fresh list.
      * Used on game restart for murder-hobo viable gameplay.
      */
-    fun respawn(
+    suspend fun respawn(
         theme: String,
         mobDensity: Double,
         difficulty: Int,

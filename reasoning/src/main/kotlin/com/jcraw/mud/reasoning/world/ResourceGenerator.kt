@@ -2,7 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.core.world.ResourceNode
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
 import java.util.UUID
 import kotlin.random.Random
 
@@ -12,7 +12,7 @@ import kotlin.random.Random
  */
 class ResourceGenerator(
     private val itemRepository: ItemRepository,
-    private val llmService: LLMService? = null
+    private val llmClient: LLMClient? = null
 ) {
     // Resource name to template ID mapping (flexible for future templates)
     private val resourceTemplateMap = mapOf(
@@ -54,7 +54,7 @@ class ResourceGenerator(
      * Generate a resource node for the given theme and difficulty level.
      * Selects resource from ThemeRegistry and scales quantity with difficulty.
      */
-    fun generate(theme: String, difficulty: Int): ResourceNode {
+    suspend fun generate(theme: String, difficulty: Int): ResourceNode {
         val profile = ThemeRegistry.getProfileSemantic(theme)
             ?: ThemeRegistry.getDefaultProfile()
 
@@ -83,7 +83,7 @@ class ResourceGenerator(
         val nodeId = "resource_${UUID.randomUUID()}"
 
         // Generate description (use LLM if available, fallback to simple description)
-        val description = if (llmService != null) {
+        val description = if (llmClient != null) {
             generateNodeDescription(resourceName, theme)
         } else {
             "A patch of $resourceName in the $theme."
@@ -103,24 +103,29 @@ class ResourceGenerator(
      * Generate vivid resource node description using LLM.
      * Creates 1 sentence description for immersion.
      */
-    fun generateNodeDescription(resourceName: String, theme: String): String {
-        if (llmService == null) {
+    suspend fun generateNodeDescription(resourceName: String, theme: String): String {
+        if (llmClient == null) {
             return "A patch of $resourceName in the $theme."
         }
 
-        val prompt = """
+        val systemPrompt = "You are a game master describing resource nodes. Output 1 sentence only."
+
+        val userContext = """
             Describe a $resourceName resource node in a $theme setting.
             Be vivid but concise (1 sentence).
             Focus on visual details and harvestability.
         """.trimIndent()
 
         return try {
-            val response = llmService.complete(
-                prompt = prompt,
-                model = "gpt-4o-mini",
+            val response = llmClient.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 100,
                 temperature = 0.7
             )
-            response.trim()
+            response.choices.firstOrNull()?.message?.content?.trim()
+                ?: "A patch of $resourceName in the $theme."
         } catch (e: Exception) {
             // Fallback on LLM failure
             "A patch of $resourceName in the $theme."
@@ -131,7 +136,7 @@ class ResourceGenerator(
      * Generate resources for a space.
      * Probability-based generation (~5% base chance per call).
      */
-    fun generateResourcesForSpace(
+    suspend fun generateResourcesForSpace(
         theme: String,
         difficulty: Int,
         resourceProbability: Double = 0.05

@@ -1,7 +1,7 @@
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.world.TrapData
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
 import java.util.UUID
 import kotlin.random.Random
 
@@ -10,13 +10,13 @@ import kotlin.random.Random
  * Uses ThemeRegistry for trap type selection and optional LLM for descriptions.
  */
 class TrapGenerator(
-    private val llmService: LLMService? = null
+    private val llmClient: LLMClient? = null
 ) {
     /**
      * Generate a trap for the given theme and difficulty level.
      * Selects trap type from ThemeRegistry and scales difficulty with variance.
      */
-    fun generate(theme: String, difficulty: Int): TrapData {
+    suspend fun generate(theme: String, difficulty: Int): TrapData {
         val profile = ThemeRegistry.getProfileSemantic(theme)
             ?: ThemeRegistry.getDefaultProfile()
 
@@ -31,7 +31,7 @@ class TrapGenerator(
         val trapId = "trap_${UUID.randomUUID()}"
 
         // Generate description (use LLM if available, fallback to simple description)
-        val description = if (llmService != null) {
+        val description = if (llmClient != null) {
             generateTrapDescription(trapType, theme)
         } else {
             "A $trapType in the $theme."
@@ -50,24 +50,29 @@ class TrapGenerator(
      * Generate vivid trap description using LLM.
      * Creates 1-2 sentence description for immersion.
      */
-    fun generateTrapDescription(trapType: String, theme: String): String {
-        if (llmService == null) {
+    suspend fun generateTrapDescription(trapType: String, theme: String): String {
+        if (llmClient == null) {
             return "A $trapType in the $theme."
         }
 
-        val prompt = """
+        val systemPrompt = "You are a game master describing traps. Output 1-2 sentences only."
+
+        val userContext = """
             Describe a $trapType trap in a $theme setting.
             Be vivid but concise (1-2 sentences).
             Focus on visual details and danger hints.
         """.trimIndent()
 
         return try {
-            val response = llmService.complete(
-                prompt = prompt,
-                model = "gpt-4o-mini",
+            val response = llmClient.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 150,
                 temperature = 0.7
             )
-            response.trim()
+            response.choices.firstOrNull()?.message?.content?.trim()
+                ?: "A $trapType in the $theme."
         } catch (e: Exception) {
             // Fallback on LLM failure
             "A $trapType in the $theme."
@@ -78,7 +83,7 @@ class TrapGenerator(
      * Generate multiple traps for a space.
      * Probability-based generation (~15% base chance per call).
      */
-    fun generateTrapsForSpace(
+    suspend fun generateTrapsForSpace(
         theme: String,
         difficulty: Int,
         trapProbability: Double = 0.15
