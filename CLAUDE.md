@@ -795,11 +795,11 @@ See implementation plan for complete 10-chunk breakdown (24 hours total).
 
 ---
 
-## World Generation System V2 (READY TO IMPLEMENT) 🎯
+## World Generation System V2 (IN PROGRESS) 🔧
 
 **Implementation Plan:** [World Generation System Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
 
-**Status:** Planning complete, ready for implementation. This is the **NEXT MAJOR FEATURE** to implement.
+**Status:** Chunks 1-6 complete (foundation through persistence). Chunk 7 (handlers, UI integration, final testing) **IN PROGRESS**.
 
 **Overview:**
 Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds. The V2 MVP focuses on a deep dungeon (top-to-bottom progression with mob respawns), integrating with existing skills, combat, items, and social systems.

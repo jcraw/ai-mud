@@ -408,6 +408,43 @@ Memory (store for RAG)
 - **Intents** (`perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`)
   - Craft, Trade, Pickpocket, UseItem intents
 
+### World Generation System V2 (Chunks 1-6 Complete)
+- **Component-based architecture** for hierarchical world generation (5 levels)
+  - `WorldChunkComponent` - Chunk hierarchy (WORLD → REGION → ZONE → SUBZONE → SPACE) with lore inheritance (`core`)
+  - `SpacePropertiesComponent` - Space details (description, exits, traps, resources, entities, state flags) (`core`)
+  - `ChunkLevel.kt`, `TerrainType.kt`, `ExitData.kt`, `TrapData.kt`, `ResourceNode.kt`, `GenerationContext.kt`, `NavigationState.kt`, `WorldAction.kt` (`core/world`)
+- **Database persistence** - SQLite schema with 3 tables (`memory/world/WorldDatabase.kt`)
+  - world_seed (singleton with global lore), world_chunks, space_properties
+  - JSON serialization for complex fields (exits, traps, resources, entities, stateFlags)
+- **Repositories** (`core/repository/`, `memory/world/`)
+  - `WorldChunkRepository.kt`, `SpacePropertiesRepository.kt`, `WorldSeedRepository.kt`
+  - `SQLiteWorldChunkRepository.kt`, `SQLiteSpacePropertiesRepository.kt`, `SQLiteWorldSeedRepository.kt`
+- **Generation pipeline** (`reasoning/world/`)
+  - `WorldGenerator.kt` - Primary generation engine with LLM integration
+  - `LoreInheritanceEngine.kt` - Lore variation and theme blending
+  - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
+  - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)
+- **Exit system** (`reasoning/world/`)
+  - `ExitResolver.kt` - Three-phase resolution (exact → fuzzy → LLM)
+  - `ExitLinker.kt` - Links placeholder exits and creates reciprocal paths
+  - `MovementCostCalculator.kt` - Terrain-based movement costs and damage
+- **Content placement** (`reasoning/world/`)
+  - `ThemeRegistry.kt` - 8 predefined biome themes with content rules
+  - `TrapGenerator.kt` - Probabilistic trap generation (~15%)
+  - `ResourceGenerator.kt` - Resource node generation (~5%) tied to ItemRepository
+  - `MobSpawner.kt` - LLM-driven entity generation with fallback
+  - `LootTableGenerator.kt` - Procedural loot tables from item pool
+  - `SpacePopulator.kt` - Orchestrates trap/resource/mob placement
+- **State management** (`reasoning/world/`, `memory/world/`)
+  - `StateChangeHandler.kt` - WorldAction processing (destroy, trigger, harvest, unlock, etc.)
+  - `WorldPersistence.kt` - Save/load with incremental autosave and prefetch
+  - `RespawnManager.kt` - Mob regeneration preserving player changes
+  - `AutosaveManager.kt` - Periodic autosave (every 5 moves or 2 minutes)
+  - `GenerationCache.kt` - LRU cache (1000 chunks) for performance
+- **Testing** - 576+ unit/integration tests across chunks 1-6
+- **Status** - Foundation complete, ready for handler integration (Chunk 7)
+- See [World Generation Documentation](./WORLD_GENERATION.md) for complete details
+
 ### Sample Content
 - `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
 
