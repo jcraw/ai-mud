@@ -36,48 +36,58 @@ object WorldHandlers {
      * @param direction Direction or exit description to scout (supports natural language)
      */
     fun handleScout(game: MudGame, direction: String) {
-        // TODO: World generation system integration
-        println("\nScouting not yet integrated with world generation system.")
-        println("This will show exit descriptions and requirements without moving.")
-        println("Direction: $direction")
+        val exitResolver = game.exitResolver
+        if (exitResolver == null) {
+            println("\nWorld generation system not available (requires LLM).")
+            return
+        }
 
-        // STUB implementation for demonstration
-        println("\nYou peer ${direction}...")
-        println("You see a passage leading into darkness.")
-        println("(Full implementation pending world generation system integration)")
+        // Check if player is in a procedurally generated space
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val currentSpace = game.spacePropertiesRepository.findByChunkId(currentSpaceId)
+            .getOrNull()
 
-        /* Future implementation will:
-         * 1. Get current SpacePropertiesComponent from player's location
-         * 2. Use ExitResolver to resolve direction (exact/fuzzy/LLM)
-         * 3. Check visibility with player's Perception skill
-         * 4. Display exit description with condition hints
-         * 5. Optionally peek at destination space description
-         *
-         * Example:
-         * val currentSpace = getPlayerSpace(game)
-         * val exitResolver = game.exitResolver
-         * val result = exitResolver.resolve(direction, currentSpace, game.worldState.player)
-         *
-         * when (result) {
-         *     is ResolveResult.Success -> {
-         *         println("\nYou examine the exit ${result.exit.direction}...")
-         *         println(result.exit.description)
-         *
-         *         // Show condition hints
-         *         val description = exitResolver.describeExit(result.exit, game.worldState.player)
-         *         println(description)
-         *
-         *         // Optionally peek at destination
-         *         val destSpace = loadSpace(result.targetId)
-         *         println("\nYou see: ${destSpace.description}")
-         *     }
-         *     is ResolveResult.Failure -> println(result.reason)
-         *     is ResolveResult.Ambiguous -> {
-         *         println("Which exit did you mean?")
-         *         result.suggestions.forEach { (dir, desc) -> println("  - $dir: $desc") }
-         *     }
-         * }
-         */
+        if (currentSpace == null) {
+            println("\nYou are not currently in a procedurally generated area.")
+            println("Use standard movement commands (n/s/e/w) instead.")
+            return
+        }
+
+        // Resolve the exit
+        val result = kotlinx.coroutines.runBlocking {
+            exitResolver.resolve(direction, currentSpace, game.worldState.player)
+        }
+
+        when (result) {
+            is com.jcraw.mud.reasoning.world.ResolveResult.Success -> {
+                println("\nYou examine the exit ${result.exit.direction}...")
+                println(result.exit.description)
+
+                // Show condition hints if any
+                val exitDesc = exitResolver.describeExit(result.exit, game.worldState.player)
+                if (exitDesc != "${result.exit.direction}: ${result.exit.description}") {
+                    println("\n$exitDesc")
+                }
+
+                // Peek at destination space
+                val destSpace = game.spacePropertiesRepository.findByChunkId(result.targetId)
+                    .getOrNull()
+                if (destSpace != null) {
+                    println("\nAhead you see: ${destSpace.description}")
+                } else {
+                    println("\nYou can't quite make out what lies beyond.")
+                }
+            }
+            is com.jcraw.mud.reasoning.world.ResolveResult.Failure -> {
+                println("\n${result.reason}")
+            }
+            is com.jcraw.mud.reasoning.world.ResolveResult.Ambiguous -> {
+                println("\nWhich exit did you mean?")
+                result.suggestions.forEach { (dir, desc) ->
+                    println("  - $dir: $desc")
+                }
+            }
+        }
     }
 
     /**
@@ -98,102 +108,154 @@ object WorldHandlers {
      * @param direction Direction or exit description (supports natural language)
      */
     fun handleTravel(game: MudGame, direction: String) {
-        // TODO: World generation system integration
-        println("\nWorld navigation not yet integrated with world generation system.")
-        println("This will support natural language exits and hidden passages.")
-        println("Direction: $direction")
+        val exitResolver = game.exitResolver
+        val movementCalc = game.movementCostCalculator
 
-        // STUB implementation for demonstration
-        println("\nAttempting to travel $direction...")
-        println("(Full implementation pending world generation system integration)")
+        if (exitResolver == null) {
+            println("\nWorld generation system not available (requires LLM).")
+            return
+        }
 
-        /* Future implementation will:
-         * 1. Get current SpacePropertiesComponent from player's location
-         * 2. Use ExitResolver.resolve() for three-phase matching
-         * 3. Check exit visibility (Perception for hidden exits)
-         * 4. Validate exit conditions (skill checks, item requirements)
-         * 5. Calculate movement cost with MovementCostCalculator
-         * 6. Apply terrain damage if applicable
-         * 7. Update player's NavigationState
-         * 8. Load destination SpacePropertiesComponent
-         * 9. Update player location in WorldState
-         * 10. Advance game time by movement cost
-         * 11. Describe new room
-         *
-         * Example:
-         * val currentSpace = getPlayerSpace(game)
-         * val exitResolver = game.exitResolver
-         * val movementCalc = game.movementCostCalculator
-         *
-         * // Resolve exit
-         * val result = exitResolver.resolve(direction, currentSpace, game.worldState.player)
-         *
-         * when (result) {
-         *     is ResolveResult.Success -> {
-         *         // Calculate movement cost
-         *         val destSpace = loadSpace(result.targetId)
-         *         val cost = movementCalc.calculateCost(destSpace.terrain, game.worldState.player)
-         *
-         *         if (!cost.success) {
-         *             println("The terrain is impassable.")
-         *             return
-         *         }
-         *
-         *         // Apply damage if needed
-         *         if (cost.damageRisk > 0) {
-         *             val newPlayer = game.worldState.player.takeDamage(cost.damageRisk)
-         *             game.worldState = game.worldState.updatePlayer(newPlayer)
-         *             println("You stumble through difficult terrain, taking ${cost.damageRisk} damage!")
-         *         }
-         *
-         *         // Update navigation state
-         *         val navState = game.navigationState.updateLocation(result.targetId, game.worldChunkRepo)
-         *         game.navigationState = navState.getOrThrow()
-         *
-         *         // Update player location
-         *         val updatedPlayer = game.worldState.player.copy(currentRoomId = result.targetId)
-         *         game.worldState = game.worldState.updatePlayer(updatedPlayer)
-         *
-         *         // Advance time
-         *         game.worldState = game.worldState.advanceTime(cost.ticks.toLong())
-         *
-         *         // Describe new location
-         *         println("\nYou travel ${result.exit.direction}.")
-         *         describeSpace(game, destSpace)
-         *     }
-         *     is ResolveResult.Failure -> println(result.reason)
-         *     is ResolveResult.Ambiguous -> {
-         *         println("Which exit did you mean?")
-         *         result.suggestions.forEach { (dir, desc) -> println("  - $dir: $desc") }
-         *     }
-         * }
-         */
+        // Check if player is in a procedurally generated space
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val currentSpace = game.spacePropertiesRepository.findByChunkId(currentSpaceId)
+            .getOrNull()
+
+        if (currentSpace == null) {
+            println("\nYou are not currently in a procedurally generated area.")
+            println("Use standard movement commands (n/s/e/w) instead.")
+            return
+        }
+
+        // Resolve exit
+        val resolveResult = kotlinx.coroutines.runBlocking {
+            exitResolver.resolve(direction, currentSpace, game.worldState.player)
+        }
+
+        when (resolveResult) {
+            is com.jcraw.mud.reasoning.world.ResolveResult.Success -> {
+                // Load destination space
+                val destSpace = game.spacePropertiesRepository.findByChunkId(resolveResult.targetId)
+                    .getOrNull()
+
+                if (destSpace == null) {
+                    println("\nThat exit leads nowhere (destination not found).")
+                    return
+                }
+
+                // Calculate movement cost
+                val cost = movementCalc.calculateCost(destSpace.terrainType, game.worldState.player)
+
+                if (!cost.success) {
+                    println("\nThe terrain is impassable.")
+                    return
+                }
+
+                // Apply terrain damage if needed
+                if (cost.damageRisk > 0) {
+                    val newPlayer = game.worldState.player.takeDamage(cost.damageRisk)
+                    game.worldState = game.worldState.updatePlayer(newPlayer)
+                    println("\nYou stumble through difficult terrain, taking ${cost.damageRisk} damage!")
+                    println("HP: ${newPlayer.health}/${newPlayer.maxHealth}")
+
+                    if (newPlayer.isDead()) {
+                        game.handlePlayerDeath()
+                        return
+                    }
+                }
+
+                // Update navigation state (if initialized)
+                if (game.navigationState != null) {
+                    val navResult = kotlinx.coroutines.runBlocking {
+                        game.navigationState!!.updateLocation(resolveResult.targetId, game.worldChunkRepository)
+                    }
+
+                    if (navResult.isSuccess) {
+                        game.navigationState = navResult.getOrNull()
+                    }
+                    // Continue even if nav update fails - don't block movement
+                }
+
+                // Update player location
+                val updatedPlayer = game.worldState.player.copy(currentRoomId = resolveResult.targetId)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+                // Advance game time
+                game.worldState = game.worldState.advanceTime(cost.ticks.toLong())
+
+                // Describe new location
+                println("\nYou travel ${resolveResult.exit.direction}.")
+                describeSpace(game, destSpace)
+            }
+            is com.jcraw.mud.reasoning.world.ResolveResult.Failure -> {
+                println("\n${resolveResult.reason}")
+            }
+            is com.jcraw.mud.reasoning.world.ResolveResult.Ambiguous -> {
+                println("\nWhich exit did you mean?")
+                resolveResult.suggestions.forEach { (dir, desc) ->
+                    println("  - $dir: $desc")
+                }
+            }
+        }
     }
 
     /**
-     * Helper: Get player's current SpacePropertiesComponent.
-     * (Stub for future implementation)
+     * Helper: Describe a procedurally generated space to the player.
+     * Similar to describeCurrentRoom() but for SpacePropertiesComponent.
      */
-    private fun getPlayerSpace(game: MudGame): Any? {
-        // TODO: Query SpacePropertiesRepository with player's current space ID
-        return null
-    }
+    private fun describeSpace(game: MudGame, space: com.jcraw.mud.core.SpacePropertiesComponent) {
+        println("\n${space.description}")
 
-    /**
-     * Helper: Load SpacePropertiesComponent by ID.
-     * (Stub for future implementation)
-     */
-    private fun loadSpace(spaceId: String): Any? {
-        // TODO: Query SpacePropertiesRepository.findByChunkId(spaceId)
-        return null
-    }
+        // Show visible exits
+        val visibleExits = game.exitResolver?.getVisibleExits(space, game.worldState.player)
+            ?: emptyList()
 
-    /**
-     * Helper: Describe a space to the player.
-     * (Stub for future implementation)
-     */
-    private fun describeSpace(game: MudGame, space: Any) {
-        // TODO: Display space description, exits, entities, traps, resources
-        // Similar to describeCurrentRoom() but for SpacePropertiesComponent
+        if (visibleExits.isNotEmpty()) {
+            println("\nExits:")
+            visibleExits.forEach { exit ->
+                val exitDesc = game.exitResolver?.describeExit(exit, game.worldState.player)
+                    ?: "${exit.direction}: ${exit.description}"
+                println("  - $exitDesc")
+            }
+        }
+
+        // Show entities (if any)
+        if (space.entities.isNotEmpty()) {
+            println("\nYou see:")
+            space.entities.forEach { entityId ->
+                println("  - Entity: $entityId") // TODO: Look up entity names from world state
+            }
+        }
+
+        // Show resources
+        if (space.resources.isNotEmpty()) {
+            println("\nResources:")
+            space.resources.forEach { resource ->
+                println("  - ${resource.description}")
+            }
+        }
+
+        // Show traps (if visible)
+        if (space.traps.isNotEmpty()) {
+            val perceptionLevel = game.worldState.player.getSkillLevel("Perception")
+            val visibleTraps = space.traps.filter { trap ->
+                // Simple visibility check - high Perception can spot traps
+                perceptionLevel >= (trap.difficulty ?: 0) / 2
+            }
+            if (visibleTraps.isNotEmpty()) {
+                println("\nYou notice potential dangers:")
+                visibleTraps.forEach { trap ->
+                    println("  - ${trap.description}")
+                }
+            }
+        }
+
+        // Show dropped items
+        if (space.itemsDropped.isNotEmpty()) {
+            println("\nItems on the ground:")
+            space.itemsDropped.forEach { item ->
+                println("  - ${item.id}") // TODO: Look up item names from templates
+            }
+        }
     }
 }

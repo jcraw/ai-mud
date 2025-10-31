@@ -57,7 +57,7 @@ Last updated: 2025-01-30
 **Stub Handlers**
 - [x] WorldHandlers.kt created with comprehensive documentation
 - [x] ClientWorldHandlers.kt created with comprehensive documentation
-- [ ] ⚠️ Handlers are stubs only - not integrated with real world system
+- [x] Handlers implemented - integrated with real world system
 
 ### ⚠️ Partially Complete (Chunk 7 Continued)
 
@@ -69,21 +69,22 @@ Last updated: 2025-01-30
   - [x] WorldChunkRepository / SpacePropertiesRepository
   - [x] WorldPersistence integration
   - [ ] DungeonInitializer call for world setup (pending game mode selection)
-- [ ] Implement WorldHandlers.handleScout()
-  - [ ] Query SpacePropertiesRepository
-  - [ ] Use ExitResolver for direction resolution
-  - [ ] Check visibility with Perception skill
-  - [ ] Display exit descriptions and conditions
-- [ ] Implement WorldHandlers.handleTravel()
-  - [ ] Three-phase exit resolution
-  - [ ] Hidden exit detection
-  - [ ] Exit condition validation
-  - [ ] Movement cost calculation
-  - [ ] Terrain damage application
-  - [ ] NavigationState updates
-  - [ ] Space loading and description
-  - [ ] Game time advancement
-- [ ] Wire handlers into MudGameEngine.processIntent()
+- [x] Implement WorldHandlers.handleScout()
+  - [x] Query SpacePropertiesRepository
+  - [x] Use ExitResolver for direction resolution
+  - [x] Check visibility with Perception skill
+  - [x] Display exit descriptions and conditions
+  - [x] Peek at destination space description
+- [x] Implement WorldHandlers.handleTravel()
+  - [x] Three-phase exit resolution
+  - [x] Hidden exit detection
+  - [x] Exit condition validation
+  - [x] Movement cost calculation
+  - [x] Terrain damage application
+  - [x] NavigationState updates
+  - [x] Space loading and description
+  - [x] Game time advancement
+- [x] Wire handlers into MudGameEngine.processIntent()
 - [ ] Add world generation option to game startup
 - [ ] Integration testing with test bot
 
@@ -140,12 +141,15 @@ Next steps (in order):
 2. ✅ Add world generation components to MudGame - **COMPLETE**
    - Added WorldDatabase, repositories, ExitResolver, MovementCostCalculator
    - Added NavigationState tracking and WorldPersistence
-3. Implement real handlers for Scout/Travel
+3. ✅ Implement real handlers for Scout/Travel - **COMPLETE**
+   - handleScout() - Peek at exits without moving
+   - handleTravel() - Natural language navigation with terrain/damage
+   - describeSpace() - Display space details, exits, entities, resources, traps
 4. Add world generation option to startup flow
 5. Test with existing test bot scenarios
 6. Optional: Create dedicated world exploration test scenario
 
-Estimated time: 6-8 hours for remaining integration work
+Estimated time: 2-4 hours for remaining integration work (startup flow + testing)
 
 ## Notes
 
