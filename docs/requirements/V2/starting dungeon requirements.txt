@@ -1,0 +1,160 @@
+# Starting Dungeon Configuration Requirements (Deep Dungeon Starter World V2 MVP)
+
+## Overview
+The Starting Dungeon Configuration pre-generates and configures the "Ancient Abyss Dungeon" as the default launch area for new players (or loads mid-game state for existing). It leverages the hierarchical World Generation system (V2 MVP) for a streamlined, downward-progression deep dungeon (100+ potential floors) with on-demand deeper generation. Focus: Murderhobo loop (fight → loot → sell/craft → gear → deeper) while showcasing combat, skills (sneak/locks/traps/perception), items/crafting, social (merchants/town). Respawns enable farming; hidden open-world exit; bottom boss/treasure for "win" condition (return treasure to town). Fixed seed ensures consistency. Pre-gen top ~50% for fast start; lazy cascade deeper. Integrates all systems; persists changes/corpses. World fully persists across player deaths (no regeneration of chunks/spaces/rooms; old corpses lootable for gear retrieval).
+
+## Key Goals
+- **Streamlined Progression**: Mostly single downward path (80% "down" exits); side rooms for farming/loot/traps.
+- **Murderhobo Focus**: Dense combat/loot; scalable difficulty ramp (weak → godlike bosses); farm spots with respawns.
+- **System Showcase**: Traps/sneak/locks (skills); merchants/town (sell/buy); crafting mats; hidden items/exits.
+- **Open World Tease**: Hidden exit mid-depths to endless procedural wilderness.
+- **Victory Loop**: Retrieve bottom treasure → return to town → narrate win/reset (permadeath optional).
+- **Persistence on Death**: World immutable (same areas/rooms/flags/corpses); new char spawns at top for corpse runs.
+- **Performance**: Pre-gen shallow; lazy deep; respawns via timers (turns proxy for future time).
+- **Balance**: Deeper = harder mobs/loot; farms in shallows; ~20-50h to bottom for max-level chars.
+
+## Theme and Setting
+- **Global Seed**: "dark fantasy DnD" – Grim sword/sorcery: damp caves → fungal warrens → undead crypts → abyssal lava.
+- **Lore Inheritance**: LLM prompts inherit/modify (e.g., Upper: "weak slimes/goblins in drippy caves"; Deeper: "eldritch demons").
+- **WORLD Chunk**: Name "Ancient Abyss Dungeon"; Lore: "Forgotten prison of eldritch horrors, sealed eons ago. Descend at your peril for abyssal treasures."
+
+## Functional Requirements
+
+### HIERARCHICAL STRUCTURE (Pre-Gen + Lazy)
+1.1 **Pre-Generation at Launch**
+- On new game: Generate fixed hierarchy up to Lower Depths (difficulty ~60; ~70 subzones/spaces).
+- Store in DB; use WorldChunkRepository for persistence.
+- Player starts in Upper Depths Zone 1 Subzone 1 (Town-adjacent).
+
+1.2 **Hierarchy Definition** (Fixed for MVP; LLM-gen details)
+| Level    | Name              | Zones | Subzones/Spaces | Difficulty | Theme/Features                          | Exits (Avg) |
+|----------|-------------------|-------|-----------------|------------|-----------------------------------------|-------------|
+| WORLD   | Ancient Abyss Dungeon | 1    | 1 Region       | 1         | Global eldritch prison lore            | N/A        |
+| REGION  | Upper Depths     | 3    | 10-20          | 1-10      | Damp caves, slimes/goblins; Town hub   | 80% down   |
+| REGION  | Mid Depths       | 4    | 20-40          | 10-30     | Fungal warrens; traps/locks/merchants  | 80% down   |
+| REGION  | Lower Depths     | 5    | 40-70          | 30-60     | Undead crypts/demons; rare loot        | 80% down   |
+| REGION  | Abyssal Core     | 2    | 20+ (lazy)     | 60+       | Lava forges; boss lair                 | Boss room  |
+
+- **Generation Prompt Template**: "Based on seed [dark fantasy DnD] and parent [lore], generate [level] [name]: lore (politics/inhabitants/weather), theme, size [range], mob_density [0.3-0.8], difficulty [range]. 80% downward exits; 20% sides (farms/traps)."
+- **Variety Rules**: 10-20% hidden exits/items (Perception req); traps/resources scale by difficulty; 3-6 exits/space (cardinal + "down shaft").
+
+1.3 **Key Features by Region**
+- **Upper**: Town (safe subzone: merchants, rest); 3-5 farm spots (goblins/slimes; respawn 500 turns).
+- **Mid**: Merchants scattered; crafting mats/herbs; sneak/lock side rooms.
+- **Lower**: Rare LEGENDARY drops; hidden gear caches.
+- **Core**: Final SPACE – "Abyssal Lord" boss (high skills/AI, summons); "Abyss Heart" treasure (godlike item: +100% all stats).
+
+### RESPAWN SYSTEM TWEAK (World System Extension)
+2.1 **New Component**: RespawnComponent (attach to entities in SpacePropertiesComponent.entities)
+```
+Data Class: RespawnComponent(
+  respawnTurns: Long = 500L,  // Proxy for "day"; configurable per mob/difficulty
+  lastKilled: Long = 0L,      // game_time timestamp
+  originalEntityId: String    // Template for regen
+) : Component
+```
+- **Logic**: On death, set lastKilled = game_time. On enter/space regen: If game_time - lastKilled >= respawnTurns, recreate via originalId.
+- **Rules**: Shallows: 300-500 turns (easy farm); Deeper: 1000+ or none (one-shot bosses). Persist in DB.
+
+2.2 **DB Extension**: respawn_components (entity_id, respawn_turns, last_killed, original_id)
+
+### TOWN AND MERCHANTS (Social/Trading Integration)
+3.1 **Town Subzone** (Upper Zone 1): Safe (no mobs/traps); 3-5 NPCs with TradingComponent (finite gold/stock: potions/armor).
+- **Rest Command**: Intent.Rest → regen HP/Mana (Vitality ticks); advance game_time 100 ticks.
+- **Prices**: Disposition mod (friendly: -20%; hostile: +50%).
+
+3.2 **Scattered Merchants**: Mid/Lower; lower stock, riskier (guard mobs).
+
+### BOSS AND TREASURE
+4.1 **Abyssal Lord**: Deepest SPACE entity – High skills (Sword 100+, Fire Magic); LLM AI ("strategize as ancient demon").
+4.2 **Abyss Heart**: LEGENDARY item (equip: +50 Strength/Agility/etc.; quest flag for win).
+- **Win Check**: Return to Town → If player inv has Abyss Heart: LLM victory narration; optional reset/new game.
+
+### OPEN WORLD EXIT
+5.1 **Hidden Exit**: Mid Depths Zone 2 – "Cracked wall to wilderness" (Perception 40 + Lockpicking 30 or Strength 50 check).
+- Target: New REGION "Surface Wilderness" (ChunkLevel.REGION; gen open biomes upward/outward).
+
+### PLAYER DEATH AND WORLD PERSISTENCE (Combat/World Integration)
+6.1 **On HP <= 0**:
+- Create **Corpse Entity** in current space:
+  ```
+  Data Class: CorpseEntity(
+    id: String,
+    playerId: String,  // Link to old player
+    inventory: InventoryComponent (full gear/gold),
+    decayTimer: Long = game_time + 5000L,  // Turns proxy; despawn post-timer
+    componentType: ComponentType.CORPSE
+  ) : Entity
+  ```
+- **New Player Spawn**: Generate fresh PlayerEntity at Upper Depths Town entrance:
+  - Reset: Skills level 1/unlocked basics; empty inv (starter dagger/clothes); relations neutral.
+  - Persist new entity ID; old player ID archived (DB: players.archived = true).
+- Narrate: "You perish! A new soul awakens in the Town... Your corpse lies where you fell."
+
+6.2 **Corpse Retrieval**:
+- Intent.Loot("corpse") → Transfer inventory to new player (weight check).
+- UI: Highlight "Your Corpse" in space entities.
+- Post-loot: Corpse despawns; optional "ghost" narration.
+
+6.3 **Persistence Rules**:
+- **No Regeneration**: Generated chunks/spaces/rooms immutable structurally; persist exactly (exits, traps, resources, state_flags, corpses).
+- Player death does not alter world—load from DB unchanged.
+- Changes (e.g., "boulder_moved", depleted nodes) saved via SpacePropertiesComponent.applyChange().
+- Mob Respawns Only: Entities respawn independently (RespawnComponent timer); corpses exempt (decay only).
+- **DB Extension**: corpses (id, player_id, space_id, inventory_json, decay_timer, looted: Boolean = false).
+
+6.4 **Load Flow**:
+- Launch/Mid-game: WorldChunkRepository.loadByPlayer(playerId) → Restore current space + adjacent chunks.
+- Death: Update player to new entity; world unchanged.
+
+## Integrations
+- **Skills**: Spot hidden/loot/traps/exits; sneak bypass; Lockpicking doors.
+- **Combat**: Dense mobs; farms; boss AI; death → corpse + new spawn.
+- **Items/Crafting**: Mats in nodes; corpse/merchant loot; weigh-ins encourage sell/craft.
+- **Social**: Merchant disposition/trade; town NPCs give hints ("deeper dangers").
+- **Persistence**: All chunks/entities/corpses/respawns saved; load mid-game.
+- **World**: Space.entities includes corpses; Perception spots "body in shadows".
+
+## Module Structure
+- **:core**: RespawnComponent; CorpseEntity; enums (DungeonRegion); extend ComponentType.CORPSE.
+- **:reasoning**: DungeonGenerator (pre-gen cascade); RespawnChecker; WinChecker; CorpseManager (decay check, loot).
+- **:persistence**: Repos extended (world_chunks preload seed data; corpses).
+- **:app/client**: Launch: If new player, gen/load dungeon start; UI depth progress bar; death screen.
+
+Data Flow: Launch → DungeonGenerator.preGen() → Player to start space → Loop (travel/fight).
+
+## Non-Functional
+- **Performance**: Pre-gen ~10s; lazy <2s/space.
+- **Balance**: Bot-tested ramp (win bottom in 20-50h); decay timer scales with depth.
+- **Scalability**: DB handles 100+ floors.
+
+## Testing
+7.1 **Unit**: Pre-gen hierarchy; respawn timers; win check; corpse gen/decay; new player reset.
+7.2 **Integration**: Full descent (farm → gear → boss); corpse retrieval; exit trigger.
+7.3 **Bot**: Murderhobo run (farm upper → bottom win); social trade loop; corpse run: Die deep → farm to retrieve → resume.
+
+## Implementation Strategy
+Phase 1: Hierarchy/Pre-Gen (4h) – Fixed chunks, LLM prompts.
+Phase 2: Respawn Tweak/DB (3h).
+Phase 3: Town/Merchants/Boss (4h).
+Phase 4: Exit/Win (2h).
+Phase 5: Death/Persistence Logic (3h).
+Phase 6: Integrations/UI (3h).
+Phase 7: Tests/Bot (4h).
+**Total: 23h**.
+
+## Future Enhancements
+- Time system (real days for respawns/decay).
+- Quests (puzzles branching paths).
+- Multiplayer shared dungeon.
+- Procedural evolution (player changes persist globally).
+
+## SUCCESS CRITERIA
+✅ Pre-gen launches to town; downward path fluid.
+✅ Farms respawn after turns; scalable difficulty.
+✅ Full systems showcase (traps/sneak/trade/craft).
+✅ Boss kill → treasure return = win narration.
+✅ Hidden exit seeds open world.
+✅ World persists post-death (same rooms/flags/corpses lootable).
+✅ New char spawns top; retrieves old gear.
+✅ Bot completes run including corpse retrieval; tests 100% pass.
