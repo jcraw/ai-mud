@@ -94,6 +94,20 @@ class MudGame(
     internal val skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
     internal val perkSelector = com.jcraw.mud.reasoning.skill.PerkSelector(skillComponentRepo, memoryManager)
 
+    // World Generation V2 components
+    private val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("world.db")
+    private val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
+    internal val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
+    internal val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+    internal val exitResolver = if (llmClient != null) com.jcraw.mud.reasoning.world.ExitResolver(llmClient) else null
+    internal val movementCostCalculator = com.jcraw.mud.reasoning.world.MovementCostCalculator()
+    internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
+    internal val worldPersistence = com.jcraw.mud.memory.world.WorldPersistence(
+        worldSeedRepository,
+        worldChunkRepository,
+        spacePropertiesRepository
+    )
+
     /**
      * Start the main game loop.
      */

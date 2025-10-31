@@ -59,16 +59,16 @@ Last updated: 2025-01-30
 - [x] ClientWorldHandlers.kt created with comprehensive documentation
 - [ ] ⚠️ Handlers are stubs only - not integrated with real world system
 
-### ❌ Not Started (Chunk 7 Remaining)
+### ⚠️ Partially Complete (Chunk 7 Continued)
 
 **Engine Integration** (~6-8 hours)
-- [ ] Add world generation components to MudGame initialization
-  - [ ] ExitResolver instance
-  - [ ] MovementCostCalculator instance
-  - [ ] NavigationState tracking
-  - [ ] WorldChunkRepository / SpacePropertiesRepository
-  - [ ] WorldPersistence integration
-  - [ ] DungeonInitializer call for world setup
+- [x] Add world generation components to MudGame initialization
+  - [x] ExitResolver instance
+  - [x] MovementCostCalculator instance
+  - [x] NavigationState tracking
+  - [x] WorldChunkRepository / SpacePropertiesRepository
+  - [x] WorldPersistence integration
+  - [ ] DungeonInitializer call for world setup (pending game mode selection)
 - [ ] Implement WorldHandlers.handleScout()
   - [ ] Query SpacePropertiesRepository
   - [ ] Use ExitResolver for direction resolution
@@ -137,13 +137,15 @@ Next steps (in order):
    - Added kotlinx-coroutines-test dependency
    - Made WorldPersistence class open for testing
    - Enabled SQLite foreign keys in WorldDatabase
-2. Add world generation components to MudGame
+2. ✅ Add world generation components to MudGame - **COMPLETE**
+   - Added WorldDatabase, repositories, ExitResolver, MovementCostCalculator
+   - Added NavigationState tracking and WorldPersistence
 3. Implement real handlers for Scout/Travel
 4. Add world generation option to startup flow
 5. Test with existing test bot scenarios
 6. Optional: Create dedicated world exploration test scenario
 
-Estimated time: 8-10 hours for remaining integration work
+Estimated time: 6-8 hours for remaining integration work
 
 ## Notes
 

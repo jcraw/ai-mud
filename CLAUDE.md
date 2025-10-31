@@ -213,13 +213,14 @@ Memory (store for RAG)
 - ✅ Skill system V2 (11 phases complete)
 - ✅ Combat System V2 (7 phases complete)
 - ✅ **Item System V2 (10 chunks complete)** - Inventory, gathering, crafting, trading, pickpocketing
-- ⚠️ **World Generation System V2 (Chunks 1-6 COMPLETE, Chunk 7 PARTIAL)**
+- ⚠️ **World Generation System V2 (Chunks 1-6 COMPLETE, Chunk 7 IN PROGRESS)**
   - ✅ Main code compiles
   - ✅ ~576 unit tests passing
   - ✅ Documentation complete
   - ✅ Compilation errors fixed (Intent branches added, broken test deleted)
-  - ❌ **NOT INTEGRATED** - Handlers are stubs, not wired into game engine
-  - See `docs/TODO.md` for integration plan (~8-10 hours remaining)
+  - ✅ **Components initialized in MudGame** - WorldDatabase, repositories, ExitResolver, MovementCostCalculator, NavigationState, WorldPersistence
+  - ⚠️ **Handlers remain stubs** - Scout/Travel not yet implemented with real world system
+  - See `docs/TODO.md` for integration plan (~6-8 hours remaining)
 - ✅ All testing migration & cleanup complete
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Main project code compiles successfully
