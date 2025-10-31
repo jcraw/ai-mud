@@ -137,33 +137,8 @@ class PersistenceManagerTest {
         assertEquals(5, loadedState.player.inventory[0].damageBonus)
     }
 
-    @Test
-    fun `saved game should preserve combat state`() {
-        val saveDir = File(tempDir, "saves")
-        val manager = PersistenceManager(saveDir.path)
-
-        val baseState = createTestWorldState()
-        val playerWithCombat = baseState.player.copy(
-            activeCombat = CombatState(
-                combatantNpcId = "skeleton",
-                playerHealth = 80,
-                npcHealth = 50,
-                isPlayerTurn = true,
-                turnCount = 3
-            )
-        )
-        val worldState = baseState.updatePlayer(playerWithCombat)
-
-        manager.saveGame(worldState, "combat_test")
-        val loadedState = manager.loadGame("combat_test").getOrThrow()
-
-        assertNotNull(loadedState.player.activeCombat)
-        assertEquals("skeleton", loadedState.player.activeCombat?.combatantNpcId)
-        assertEquals(80, loadedState.player.activeCombat?.playerHealth)
-        assertEquals(50, loadedState.player.activeCombat?.npcHealth)
-        assertTrue(loadedState.player.activeCombat?.isPlayerTurn == true)
-        assertEquals(3, loadedState.player.activeCombat?.turnCount)
-    }
+    // Test removed - Combat V2 uses emergent combat (no activeCombat field)
+    // Modal combat was replaced with disposition-based hostility in Combat System V2
 
     private fun createTestWorldState(): WorldState {
         val room = Room(

@@ -27,6 +27,7 @@ class GenerationCacheTest {
             seed = "test-seed",
             globalLore = "test lore",
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.WORLD,
             direction = null
         )
@@ -44,6 +45,7 @@ class GenerationCacheTest {
             seed = "test-seed",
             globalLore = "test lore",
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.WORLD,
             direction = null
         )
@@ -112,6 +114,7 @@ class GenerationCacheTest {
             seed = "test-seed",
             globalLore = "test lore",
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.ZONE,
             direction = "north"
         )
@@ -207,6 +210,7 @@ class GenerationCacheTest {
             seed = "test",
             globalLore = "lore",
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.WORLD,
             direction = null
         )
@@ -268,6 +272,7 @@ class GenerationCacheTest {
             seed = "test",
             globalLore = "lore",
             parentChunk = null,
+            parentChunkId = null,
             level = ChunkLevel.WORLD,
             direction = null
         )

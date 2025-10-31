@@ -22,31 +22,32 @@ class WorldPersistenceTest {
     private val testSpaces = mutableMapOf<String, SpacePropertiesComponent>()
 
     private val mockSeedRepo = object : WorldSeedRepository {
-        override suspend fun save(seed: String, globalLore: String) =
+        override fun save(seed: String, globalLore: String) =
             Result.success(Unit).also { testSeed.clear(); testSeed.add(seed to globalLore) }
 
-        override suspend fun get() = Result.success(testSeed.firstOrNull())
+        override fun get() = Result.success(testSeed.firstOrNull())
     }
 
     private val mockChunkRepo = object : WorldChunkRepository {
-        override suspend fun save(chunk: WorldChunkComponent, id: String) =
+        override fun save(chunk: WorldChunkComponent, id: String) =
             Result.success(Unit).also { testChunks[id] = chunk }
 
-        override suspend fun findById(id: String) = Result.success(testChunks[id])
-        override suspend fun findByParent(parentId: String) = Result.success(emptyList<WorldChunkComponent>())
-        override suspend fun delete(id: String) = Result.success(Unit)
-        override suspend fun getAll() = Result.success(testChunks.values.toList())
+        override fun findById(id: String) = Result.success(testChunks[id])
+        override fun findByParent(parentId: String) = Result.success(emptyList<Pair<String, WorldChunkComponent>>())
+        override fun findAdjacent(currentId: String, direction: String) = Result.success(null)
+        override fun delete(id: String) = Result.success(Unit)
+        override fun getAll() = Result.success(testChunks)
     }
 
     private val mockSpaceRepo = object : SpacePropertiesRepository {
-        override suspend fun save(properties: SpacePropertiesComponent, chunkId: String) =
+        override fun save(properties: SpacePropertiesComponent, chunkId: String) =
             Result.success(Unit).also { testSpaces[chunkId] = properties }
 
-        override suspend fun findByChunkId(chunkId: String) = Result.success(testSpaces[chunkId])
-        override suspend fun updateDescription(chunkId: String, desc: String) = Result.success(Unit)
-        override suspend fun updateFlags(chunkId: String, flags: Map<String, Boolean>) = Result.success(Unit)
-        override suspend fun addItems(chunkId: String, items: List<com.jcraw.mud.core.ItemInstance>) = Result.success(Unit)
-        override suspend fun delete(chunkId: String) = Result.success(Unit)
+        override fun findByChunkId(chunkId: String) = Result.success(testSpaces[chunkId])
+        override fun updateDescription(chunkId: String, description: String) = Result.success(Unit)
+        override fun updateFlags(chunkId: String, flags: Map<String, Boolean>) = Result.success(Unit)
+        override fun addItems(chunkId: String, items: List<com.jcraw.mud.core.ItemInstance>) = Result.success(Unit)
+        override fun delete(chunkId: String) = Result.success(Unit)
     }
 
     private val persistence = WorldPersistence(mockSeedRepo, mockChunkRepo, mockSpaceRepo)
@@ -62,13 +63,13 @@ class WorldPersistenceTest {
     fun `saveWorldState persists chunks and spaces`() = runBlocking {
         val chunk = WorldChunkComponent(ChunkLevel.SPACE, "world", emptyList(), "lore", "cave", 5, 0.5, 3)
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
+            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
 
         persistence.saveWorldState(
             worldId = "world",
-            playerState = PlayerState("Player"),
+            playerState = PlayerState("player1", "Player", "room1"),
             loadedChunks = mapOf("chunk_1" to chunk),
             loadedSpaces = mapOf("space_1" to space)
         ).getOrThrow()
@@ -81,7 +82,7 @@ class WorldPersistenceTest {
     fun `loadWorldState retrieves global lore and space`() = runBlocking {
         testSeed.add("seed123" to "Ancient dungeon lore")
         val space = SpacePropertiesComponent(
-            "Start room", emptyMap(), 100, TerrainType.NORMAL, emptyList(), emptyList(),
+            "Start room", emptyList(), 100, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
         testSpaces["space_start"] = space
@@ -102,7 +103,7 @@ class WorldPersistenceTest {
     @Test
     fun `saveSpace performs incremental save`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
+            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
 
@@ -124,7 +125,7 @@ class WorldPersistenceTest {
     @Test
     fun `loadSpace retrieves space by chunk ID`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
+            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
         testSpaces["space_1"] = space
@@ -137,11 +138,11 @@ class WorldPersistenceTest {
     @Test
     fun `prefetchAdjacentSpaces loads multiple spaces`() = runBlocking {
         val space1 = SpacePropertiesComponent(
-            "Room 1", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
+            "Room 1", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
         val space2 = SpacePropertiesComponent(
-            "Room 2", emptyMap(), 60, TerrainType.DIFFICULT, emptyList(), emptyList(),
+            "Room 2", emptyList(), 60, TerrainType.DIFFICULT, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
         )
         testSpaces["space_1"] = space1
