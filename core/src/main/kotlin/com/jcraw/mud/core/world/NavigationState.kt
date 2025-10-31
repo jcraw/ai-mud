@@ -81,4 +81,53 @@ data class NavigationState(
         val newBreadcrumbs = (breadcrumbs + spaceId).takeLast(20)
         return copy(breadcrumbs = newBreadcrumbs)
     }
+
+    companion object {
+        /**
+         * Creates a new NavigationState from a starting space ID by walking up the hierarchy.
+         *
+         * @param startingSpaceId The ID of the space to start at
+         * @param repo Repository for querying chunk hierarchy
+         * @return NavigationState with all hierarchy IDs populated
+         */
+        suspend fun fromSpaceId(
+            startingSpaceId: String,
+            repo: WorldChunkRepository
+        ): Result<NavigationState> = runCatching {
+            // Query the chunk for this space to get its parent
+            val spaceChunk = repo.findById(startingSpaceId).getOrThrow()
+                ?: error("Space chunk not found: $startingSpaceId")
+
+            val subzoneId = spaceChunk.parentId
+                ?: error("Space has no parent subzone: $startingSpaceId")
+
+            // Walk up the hierarchy
+            val subzoneChunk = repo.findById(subzoneId).getOrThrow()
+                ?: error("Subzone chunk not found: $subzoneId")
+
+            val zoneId = subzoneChunk.parentId
+                ?: error("Subzone has no parent zone: $subzoneId")
+
+            val zoneChunk = repo.findById(zoneId).getOrThrow()
+                ?: error("Zone chunk not found: $zoneId")
+
+            val regionId = zoneChunk.parentId
+                ?: error("Zone has no parent region: $zoneId")
+
+            val regionChunk = repo.findById(regionId).getOrThrow()
+                ?: error("Region chunk not found: $regionId")
+
+            val worldId = regionChunk.parentId
+                ?: error("Region has no parent world: $regionId")
+
+            NavigationState(
+                currentSpaceId = startingSpaceId,
+                currentSubzoneId = subzoneId,
+                currentZoneId = zoneId,
+                currentRegionId = regionId,
+                worldId = worldId,
+                breadcrumbs = listOf(startingSpaceId)
+            )
+        }
+    }
 }

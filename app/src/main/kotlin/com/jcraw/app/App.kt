@@ -35,10 +35,72 @@ fun main() {
 
     println()
 
-    // Always use Sample Dungeon (same as test bot)
-    println("Loading Sample Dungeon (handcrafted, 6 rooms)...")
-    val worldState = SampleDungeon.createInitialWorldState()
-    val dungeonTheme = DungeonTheme.CRYPT // Sample uses crypt theme
+    // Ask user for dungeon type
+    println("Select dungeon type:")
+    println("  1. Sample Dungeon (handcrafted, 6 rooms)")
+    println("  2. World Generation V2 (procedural deep dungeon)")
+    print("\nEnter choice (1-2) [default: 1]: ")
+
+    val dungeonChoice = readLine()?.trim() ?: "1"
+    val useWorldGenV2 = dungeonChoice == "2"
+
+    println()
+
+    val worldState: WorldState
+    val dungeonTheme: DungeonTheme
+    var startingSpaceId: String? = null // For World V2
+
+    if (useWorldGenV2) {
+        println("Initializing procedural deep dungeon...")
+        println("(This may take a moment as we generate the world...)")
+
+        // World generation requires LLM
+        if (apiKey.isNullOrBlank()) {
+            println("⚠️  World Generation V2 requires OpenAI API key")
+            println("   Falling back to Sample Dungeon")
+            worldState = SampleDungeon.createInitialWorldState()
+            dungeonTheme = DungeonTheme.CRYPT
+        } else {
+            // Initialize world generation components
+            val llmClient = OpenAIClient(apiKey)
+            val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("world.db")
+            val worldSeedRepo = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
+            val chunkRepo = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
+            val spaceRepo = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+
+            val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
+            val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
+            val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
+                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo
+            )
+
+            // Generate world (this is async)
+            val seed = "seed_${System.currentTimeMillis()}"
+            startingSpaceId = kotlinx.coroutines.runBlocking {
+                dungeonInitializer.initializeDeepDungeon(seed).getOrThrow()
+            }
+
+            println("✓ World generated! Starting space ID: $startingSpaceId")
+
+            // Create minimal world state (world V2 uses different navigation)
+            // For now, create empty world state - navigation will use world V2 system
+            worldState = WorldState(
+                player = com.jcraw.mud.core.PlayerState(
+                    id = "player_1",
+                    name = "Adventurer",
+                    currentRoomId = "world_v2_start", // Placeholder
+                    health = 100,
+                    maxHealth = 100
+                ),
+                rooms = emptyMap() // World V2 uses SpacePropertiesRepository instead
+            )
+            dungeonTheme = DungeonTheme.CRYPT // Default theme
+        }
+    } else {
+        println("Loading Sample Dungeon (handcrafted, 6 rooms)...")
+        worldState = SampleDungeon.createInitialWorldState()
+        dungeonTheme = DungeonTheme.CRYPT // Sample uses crypt theme
+    }
 
     // Generate initial quests
     val questGenerator = QuestGenerator()
@@ -105,6 +167,17 @@ fun main() {
                 memoryManager = null,
                 llmClient = null
             )
+        }
+
+        // Initialize navigation state for World V2
+        if (startingSpaceId != null) {
+            game.navigationState = kotlinx.coroutines.runBlocking {
+                com.jcraw.mud.core.world.NavigationState.fromSpaceId(
+                    startingSpaceId,
+                    game.worldChunkRepository
+                ).getOrThrow()
+            }
+            println("✓ Navigation initialized at starting space")
         }
 
         game.start()
