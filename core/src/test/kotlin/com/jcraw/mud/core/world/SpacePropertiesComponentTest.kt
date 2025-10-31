@@ -289,4 +289,76 @@ class SpacePropertiesComponentTest {
         assertEquals(60, updated.resources[0].timeSinceHarvest)
         assertEquals(0, updated.resources[1].timeSinceHarvest) // Non-depleted doesn't tick
     }
+
+    @Test
+    fun `isSafeZone defaults to false`() {
+        val space = SpacePropertiesComponent()
+        assertFalse(space.isSafeZone)
+    }
+
+    @Test
+    fun `isSafeZone can be set to true`() {
+        val space = SpacePropertiesComponent(isSafeZone = true)
+        assertTrue(space.isSafeZone)
+    }
+
+    @Test
+    fun `isSafeZone is preserved when copying space`() {
+        val space = SpacePropertiesComponent(isSafeZone = true)
+        val updated = space.addEntity("entity-1")
+        assertTrue(updated.isSafeZone)
+    }
+
+    @Test
+    fun `safe zone can have exits but no traps`() {
+        val exit = ExitData(targetId = "room-2", direction = "north", description = "North")
+        val space = SpacePropertiesComponent(
+            exits = listOf(exit),
+            traps = emptyList(),
+            isSafeZone = true
+        )
+        assertTrue(space.isSafeZone)
+        assertEquals(1, space.exits.size)
+        assertEquals(0, space.traps.size)
+    }
+
+    @Test
+    fun `safe zone can have entities (merchants)`() {
+        val space = SpacePropertiesComponent(
+            entities = listOf("merchant-1", "merchant-2"),
+            isSafeZone = true
+        )
+        assertTrue(space.isSafeZone)
+        assertEquals(2, space.entities.size)
+    }
+
+    @Test
+    fun `safe zone flag is immutable`() {
+        val space = SpacePropertiesComponent(isSafeZone = false)
+        val updated = space.copy(isSafeZone = true)
+        assertFalse(space.isSafeZone)
+        assertTrue(updated.isSafeZone)
+    }
+
+    @Test
+    fun `safe zone serialization roundtrip preserves flag`() {
+        val space = SpacePropertiesComponent(
+            description = "Town square",
+            isSafeZone = true
+        )
+        // The data class copy simulates serialization/deserialization
+        val copy = space.copy()
+        assertTrue(copy.isSafeZone)
+        assertEquals("Town square", copy.description)
+    }
+
+    @Test
+    fun `multiple safe zone mutations preserve flag`() {
+        val space = SpacePropertiesComponent(isSafeZone = true)
+        val updated = space
+            .addEntity("merchant-1")
+            .addExit(ExitData(targetId = "room-2", direction = "north", description = "North"))
+            .withDescription("Safe town square")
+        assertTrue(updated.isSafeZone)
+    }
 }

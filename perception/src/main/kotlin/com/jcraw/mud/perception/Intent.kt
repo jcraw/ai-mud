@@ -269,6 +269,13 @@ sealed class Intent {
     data object ViewSkills : Intent()
 
     /**
+     * Rest at a safe location to regenerate HP and Mana
+     * @param location Optional location to rest at (defaults to "current")
+     */
+    @Serializable
+    data class Rest(val location: String = "current") : Intent()
+
+    /**
      * Request help/available commands
      */
     @Serializable

@@ -19,7 +19,8 @@ data class SpacePropertiesComponent(
     val entities: List<String> = emptyList(), // Entity IDs
     val itemsDropped: List<ItemInstance> = emptyList(),
     val stateFlags: Map<String, Boolean> = emptyMap(),
-    val descriptionStale: Boolean = false
+    val descriptionStale: Boolean = false,
+    val isSafeZone: Boolean = false // Safe zones: No mob spawns, no traps, no combat
 ) : Component {
     override val componentType: ComponentType
         get() = ComponentType.SPACE_PROPERTIES

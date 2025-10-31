@@ -25,6 +25,8 @@ enum class ComponentType {
     INVENTORY,
     WORLD_CHUNK,
     SPACE_PROPERTIES,
+    RESPAWN,
+    CORPSE,
     // Future component types can be added here
 }
 

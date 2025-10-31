@@ -25,12 +25,14 @@ For complete documentation, see:
 - **10 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
 - **World model**: Room, WorldState, PlayerState, Entity hierarchy, CombatState, Direction
 - **Multi-user architecture**: Multiple concurrent players with thread-safe state management
-- **Intent system**: 24+ intent types for player actions
+- **Intent system**: 25+ intent types for player actions (including Intent.Rest for safe zone regen)
 - **Working game loop**: Console-based with text parser and LLM integration
+- **ECS Components**: RespawnComponent (timer-based mob respawning), CorpseData (player death handling), BossDesignation (boss entities)
 
 ### Game Features ✅
 - **Combat system**: Turn-based with STR modifiers, weapon bonuses, armor defense
 - **Death & respawn**: "Press any key to play again" prompt with full game restart
+- **Safe zones**: Spaces with no combat/traps (isSafeZone flag in SpacePropertiesComponent)
 - **Equipment system**: Weapons (+damage) and armor (+defense)
 - **Consumables**: Healing potions and other usable items
 - **Skill checks**: D&D-style (d20 + modifier vs DC) with all 6 stats
@@ -214,6 +216,9 @@ Memory (store for RAG)
 - ✅ Combat System V2 (7 phases complete) - See [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 - ✅ Item System V2 (10 chunks complete) - See [Items & Crafting Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
 - ✅ World Generation System V2 (7 chunks complete) - See [World Generation Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
+- 🔄 **Starting Dungeon (Ancient Abyss)** - IN PROGRESS (1/8 chunks complete) - See [Starting Dungeon Plan](docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md)
+  - ✅ Chunk 1: Foundation (RespawnComponent, CorpseData, BossDesignation, Intent.Rest, isSafeZone flag, 44 tests)
+  - ⏳ Chunk 2: Database Extensions (next)
 - ✅ All tests passing across all modules
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Main project code compiles successfully

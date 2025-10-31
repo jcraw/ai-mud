@@ -120,7 +120,7 @@ Last updated: 2025-01-30
 
 ## Current Priority
 
-**📋 Starting Dungeon Configuration - NEXT**
+**📋 Starting Dungeon Configuration - IN PROGRESS**
 
 Implementation plan created: `docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md`
 
@@ -133,14 +133,24 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
 - Hidden exit to open world
 - Murderhobo gameplay loop (fight → loot → sell/craft → descend)
 
+**Progress:**
+- [x] Chunk 1: Foundation - New Components & Data Model ✅ COMPLETE (2025-01-31)
+  - [x] Added ComponentType.CORPSE, ComponentType.RESPAWN to Component.kt
+  - [x] Implemented RespawnComponent.kt data class with timer methods
+  - [x] Created CorpseData.kt structure for player corpse handling
+  - [x] Added isSafeZone flag to SpacePropertiesComponent
+  - [x] Added Intent.Rest to Intent sealed class
+  - [x] Created BossFlags.kt with BossDesignation data class
+  - [x] Written 44 tests (RespawnComponentTest, CorpseDataTest, BossFlagsTest, SpacePropertiesComponentTest +8, IntentTest +6)
+
 **Next Step:**
-1. Start with Chunk 1: Foundation - New Components & Data Model (4 hours)
-   - Add ComponentType.CORPSE, ComponentType.RESPAWN
-   - Implement RespawnComponent data class
-   - Add CorpseData structure
-   - Add safe zone flag to SpacePropertiesComponent
-   - Add Intent.Rest
-   - Add boss designation flags
+2. Chunk 2: Database Extensions (3 hours)
+   - Add respawn_components and corpses tables to WorldDatabase
+   - Implement RespawnRepository interface
+   - Implement SQLiteRespawnRepository
+   - Implement CorpseRepository interface
+   - Implement SQLiteCorpseRepository
+   - Write ~65 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 

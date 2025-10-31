@@ -284,4 +284,47 @@ class IntentTest {
         assertEquals(Intent.ChoosePerk("Magic", 1), Intent.ChoosePerk("Magic", 1))
         assertEquals(Intent.ViewSkills, Intent.ViewSkills)
     }
+
+    // Rest Intent Tests
+
+    @Test
+    fun `Rest intent defaults to current location`() {
+        val intent = Intent.Rest()
+        assertEquals("current", intent.location)
+    }
+
+    @Test
+    fun `Rest intent can specify location`() {
+        val intent = Intent.Rest("safe zone")
+        assertEquals("safe zone", intent.location)
+    }
+
+    @Test
+    fun `Rest intent serializes correctly`() {
+        val intent = Intent.Rest("town square")
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("town square"))
+    }
+
+    @Test
+    fun `Rest intent with default location serializes correctly`() {
+        val intent = Intent.Rest()
+        val json = Json.encodeToString(intent)
+        assertTrue(json.contains("current"))
+    }
+
+    @Test
+    fun `Rest intent has correct equality behavior`() {
+        assertEquals(Intent.Rest(), Intent.Rest())
+        assertEquals(Intent.Rest("town"), Intent.Rest("town"))
+    }
+
+    @Test
+    fun `Rest intent can be added to intent list`() {
+        val intents: List<Intent> = listOf(
+            Intent.Rest(),
+            Intent.Rest("safe zone")
+        )
+        assertTrue(intents.all { it is Intent })
+    }
 }
