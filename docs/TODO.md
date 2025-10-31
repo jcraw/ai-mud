@@ -120,6 +120,32 @@ Last updated: 2025-01-30
 
 ## Current Priority
 
+**📋 Starting Dungeon Configuration - NEXT**
+
+Implementation plan created: `docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md`
+
+Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generated deep dungeon with:
+- Fixed 4-region structure (Upper/Mid/Lower/Abyssal Core)
+- Town safe zone with merchants
+- Mob respawn system (timer-based)
+- Death & corpse system (Dark Souls-style corpse retrieval)
+- Boss fight (Abyssal Lord) + victory condition (Abyss Heart)
+- Hidden exit to open world
+- Murderhobo gameplay loop (fight → loot → sell/craft → descend)
+
+**Next Step:**
+1. Start with Chunk 1: Foundation - New Components & Data Model (4 hours)
+   - Add ComponentType.CORPSE, ComponentType.RESPAWN
+   - Implement RespawnComponent data class
+   - Add CorpseData structure
+   - Add safe zone flag to SpacePropertiesComponent
+   - Add Intent.Rest
+   - Add boss designation flags
+
+See plan for full 8-chunk breakdown (32 hours total).
+
+---
+
 **✅ World Generation V2 Integration - COMPLETE**
 
 All steps complete:
@@ -131,11 +157,6 @@ All steps complete:
    - DungeonInitializer creates procedural deep dungeon
    - NavigationState initialized with starting space
    - NavigationState.fromSpaceId() factory method added
-
-**Next Steps (Optional):**
-- Manual testing of World V2 navigation
-- Integration testing with test bot scenarios
-- Create dedicated world exploration test scenario
 
 ## Notes
 
