@@ -23,6 +23,7 @@ class WorldDatabase(
     fun getConnection(): Connection {
         if (connection == null || connection?.isClosed == true) {
             connection = DriverManager.getConnection("jdbc:sqlite:$dbPath")
+            connection!!.createStatement().use { it.execute("PRAGMA foreign_keys = ON") }
             initializeSchema()
         }
         return connection!!

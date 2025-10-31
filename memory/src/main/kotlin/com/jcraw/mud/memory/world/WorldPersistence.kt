@@ -12,7 +12,7 @@ import com.jcraw.mud.core.world.NavigationState
  * Handles save/load operations for the world generation system.
  * Integrates with existing persistence infrastructure.
  */
-class WorldPersistence(
+open class WorldPersistence(
     private val worldSeedRepository: WorldSeedRepository,
     private val worldChunkRepository: WorldChunkRepository,
     private val spacePropertiesRepository: SpacePropertiesRepository
@@ -27,7 +27,7 @@ class WorldPersistence(
      * @param loadedSpaces Spaces currently loaded in memory
      * @return Result indicating success or failure
      */
-    suspend fun saveWorldState(
+    open suspend fun saveWorldState(
         worldId: String,
         playerState: PlayerState,
         loadedChunks: Map<String, WorldChunkComponent>,

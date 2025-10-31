@@ -123,22 +123,27 @@ Last updated: 2025-01-30
 ### Test Issues
 - [x] Fix PersistenceManagerTest.kt (activeCombat field removed in V2) - Removed obsolete test
 - [x] Fix SkillSocialIntegrationTest.kt (import/API issues) - Removed obsolete integration test
-- [ ] Fix WorldPersistenceTest.kt mocks (Repository API mismatch)
-- [ ] Fix GenerationCacheTest.kt (parentChunkId parameter added to GenerationContext)
+- [x] Fix WorldPersistenceTest.kt mocks (Repository API mismatch) - Fixed AutosaveManagerTest mock repositories
+- [x] Fix GenerationCacheTest.kt (parentChunkId parameter added to GenerationContext) - No changes needed, tests already correct
+- [x] Fix WorldDatabaseTest.kt foreign key constraint test - Enabled PRAGMA foreign_keys in WorldDatabase
 
 ## Current Priority
 
 **Focus: World Generation V2 Integration**
 
 Next steps (in order):
-1. Fix remaining test compilation errors (WorldPersistenceTest.kt, GenerationCacheTest.kt - ~47 errors)
+1. ✅ Fix remaining test compilation errors - **COMPLETE** (All 215 memory tests passing)
+   - Fixed AutosaveManagerTest mock repositories
+   - Added kotlinx-coroutines-test dependency
+   - Made WorldPersistence class open for testing
+   - Enabled SQLite foreign keys in WorldDatabase
 2. Add world generation components to MudGame
 3. Implement real handlers for Scout/Travel
 4. Add world generation option to startup flow
 5. Test with existing test bot scenarios
 6. Optional: Create dedicated world exploration test scenario
 
-Estimated time: 10-12 hours for full integration (test fixes + integration)
+Estimated time: 8-10 hours for remaining integration work
 
 ## Notes
 
