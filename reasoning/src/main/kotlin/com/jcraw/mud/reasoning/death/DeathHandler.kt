@@ -189,10 +189,10 @@ private fun createFreshPlayer(
     // Basic stats (10 in all stats, D&D baseline)
     val baseStats = Stats(
         strength = 10,
-        agility = 10,
+        dexterity = 10,
+        constitution = 10,
         intelligence = 10,
         wisdom = 10,
-        vitality = 10,
         charisma = 10
     )
 
@@ -232,36 +232,35 @@ private fun convertPlayerInventoryToV2(player: PlayerState): InventoryComponent 
             templateId = v1Item.name, // Use name as template ID for now
             quality = 5, // Default medium quality
             quantity = 1,
-            charges = null,
-            tags = emptySet()
+            charges = null
         )
     }
 
     // Build equipped map
     val equippedMap = mutableMapOf<EquipSlot, ItemInstance>()
 
-    if (player.equippedWeapon != null) {
+    val weapon = player.equippedWeapon
+    if (weapon != null) {
         val weaponInstance = ItemInstance(
-            id = player.equippedWeapon.id,
-            templateId = player.equippedWeapon.name,
+            id = weapon.id,
+            templateId = weapon.name,
             quality = 5,
             quantity = 1,
-            charges = null,
-            tags = emptySet()
+            charges = null
         )
         equippedMap[EquipSlot.HANDS_MAIN] = weaponInstance
     }
 
-    if (player.equippedArmor != null) {
+    val armor = player.equippedArmor
+    if (armor != null) {
         val armorInstance = ItemInstance(
-            id = player.equippedArmor.id,
-            templateId = player.equippedArmor.name,
+            id = armor.id,
+            templateId = armor.name,
             quality = 5,
             quantity = 1,
-            charges = null,
-            tags = emptySet()
+            charges = null
         )
-        equippedMap[EquipSlot.TORSO] = armorInstance
+        equippedMap[EquipSlot.CHEST] = armorInstance
     }
 
     // Create InventoryComponent
@@ -282,28 +281,28 @@ private fun convertPlayerInventoryToV2(player: PlayerState): InventoryComponent 
 private fun extractEquippedItems(player: PlayerState): List<ItemInstance> {
     val equipped = mutableListOf<ItemInstance>()
 
-    if (player.equippedWeapon != null) {
+    val weapon = player.equippedWeapon
+    if (weapon != null) {
         equipped.add(
             ItemInstance(
-                id = player.equippedWeapon.id,
-                templateId = player.equippedWeapon.name,
+                id = weapon.id,
+                templateId = weapon.name,
                 quality = 5,
                 quantity = 1,
-                charges = null,
-                tags = emptySet()
+                charges = null
             )
         )
     }
 
-    if (player.equippedArmor != null) {
+    val armor = player.equippedArmor
+    if (armor != null) {
         equipped.add(
             ItemInstance(
-                id = player.equippedArmor.id,
-                templateId = player.equippedArmor.name,
+                id = armor.id,
+                templateId = armor.name,
                 quality = 5,
                 quantity = 1,
-                charges = null,
-                tags = emptySet()
+                charges = null
             )
         )
     }

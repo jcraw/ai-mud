@@ -23,16 +23,7 @@ class HiddenExitHandler {
 
         // Check exit conditions (typically skill checks)
         val passedConditions = exit.conditions.filter { condition ->
-            when (condition) {
-                is Condition.SkillCheck -> {
-                    val skillLevel = player.getSkillLevel(condition.skillName)
-                    skillLevel >= condition.requiredLevel
-                }
-                is Condition.HasItem -> {
-                    player.hasItem(condition.itemId)
-                }
-                else -> false
-            }
+            condition.meetsCondition(player)
         }
 
         // If any condition is met, reveal the exit
@@ -57,7 +48,7 @@ class HiddenExitHandler {
         return buildString {
             when (passedCondition) {
                 is Condition.SkillCheck -> {
-                    when (passedCondition.skillName.lowercase()) {
+                    when (passedCondition.skill.lowercase()) {
                         "perception" -> {
                             appendLine("Your keen eyes notice something unusual...")
                             appendLine("A cracked wall, nearly invisible in the shadows.")
@@ -78,11 +69,8 @@ class HiddenExitHandler {
                         }
                     }
                 }
-                is Condition.HasItem -> {
-                    appendLine("Using the ${passedCondition.itemId}, you unlock the hidden passage.")
-                }
-                else -> {
-                    appendLine("You discover a hidden passage!")
+                is Condition.ItemRequired -> {
+                    appendLine("Using the ${passedCondition.itemTag}, you unlock the hidden passage.")
                 }
             }
             appendLine()
@@ -98,14 +86,14 @@ class HiddenExitHandler {
      */
     private fun generateFailureNarration(exit: ExitData): String {
         val skillChecks = exit.conditions.filterIsInstance<Condition.SkillCheck>()
-        val itemChecks = exit.conditions.filterIsInstance<Condition.HasItem>()
+        val itemChecks = exit.conditions.filterIsInstance<Condition.ItemRequired>()
 
         return buildString {
             appendLine("The wall looks solid here.")
             if (skillChecks.isNotEmpty()) {
                 appendLine()
                 append("Perhaps with higher ")
-                val skills = skillChecks.map { "${it.skillName} (${it.requiredLevel}+)" }
+                val skills = skillChecks.map { "${it.skill} (${it.difficulty}+)" }
                 appendLine(skills.joinToString(" or ") + " you could discover something...")
             }
             if (itemChecks.isNotEmpty()) {
@@ -126,16 +114,15 @@ class HiddenExitHandler {
          */
         fun createSurfaceWildernessExit(sourceSpaceId: String, targetSpaceId: String): ExitData {
             return ExitData(
+                targetId = targetSpaceId,
                 direction = "crack", // Non-cardinal direction
-                targetSpaceId = targetSpaceId,
                 description = "Beyond lies the Surface Wilderness, bathed in moonlight. Fresh air beckons.",
-                isHidden = true,
-                movementCost = 1,
                 conditions = listOf(
                     Condition.SkillCheck("Perception", 40),
                     Condition.SkillCheck("Lockpicking", 30),
                     Condition.SkillCheck("Strength", 50)
-                )
+                ),
+                isHidden = true
             )
         }
     }

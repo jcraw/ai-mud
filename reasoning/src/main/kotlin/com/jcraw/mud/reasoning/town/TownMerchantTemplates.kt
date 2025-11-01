@@ -1,7 +1,6 @@
 package com.jcraw.mud.reasoning.town
 
 import com.jcraw.mud.core.*
-import com.jcraw.mud.core.world.TradingComponent
 import java.util.UUID
 
 /**
@@ -65,15 +64,18 @@ object TownMerchantTemplates {
             description = "A friendly alchemist with colorful vials lining the shelves behind them.",
             health = 50,
             maxHealth = 50,
-            strength = 8,
-            agility = 10,
-            intelligence = 15,
-            wisdom = 12,
-            vitality = 10,
-            charisma = 14,
-            skills = mapOf("Alchemy" to 50, "Herbalism" to 40),
-            components = listOf(tradingComponent, socialComponent),
-            aiPrompt = "You are a cheerful potion merchant. You love discussing the properties of potions and herbs."
+            stats = Stats(
+                strength = 8,
+                dexterity = 10,
+                intelligence = 15,
+                wisdom = 12,
+                constitution = 10,
+                charisma = 14
+            ),
+            components = mapOf(
+                ComponentType.TRADING to tradingComponent,
+                ComponentType.SOCIAL to socialComponent
+            )
         )
     }
 
@@ -127,15 +129,18 @@ object TownMerchantTemplates {
             description = "A sturdy smith with calloused hands, surrounded by gleaming armor pieces.",
             health = 80,
             maxHealth = 80,
-            strength = 16,
-            agility = 8,
-            intelligence = 10,
-            wisdom = 12,
-            vitality = 18,
-            charisma = 8,
-            skills = mapOf("Blacksmithing" to 60, "Armorcraft" to 70),
-            components = listOf(tradingComponent, socialComponent),
-            aiPrompt = "You are a gruff armor merchant. You take pride in your work and know armor inside out."
+            stats = Stats(
+                strength = 16,
+                dexterity = 8,
+                intelligence = 10,
+                wisdom = 12,
+                constitution = 18,
+                charisma = 8
+            ),
+            components = mapOf(
+                ComponentType.TRADING to tradingComponent,
+                ComponentType.SOCIAL to socialComponent
+            )
         )
     }
 
@@ -189,15 +194,18 @@ object TownMerchantTemplates {
             description = "A muscular smith hammering at the forge, surrounded by gleaming blades.",
             health = 100,
             maxHealth = 100,
-            strength = 18,
-            agility = 10,
-            intelligence = 12,
-            wisdom = 10,
-            vitality = 20,
-            charisma = 6,
-            skills = mapOf("Blacksmithing" to 80, "Weaponcraft" to 75),
-            components = listOf(tradingComponent, socialComponent),
-            aiPrompt = "You are a master blacksmith. You speak little but your work speaks volumes."
+            stats = Stats(
+                strength = 18,
+                dexterity = 10,
+                intelligence = 12,
+                wisdom = 10,
+                constitution = 20,
+                charisma = 6
+            ),
+            components = mapOf(
+                ComponentType.TRADING to tradingComponent,
+                ComponentType.SOCIAL to socialComponent
+            )
         )
     }
 
@@ -252,15 +260,18 @@ object TownMerchantTemplates {
             description = "A welcoming host with a knowing smile, always ready with a tale or two.",
             health = 60,
             maxHealth = 60,
-            strength = 10,
-            agility = 12,
-            intelligence = 14,
-            wisdom = 16,
-            vitality = 12,
-            charisma = 18,
-            skills = mapOf("Lore" to 60, "Persuasion" to 40, "Cooking" to 50),
-            components = listOf(tradingComponent, socialComponent),
-            aiPrompt = "You are a friendly innkeeper. You love sharing stories about the Ancient Abyss Dungeon and giving hints to adventurers. You know the dungeon has four regions (Upper/Mid/Lower/Abyssal Core) and mention the hidden exit in the Mid Depths for clever explorers."
+            stats = Stats(
+                strength = 10,
+                dexterity = 12,
+                intelligence = 14,
+                wisdom = 16,
+                constitution = 12,
+                charisma = 18
+            ),
+            components = mapOf(
+                ComponentType.TRADING to tradingComponent,
+                ComponentType.SOCIAL to socialComponent
+            )
         )
     }
 
@@ -284,8 +295,7 @@ object TownMerchantTemplates {
             templateId = templateId,
             quality = quality,
             quantity = quantity,
-            charges = null,
-            bonuses = emptyMap()
+            charges = null
         )
     }
 

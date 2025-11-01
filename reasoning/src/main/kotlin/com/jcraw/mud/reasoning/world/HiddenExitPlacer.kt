@@ -80,7 +80,7 @@ class HiddenExitPlacer(
             ?: return Result.failure(Exception("Subzone has no spaces"))
 
         // Load the space
-        val space = spaceRepo.findById(targetSpaceId).getOrElse { return Result.failure(it) }
+        val space = spaceRepo.findByChunkId(targetSpaceId).getOrElse { return Result.failure(it) }
             ?: return Result.failure(Exception("Space not found: $targetSpaceId"))
 
         // Create placeholder for Surface Wilderness region (lazy generation)

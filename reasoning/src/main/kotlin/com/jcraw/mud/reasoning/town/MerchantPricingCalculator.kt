@@ -3,7 +3,7 @@ package com.jcraw.mud.reasoning.town
 import com.jcraw.mud.core.DispositionTier
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.PlayerState
-import com.jcraw.mud.core.world.TradingComponent
+import com.jcraw.mud.core.TradingComponent
 
 /**
  * Calculates buy/sell prices for merchants based on player disposition.
@@ -89,7 +89,7 @@ object MerchantPricingCalculator {
 
         // Check merchant gold (for buying from player)
         val trading = merchant.getComponent(com.jcraw.mud.core.ComponentType.TRADING) as? TradingComponent
-        if (trading != null && trading.gold <= 0) {
+        if (trading != null && trading.merchantGold <= 0) {
             return false
         }
 
@@ -110,7 +110,7 @@ object MerchantPricingCalculator {
         }
 
         val trading = merchant.getComponent(com.jcraw.mud.core.ComponentType.TRADING) as? TradingComponent
-        if (trading != null && trading.gold <= 0) {
+        if (trading != null && trading.merchantGold <= 0) {
             return "${merchant.name} has no gold left to buy items from you."
         }
 

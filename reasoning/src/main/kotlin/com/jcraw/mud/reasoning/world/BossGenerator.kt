@@ -2,6 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
+import com.jcraw.mud.core.world.TerrainType
 import java.util.UUID
 
 /**
@@ -46,7 +47,7 @@ class BossGenerator(
             entities = listOf(abyssalLord.id),
             isSafeZone = false,
             traps = emptyList(), // Boss is challenge enough
-            terrainType = TerrainType.LAVA // Dangerous terrain
+            terrainType = TerrainType.DIFFICULT // Dangerous terrain (lava flows)
         )
 
         spaceRepo.save(populatedSpace, bossSpaceId).getOrElse { return Result.failure(it) }

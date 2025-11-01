@@ -265,6 +265,8 @@ class EngineGameClient(
             is Intent.ClaimReward -> ClientSkillQuestHandlers.handleClaimReward(this, intent.questId)
             is Intent.Help -> ClientSkillQuestHandlers.handleHelp(this)
             is Intent.Quit -> ClientSkillQuestHandlers.handleQuit(this)
+            is Intent.Rest -> emitEvent(GameEvent.System("Rest not yet integrated", GameEvent.MessageLevel.WARNING))
+            is Intent.LootCorpse -> emitEvent(GameEvent.System("Corpse looting not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Invalid -> emitEvent(GameEvent.System(intent.message, GameEvent.MessageLevel.WARNING))
         }
     }

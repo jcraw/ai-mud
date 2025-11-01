@@ -98,8 +98,7 @@ class TownGenerator(
                 description = townDescription,
                 entities = spaceProps.entities + merchantIds,
                 isSafeZone = true,
-                traps = emptyList(), // No traps in town
-                mobDensity = 0.0
+                traps = emptyList() // No traps in town
             )
     }
 
