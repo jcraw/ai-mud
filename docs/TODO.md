@@ -153,14 +153,26 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
   - [x] Written 66 tests (33 for SQLiteRespawnRepositoryTest, 33 for SQLiteCorpseRepositoryTest)
   - [x] All tests passing (100% pass rate)
 
+- [x] Chunk 3: Ancient Abyss Dungeon Definition ✅ COMPLETE (2025-01-31)
+  - [x] Created TownGenerator.kt (320 lines) - Town generation with 4 merchants
+  - [x] Created BossGenerator.kt (230 lines) - Abyssal Lord boss and Abyss Heart
+  - [x] Created HiddenExitPlacer.kt (210 lines) - Hidden exit to Surface Wilderness
+  - [x] Extended DungeonInitializer.kt with initializeAncientAbyss() method (+220 lines)
+  - [x] AncientAbyssData result structure for initialization
+  - [x] 4 region generation (Upper/Mid/Lower/Abyssal Core) with difficulty scaling
+  - [x] Town safe zone in Upper Depths (Zone 1, Subzone 1)
+  - [x] Boss lair in Abyssal Core with Abyssal Lord
+  - [x] Hidden exit in Mid Depths with 3 skill paths (Perception/Lockpicking/Strength)
+  - [ ] Tests pending (TownGenerator, BossGenerator, HiddenExitPlacer, DungeonInitializer - ~65 tests total)
+
 **Next Step:**
-3. Chunk 3: Ancient Abyss Dungeon Definition (4 hours)
-   - Create AncientAbyssDungeon.kt data structure
-   - Define 4 region templates (Upper/Mid/Lower/Abyssal Core)
-   - Define Town safe zone with merchants
-   - Define boss encounter (Abyssal Lord)
-   - Write region generation logic
-   - Write ~50 tests
+4. Chunk 4: Town & Merchants (4 hours)
+   - Implement RestHandler.kt for safe zone resting
+   - Implement MerchantPricingCalculator.kt for disposition-based pricing
+   - Create TownMerchantTemplates.kt with predefined merchants
+   - Create SafeZoneValidator.kt for safe zone rules
+   - Extend TownHandlers.kt with safe zone combat blocking
+   - Write ~90 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 
