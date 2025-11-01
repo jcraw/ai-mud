@@ -118,6 +118,11 @@ class MudGame(
     // TODO: Add corpse decay scheduler when integrated
     // internal val corpseDecayScheduler = CorpseDecayScheduler(corpseRepository)
 
+    // Victory System components (Chunk 7)
+    internal val victoryHandlers = com.jcraw.app.handlers.VictoryHandlers()
+    internal val bossCombatEnhancements = com.jcraw.mud.reasoning.boss.BossCombatEnhancements()
+    private val bossSummonedTracker = mutableSetOf<String>() // Track which bosses have already summoned
+
     /**
      * Start the main game loop.
      */
@@ -250,13 +255,11 @@ class MudGame(
             is Intent.Equip -> com.jcraw.app.handlers.ItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
             is Intent.LootCorpse -> {
-                // TODO: Full integration pending - requires town space ID
-                println("Corpse looting not yet fully integrated. Use after Chunk 6 integration.")
-                // val (newWorld, narration) = com.jcraw.app.handlers.handleLootCorpse(
-                //     intent, worldState, worldState.player, corpseRepository, worldState.gameTime
-                // )
-                // worldState = newWorld
-                // println(narration)
+                val (newWorld, narration) = com.jcraw.app.handlers.handleLootCorpse(
+                    intent, worldState, worldState.player, corpseRepository, worldState.gameTime
+                )
+                worldState = newWorld
+                println(narration)
             }
             is Intent.Check -> com.jcraw.app.handlers.SkillQuestHandlers.handleCheck(this, intent.target)
             is Intent.Persuade -> com.jcraw.app.handlers.SocialHandlers.handlePersuade(this, intent.target)
@@ -273,6 +276,13 @@ class MudGame(
             is Intent.AcceptQuest -> com.jcraw.app.handlers.SkillQuestHandlers.handleAcceptQuest(this, intent.questId)
             is Intent.AbandonQuest -> com.jcraw.app.handlers.SkillQuestHandlers.handleAbandonQuest(this, intent.questId)
             is Intent.ClaimReward -> com.jcraw.app.handlers.SkillQuestHandlers.handleClaimReward(this, intent.questId)
+            is Intent.Rest -> {
+                val (newWorld, narration) = com.jcraw.app.handlers.handleRest(
+                    intent, worldState, worldState.player, spacePropertiesRepository
+                )
+                worldState = newWorld
+                println(narration)
+            }
             is Intent.Help -> com.jcraw.app.handlers.SkillQuestHandlers.handleHelp()
             is Intent.Quit -> com.jcraw.app.handlers.SkillQuestHandlers.handleQuit(this)
             is Intent.Invalid -> println(intent.message)
@@ -487,6 +497,47 @@ class MudGame(
 
             if (newPlayer.isDead()) {
                 handlePlayerDeath()
+            }
+        }
+
+        // Boss summon mechanics (Chunk 7 integration)
+        // Check if this is a boss and should summon minions
+        val hasSummoned = bossSummonedTracker.contains(npc.id)
+        if (bossCombatEnhancements.shouldSummon(npc, hasSummoned)) {
+            // Boss should summon minions!
+            val summonResult = bossCombatEnhancements.summonMinions(npc, difficulty = 5)
+
+            summonResult.onSuccess { minions ->
+                if (minions.isNotEmpty()) {
+                    // Mark boss as having summoned
+                    bossSummonedTracker.add(npc.id)
+
+                    // Display summon narration
+                    val narration = com.jcraw.mud.reasoning.boss.BossCombatEnhancements.getSummonNarration(npc, minions.size)
+                    println("\n" + "=".repeat(60))
+                    println(narration)
+                    println("=".repeat(60))
+
+                    // Add minions to the current room
+                    val currentRoom = worldState.getCurrentRoom()
+                    if (currentRoom != null) {
+                        val updatedEntities = currentRoom.entities + minions
+                        val updatedRoom = currentRoom.copy(entities = updatedEntities)
+                        val updatedRooms = worldState.rooms + (currentRoom.id to updatedRoom)
+                        worldState = worldState.copy(rooms = updatedRooms)
+
+                        // Enqueue minions into turn queue if combat V2 is active
+                        if (turnQueue != null) {
+                            minions.forEach { minion ->
+                                val cost = SpeedCalculator.calculateActionCost("melee_attack", 0)
+                                turnQueue.enqueue(minion.id, worldState.gameTime + cost)
+                            }
+                        }
+                    }
+                }
+            }.onFailure { e ->
+                // Silent failure - boss doesn't summon
+                println("Debug: Boss summon failed: ${e.message}")
             }
         }
     }

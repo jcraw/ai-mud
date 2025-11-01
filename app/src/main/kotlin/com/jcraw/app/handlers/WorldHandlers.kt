@@ -205,6 +205,37 @@ object WorldHandlers {
                     }
                 }
 
+                // Check for victory condition (Chunk 7 integration)
+                val victoryResponse = game.victoryHandlers.checkVictory(
+                    game.worldState,
+                    game.worldState.player.id,
+                    destSpace
+                )
+
+                when (victoryResponse) {
+                    is VictoryResponse.Victory -> {
+                        // Player has achieved victory!
+                        println("\n" + "=".repeat(60))
+                        println(victoryResponse.narration)
+                        println("=".repeat(60))
+                        println("\nFinal Statistics:")
+                        victoryResponse.finalStats.forEach { (key, value) ->
+                            println("  $key: $value")
+                        }
+                        println("=".repeat(60))
+
+                        // Mark victory in world state
+                        game.worldState = game.victoryHandlers.markVictory(game.worldState)
+
+                        // Show restart prompt
+                        println(game.victoryHandlers.getRestartPrompt())
+                        return
+                    }
+                    VictoryResponse.NotYet -> {
+                        // No victory yet, continue normal gameplay
+                    }
+                }
+
                 // Describe new location
                 println("\nYou travel ${resolveResult.exit.direction}.")
                 describeSpace(game, destSpace)

@@ -184,8 +184,8 @@ Memory (store for RAG)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
-- **✅ MAIN CODE COMPILES** - All systems compile successfully (2025-01-30)
-- **⚠️ NOT INTEGRATED** - World system built but not wired into game engine yet
+- **⚠️  PARTIAL COMPILATION** - Handler integration complete, but HiddenExitPlacer/TownGenerator need API fixes (2025-10-31)
+- **✅ HANDLERS INTEGRATED** - All Chunk 8 handlers wired into MudGameEngine (Intent.Rest, Intent.LootCorpse, Victory, Boss summons)
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
 - **Development status**: See `docs/TODO.md` for integration roadmap
 
@@ -216,16 +216,17 @@ Memory (store for RAG)
 - ✅ Combat System V2 (7 phases complete) - See [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 - ✅ Item System V2 (10 chunks complete) - See [Items & Crafting Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
 - ✅ World Generation System V2 (7 chunks complete) - See [World Generation Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
-- 🔄 **Starting Dungeon (Ancient Abyss)** - IN PROGRESS (7/8 chunks complete, core systems built) - See [Starting Dungeon Plan](docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md)
+- 🔄 **Starting Dungeon (Ancient Abyss)** - HANDLER INTEGRATION COMPLETE (7.5/8 chunks) - See [Starting Dungeon Plan](docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md)
   - ✅ Chunk 1: Foundation (RespawnComponent, CorpseData, BossDesignation, Intent.Rest, isSafeZone flag, 44 tests)
   - ✅ Chunk 2: Database Extensions (respawn_components/corpses tables, RespawnRepository, CorpseRepository, 66 tests, 100% pass rate)
   - ✅ Chunk 3: Ancient Abyss Dungeon Definition (TownGenerator, BossGenerator, HiddenExitPlacer, DungeonInitializer)
-  - ✅ Chunk 4: Town & Merchants (RestHandler, MerchantPricingCalculator, TownMerchantTemplates, SafeZoneValidator, combat blocking)
-  - ✅ Chunk 5: Respawn System (RespawnConfig, RespawnChecker, MobSpawner extensions, SpacePopulator updates, MudGameEngine integration complete; tests pending)
-  - ✅ Chunk 6: Death & Corpse System (DeathHandler, CorpseManager, CorpseHandlers, CorpseDecayScheduler, Intent.LootCorpse; core complete, integration pending)
-  - ✅ Chunk 7: Boss, Treasure & Victory (BossLootHandler, VictoryChecker, HiddenExitHandler, BossCombatEnhancements, VictoryHandlers; core complete, integration pending)
-- ✅ All tests passing across all modules
+  - ✅ Chunk 4: Town & Merchants (RestHandler, MerchantPricingCalculator, TownMerchantTemplates, SafeZoneValidator; **Intent.Rest integrated**)
+  - ✅ Chunk 5: Respawn System (RespawnConfig, RespawnChecker, MobSpawner extensions, SpacePopulator updates; **fully integrated in MudGameEngine**)
+  - ✅ Chunk 6: Death & Corpse System (DeathHandler, CorpseManager, CorpseHandlers, CorpseDecayScheduler; **Intent.LootCorpse integrated**)
+  - ✅ Chunk 7: Boss & Victory (BossLootHandler, VictoryChecker, HiddenExitHandler, BossCombatEnhancements, VictoryHandlers; **fully integrated**)
+  - 🔄 Chunk 8: Integration (Handler wiring complete; compilation errors in HiddenExitPlacer/TownGenerator need fixing; tests/bot pending)
+- ✅ All tests passing across all modules (except files with compilation errors)
 - ✅ Code refactoring complete (all files under 600 lines)
-- ✅ Main project code compiles successfully
+- ⚠️  Compilation errors in HiddenExitPlacer.kt and TownGenerator.kt (Chunk 3 files need API updates)
 
 **Latest updates** can be found in the git commit history and individual documentation files.

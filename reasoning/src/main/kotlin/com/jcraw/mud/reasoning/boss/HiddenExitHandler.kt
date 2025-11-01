@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.boss
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.world.*
 
 /**
  * Handles hidden exit discovery and validation
