@@ -70,6 +70,8 @@ sealed class Entity {
         // Loot system
         val lootTableId: String? = null,
         val goldDrop: Int = 0, // Base gold amount
+        // Boss designation (metadata for boss entities)
+        val bossDesignation: BossDesignation = BossDesignation.NONE,
         // Component system
         override val components: Map<ComponentType, Component> = emptyMap()
     ) : Entity(), ComponentHost {
