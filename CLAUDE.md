@@ -216,9 +216,10 @@ Memory (store for RAG)
 - ✅ Combat System V2 (7 phases complete) - See [Combat System V2 Plan](docs/requirements/V2/COMBAT_SYSTEM_IMPLEMENTATION_PLAN.md)
 - ✅ Item System V2 (10 chunks complete) - See [Items & Crafting Plan](docs/requirements/V2/FEATURE_PLAN_items_and_crafting_system.md)
 - ✅ World Generation System V2 (7 chunks complete) - See [World Generation Plan](docs/requirements/V2/FEATURE_PLAN_world_generation_system.md)
-- 🔄 **Starting Dungeon (Ancient Abyss)** - IN PROGRESS (1/8 chunks complete) - See [Starting Dungeon Plan](docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md)
+- 🔄 **Starting Dungeon (Ancient Abyss)** - IN PROGRESS (2/8 chunks complete) - See [Starting Dungeon Plan](docs/requirements/V2/FEATURE_PLAN_starting_dungeon.md)
   - ✅ Chunk 1: Foundation (RespawnComponent, CorpseData, BossDesignation, Intent.Rest, isSafeZone flag, 44 tests)
-  - ⏳ Chunk 2: Database Extensions (next)
+  - ✅ Chunk 2: Database Extensions (respawn_components/corpses tables, RespawnRepository, CorpseRepository, 66 tests, 100% pass rate)
+  - ⏳ Chunk 3: Ancient Abyss Dungeon Definition (next)
 - ✅ All tests passing across all modules
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Main project code compiles successfully

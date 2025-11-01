@@ -143,14 +143,24 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
   - [x] Created BossFlags.kt with BossDesignation data class
   - [x] Written 44 tests (RespawnComponentTest, CorpseDataTest, BossFlagsTest, SpacePropertiesComponentTest +8, IntentTest +6)
 
+- [x] Chunk 2: Database Extensions ✅ COMPLETE (2025-01-31)
+  - [x] Added respawn_components table to WorldDatabase
+  - [x] Added corpses table to WorldDatabase
+  - [x] Implemented RespawnRepository interface
+  - [x] Implemented SQLiteRespawnRepository
+  - [x] Implemented CorpseRepository interface
+  - [x] Implemented SQLiteCorpseRepository
+  - [x] Written 66 tests (33 for SQLiteRespawnRepositoryTest, 33 for SQLiteCorpseRepositoryTest)
+  - [x] All tests passing (100% pass rate)
+
 **Next Step:**
-2. Chunk 2: Database Extensions (3 hours)
-   - Add respawn_components and corpses tables to WorldDatabase
-   - Implement RespawnRepository interface
-   - Implement SQLiteRespawnRepository
-   - Implement CorpseRepository interface
-   - Implement SQLiteCorpseRepository
-   - Write ~65 tests
+3. Chunk 3: Ancient Abyss Dungeon Definition (4 hours)
+   - Create AncientAbyssDungeon.kt data structure
+   - Define 4 region templates (Upper/Mid/Lower/Abyssal Core)
+   - Define Town safe zone with merchants
+   - Define boss encounter (Abyssal Lord)
+   - Write region generation logic
+   - Write ~50 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 

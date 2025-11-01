@@ -11,6 +11,8 @@ import java.sql.DriverManager
  * - world_seed: Global seed and lore for world generation (singleton)
  * - world_chunks: Hierarchical world chunks (WORLD/REGION/ZONE/SUBZONE/SPACE levels)
  * - space_properties: Detailed space properties (descriptions, exits, content)
+ * - respawn_components: Mob respawn timers and regeneration state
+ * - corpses: Player death corpses with inventory/equipment (Dark Souls-style)
  */
 class WorldDatabase(
     private val dbPath: String = "world.db"
@@ -92,10 +94,42 @@ class WorldDatabase(
                 """.trimIndent()
             )
 
+            // Respawn components table (mob respawn timers)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS respawn_components (
+                    entity_id TEXT PRIMARY KEY,
+                    space_id TEXT NOT NULL,
+                    respawn_turns INTEGER NOT NULL,
+                    last_killed INTEGER NOT NULL,
+                    original_entity_id TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+
+            // Corpses table (player death handling)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS corpses (
+                    id TEXT PRIMARY KEY,
+                    player_id TEXT NOT NULL,
+                    space_id TEXT NOT NULL,
+                    inventory TEXT NOT NULL,
+                    equipment TEXT NOT NULL,
+                    gold INTEGER NOT NULL,
+                    decay_timer INTEGER NOT NULL,
+                    looted INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+
             // Create indices for common queries
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_parent ON world_chunks(parent_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_level ON world_chunks(level)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_space_chunk ON space_properties(chunk_id)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_respawn_space ON respawn_components(space_id)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_space ON corpses(space_id)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_player ON corpses(player_id)")
         }
     }
 
@@ -105,6 +139,8 @@ class WorldDatabase(
     fun clearAll() {
         val conn = getConnection()
         conn.createStatement().use { stmt ->
+            stmt.execute("DELETE FROM corpses")
+            stmt.execute("DELETE FROM respawn_components")
             stmt.execute("DELETE FROM space_properties")
             stmt.execute("DELETE FROM world_chunks")
             stmt.execute("DELETE FROM world_seed")

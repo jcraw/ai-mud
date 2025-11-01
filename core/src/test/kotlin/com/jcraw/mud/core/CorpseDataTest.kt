@@ -7,17 +7,17 @@ class CorpseDataTest {
     private fun createTestInventory(): InventoryComponent {
         return InventoryComponent(
             items = listOf(
-                ItemInstance.create("sword_1", "Iron Sword", ItemType.WEAPON, 1),
-                ItemInstance.create("potion_1", "Health Potion", ItemType.CONSUMABLE, 1)
+                ItemInstance(id = "sword_1", templateId = "sword_iron", quality = 5),
+                ItemInstance(id = "potion_1", templateId = "potion_health", quality = 5)
             ),
-            maxWeight = 50.0f,
-            currentWeight = 15.0f
+            gold = 100,
+            capacityWeight = 50.0
         )
     }
 
     private fun createTestEquipment(): List<ItemInstance> {
         return listOf(
-            ItemInstance.create("armor_1", "Leather Armor", ItemType.ARMOR, 1)
+            ItemInstance(id = "armor_1", templateId = "armor_leather", quality = 5)
         )
     }
 
