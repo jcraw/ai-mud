@@ -130,6 +130,14 @@ sealed class Intent {
     data class UseItem(val target: String, val action: String, val actionTarget: String? = null) : Intent()
 
     /**
+     * Loot items from a player corpse
+     * @param corpseTarget The identifier of the corpse to loot (player name or "my corpse")
+     * @param itemTarget Optional specific item to loot, or "all" to loot everything
+     */
+    @Serializable
+    data class LootCorpse(val corpseTarget: String, val itemTarget: String? = null) : Intent()
+
+    /**
      * Attempt to pickpocket an NPC (steal items or place items)
      * @param npcTarget The name/identifier of the NPC to pickpocket
      * @param action "steal" or "place"

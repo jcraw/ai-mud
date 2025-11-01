@@ -113,6 +113,11 @@ class MudGame(
     internal val mobSpawner = if (llmClient != null) com.jcraw.mud.reasoning.world.MobSpawner(llmClient) else null
     internal val respawnChecker = if (mobSpawner != null) com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner) else null
 
+    // Death & Corpse System components (Chunk 6)
+    internal val corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
+    // TODO: Add corpse decay scheduler when integrated
+    // internal val corpseDecayScheduler = CorpseDecayScheduler(corpseRepository)
+
     /**
      * Start the main game loop.
      */
@@ -244,6 +249,15 @@ class MudGame(
             is Intent.Attack -> com.jcraw.app.handlers.CombatHandlers.handleAttack(this, intent.target)
             is Intent.Equip -> com.jcraw.app.handlers.ItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
+            is Intent.LootCorpse -> {
+                // TODO: Full integration pending - requires town space ID
+                println("Corpse looting not yet fully integrated. Use after Chunk 6 integration.")
+                // val (newWorld, narration) = com.jcraw.app.handlers.handleLootCorpse(
+                //     intent, worldState, worldState.player, corpseRepository, worldState.gameTime
+                // )
+                // worldState = newWorld
+                // println(narration)
+            }
             is Intent.Check -> com.jcraw.app.handlers.SkillQuestHandlers.handleCheck(this, intent.target)
             is Intent.Persuade -> com.jcraw.app.handlers.SocialHandlers.handlePersuade(this, intent.target)
             is Intent.Intimidate -> com.jcraw.app.handlers.SocialHandlers.handleIntimidate(this, intent.target)
@@ -482,6 +496,14 @@ class MudGame(
      * - Create corpse with player's items at death location
      * - Respawn player at starting location with empty inventory
      * - Player can return to recover items from corpse
+     *
+     * NOTE: This uses Combat V2's death system. Chunk 6's improved death system
+     * (com.jcraw.mud.reasoning.death.handlePlayerDeath) provides:
+     * - Database-persisted corpses (survive game restarts)
+     * - Spawn at town instead of first room
+     * - Decay timers (5000 turns)
+     * - Corpse retrieval with weight checks
+     * TODO: Integrate Chunk 6 death system when town space ID is available
      */
     internal fun handlePlayerDeath() {
         println("\n" + "=".repeat(60))

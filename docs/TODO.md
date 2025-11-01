@@ -190,15 +190,30 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
 
 **Note**: Respawn system integration is complete but entity regeneration is pending template storage system implementation.
 
+- [x] Chunk 6: Death & Corpse System ✅ CORE COMPLETE (2025-10-31)
+  - [x] Added Intent.LootCorpse to Intent sealed class
+  - [x] Implemented DeathHandler.kt for player death handling (reasoning/death/)
+  - [x] Created CorpseManager.kt for corpse management (reasoning/death/)
+  - [x] Implemented CorpseHandlers.kt for corpse looting (app/handlers/)
+  - [x] Created CorpseDecayScheduler.kt for periodic cleanup (app/)
+  - [x] Extended MudGameEngine.kt with corpse repository integration
+  - [x] Added integration points (TODO comments for full integration)
+  - [ ] Full integration pending (requires town space ID from Chunk 3)
+  - [ ] Tests pending (~127 tests)
+
+**Note**: Chunk 6 core components complete but not fully integrated. Integration blocked by:
+- Town space ID not available (requires Chunk 3 completion)
+- V1/V2 item system bridge needed
+- Existing Combat V2 death system in use (see MudGameEngine.kt:500-506)
+
 **Next Step:**
-6. Chunk 6: Death & Corpse System (5 hours)
-   - Implement DeathHandler.kt for player death handling
-   - Create CorpseManager.kt for corpse management
-   - Add Intent.LootCorpse to Intent sealed class
-   - Implement CorpseHandlers.kt for corpse looting
-   - Extend MudGameEngine.kt with death flow and cleanup
-   - Create CorpseDecayScheduler.kt for periodic cleanup
-   - Write ~127 tests
+7. Chunk 7: Boss, Treasure & Victory (4 hours)
+   - Implement BossLootHandler.kt
+   - Create VictoryChecker.kt
+   - Implement HiddenExitHandler.kt
+   - Create BossCombatEnhancements.kt
+   - Implement VictoryHandlers.kt
+   - Write ~86 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 
