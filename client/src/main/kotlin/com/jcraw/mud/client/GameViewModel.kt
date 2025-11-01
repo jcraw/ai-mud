@@ -64,10 +64,13 @@ class GameViewModel(
                 )
             }
         } catch (e: Exception) {
+            val errorMsg = "Failed to start game: ${e.message}"
+            println("[ERROR] $errorMsg")
+            e.printStackTrace()
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    errorMessage = "Failed to start game: ${e.message}"
+                    errorMessage = errorMsg
                 )
             }
         }
@@ -92,7 +95,10 @@ class GameViewModel(
             try {
                 gameClient?.sendInput(input)
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Error sending input: ${e.message}") }
+                val errorMsg = "Error sending input: ${e.message}"
+                println("[ERROR] $errorMsg")
+                e.printStackTrace()
+                _uiState.update { it.copy(errorMessage = errorMsg) }
             }
         }
     }
@@ -153,6 +159,21 @@ class GameViewModel(
     private fun handleGameEvent(event: GameEvent) {
         val logEntry = LogEntry.fromGameEvent(event)
         _uiState.update { it.copy(logEntries = it.logEntries + logEntry) }
+
+        // Log all events to console for debugging
+        val prefix = when (event) {
+            is GameEvent.System -> when (event.level) {
+                GameEvent.MessageLevel.ERROR -> "[ERROR]"
+                GameEvent.MessageLevel.WARNING -> "[WARNING]"
+                GameEvent.MessageLevel.INFO -> "[INFO]"
+            }
+            is GameEvent.Combat -> "[COMBAT]"
+            is GameEvent.Quest -> "[QUEST]"
+            is GameEvent.Narrative -> "[NARRATIVE]"
+            is GameEvent.PlayerAction -> "[PLAYER]"
+            is GameEvent.StatusUpdate -> "[STATUS]"
+        }
+        println("$prefix ${logEntry.text}")
 
         // Update player state if status update
         if (event is GameEvent.StatusUpdate) {
