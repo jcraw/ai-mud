@@ -118,8 +118,15 @@ class MobSpawner(
             val content = response.choices.firstOrNull()?.message?.content?.trim()
                 ?: throw Exception("LLM returned empty response")
 
+            // Strip markdown code blocks if present
+            val jsonContent = content
+                .removePrefix("```json")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+
             // Parse JSON response
-            val mobDataList = json.decodeFromString<List<MobData>>(content)
+            val mobDataList = json.decodeFromString<List<MobData>>(jsonContent)
 
             // Convert to Entity.NPC
             mobDataList.map { mobData ->

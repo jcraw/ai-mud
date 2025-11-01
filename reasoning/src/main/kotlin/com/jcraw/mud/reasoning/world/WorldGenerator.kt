@@ -229,7 +229,14 @@ class WorldGenerator(
             val content = response.choices.firstOrNull()?.message?.content?.trim()
                 ?: return Result.failure(Exception("LLM returned empty response"))
 
-            val chunkData = json.decodeFromString<ChunkData>(content)
+            // Strip markdown code blocks if present
+            val jsonContent = content
+                .removePrefix("```json")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+
+            val chunkData = json.decodeFromString<ChunkData>(jsonContent)
             Result.success(chunkData)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to generate chunk data: ${e.message}", e))
@@ -277,7 +284,14 @@ class WorldGenerator(
             val content = response.choices.firstOrNull()?.message?.content?.trim()
                 ?: return Result.failure(Exception("LLM returned empty response"))
 
-            val spaceData = json.decodeFromString<SpaceData>(content)
+            // Strip markdown code blocks if present
+            val jsonContent = content
+                .removePrefix("```json")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+
+            val spaceData = json.decodeFromString<SpaceData>(jsonContent)
             Result.success(spaceData)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to generate space data: ${e.message}", e))
