@@ -1,6 +1,8 @@
 package com.jcraw.app
 
 import com.jcraw.mud.core.SampleDungeon
+import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.Room
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
@@ -70,8 +72,11 @@ fun main() {
 
             val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
             val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, chunkRepo, spaceRepo)
+            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spaceRepo)
+            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo
+                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer
             )
 
             // Generate world (this is async)
@@ -84,15 +89,14 @@ fun main() {
 
             // Create minimal world state (world V2 uses different navigation)
             // For now, create empty world state - navigation will use world V2 system
+            val player = com.jcraw.mud.core.PlayerState(
+                id = "player_1",
+                name = "Adventurer",
+                currentRoomId = "world_v2_start" // Placeholder
+            )
             worldState = WorldState(
-                player = com.jcraw.mud.core.PlayerState(
-                    id = "player_1",
-                    name = "Adventurer",
-                    currentRoomId = "world_v2_start", // Placeholder
-                    health = 100,
-                    maxHealth = 100
-                ),
-                rooms = emptyMap() // World V2 uses SpacePropertiesRepository instead
+                rooms = emptyMap<String, Room>(), // World V2 uses SpacePropertiesRepository instead
+                players = mapOf(player.id to player)
             )
             dungeonTheme = DungeonTheme.CRYPT // Default theme
         }

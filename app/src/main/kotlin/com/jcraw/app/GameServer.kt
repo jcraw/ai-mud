@@ -202,6 +202,8 @@ class GameServer(
             is Intent.Travel -> Triple("Travel not yet integrated with world generation system", worldState, null)
             is Intent.Look -> handleLook(playerId, playerState, intent.target)
             is Intent.Search -> handleSearch(playerId, playerState, intent.target, currentRoom)
+            is Intent.Rest -> Triple("Rest not yet supported in multi-user mode", worldState, null)
+            is Intent.LootCorpse -> Triple("Corpse looting not yet supported in multi-user mode", worldState, null)
             is Intent.Craft -> Triple("Crafting not yet supported in multi-user mode", worldState, null)
             is Intent.Pickpocket -> Triple("Pickpocketing not yet supported in multi-user mode", worldState, null)
             is Intent.Trade -> Triple("Trading not yet supported in multi-user mode", worldState, null)
