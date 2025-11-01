@@ -64,6 +64,13 @@ class EngineGameClient(
     internal val skillManager: com.jcraw.mud.reasoning.skill.SkillManager
     internal val perkSelector: com.jcraw.mud.reasoning.skill.PerkSelector
 
+    // World Generation V2 components
+    private val worldDatabase: com.jcraw.mud.memory.world.WorldDatabase
+    private val worldSeedRepository: com.jcraw.mud.memory.world.SQLiteWorldSeedRepository
+    internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
+    internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
+    internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
+
     init {
         // Initialize social system components
         socialDatabase = SocialDatabase("client_social.db")
@@ -102,27 +109,86 @@ class EngineGameClient(
         questGenerator = QuestGenerator()
         questTracker = QuestTracker(dispositionManager)
 
-        // Always use Sample Dungeon (same as test bot)
-        val baseWorldState = SampleDungeon.createInitialWorldState()
+        // Initialize World V2 components
+        worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("client_world.db")
+        worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
+        worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
+        spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
 
-        // Initialize player with default stats
-        val playerState = PlayerState(
-            id = "player_ui",
-            name = "Adventurer",
-            currentRoomId = baseWorldState.rooms.values.first().id,
-            health = 40,
-            maxHealth = 40,
-            stats = Stats(
-                strength = 10,      // Weak - below average
-                dexterity = 8,      // Clumsy
-                constitution = 10,  // Average
-                intelligence = 9,   // Not bright
-                wisdom = 8,         // Inexperienced
-                charisma = 9        // Unimpressive
+        // Initialize Ancient Abyss dungeon if LLM is available
+        if (llmClient != null) {
+            val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
+            val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository)
+            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
+            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
+            val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
+                worldGenerator, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
+                townGenerator, bossGenerator, hiddenExitPlacer
             )
-        )
 
-        worldState = baseWorldState.addPlayer(playerState)
+            // Generate Ancient Abyss
+            emitEvent(GameEvent.System("Generating the Ancient Abyss... This may take a moment."))
+            val abyssData = runBlocking {
+                dungeonInitializer.initializeAncientAbyss().getOrElse {
+                    emitEvent(GameEvent.System("Failed to generate dungeon: ${it.message}", GameEvent.MessageLevel.ERROR))
+                    throw it
+                }
+            }
+            emitEvent(GameEvent.System("Ancient Abyss generated! Starting in the town..."))
+
+            // Initialize navigation state
+            navigationState = runBlocking {
+                com.jcraw.mud.core.world.NavigationState.fromSpaceId(
+                    abyssData.townSpaceId,
+                    worldChunkRepository
+                ).getOrThrow()
+            }
+
+            // Create minimal world state for World V2 (navigation uses repositories)
+            val playerState = PlayerState(
+                id = "player_ui",
+                name = "Adventurer",
+                currentRoomId = abyssData.townSpaceId, // Use town space ID
+                health = 40,
+                maxHealth = 40,
+                stats = Stats(
+                    strength = 10,
+                    dexterity = 8,
+                    constitution = 10,
+                    intelligence = 9,
+                    wisdom = 8,
+                    charisma = 9
+                )
+            )
+
+            worldState = WorldState(
+                rooms = emptyMap(), // World V2 uses SpacePropertiesRepository
+                players = mapOf(playerState.id to playerState)
+            )
+        } else {
+            // Fallback to Sample Dungeon if no API key
+            emitEvent(GameEvent.System("No API key provided - using Sample Dungeon fallback", GameEvent.MessageLevel.WARNING))
+            val baseWorldState = SampleDungeon.createInitialWorldState()
+
+            val playerState = PlayerState(
+                id = "player_ui",
+                name = "Adventurer",
+                currentRoomId = baseWorldState.rooms.values.first().id,
+                health = 40,
+                maxHealth = 40,
+                stats = Stats(
+                    strength = 10,
+                    dexterity = 8,
+                    constitution = 10,
+                    intelligence = 9,
+                    wisdom = 8,
+                    charisma = 9
+                )
+            )
+
+            worldState = baseWorldState.addPlayer(playerState)
+        }
 
         // Generate and add quests
         val initialQuests = questGenerator.generateQuestPool(worldState, dungeonTheme, count = 3)
@@ -131,7 +197,7 @@ class EngineGameClient(
         }
 
         // Send welcome message
-        emitEvent(GameEvent.System("Welcome to the dungeon, ${playerState.name}!"))
+        emitEvent(GameEvent.System("Welcome to the Ancient Abyss, ${worldState.player.name}!"))
 
         // Describe initial room
         describeCurrentRoom()
@@ -182,36 +248,99 @@ class EngineGameClient(
     }
 
     internal fun describeCurrentRoom() {
-        val room = worldState.getCurrentRoom() ?: return
+        val currentRoomId = worldState.player.currentRoomId
 
-        // Generate room description
-        val description = if (descriptionGenerator != null) {
-            runBlocking { descriptionGenerator.generateDescription(room) }
+        // Check if player is in a World V2 space
+        val space = runBlocking {
+            spacePropertiesRepository.findByChunkId(currentRoomId).getOrNull()
+        }
+
+        if (space != null) {
+            // World V2 space - use procedurally generated description
+            describeWorldV2Space(space, currentRoomId)
         } else {
-            room.traits.joinToString(". ") + "."
-        }
+            // Legacy room - use traditional Room-based description
+            val room = worldState.getCurrentRoom() ?: return
 
-        val roomNpcs = room.entities.filterIsInstance<Entity.NPC>()
-        if (lastConversationNpcId != null && roomNpcs.none { it.id == lastConversationNpcId }) {
-            lastConversationNpcId = null
-        }
-
-        val narrativeText = buildString {
-            appendLine("\n${room.name}")
-            appendLine("-".repeat(room.name.length))
-            appendLine(description)
-
-            if (room.exits.isNotEmpty()) {
-                // Debug: print exits map
-                println("DEBUG: room.exits = ${room.exits}")
-                println("DEBUG: room.exits.keys = ${room.exits.keys}")
-                appendLine("\nExits: ${room.exits.keys.joinToString(", ") { it.displayName }}")
+            // Generate room description
+            val description = if (descriptionGenerator != null) {
+                runBlocking { descriptionGenerator.generateDescription(room) }
+            } else {
+                room.traits.joinToString(". ") + "."
             }
 
-            if (room.entities.isNotEmpty()) {
+            val roomNpcs = room.entities.filterIsInstance<Entity.NPC>()
+            if (lastConversationNpcId != null && roomNpcs.none { it.id == lastConversationNpcId }) {
+                lastConversationNpcId = null
+            }
+
+            val narrativeText = buildString {
+                appendLine("\n${room.name}")
+                appendLine("-".repeat(room.name.length))
+                appendLine(description)
+
+                if (room.exits.isNotEmpty()) {
+                    appendLine("\nExits: ${room.exits.keys.joinToString(", ") { it.displayName }}")
+                }
+
+                if (room.entities.isNotEmpty()) {
+                    appendLine("\nYou see:")
+                    room.entities.forEach { entity ->
+                        appendLine("  - ${entity.name}")
+                    }
+                }
+            }
+
+            emitEvent(GameEvent.Narrative(narrativeText))
+
+            // Update status
+            emitEvent(GameEvent.StatusUpdate(
+                hp = worldState.player.health,
+                maxHp = worldState.player.maxHealth,
+                location = room.name
+            ))
+        }
+    }
+
+    /**
+     * Describes a World V2 procedurally generated space.
+     */
+    private fun describeWorldV2Space(space: com.jcraw.mud.core.SpacePropertiesComponent, spaceId: String) {
+        val narrativeText = buildString {
+            appendLine("\n${space.description}")
+
+            // Show visible exits
+            if (space.exits.isNotEmpty()) {
+                val visibleExits = space.exits.filter { !it.isHidden }
+                if (visibleExits.isNotEmpty()) {
+                    appendLine("\nExits:")
+                    visibleExits.forEach { exit ->
+                        appendLine("  - ${exit.direction}: ${exit.description}")
+                    }
+                }
+            }
+
+            // Show entities
+            if (space.entities.isNotEmpty()) {
                 appendLine("\nYou see:")
-                room.entities.forEach { entity ->
-                    appendLine("  - ${entity.name}")
+                space.entities.forEach { entityId ->
+                    appendLine("  - $entityId") // TODO: Look up entity names
+                }
+            }
+
+            // Show resources
+            if (space.resources.isNotEmpty()) {
+                appendLine("\nResources:")
+                space.resources.forEach { resource ->
+                    appendLine("  - ${resource.description}")
+                }
+            }
+
+            // Show dropped items
+            if (space.itemsDropped.isNotEmpty()) {
+                appendLine("\nItems on the ground:")
+                space.itemsDropped.forEach { item ->
+                    appendLine("  - ${item.id}") // TODO: Look up item names
                 }
             }
         }
@@ -222,7 +351,7 @@ class EngineGameClient(
         emitEvent(GameEvent.StatusUpdate(
             hp = worldState.player.health,
             maxHp = worldState.player.maxHealth,
-            location = room.name
+            location = spaceId // Use space ID as location
         ))
     }
 
