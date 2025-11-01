@@ -17,6 +17,16 @@ class SQLiteSpacePropertiesRepository(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    private fun extractParentIdFromChunkId(chunkId: String): String? {
+        if (chunkId == "WORLD_root") return null
+
+        val parts = chunkId.split("_")
+        if (parts.size < 3) return null
+
+        // Parent ID is everything between the level prefix and the trailing UUID
+        return parts.subList(1, parts.size - 1).joinToString("_")
+    }
+
     override fun save(properties: SpacePropertiesComponent, chunkId: String): Result<Unit> {
         return try {
             val conn = database.getConnection()
