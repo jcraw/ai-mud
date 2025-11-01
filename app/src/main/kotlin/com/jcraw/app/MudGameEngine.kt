@@ -108,6 +108,11 @@ class MudGame(
         spacePropertiesRepository
     )
 
+    // Respawn System components
+    internal val respawnRepository = com.jcraw.mud.memory.world.SQLiteRespawnRepository(worldDatabase)
+    internal val mobSpawner = if (llmClient != null) com.jcraw.mud.reasoning.world.MobSpawner(llmClient) else null
+    internal val respawnChecker = if (mobSpawner != null) com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner) else null
+
     /**
      * Start the main game loop.
      */

@@ -109,6 +109,9 @@ object CombatHandlers {
                     println("\nVictory! ${npc.name} has been defeated!")
                     game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
 
+                    // Mark entity death for respawn system
+                    game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
+
                     // Track NPC kill for quests
                     game.trackQuests(QuestAction.KilledNPC(npc.id))
                     return
@@ -208,6 +211,10 @@ object CombatHandlers {
             attackResult.npcDied -> {
                 println("\nVictory! The enemy has been defeated!")
                 game.worldState = game.worldState.removeEntityFromRoom(game.worldState.getCurrentRoom()!!.id, npc.id) ?: game.worldState
+
+                // Mark entity death for respawn system
+                game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
+
                 game.trackQuests(QuestAction.KilledNPC(npc.id))
             }
             attackResult.playerDied -> {

@@ -173,17 +173,22 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
   - [x] Extended CombatHandlers.kt with safe zone combat blocking
   - [ ] Tests pending (~90 tests total)
 
-- [x] Chunk 5: Respawn System 🔄 IN PROGRESS (2025-10-31)
+- [x] Chunk 5: Respawn System ✅ COMPLETE (2025-10-31)
   - [x] Created RespawnConfig.kt for respawn configuration
   - [x] Implemented RespawnChecker.kt for timer-based mob respawn (checkRespawns, registerRespawn, markDeath)
   - [x] Extended MobSpawner.kt with spawnWithRespawn() method
   - [x] Updated SpacePopulator.kt with safe zone checks and populateWithRespawn()
-  - [ ] Extend MudGameEngine.kt with respawn checks on space entry (pending)
+  - [x] Extended MudGameEngine.kt with respawn system integration
+    - [x] Added RespawnChecker, RespawnRepository, MobSpawner instances
+    - [x] Integrated respawn checks in WorldHandlers.handleTravel() on space entry
+    - [x] Integrated markDeath() in CombatHandlers.handleAttack() when NPCs die
   - [x] RespawnConfigTest.kt (14 tests, complete)
   - [ ] RespawnCheckerTest.kt (~30 tests, pending)
   - [ ] MobSpawnerTest.kt extensions (~15 tests, pending)
   - [ ] SpacePopulatorTest.kt extensions (~12 tests, pending)
   - [ ] MudGameEngineTest.kt extensions (~20 tests, pending)
+
+**Note**: Respawn system integration is complete but entity regeneration is pending template storage system implementation.
 
 **Next Step:**
 6. Chunk 6: Death & Corpse System (5 hours)

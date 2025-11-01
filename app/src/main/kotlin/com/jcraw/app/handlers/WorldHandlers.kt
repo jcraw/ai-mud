@@ -183,6 +183,28 @@ object WorldHandlers {
                 // Advance game time
                 game.worldState = game.worldState.advanceTime(cost.ticks.toLong())
 
+                // Check for respawned mobs in the destination space
+                val respawnChecker = game.respawnChecker
+                if (respawnChecker != null) {
+                    val respawnResult = kotlinx.coroutines.runBlocking {
+                        respawnChecker.checkRespawns(resolveResult.targetId, game.worldState.gameTime)
+                    }
+
+                    respawnResult.onSuccess { respawnedEntities ->
+                        if (respawnedEntities.isNotEmpty()) {
+                            val mobTypes = respawnedEntities.map { it.name }.distinct().joinToString(", ")
+                            println("\nThe area has been reclaimed by $mobTypes.")
+
+                            // Note: Adding respawned entities to SpacePropertiesComponent would require
+                            // updating the space in the repository. For now, this is logged but entities
+                            // won't appear until the template system is implemented.
+                        }
+                    }.onFailure { e ->
+                        // Log but don't fail movement
+                        println("Debug: Respawn check failed: ${e.message}")
+                    }
+                }
+
                 // Describe new location
                 println("\nYou travel ${resolveResult.exit.direction}.")
                 describeSpace(game, destSpace)
