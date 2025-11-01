@@ -20,6 +20,63 @@ class SQLiteSpacePropertiesRepository(
     override fun save(properties: SpacePropertiesComponent, chunkId: String): Result<Unit> {
         return try {
             val conn = database.getConnection()
+
+            // Ensure chunk exists in world_chunks table (required by FK constraint)
+            // Check if chunk already exists
+            val checkSql = "SELECT id FROM world_chunks WHERE id = ?"
+            val chunkExists = conn.prepareStatement(checkSql).use { stmt ->
+                stmt.setString(1, chunkId)
+                val rs = stmt.executeQuery()
+                rs.next()
+            }
+
+            // If chunk doesn't exist, create minimal SPACE chunk
+            if (!chunkExists) {
+                // Extract parent subzone ID from chunk ID
+                // Format: SPACE_{parentId}_{uuid} -> extract everything between first and last underscore
+                val parentSubzoneId = extractParentIdFromChunkId(chunkId)
+
+                // Verify parent exists in database (required by FK constraint)
+                val parentExists = if (parentSubzoneId != null) {
+                    val checkParentSql = "SELECT id FROM world_chunks WHERE id = ?"
+                    conn.prepareStatement(checkParentSql).use { stmt ->
+                        stmt.setString(1, parentSubzoneId)
+                        val rs = stmt.executeQuery()
+                        rs.next()
+                    }
+                } else {
+                    false
+                }
+
+                if (!parentExists && parentSubzoneId != null) {
+                    return Result.failure(Exception("Cannot save space $chunkId: parent subzone $parentSubzoneId does not exist in database"))
+                }
+
+                val insertChunkSql = """
+                    INSERT INTO world_chunks
+                    (id, level, parent_id, children, lore, biome_theme, size_estimate, mob_density, difficulty_level)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """.trimIndent()
+
+                conn.prepareStatement(insertChunkSql).use { stmt ->
+                    stmt.setString(1, chunkId)
+                    stmt.setString(2, "SPACE")
+                    if (parentSubzoneId != null && parentExists) {
+                        stmt.setString(3, parentSubzoneId)
+                    } else {
+                        stmt.setNull(3, java.sql.Types.VARCHAR)
+                    }
+                    stmt.setString(4, "[]") // empty children
+                    stmt.setString(5, "") // minimal lore
+                    stmt.setString(6, "") // minimal biome_theme
+                    stmt.setInt(7, 1) // size_estimate = 1 for space
+                    stmt.setDouble(8, 0.0) // mob_density
+                    stmt.setInt(9, 1) // difficulty_level
+                    stmt.executeUpdate()
+                }
+            }
+
+            // Now save space properties
             val sql = """
                 INSERT OR REPLACE INTO space_properties
                 (chunk_id, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags)

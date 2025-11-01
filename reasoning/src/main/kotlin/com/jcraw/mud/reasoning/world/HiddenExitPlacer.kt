@@ -68,16 +68,50 @@ class HiddenExitPlacer(
         val zone2 = chunkRepo.findById(zone2Id).getOrElse { return Result.failure(it) }
             ?: return Result.failure(Exception("Zone 2 not found: $zone2Id"))
 
-        // Find a random subzone in zone 2 (or first subzone)
-        val targetSubzoneId = zone2.children.firstOrNull()
-            ?: return Result.failure(Exception("Zone 2 has no subzones"))
+        // Find a random subzone in zone 2 (or create if doesn't exist)
+        val targetSubzoneId = if (zone2.children.isNotEmpty()) {
+            zone2.children.first() // Use first subzone
+        } else {
+            // Generate subzone for Zone 2
+            val subzoneContext = GenerationContext(
+                seed = seed,
+                globalLore = globalLore,
+                parentChunk = zone2,
+                parentChunkId = zone2Id,
+                level = ChunkLevel.SUBZONE,
+                direction = "hidden chamber"
+            )
+            val (subzoneChunk, subzoneId) = worldGenerator.generateChunk(subzoneContext)
+                .getOrElse { return Result.failure(it) }
+
+            chunkRepo.save(subzoneChunk, subzoneId).getOrElse { return Result.failure(it) }
+
+            // Update zone with new subzone
+            val updatedZone = zone2.copy(children = listOf(subzoneId))
+            chunkRepo.save(updatedZone, zone2Id).getOrElse { return Result.failure(it) }
+
+            subzoneId
+        }
 
         val targetSubzone = chunkRepo.findById(targetSubzoneId).getOrElse { return Result.failure(it) }
             ?: return Result.failure(Exception("Subzone not found: $targetSubzoneId"))
 
-        // Find a space in this subzone to place the exit
-        val targetSpaceId = targetSubzone.children.firstOrNull()
-            ?: return Result.failure(Exception("Subzone has no spaces"))
+        // Find a space in this subzone to place the exit (or create if doesn't exist)
+        val targetSpaceId = if (targetSubzone.children.isNotEmpty()) {
+            targetSubzone.children.first() // Use first space
+        } else {
+            // Generate space for subzone
+            val (spaceProps, spaceId) = worldGenerator.generateSpace(targetSubzone, targetSubzoneId)
+                .getOrElse { return Result.failure(it) }
+
+            spaceRepo.save(spaceProps, spaceId).getOrElse { return Result.failure(it) }
+
+            // Update subzone with new space
+            val updatedSubzone = targetSubzone.copy(children = listOf(spaceId))
+            chunkRepo.save(updatedSubzone, targetSubzoneId).getOrElse { return Result.failure(it) }
+
+            spaceId
+        }
 
         // Load the space
         val space = spaceRepo.findByChunkId(targetSpaceId).getOrElse { return Result.failure(it) }
