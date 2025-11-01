@@ -6,6 +6,7 @@ import com.jcraw.mud.reasoning.combat.AttackResolver
 import com.jcraw.mud.reasoning.combat.AttackResult
 import com.jcraw.mud.reasoning.combat.CombatBehavior
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.town.SafeZoneValidator
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -26,6 +27,15 @@ object CombatHandlers {
      */
     fun handleAttack(game: MudGame, target: String?) {
         val room = game.worldState.getCurrentRoom() ?: return
+
+        // Check if current space is a safe zone (blocks combat)
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val currentSpace = game.spacePropertiesRepository.findByChunkId(currentSpaceId).getOrNull()
+
+        if (currentSpace != null && SafeZoneValidator.isSafeZone(currentSpace)) {
+            println(SafeZoneValidator.getCombatBlockedMessage(target ?: "unknown"))
+            return
+        }
 
         // Validate target
         if (target.isNullOrBlank()) {

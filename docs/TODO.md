@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-01-30
+Last updated: 2025-10-31
 
 ## World Generation System V2 Integration Status
 
@@ -165,14 +165,22 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
   - [x] Hidden exit in Mid Depths with 3 skill paths (Perception/Lockpicking/Strength)
   - [ ] Tests pending (TownGenerator, BossGenerator, HiddenExitPlacer, DungeonInitializer - ~65 tests total)
 
+- [x] Chunk 4: Town & Merchants ✅ COMPLETE (2025-10-31)
+  - [x] Implemented RestHandler.kt for safe zone resting
+  - [x] Implemented MerchantPricingCalculator.kt for disposition-based pricing
+  - [x] Created TownMerchantTemplates.kt with predefined merchants (4 merchants)
+  - [x] Created SafeZoneValidator.kt for safe zone rules
+  - [x] Extended CombatHandlers.kt with safe zone combat blocking
+  - [ ] Tests pending (~90 tests total)
+
 **Next Step:**
-4. Chunk 4: Town & Merchants (4 hours)
-   - Implement RestHandler.kt for safe zone resting
-   - Implement MerchantPricingCalculator.kt for disposition-based pricing
-   - Create TownMerchantTemplates.kt with predefined merchants
-   - Create SafeZoneValidator.kt for safe zone rules
-   - Extend TownHandlers.kt with safe zone combat blocking
-   - Write ~90 tests
+5. Chunk 5: Respawn System (4 hours)
+   - Implement RespawnChecker.kt for timer-based mob respawn
+   - Extend MobSpawner.kt with spawnWithRespawn() method
+   - Update SpacePopulator.kt to use respawn registration
+   - Extend MudGameEngine.kt with respawn checks on space entry
+   - Create RespawnConfig.kt for respawn configuration
+   - Write ~85 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 
