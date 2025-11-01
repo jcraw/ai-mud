@@ -205,4 +205,48 @@ class MobSpawner(
     ): List<Entity.NPC> {
         return spawnEntities(theme, mobDensity, difficulty, spaceSize)
     }
+
+    /**
+     * Spawn entities with respawn tracking.
+     * Generates entities and registers them for timer-based respawning.
+     *
+     * @param theme Biome theme (e.g., "dark forest", "volcanic")
+     * @param mobDensity Mob density (0.0-1.0)
+     * @param difficulty Difficulty level (1-100)
+     * @param spaceId Space where entities will spawn
+     * @param respawnChecker RespawnChecker for registration
+     * @param spaceSize Space size for mob count calculation
+     * @return Pair of (spawned entities, registration results)
+     */
+    suspend fun spawnWithRespawn(
+        theme: String,
+        mobDensity: Double,
+        difficulty: Int,
+        spaceId: String,
+        respawnChecker: RespawnChecker,
+        spaceSize: Int = 10
+    ): Result<List<Entity.NPC>> {
+        // Spawn entities using existing logic
+        val entities = spawnEntities(theme, mobDensity, difficulty, spaceSize)
+
+        // Register each entity for respawn
+        val registrationResults = entities.map { entity ->
+            respawnChecker.registerRespawn(
+                entity = entity,
+                spaceId = spaceId,
+                respawnTurns = 0L // Use config-based scaling
+            )
+        }
+
+        // Check if any registrations failed
+        val firstFailure = registrationResults.firstOrNull { it.isFailure }
+        if (firstFailure != null) {
+            return Result.failure(
+                firstFailure.exceptionOrNull()
+                    ?: Exception("Failed to register respawn for entities")
+            )
+        }
+
+        return Result.success(entities)
+    }
 }

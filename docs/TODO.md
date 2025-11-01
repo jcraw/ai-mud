@@ -173,14 +173,27 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
   - [x] Extended CombatHandlers.kt with safe zone combat blocking
   - [ ] Tests pending (~90 tests total)
 
+- [x] Chunk 5: Respawn System 🔄 IN PROGRESS (2025-10-31)
+  - [x] Created RespawnConfig.kt for respawn configuration
+  - [x] Implemented RespawnChecker.kt for timer-based mob respawn (checkRespawns, registerRespawn, markDeath)
+  - [x] Extended MobSpawner.kt with spawnWithRespawn() method
+  - [x] Updated SpacePopulator.kt with safe zone checks and populateWithRespawn()
+  - [ ] Extend MudGameEngine.kt with respawn checks on space entry (pending)
+  - [x] RespawnConfigTest.kt (14 tests, complete)
+  - [ ] RespawnCheckerTest.kt (~30 tests, pending)
+  - [ ] MobSpawnerTest.kt extensions (~15 tests, pending)
+  - [ ] SpacePopulatorTest.kt extensions (~12 tests, pending)
+  - [ ] MudGameEngineTest.kt extensions (~20 tests, pending)
+
 **Next Step:**
-5. Chunk 5: Respawn System (4 hours)
-   - Implement RespawnChecker.kt for timer-based mob respawn
-   - Extend MobSpawner.kt with spawnWithRespawn() method
-   - Update SpacePopulator.kt to use respawn registration
-   - Extend MudGameEngine.kt with respawn checks on space entry
-   - Create RespawnConfig.kt for respawn configuration
-   - Write ~85 tests
+6. Chunk 6: Death & Corpse System (5 hours)
+   - Implement DeathHandler.kt for player death handling
+   - Create CorpseManager.kt for corpse management
+   - Add Intent.LootCorpse to Intent sealed class
+   - Implement CorpseHandlers.kt for corpse looting
+   - Extend MudGameEngine.kt with death flow and cleanup
+   - Create CorpseDecayScheduler.kt for periodic cleanup
+   - Write ~127 tests
 
 See plan for full 8-chunk breakdown (32 hours total).
 

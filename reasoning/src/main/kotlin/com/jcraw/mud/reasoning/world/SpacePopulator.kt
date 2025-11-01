@@ -17,6 +17,8 @@ class SpacePopulator(
      * Populate a space with all content types.
      * Generates traps (10-20%), resources (5%), and mobs based on density.
      * Returns updated SpacePropertiesComponent with generated content.
+     *
+     * Safe zones skip mob spawning and trap generation.
      */
     suspend fun populate(
         space: SpacePropertiesComponent,
@@ -25,6 +27,20 @@ class SpacePopulator(
         mobDensity: Double,
         spaceSize: Int = 10
     ): SpacePropertiesComponent {
+        // Skip traps and mobs in safe zones
+        if (space.isSafeZone) {
+            // Only generate resources in safe zones
+            val resources = resourceGenerator.generateResourcesForSpace(
+                theme = theme,
+                difficulty = difficulty,
+                resourceProbability = 0.05
+            )
+
+            return space.copy(
+                resources = space.resources + resources
+            )
+        }
+
         // Generate traps (10-20% base probability)
         val traps = trapGenerator.generateTrapsForSpace(
             theme = theme,
@@ -159,5 +175,82 @@ class SpacePopulator(
             resources = emptyList(),
             entities = emptyList()
         )
+    }
+
+    /**
+     * Populate a space with respawn tracking enabled.
+     * Generates traps, resources, and mobs with respawn registration.
+     * Safe zones skip mob spawning and trap generation.
+     *
+     * @param space Space to populate
+     * @param spaceId Space ID for respawn tracking
+     * @param theme Biome theme
+     * @param difficulty Difficulty level
+     * @param mobDensity Mob density (0.0-1.0)
+     * @param respawnChecker RespawnChecker for registration
+     * @param spaceSize Space size for calculations
+     * @return Pair of (updated space, spawned entities)
+     */
+    suspend fun populateWithRespawn(
+        space: SpacePropertiesComponent,
+        spaceId: String,
+        theme: String,
+        difficulty: Int,
+        mobDensity: Double,
+        respawnChecker: RespawnChecker,
+        spaceSize: Int = 10
+    ): Result<Pair<SpacePropertiesComponent, List<Entity.NPC>>> {
+        // Skip mobs and traps in safe zones
+        if (space.isSafeZone) {
+            val resources = resourceGenerator.generateResourcesForSpace(
+                theme = theme,
+                difficulty = difficulty,
+                resourceProbability = 0.05
+            )
+
+            val updatedSpace = space.copy(
+                resources = space.resources + resources
+            )
+
+            return Result.success(updatedSpace to emptyList())
+        }
+
+        // Generate traps
+        val traps = trapGenerator.generateTrapsForSpace(
+            theme = theme,
+            difficulty = difficulty,
+            trapProbability = 0.15
+        )
+
+        // Generate resources
+        val resources = resourceGenerator.generateResourcesForSpace(
+            theme = theme,
+            difficulty = difficulty,
+            resourceProbability = 0.05
+        )
+
+        // Spawn mobs with respawn tracking
+        val mobsResult = mobSpawner.spawnWithRespawn(
+            theme = theme,
+            mobDensity = mobDensity,
+            difficulty = difficulty,
+            spaceId = spaceId,
+            respawnChecker = respawnChecker,
+            spaceSize = spaceSize
+        )
+
+        return mobsResult.map { mobs ->
+            // Extract entity IDs
+            val entityIds = mobs.map { it.id }
+
+            // Return updated space and mob list
+            val updatedSpace = space.copy(
+                traps = space.traps + traps,
+                resources = space.resources + resources,
+                entities = space.entities + entityIds
+            )
+
+            updatedSpace to mobs
+        }
     }
 }
