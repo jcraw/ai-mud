@@ -42,7 +42,12 @@ class DungeonInitializerSimpleTest {
         val loreEngine = LoreInheritanceEngine(mockLLM)
         worldGenerator = WorldGenerator(mockLLM, loreEngine)
 
-        initializer = DungeonInitializer(worldGenerator, seedRepo, chunkRepo, spaceRepo)
+        // Create generators needed for DungeonInitializer
+        val townGenerator = TownGenerator(worldGenerator, chunkRepo, spaceRepo)
+        val bossGenerator = BossGenerator(worldGenerator, spaceRepo)
+        val hiddenExitPlacer = HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
+
+        initializer = DungeonInitializer(worldGenerator, seedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer)
     }
 
     @AfterAll

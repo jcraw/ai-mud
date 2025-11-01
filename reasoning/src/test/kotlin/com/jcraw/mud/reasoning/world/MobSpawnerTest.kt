@@ -270,7 +270,7 @@ class MobSpawnerTest {
             assertEquals(2, mobs.size)
             mobs.forEach { mob ->
                 assertTrue(mob.id.startsWith("npc_"))
-                assertTrue(mob.lootTableId.contains(theme.replace(" ", "_")))
+                assertTrue(mob.lootTableId?.contains(theme.replace(" ", "_")) ?: false)
             }
         }
     }

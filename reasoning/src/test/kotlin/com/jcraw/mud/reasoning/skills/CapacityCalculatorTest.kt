@@ -163,7 +163,7 @@ class CapacityCalculatorTest {
     fun `calculateFullCapacity - integrates all systems`() {
         val skillComponent = SkillComponent(
             skills = mapOf(
-                "Strength" to SkillState("Strength", 10, 0L, emptyList<String>(), isUnlocked = true)
+                "Strength" to SkillState(level = 10, xp = 0L, unlocked = true)
             )
         )
         val backpack = ItemTemplate(

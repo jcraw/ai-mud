@@ -4,7 +4,11 @@ import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.world.*
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
+import com.jcraw.sophia.llm.OpenAIResponse
+import com.jcraw.sophia.llm.OpenAIChoice
+import com.jcraw.sophia.llm.OpenAIMessage
+import com.jcraw.sophia.llm.OpenAIUsage
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
@@ -14,25 +18,37 @@ import kotlin.test.*
  */
 class StateChangeHandlerTest {
 
-    private val mockLLMService = object : LLMService {
-        override suspend fun generateText(
-            prompt: String,
-            temperature: Double,
-            maxTokens: Int
-        ): Result<String> {
-            return Result.success("Updated description based on changes")
+    private val mockLLMClient = object : LLMClient {
+        override suspend fun chatCompletion(
+            modelId: String,
+            systemPrompt: String,
+            userContext: String,
+            maxTokens: Int,
+            temperature: Double
+        ): OpenAIResponse {
+            return OpenAIResponse(
+                id = "test-id",
+                `object` = "chat.completion",
+                created = 0L,
+                model = modelId,
+                choices = listOf(
+                    OpenAIChoice(
+                        message = OpenAIMessage("assistant", "Updated description based on changes"),
+                        finishReason = "stop"
+                    )
+                ),
+                usage = OpenAIUsage(10, 20, 30)
+            )
         }
 
-        override suspend fun generateStructuredResponse(
-            prompt: String,
-            temperature: Double,
-            maxTokens: Int
-        ): Result<String> {
-            return Result.success("{}")
+        override suspend fun createEmbedding(text: String, model: String): List<Double> {
+            return List(1536) { 0.1 }
         }
+
+        override fun close() {}
     }
 
-    private val handler = StateChangeHandler(mockLLMService)
+    private val handler = StateChangeHandler(mockLLMClient)
     private val testPlayer = PlayerState(name = "TestPlayer")
 
     private fun createTestSpace(): SpacePropertiesComponent {
@@ -182,8 +198,9 @@ class StateChangeHandlerTest {
     fun `UnlockExit removes conditions`() {
         val exit = ExitData(
             targetId = "space_1",
-            conditions = listOf(ExitData.Condition.ItemRequired("key")),
+            direction = "north",
             description = "Locked door",
+            conditions = listOf(ExitData.Condition.ItemRequired("key")),
             isHidden = false,
             hiddenDifficulty = null
         )
@@ -199,8 +216,9 @@ class StateChangeHandlerTest {
     fun `UnlockExit reveals hidden exit`() {
         val exit = ExitData(
             targetId = "space_1",
-            conditions = emptyList(),
+            direction = "east",
             description = "Hidden passage",
+            conditions = emptyList(),
             isHidden = true,
             hiddenDifficulty = 15
         )
@@ -214,7 +232,7 @@ class StateChangeHandlerTest {
 
     @Test
     fun `UnlockExit is case insensitive`() {
-        val exit = ExitData("space_1", listOf(), "Door", false, null)
+        val exit = ExitData("space_1", "NORTH", "Door", emptyList(), false, null)
         val space = createTestSpace().copy(exits = mapOf("NORTH" to exit))
         val action = WorldAction.UnlockExit("north")
 
@@ -288,22 +306,22 @@ class StateChangeHandlerTest {
 
     @Test
     fun `regenDescription handles LLM failure gracefully`() = runBlocking {
-        val failingLLM = object : LLMService {
-            override suspend fun generateText(
-                prompt: String,
-                temperature: Double,
-                maxTokens: Int
-            ): Result<String> {
-                return Result.failure(Exception("LLM error"))
+        val failingLLM = object : LLMClient {
+            override suspend fun chatCompletion(
+                modelId: String,
+                systemPrompt: String,
+                userContext: String,
+                maxTokens: Int,
+                temperature: Double
+            ): OpenAIResponse {
+                throw Exception("LLM error")
             }
 
-            override suspend fun generateStructuredResponse(
-                prompt: String,
-                temperature: Double,
-                maxTokens: Int
-            ): Result<String> {
-                return Result.failure(Exception("LLM error"))
+            override suspend fun createEmbedding(text: String, model: String): List<Double> {
+                throw Exception("LLM error")
             }
+
+            override fun close() {}
         }
         val failingHandler = StateChangeHandler(failingLLM)
         val space = createTestSpace()

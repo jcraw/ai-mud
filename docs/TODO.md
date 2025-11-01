@@ -247,7 +247,14 @@ Builds on World Generation V2 to create "Ancient Abyss Dungeon" - a pre-generate
    - [x] Documentation updates complete
    - [ ] Comprehensive testing (pending)
    - [ ] Bot scenario (murderhobo playthrough - pending)
-   - [ ] Fix test compilation errors (SpacePopulatorTest, StateChangeHandlerTest - optional)
+   - [x] **Partial**: Test compilation errors fixed (2025-11-01)
+     - [x] CapacityCalculatorTest.kt - Fixed SkillState constructor (removed name parameter)
+     - [x] DungeonInitializerSimpleTest.kt - Added missing TownGenerator, BossGenerator, HiddenExitPlacer parameters
+     - [x] MobSpawnerTest.kt - Fixed nullable lootTableId handling
+     - [x] ResourceGeneratorTest.kt - Fixed LLMClient import, ItemRepository mock, added runBlocking to suspend functions
+     - [x] StateChangeHandlerTest.kt - Fixed LLMClient import, ExitData constructor calls (partial)
+     - [ ] RespawnManagerTest.kt - Multiple API mismatches remain (optional)
+     - [ ] SpacePopulatorTest.kt - Multiple API mismatches remain (optional)
 
 See plan for full 8-chunk breakdown (32 hours total).
 

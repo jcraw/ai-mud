@@ -2,7 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.ItemRepository
-import com.jcraw.mud.llm.LLMService
+import com.jcraw.sophia.llm.LLMClient
 import kotlin.test.*
 
 /**
@@ -12,42 +12,61 @@ import kotlin.test.*
 class ResourceGeneratorTest {
 
     private class MockItemRepository : ItemRepository {
+        override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(null)
+        override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(emptyMap())
+        override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> = Result.success(emptyList())
+        override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> = Result.success(emptyList())
         override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
         override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
-        override fun getTemplate(id: String): Result<ItemTemplate?> = Result.success(null)
-        override fun getAllTemplates(): Result<List<ItemTemplate>> = Result.success(emptyList())
-        override fun getTemplatesByType(type: ItemType): Result<List<ItemTemplate>> = Result.success(emptyList())
-        override fun getTemplatesByRarity(rarity: Rarity): Result<List<ItemRarity>> = Result.success(emptyList())
-        override fun updateTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
-        override fun deleteTemplate(id: String): Result<Unit> = Result.success(Unit)
+        override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
+        override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
+        override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
         override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun getInstance(id: String): Result<ItemInstance?> = Result.success(null)
-        override fun getInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
-        override fun updateInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun deleteInstance(id: String): Result<Unit> = Result.success(Unit)
+        override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
+        override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
     }
 
-    private class MockLLMService(private val response: String = "Glowing crystals jut from the cavern wall.") : LLMService {
+    private class MockLLMClient(private val response: String = "Glowing crystals jut from the cavern wall.") : LLMClient {
         var callCount = 0
         var lastPrompt: String? = null
         var shouldFail = false
 
-        override fun complete(prompt: String, model: String, temperature: Double, maxTokens: Int): String {
+        override suspend fun chatCompletion(
+            modelId: String,
+            systemPrompt: String,
+            userContext: String,
+            maxTokens: Int,
+            temperature: Double
+        ): com.jcraw.sophia.llm.OpenAIResponse {
             callCount++
-            lastPrompt = prompt
+            lastPrompt = userContext
             if (shouldFail) throw RuntimeException("LLM failure")
-            return response
+            return com.jcraw.sophia.llm.OpenAIResponse(
+                id = "test-id",
+                `object` = "chat.completion",
+                created = 0L,
+                model = modelId,
+                choices = listOf(
+                    com.jcraw.sophia.llm.OpenAIChoice(
+                        message = com.jcraw.sophia.llm.OpenAIMessage("assistant", response),
+                        finishReason = "stop"
+                    )
+                ),
+                usage = com.jcraw.sophia.llm.OpenAIUsage(10, 20, 30)
+            )
         }
 
-        override fun embed(text: String, model: String): List<Double> {
+        override suspend fun createEmbedding(text: String, model: String): List<Double> {
             throw NotImplementedError("Not needed for resource tests")
         }
+
+        override fun close() {}
     }
 
     private val mockItemRepo = MockItemRepository()
 
     @Test
-    fun `generate creates resource node with valid structure`() {
+    fun `generate creates resource node with valid structure`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val node = generator.generate("dark forest", 5)
 
@@ -58,7 +77,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate uses theme profile resource types`() {
+    fun `generate uses theme profile resource types`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val validResources = listOf("wood", "herbs", "mushroom", "berries")
         val validTemplateIds = validResources.map { res ->
@@ -80,7 +99,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate maps resource names to template IDs`() {
+    fun `generate maps resource names to template IDs`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // Test a few known mappings
@@ -97,7 +116,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate creates fallback template ID for unmapped resources`() {
+    fun `generate creates fallback template ID for unmapped resources`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // If a resource isn't in the map, it should create a fallback ID
@@ -110,7 +129,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate scales quantity with difficulty`() {
+    fun `generate scales quantity with difficulty`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // Low difficulty
@@ -126,7 +145,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate returns null respawn for low difficulty`() {
+    fun `generate returns null respawn for low difficulty`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // Difficulty < 5 should have null respawn (finite resource)
@@ -137,7 +156,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate calculates respawn time for high difficulty`() {
+    fun `generate calculates respawn time for high difficulty`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // Difficulty >= 5 should have respawn time
@@ -149,7 +168,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate respawn time scales with difficulty`() {
+    fun `generate respawn time scales with difficulty`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         val lowNode = generator.generate("dark forest", 5)
@@ -161,7 +180,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate creates unique node IDs`() {
+    fun `generate creates unique node IDs`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val ids = List(20) { generator.generate("dark forest", 5).id }
 
@@ -170,7 +189,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate uses default profile for unknown theme`() {
+    fun `generate uses default profile for unknown theme`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val node = generator.generate("nonexistent theme", 5)
 
@@ -180,7 +199,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate without LLM uses simple description`() {
+    fun `generate without LLM uses simple description`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val node = generator.generate("magma cave", 5)
 
@@ -189,8 +208,8 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate with LLM uses generated description`() {
-        val mockLLM = MockLLMService("Molten crystals pulse with inner fire.")
+    fun `generate with LLM uses generated description`() = kotlinx.coroutines.runBlocking {
+        val mockLLM = MockLLMClient("Molten crystals pulse with inner fire.")
         val generator = ResourceGenerator(mockItemRepo, mockLLM)
         val node = generator.generate("magma cave", 5)
 
@@ -199,7 +218,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateNodeDescription without LLM returns fallback`() {
+    fun `generateNodeDescription without LLM returns fallback`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val description = generator.generateNodeDescription("wood", "dark forest")
 
@@ -207,8 +226,8 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateNodeDescription with LLM generates vivid description`() {
-        val mockLLM = MockLLMService("Ancient oak branches reach toward the canopy.")
+    fun `generateNodeDescription with LLM generates vivid description`() = kotlinx.coroutines.runBlocking {
+        val mockLLM = MockLLMClient("Ancient oak branches reach toward the canopy.")
         val generator = ResourceGenerator(mockItemRepo, mockLLM)
         val description = generator.generateNodeDescription("wood", "dark forest")
 
@@ -219,8 +238,8 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateNodeDescription handles LLM failure gracefully`() {
-        val mockLLM = MockLLMService().apply { shouldFail = true }
+    fun `generateNodeDescription handles LLM failure gracefully`() = kotlinx.coroutines.runBlocking {
+        val mockLLM = MockLLMClient().apply { shouldFail = true }
         val generator = ResourceGenerator(mockItemRepo, mockLLM)
         val description = generator.generateNodeDescription("obsidian", "magma cave")
 
@@ -229,7 +248,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateResourcesForSpace returns empty list when roll fails`() {
+    fun `generateResourcesForSpace returns empty list when roll fails`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // With 0% probability, should never generate resources
@@ -240,7 +259,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateResourcesForSpace generates resource when roll succeeds`() {
+    fun `generateResourcesForSpace generates resource when roll succeeds`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // With 100% probability, should always generate at least one resource
@@ -251,7 +270,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateResourcesForSpace can generate second resource in rich areas`() {
+    fun `generateResourcesForSpace can generate second resource in rich areas`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // With difficulty > 8 and 100% probability, sometimes generates 2 resources
@@ -269,7 +288,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateResourcesForSpace never generates second resource in poor areas`() {
+    fun `generateResourcesForSpace never generates second resource in poor areas`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // With difficulty <= 8, should never generate second resource
@@ -280,7 +299,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generateResourcesForSpace respects custom probability`() {
+    fun `generateResourcesForSpace respects custom probability`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
 
         // With 100% probability, should always generate
@@ -301,7 +320,7 @@ class ResourceGeneratorTest {
     }
 
     @Test
-    fun `generate works with all theme types`() {
+    fun `generate works with all theme types`() = kotlinx.coroutines.runBlocking {
         val generator = ResourceGenerator(mockItemRepo)
         val themes = listOf(
             "dark forest", "magma cave", "ancient crypt", "frozen wasteland",
