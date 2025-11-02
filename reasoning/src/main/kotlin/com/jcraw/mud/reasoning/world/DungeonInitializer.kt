@@ -298,6 +298,7 @@ class DungeonInitializer(
         // Generate town subzone using TownGenerator
         val (townSubzoneId, townSpaceId) = townGenerator.generateTownSubzone(
             zoneChunk,
+            zoneId,
             seed,
             globalLore
         ).getOrElse { return Result.failure(it) }

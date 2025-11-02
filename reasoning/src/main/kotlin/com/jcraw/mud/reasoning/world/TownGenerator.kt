@@ -30,6 +30,7 @@ class TownGenerator(
      */
     suspend fun generateTownSubzone(
         parentZone: WorldChunkComponent,
+        parentZoneId: String,
         seed: String,
         globalLore: String
     ): Result<Pair<String, String>> {
@@ -38,7 +39,7 @@ class TownGenerator(
             seed = seed,
             globalLore = globalLore,
             parentChunk = parentZone,
-            parentChunkId = parentZone.parentId,
+            parentChunkId = parentZoneId,
             level = ChunkLevel.SUBZONE,
             direction = "town entrance"
         )

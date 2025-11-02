@@ -360,7 +360,7 @@ This plan implements the "Ancient Abyss Dungeon" as the default starting area - 
 
 2. **TownGenerator.kt** (reasoning:150 - new)
    - Methods:
-     - `generateTownSubzone(parentZone: WorldChunkComponent): Result<Pair<String, String>>`  // Returns (subzoneId, firstSpaceId)
+     - `generateTownSubzone(parentZone: WorldChunkComponent, parentZoneId: String): Result<Pair<String, String>>`  // Returns (subzoneId, firstSpaceId)
      - `populateTownSpace(spaceId: String, spaceProps: SpacePropertiesComponent): Result<SpacePropertiesComponent>`
    - **Town Features**:
      - isSafeZone = true
