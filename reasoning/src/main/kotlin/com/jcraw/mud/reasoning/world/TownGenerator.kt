@@ -3,6 +3,7 @@ package com.jcraw.mud.reasoning.world
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
+import com.jcraw.mud.core.repository.SpaceEntityRepository
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.core.world.GenerationContext
 import java.util.UUID
@@ -17,7 +18,8 @@ import java.util.UUID
 class TownGenerator(
     private val worldGenerator: WorldGenerator,
     private val chunkRepo: WorldChunkRepository,
-    private val spaceRepo: SpacePropertiesRepository
+    private val spaceRepo: SpacePropertiesRepository,
+    private val entityRepo: SpaceEntityRepository
 ) {
     /**
      * Generate a town subzone within a parent zone
@@ -62,7 +64,7 @@ class TownGenerator(
 
         // Mark as safe zone and populate with merchants
         val safeTownSpace = townSpace.copy(isSafeZone = true)
-        val populatedSpace = populateTownSpace(safeTownSpace)
+        val populatedSpace = populateTownSpace(safeTownSpace).getOrElse { return Result.failure(it) }
         spaceRepo.save(populatedSpace, townSpaceId).getOrElse { return Result.failure(it) }
 
         // Update subzone with first child
@@ -79,11 +81,15 @@ class TownGenerator(
      * @param spaceProps Base space properties to populate
      * @return Updated space with merchants
      */
-    fun populateTownSpace(spaceProps: SpacePropertiesComponent): SpacePropertiesComponent {
+    fun populateTownSpace(spaceProps: SpacePropertiesComponent): Result<SpacePropertiesComponent> {
         val merchants = createTownMerchants()
 
         // Add merchant IDs to space entities list
         val merchantIds = merchants.map { it.id }
+
+        merchants.forEach { merchant ->
+            entityRepo.save(merchant).getOrElse { return Result.failure(it) }
+        }
 
         // Update space description for town
         val townDescription = """
@@ -93,14 +99,15 @@ class TownGenerator(
             metal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.
             This is a place of respite - no danger reaches here.
         """.trimIndent()
-
-        return spaceProps
+        val populated = spaceProps
             .copy(
                 description = townDescription,
                 entities = spaceProps.entities + merchantIds,
                 isSafeZone = true,
                 traps = emptyList() // No traps in town
             )
+
+        return Result.success(populated)
     }
 
     /**

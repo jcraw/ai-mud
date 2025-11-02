@@ -27,6 +27,7 @@ class DungeonInitializerSimpleTest {
     private lateinit var spaceRepo: SQLiteSpacePropertiesRepository
     private lateinit var worldGenerator: WorldGenerator
     private lateinit var initializer: DungeonInitializer
+    private lateinit var spaceEntityRepo: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
 
     private val testDbPath = "test_dungeon_init.db"
 
@@ -36,6 +37,7 @@ class DungeonInitializerSimpleTest {
         seedRepo = SQLiteWorldSeedRepository(database)
         chunkRepo = SQLiteWorldChunkRepository(database)
         spaceRepo = SQLiteSpacePropertiesRepository(database)
+        spaceEntityRepo = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(database)
 
         // Create mock LLM and generator
         val mockLLM = MockLLMClient()
@@ -43,7 +45,7 @@ class DungeonInitializerSimpleTest {
         worldGenerator = WorldGenerator(mockLLM, loreEngine)
 
         // Create generators needed for DungeonInitializer
-        val townGenerator = TownGenerator(worldGenerator, chunkRepo, spaceRepo)
+        val townGenerator = TownGenerator(worldGenerator, chunkRepo, spaceRepo, spaceEntityRepo)
         val bossGenerator = BossGenerator(worldGenerator, spaceRepo)
         val hiddenExitPlacer = HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
 

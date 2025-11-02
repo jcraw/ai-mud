@@ -70,6 +70,7 @@ class EngineGameClient(
     private val worldSeedRepository: com.jcraw.mud.memory.world.SQLiteWorldSeedRepository
     internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
     internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
+    internal val spaceEntityRepository: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
 
     init {
@@ -115,12 +116,13 @@ class EngineGameClient(
         worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
         worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+        spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
 
         // Initialize Ancient Abyss dungeon if LLM is available
         if (llmClient != null) {
             val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
             val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
             val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
@@ -312,6 +314,10 @@ class EngineGameClient(
         spacePropertiesRepository.findByChunkId(spaceId)
     }.getOrNull()
 
+    internal fun loadEntity(entityId: String): Entity? = runBlocking {
+        spaceEntityRepository.findById(entityId)
+    }.getOrNull()
+
     internal fun currentSpace(): SpacePropertiesComponent? =
         loadSpace(worldState.player.currentRoomId)
 
@@ -392,8 +398,12 @@ class EngineGameClient(
             if (space.entities.isNotEmpty()) {
                 appendLine("\nYou see:")
                 space.entities.forEach { entityId ->
-                    val stub = SpaceEntitySupport.getStub(entityId)
-                    appendLine("  - ${stub.displayName}")
+                    val entity = loadEntity(entityId)
+                    val name = when (entity) {
+                        is Entity.NPC -> entity.name
+                        else -> SpaceEntitySupport.getStub(entityId).displayName
+                    }
+                    appendLine("  - $name")
                 }
             }
 
@@ -401,7 +411,8 @@ class EngineGameClient(
             if (space.resources.isNotEmpty()) {
                 appendLine("\nResources:")
                 space.resources.forEach { resource ->
-                    appendLine("  - ${resource.description}")
+                    val desc = resource.description.ifBlank { resource.templateId }
+                    appendLine("  - $desc (quantity ${resource.quantity})")
                 }
             }
 

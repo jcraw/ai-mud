@@ -104,6 +104,16 @@ class WorldDatabase(
                 """.trimIndent()
             )
 
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS space_entities (
+                    id TEXT PRIMARY KEY,
+                    entity_type TEXT NOT NULL,
+                    entity_json TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+
             // Respawn components table (mob respawn timers)
             stmt.execute(
                 """
@@ -151,6 +161,7 @@ class WorldDatabase(
         conn.createStatement().use { stmt ->
             stmt.execute("DELETE FROM corpses")
             stmt.execute("DELETE FROM respawn_components")
+            stmt.execute("DELETE FROM space_entities")
             stmt.execute("DELETE FROM space_properties")
             stmt.execute("DELETE FROM world_chunks")
             stmt.execute("DELETE FROM world_seed")

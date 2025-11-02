@@ -142,8 +142,18 @@ object ClientMovementHandlers {
 
         val lower = target.lowercase()
 
-        SpaceEntitySupport.findStub(currentSpace, lower)?.let { stub ->
-            game.emitEvent(GameEvent.Narrative(stub.description))
+        currentSpace.entities.firstOrNull { entityId ->
+            val entity = game.loadEntity(entityId) as? Entity.NPC
+            val name = entity?.name ?: SpaceEntitySupport.getStub(entityId).displayName
+            name.lowercase().contains(lower) || entityId.lowercase().contains(lower)
+        }?.let { entityId ->
+            val entity = game.loadEntity(entityId) as? Entity.NPC
+            if (entity != null) {
+                game.emitEvent(GameEvent.Narrative(entity.description))
+            } else {
+                val stub = SpaceEntitySupport.getStub(entityId)
+                game.emitEvent(GameEvent.Narrative(stub.description))
+            }
             return
         }
 

@@ -57,15 +57,6 @@ object SpaceEntitySupport {
 
     fun getStub(id: String): SpaceEntityStub = knownStubs[id] ?: defaultStub(id)
 
-    fun findStub(space: SpacePropertiesComponent, query: String): SpaceEntityStub? {
-        val lower = query.lowercase()
-        return space.entities
-            .map { getStub(it) }
-            .firstOrNull { stub ->
-                stub.displayName.lowercase().contains(lower) || stub.id.lowercase().contains(lower)
-            }
-    }
-
     fun createNpcStub(stub: SpaceEntityStub): Entity.NPC =
         Entity.NPC(
             id = stub.id,

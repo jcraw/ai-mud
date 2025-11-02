@@ -69,10 +69,11 @@ fun main() {
             val worldSeedRepo = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
             val chunkRepo = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
             val spaceRepo = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+            val entityRepo = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
 
             val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
             val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, chunkRepo, spaceRepo)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, chunkRepo, spaceRepo, entityRepo)
             val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spaceRepo)
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(

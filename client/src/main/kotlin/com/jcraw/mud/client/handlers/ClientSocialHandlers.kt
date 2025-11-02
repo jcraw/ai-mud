@@ -52,26 +52,30 @@ object ClientSocialHandlers {
             return
         }
 
-        val stub = SpaceEntitySupport.findStub(space, target)
-        if (stub == null) {
+        val resolved = resolveSpaceNpc(game, space, target)
+        if (resolved == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        game.lastConversationNpcId = stub.id
-        val npcStub = SpaceEntitySupport.createNpcStub(stub)
+        val (entityId, npcCandidate) = resolved
+        val persistedNpc = game.loadEntity(entityId) as? Entity.NPC
+        val targetNpc = persistedNpc ?: npcCandidate
+
+        game.lastConversationNpcId = entityId
 
         if (game.npcInteractionGenerator != null) {
-            game.emitEvent(GameEvent.Narrative("\nYou speak to ${stub.displayName}..."))
+            game.emitEvent(GameEvent.Narrative("\nYou speak to ${targetNpc.name}..."))
             val dialogue = runBlocking {
-                game.npcInteractionGenerator.generateDialogue(npcStub, game.worldState.player)
+                game.npcInteractionGenerator.generateDialogue(targetNpc, game.worldState.player)
             }
-            game.emitEvent(GameEvent.Narrative("\n${stub.displayName} says: \"$dialogue\""))
+            game.emitEvent(GameEvent.Narrative("\n${targetNpc.name} says: \"$dialogue\""))
         } else {
-            game.emitEvent(GameEvent.Narrative("\n${stub.displayName} greets you: \"${stub.description}\""))
+            val fallback = persistedNpc?.description ?: npcCandidate.description
+            game.emitEvent(GameEvent.Narrative("\n${targetNpc.name} greets you: \"$fallback\""))
         }
 
-        game.trackQuests(QuestAction.TalkedToNPC(stub.id))
+        game.trackQuests(QuestAction.TalkedToNPC(entityId))
     }
 
     suspend fun handleSay(game: EngineGameClient, message: String, npcTarget: String?) {
@@ -81,27 +85,82 @@ object ClientSocialHandlers {
             return
         }
 
-        val room = game.worldState.getCurrentRoom() ?: return
+        val room = game.worldState.getCurrentRoom()
+        val space = if (room == null) game.currentSpace() else null
 
-        val npc = resolveNpcTarget(game, room, npcTarget)
-        if (npcTarget != null && npc == null) {
+        if (room == null && space == null) {
+            game.emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
+            return
+        }
+
+        if (room != null) {
+            val npc = resolveNpcTarget(game, room, npcTarget)
+            if (npcTarget != null && npc == null) {
+                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            if (npc == null) {
+                game.emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
+                game.lastConversationNpcId = null
+                return
+            }
+
+            game.emitEvent(GameEvent.Narrative("You say to ${npc.name}: \"$utterance\""))
+            game.lastConversationNpcId = npc.id
+
+            if (isQuestion(utterance)) {
+                val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
+                handleAskQuestion(game, npc.name, topic)
+                game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+                return
+            }
+
+            if (game.npcInteractionGenerator != null) {
+                val reply = runCatching {
+                    game.npcInteractionGenerator?.generateDialogue(npc, game.worldState.player)
+                }.getOrElse {
+                    println("Warning: NPC dialogue generation failed: ${it.message}")
+                    null
+                }
+
+                if (reply != null) {
+                    game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
+                }
+            } else {
+                val fallbackResponse = if (npc.isHostile) {
+                    "${npc.name} scowls and refuses to answer."
+                } else {
+                    "${npc.name} listens quietly."
+                }
+                game.emitEvent(GameEvent.Narrative(fallbackResponse))
+            }
+
+            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+            return
+        }
+
+        val resolved = resolveSpaceNpc(game, space!!, npcTarget)
+        if (npcTarget != null && resolved == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        if (npc == null) {
+        if (resolved == null) {
             game.emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
             game.lastConversationNpcId = null
             return
         }
 
+        val (entityId, npcCandidate) = resolved
+        val npc = game.loadEntity(entityId) as? Entity.NPC ?: npcCandidate
         game.emitEvent(GameEvent.Narrative("You say to ${npc.name}: \"$utterance\""))
-        game.lastConversationNpcId = npc.id
+        game.lastConversationNpcId = entityId
 
         if (isQuestion(utterance)) {
             val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
             handleAskQuestion(game, npc.name, topic)
-            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+            game.trackQuests(QuestAction.TalkedToNPC(entityId))
             return
         }
 
@@ -125,68 +184,111 @@ object ClientSocialHandlers {
             game.emitEvent(GameEvent.Narrative(fallbackResponse))
         }
 
-        game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+        game.trackQuests(QuestAction.TalkedToNPC(entityId))
     }
-
     fun handleEmote(game: EngineGameClient, emoteType: String, target: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val room = game.worldState.getCurrentRoom()
+        val space = if (room == null) game.currentSpace() else null
 
-        // If no target specified, perform general emote
+        if (room == null && space == null) {
+            return
+        }
+
         if (target.isNullOrBlank()) {
             game.emitEvent(GameEvent.Narrative("You ${emoteType.lowercase()}."))
             return
         }
 
-        // Find target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
+        if (room != null) {
+            val npc = room.entities.filterIsInstance<Entity.NPC>()
+                .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
-        if (npc == null) {
+            if (npc == null) {
+                game.emitEvent(GameEvent.System("No one by that name here.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            val emoteTypeEnum = game.emoteHandler.parseEmoteKeyword(emoteType)
+            if (emoteTypeEnum == null) {
+                game.emitEvent(GameEvent.System("Unknown emote: $emoteType", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
+            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
+            game.emitEvent(GameEvent.Narrative(narrative))
+            return
+        }
+
+        val resolved = resolveSpaceNpc(game, space!!, target)
+        if (resolved == null) {
             game.emitEvent(GameEvent.System("No one by that name here.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        // Parse emote keyword
+        val (entityId, npcCandidate) = resolved
+        val npc = game.loadEntity(entityId) as? Entity.NPC ?: npcCandidate
         val emoteTypeEnum = game.emoteHandler.parseEmoteKeyword(emoteType)
         if (emoteTypeEnum == null) {
             game.emitEvent(GameEvent.System("Unknown emote: $emoteType", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        // Process emote
         val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-
-        // Update world state with updated NPC
-        game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
+        // Persist updated state if NPC exists in repository
+        game.spaceEntityRepository.save(updatedNpc).onFailure {
+            println("Warning: failed to persist NPC state: ${it.message}")
+        }
 
         game.emitEvent(GameEvent.Narrative(narrative))
     }
 
     suspend fun handleAskQuestion(game: EngineGameClient, npcTarget: String, topic: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val room = game.worldState.getCurrentRoom()
+        val space = if (room == null) game.currentSpace() else null
 
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(npcTarget.lowercase()) ||
-                entity.id.lowercase().contains(npcTarget.lowercase())
-            }
-
-        if (npc == null) {
+        if (room == null && space == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        game.lastConversationNpcId = npc.id
+        if (room != null) {
+            val npc = room.entities.filterIsInstance<Entity.NPC>()
+                .find {
+                    it.name.lowercase().contains(npcTarget.lowercase()) ||
+                    it.id.lowercase().contains(npcTarget.lowercase())
+                }
 
-        // Query knowledge
+            if (npc == null) {
+                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            game.lastConversationNpcId = npc.id
+            val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
+            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
+            game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"$answer\""))
+            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+            return
+        }
+
+        val resolved = resolveSpaceNpc(game, space!!, npcTarget)
+        if (resolved == null) {
+            game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        val (entityId, npcCandidate) = resolved
+        val npc = game.loadEntity(entityId) as? Entity.NPC ?: npcCandidate
+        game.lastConversationNpcId = entityId
+
         val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
+        game.spaceEntityRepository.save(updatedNpc).onFailure {
+            println("Warning: failed to persist NPC knowledge update: ${it.message}")
+        }
 
-        // Update world state with updated NPC (may have new knowledge)
-        game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-
-        game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$answer\""))
-        game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+        game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"$answer\""))
+        game.trackQuests(QuestAction.TalkedToNPC(entityId))
     }
 
     fun handleCheck(game: EngineGameClient, target: String) {
@@ -221,6 +323,34 @@ object ClientSocialHandlers {
         }
 
         return null
+    }
+
+    private fun resolveSpaceNpc(
+        game: EngineGameClient,
+        space: SpacePropertiesComponent,
+        npcTarget: String?
+    ): Pair<String, Entity.NPC>? {
+        if (space.entities.isEmpty()) return null
+
+        val candidates = space.entities.map { id ->
+            val persisted = game.loadEntity(id) as? Entity.NPC
+            val npc = persisted ?: SpaceEntitySupport.createNpcStub(SpaceEntitySupport.getStub(id))
+            id to npc
+        }
+
+        val lower = npcTarget?.lowercase()
+        if (lower != null) {
+            candidates.firstOrNull { (_, npc) ->
+                npc.name.lowercase().contains(lower) || npc.id.lowercase().contains(lower)
+            }?.let { return it }
+        }
+
+        val recent = game.lastConversationNpcId
+        if (recent != null) {
+            candidates.firstOrNull { it.first == recent }?.let { return it }
+        }
+
+        return candidates.firstOrNull()
     }
 
     fun isQuestion(text: String): Boolean {
