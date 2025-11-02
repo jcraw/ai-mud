@@ -11,7 +11,24 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
-        // Movement is always allowed in Combat System V2
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val currentSpace = runBlocking {
+            game.spacePropertiesRepository.findByChunkId(currentSpaceId)
+        }.getOrElse { error ->
+            game.emitEvent(
+                GameEvent.System(
+                    "Failed to load current space: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            return
+        }
+
+        if (currentSpace != null) {
+            handleSpaceMovement(game, direction, currentSpace)
+            return
+        }
+
         val newState = game.worldState.movePlayer(direction)
 
         if (newState == null) {
@@ -22,7 +39,6 @@ object ClientMovementHandlers {
         game.worldState = newState
         game.emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
 
-        // Track room exploration for quests
         val room = game.worldState.getCurrentRoom()
         if (room != null) {
             game.trackQuests(QuestAction.VisitedRoom(room.id))
@@ -111,6 +127,79 @@ object ClientMovementHandlers {
         } else {
             game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
         }
+    }
+
+    private fun handleSpaceMovement(
+        game: EngineGameClient,
+        direction: Direction,
+        currentSpace: SpacePropertiesComponent
+    ) {
+        val player = game.worldState.player
+        val exit = currentSpace.resolveExit(direction.displayName, player)
+
+        if (exit == null) {
+            game.emitEvent(
+                GameEvent.System(
+                    "No exit leading ${direction.displayName}.",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+            return
+        }
+
+        if (!exit.meetsConditions(player)) {
+            game.emitEvent(
+                GameEvent.System(
+                    "You can't travel that way yet: ${exit.describeWithConditions(player)}",
+                    GameEvent.MessageLevel.INFO
+                )
+            )
+            return
+        }
+
+        val destinationSpace = runBlocking {
+            game.spacePropertiesRepository.findByChunkId(exit.targetId)
+        }.getOrElse { error ->
+            game.emitEvent(
+                GameEvent.System(
+                    "Failed to load destination: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            return
+        }
+
+        if (destinationSpace == null) {
+            game.emitEvent(
+                GameEvent.System(
+                    "The path fades into unfinished space (${exit.targetId}).",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            return
+        }
+
+        game.navigationState?.let { nav ->
+            val updatedNav = runBlocking {
+                nav.updateLocation(exit.targetId, game.worldChunkRepository)
+            }.getOrElse { error ->
+                game.emitEvent(
+                    GameEvent.System(
+                        "Navigation failed: ${error.message}",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+            game.navigationState = updatedNav
+        }
+
+        val updatedPlayer = player.copy(currentRoomId = exit.targetId)
+        game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+        game.emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
+        game.trackQuests(QuestAction.VisitedRoom(exit.targetId))
+        game.describeCurrentRoom()
     }
 
     fun handleSearch(game: EngineGameClient, target: String?) {

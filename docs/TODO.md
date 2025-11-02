@@ -2,6 +2,11 @@
 
 Last updated: 2025-11-01
 
+## Next Actions
+- [ ] Wire Space V2 movement path: use NavigationState + SpacePropertiesRepository to resolve exits instead of legacy Room map.
+- [ ] Update look/talk handlers to read from SpacePropertiesComponent when rooms map is empty so interactions surface descriptions.
+- [ ] Persist/generated NPC data for Space entities so merchant IDs resolve to actual Entity payloads.
+
 ## World Generation System V2 Integration Status
 
 ### ✅ Completed (Chunks 1-6)
