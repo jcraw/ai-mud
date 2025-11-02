@@ -1,6 +1,7 @@
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
+import com.jcraw.mud.client.SpaceEntitySupport
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
@@ -11,37 +12,66 @@ import kotlinx.coroutines.runBlocking
 object ClientSocialHandlers {
 
     fun handleTalk(game: EngineGameClient, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val room = game.worldState.getCurrentRoom()
 
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
+        if (room != null) {
+            val npc = room.entities.filterIsInstance<Entity.NPC>()
+                .find { entity ->
+                    entity.name.lowercase().contains(target.lowercase()) ||
+                    entity.id.lowercase().contains(target.lowercase())
+                }
+
+            if (npc == null) {
+                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+                return
             }
 
-        if (npc == null) {
+            game.lastConversationNpcId = npc.id
+
+            if (game.npcInteractionGenerator != null) {
+                game.emitEvent(GameEvent.Narrative("\nYou speak to ${npc.name}..."))
+                val dialogue = runBlocking {
+                    game.npcInteractionGenerator.generateDialogue(npc, game.worldState.player)
+                }
+                game.emitEvent(GameEvent.Narrative("\n${npc.name} says: \"$dialogue\""))
+            } else {
+                if (npc.isHostile) {
+                    game.emitEvent(GameEvent.Narrative("\n${npc.name} glares at you menacingly and says nothing."))
+                } else {
+                    game.emitEvent(GameEvent.Narrative("\n${npc.name} nods at you in acknowledgment."))
+                }
+            }
+
+            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+            return
+        }
+
+        val space = game.currentSpace()
+        if (space == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        game.lastConversationNpcId = npc.id
-
-        if (game.npcInteractionGenerator != null) {
-            game.emitEvent(GameEvent.Narrative("\nYou speak to ${npc.name}..."))
-            val dialogue = runBlocking {
-                game.npcInteractionGenerator.generateDialogue(npc, game.worldState.player)
-            }
-            game.emitEvent(GameEvent.Narrative("\n${npc.name} says: \"$dialogue\""))
-        } else {
-            if (npc.isHostile) {
-                game.emitEvent(GameEvent.Narrative("\n${npc.name} glares at you menacingly and says nothing."))
-            } else {
-                game.emitEvent(GameEvent.Narrative("\n${npc.name} nods at you in acknowledgment."))
-            }
+        val stub = SpaceEntitySupport.findStub(space, target)
+        if (stub == null) {
+            game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
+            return
         }
 
-        // Track NPC conversation for quests
-        game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+        game.lastConversationNpcId = stub.id
+        val npcStub = SpaceEntitySupport.createNpcStub(stub)
+
+        if (game.npcInteractionGenerator != null) {
+            game.emitEvent(GameEvent.Narrative("\nYou speak to ${stub.displayName}..."))
+            val dialogue = runBlocking {
+                game.npcInteractionGenerator.generateDialogue(npcStub, game.worldState.player)
+            }
+            game.emitEvent(GameEvent.Narrative("\n${stub.displayName} says: \"$dialogue\""))
+        } else {
+            game.emitEvent(GameEvent.Narrative("\n${stub.displayName} greets you: \"${stub.description}\""))
+        }
+
+        game.trackQuests(QuestAction.TalkedToNPC(stub.id))
     }
 
     suspend fun handleSay(game: EngineGameClient, message: String, npcTarget: String?) {

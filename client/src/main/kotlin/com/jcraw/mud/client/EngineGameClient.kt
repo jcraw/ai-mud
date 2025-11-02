@@ -2,6 +2,7 @@ package com.jcraw.mud.client
 
 import com.jcraw.mud.client.handlers.*
 import com.jcraw.mud.core.*
+import com.jcraw.mud.client.SpaceEntitySupport
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.*
@@ -307,6 +308,13 @@ class EngineGameClient(
         }.toMap()
     }
 
+    internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
+        spacePropertiesRepository.findByChunkId(spaceId)
+    }.getOrNull()
+
+    internal fun currentSpace(): SpacePropertiesComponent? =
+        loadSpace(worldState.player.currentRoomId)
+
     internal fun describeCurrentRoom() {
         val currentRoomId = worldState.player.currentRoomId
 
@@ -384,7 +392,8 @@ class EngineGameClient(
             if (space.entities.isNotEmpty()) {
                 appendLine("\nYou see:")
                 space.entities.forEach { entityId ->
-                    appendLine("  - $entityId") // TODO: Look up entity names
+                    val stub = SpaceEntitySupport.getStub(entityId)
+                    appendLine("  - ${stub.displayName}")
                 }
             }
 
@@ -400,7 +409,7 @@ class EngineGameClient(
             if (space.itemsDropped.isNotEmpty()) {
                 appendLine("\nItems on the ground:")
                 space.itemsDropped.forEach { item ->
-                    appendLine("  - ${item.id}") // TODO: Look up item names
+                    appendLine("  - ${item.templateId} (x${item.quantity})")
                 }
             }
         }

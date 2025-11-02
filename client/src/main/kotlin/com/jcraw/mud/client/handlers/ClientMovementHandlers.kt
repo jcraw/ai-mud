@@ -1,6 +1,7 @@
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
+import com.jcraw.mud.client.SpaceEntitySupport
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
@@ -11,19 +12,7 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
-        val currentSpaceId = game.worldState.player.currentRoomId
-        val currentSpace = runBlocking {
-            game.spacePropertiesRepository.findByChunkId(currentSpaceId)
-        }.getOrElse { error ->
-            game.emitEvent(
-                GameEvent.System(
-                    "Failed to load current space: ${error.message}",
-                    GameEvent.MessageLevel.ERROR
-                )
-            )
-            return
-        }
-
+        val currentSpace = game.currentSpace()
         if (currentSpace != null) {
             handleSpaceMovement(game, direction, currentSpace)
             return
@@ -48,85 +37,152 @@ object ClientMovementHandlers {
     }
 
     fun handleLook(game: EngineGameClient, target: String?) {
+        val room = game.worldState.getCurrentRoom()
+        val space = if (room == null) game.currentSpace() else null
+
         if (target == null) {
             game.describeCurrentRoom()
 
-            // Also list pickupable items on the ground
-            val room = game.worldState.getCurrentRoom() ?: return
-            val groundItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
-            if (groundItems.isNotEmpty()) {
-                val itemsList = buildString {
-                    appendLine()
-                    appendLine("Items on the ground:")
-                    groundItems.forEach { item ->
-                        appendLine("  - ${item.name}")
+            if (room != null) {
+                val groundItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+                if (groundItems.isNotEmpty()) {
+                    val itemsList = buildString {
+                        appendLine()
+                        appendLine("Items on the ground:")
+                        groundItems.forEach { item ->
+                            appendLine("  - ${item.name}")
+                        }
                     }
+                    game.emitEvent(GameEvent.Narrative(itemsList))
+                } else {
+                    game.emitEvent(GameEvent.Narrative("\nYou don't see any items here."))
                 }
-                game.emitEvent(GameEvent.Narrative(itemsList))
-            } else {
-                game.emitEvent(GameEvent.Narrative("\nYou don't see any items here."))
+            } else if (space != null) {
+                val groundItems = space.itemsDropped
+                val narrative = if (groundItems.isNotEmpty()) {
+                    buildString {
+                        appendLine()
+                        appendLine("Items on the ground:")
+                        groundItems.forEach { item ->
+                            appendLine("  - ${item.templateId} (x${item.quantity})")
+                        }
+                    }
+                } else {
+                    "\nYou don't see any items here."
+                }
+                game.emitEvent(GameEvent.Narrative(narrative))
             }
             return
         }
 
-        val room = game.worldState.getCurrentRoom() ?: return
+        if (room != null) {
+            // First check room entities
+            val roomEntity = room.entities.find { e ->
+                e.name.lowercase().contains(target.lowercase()) ||
+                e.id.lowercase().contains(target.lowercase())
+            }
 
-        // First check room entities
-        val roomEntity = room.entities.find { e ->
-            e.name.lowercase().contains(target.lowercase()) ||
-            e.id.lowercase().contains(target.lowercase())
-        }
+            if (roomEntity != null) {
+                game.emitEvent(GameEvent.Narrative(roomEntity.description))
+                return
+            }
 
-        if (roomEntity != null) {
-            game.emitEvent(GameEvent.Narrative(roomEntity.description))
+            // Then check inventory (including equipped items)
+            val inventoryItem = game.worldState.player.inventory.find { item ->
+                item.name.lowercase().contains(target.lowercase()) ||
+                item.id.lowercase().contains(target.lowercase())
+            }
+
+            if (inventoryItem != null) {
+                game.emitEvent(GameEvent.Narrative(inventoryItem.description))
+                return
+            }
+
+            // Check equipped weapon
+            val equippedWeapon = game.worldState.player.equippedWeapon
+            if (equippedWeapon != null &&
+                (equippedWeapon.name.lowercase().contains(target.lowercase()) ||
+                 equippedWeapon.id.lowercase().contains(target.lowercase()))) {
+                game.emitEvent(GameEvent.Narrative(equippedWeapon.description + " (equipped)"))
+                return
+            }
+
+            // Check equipped armor
+            val equippedArmor = game.worldState.player.equippedArmor
+            if (equippedArmor != null &&
+                (equippedArmor.name.lowercase().contains(target.lowercase()) ||
+                 equippedArmor.id.lowercase().contains(target.lowercase()))) {
+                game.emitEvent(GameEvent.Narrative(equippedArmor.description + " (equipped)"))
+                return
+            }
+
+            // Finally try scenery
+            val roomDescription = if (game.descriptionGenerator != null) {
+                runBlocking { game.descriptionGenerator.generateDescription(room) }
+            } else {
+                room.traits.joinToString(". ") + "."
+            }
+
+            val sceneryDescription = runBlocking {
+                game.sceneryGenerator.describeScenery(target, room, roomDescription)
+            }
+
+            if (sceneryDescription != null) {
+                game.emitEvent(GameEvent.Narrative(sceneryDescription))
+            } else {
+                game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
+            }
             return
         }
 
-        // Then check inventory (including equipped items)
-        val inventoryItem = game.worldState.player.inventory.find { item ->
-            item.name.lowercase().contains(target.lowercase()) ||
-            item.id.lowercase().contains(target.lowercase())
-        }
-
-        if (inventoryItem != null) {
-            game.emitEvent(GameEvent.Narrative(inventoryItem.description))
-            return
-        }
-
-        // Check equipped weapon
-        val equippedWeapon = game.worldState.player.equippedWeapon
-        if (equippedWeapon != null &&
-            (equippedWeapon.name.lowercase().contains(target.lowercase()) ||
-             equippedWeapon.id.lowercase().contains(target.lowercase()))) {
-            game.emitEvent(GameEvent.Narrative(equippedWeapon.description + " (equipped)"))
-            return
-        }
-
-        // Check equipped armor
-        val equippedArmor = game.worldState.player.equippedArmor
-        if (equippedArmor != null &&
-            (equippedArmor.name.lowercase().contains(target.lowercase()) ||
-             equippedArmor.id.lowercase().contains(target.lowercase()))) {
-            game.emitEvent(GameEvent.Narrative(equippedArmor.description + " (equipped)"))
-            return
-        }
-
-        // Finally try scenery
-        val roomDescription = if (game.descriptionGenerator != null) {
-            runBlocking { game.descriptionGenerator.generateDescription(room) }
-        } else {
-            room.traits.joinToString(". ") + "."
-        }
-
-        val sceneryDescription = runBlocking {
-            game.sceneryGenerator.describeScenery(target, room, roomDescription)
-        }
-
-        if (sceneryDescription != null) {
-            game.emitEvent(GameEvent.Narrative(sceneryDescription))
-        } else {
+        val currentSpace = space ?: run {
             game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
+            return
         }
+
+        val lower = target.lowercase()
+
+        SpaceEntitySupport.findStub(currentSpace, lower)?.let { stub ->
+            game.emitEvent(GameEvent.Narrative(stub.description))
+            return
+        }
+
+        currentSpace.exits.firstOrNull { exit ->
+            exit.direction.lowercase() == lower ||
+            exit.description.lowercase().contains(lower)
+        }?.let { exit ->
+            val description = exit.describeWithConditions(game.worldState.player)
+            game.emitEvent(GameEvent.Narrative("Exit ${exit.direction}: $description"))
+            return
+        }
+
+        currentSpace.resources.firstOrNull { resource ->
+            resource.description.lowercase().contains(lower) ||
+            resource.templateId.lowercase().contains(lower)
+        }?.let { resource ->
+            val desc = resource.description.ifBlank { "Resource node containing ${resource.templateId} (quantity ${resource.quantity})." }
+            game.emitEvent(GameEvent.Narrative(desc))
+            return
+        }
+
+        currentSpace.traps.firstOrNull { trap ->
+            trap.description.lowercase().contains(lower) ||
+            trap.type.lowercase().contains(lower)
+        }?.let { trap ->
+            val status = if (trap.triggered) "It has already been triggered." else "It looks dangerous (DC ${trap.difficulty})."
+            val desc = if (trap.description.isNotBlank()) trap.description else "A ${trap.type} trap." 
+            game.emitEvent(GameEvent.Narrative("$desc $status"))
+            return
+        }
+
+        currentSpace.itemsDropped.firstOrNull { item ->
+            item.id.lowercase().contains(lower) || item.templateId.lowercase().contains(lower)
+        }?.let { item ->
+            game.emitEvent(GameEvent.Narrative("It looks like ${item.templateId} (quantity ${item.quantity})."))
+            return
+        }
+
+        game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
     }
 
     private fun handleSpaceMovement(
@@ -203,7 +259,12 @@ object ClientMovementHandlers {
     }
 
     fun handleSearch(game: EngineGameClient, target: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val room = game.worldState.getCurrentRoom()
+        val space = if (room == null) game.currentSpace() else null
+
+        if (room == null && space == null) {
+            return
+        }
 
         val searchMessage = "You search the area carefully${if (target != null) ", focusing on the $target" else ""}..."
 
@@ -231,26 +292,58 @@ object ClientMovementHandlers {
                 appendLine("✅ Success!")
                 appendLine()
 
-                // Find items in the room
-                val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-                val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+                if (room != null) {
+                    val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+                    val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
-                if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
-                    if (pickupableItems.isNotEmpty()) {
-                        appendLine("You find the following items:")
-                        pickupableItems.forEach { item ->
-                            appendLine("  - ${item.name}: ${item.description}")
+                    if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
+                        if (pickupableItems.isNotEmpty()) {
+                            appendLine("You find the following items:")
+                            pickupableItems.forEach { item ->
+                                appendLine("  - ${item.name}: ${item.description}")
+                            }
+                        }
+                        if (hiddenItems.isNotEmpty()) {
+                            appendLine()
+                            appendLine("You also notice some interesting features:")
+                            hiddenItems.forEach { item ->
+                                appendLine("  - ${item.name}: ${item.description}")
+                            }
+                        }
+                    } else {
+                        appendLine("You don't find anything hidden here.")
+                    }
+                } else if (space != null) {
+                    var foundSomething = false
+                    if (space.itemsDropped.isNotEmpty()) {
+                        foundSomething = true
+                        appendLine("You gather the following items:")
+                        space.itemsDropped.forEach { item ->
+                            appendLine("  - ${item.templateId} (x${item.quantity})")
                         }
                     }
-                    if (hiddenItems.isNotEmpty()) {
+                    val resources = space.resources.filter { !it.isDepleted() }
+                    if (resources.isNotEmpty()) {
+                        foundSomething = true
                         appendLine()
-                        appendLine("You also notice some interesting features:")
-                        hiddenItems.forEach { item ->
-                            appendLine("  - ${item.name}: ${item.description}")
+                        appendLine("You notice harvestable resources:")
+                        resources.forEach { resource ->
+                            val desc = resource.description.ifBlank { resource.templateId }
+                            appendLine("  - $desc (quantity ${resource.quantity})")
                         }
                     }
-                } else {
-                    appendLine("You don't find anything hidden here.")
+                    if (space.traps.isNotEmpty()) {
+                        foundSomething = true
+                        appendLine()
+                        appendLine("You detect potential traps:")
+                        space.traps.forEach { trap ->
+                            val desc = if (trap.description.isNotBlank()) trap.description else trap.type
+                            appendLine("  - $desc (DC ${trap.difficulty})")
+                        }
+                    }
+                    if (!foundSomething) {
+                        appendLine("You don't find anything hidden here.")
+                    }
                 }
             } else {
                 appendLine("❌ Failure!")
