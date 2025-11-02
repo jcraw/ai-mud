@@ -50,6 +50,10 @@ class QuestGenerator(private val seed: Long? = null) {
         worldState: WorldState,
         theme: DungeonTheme
     ): Quest {
+        if (worldState.rooms.isEmpty()) {
+            return generateFallbackQuest(worldState, theme)
+        }
+
         val questType = random.nextInt(5) // 5 quest types
 
         return when (questType) {
@@ -268,5 +272,40 @@ class QuestGenerator(private val seed: Long? = null) {
             quests.add(generateQuest(worldState, theme))
         }
         return quests
+    }
+
+    /**
+     * Generate a safe fallback quest when the world lacks populated rooms (e.g., new repository-backed worlds)
+     */
+    private fun generateFallbackQuest(
+        worldState: WorldState,
+        theme: DungeonTheme
+    ): Quest {
+        val player = worldState.players.values.firstOrNull()
+        val currentRoomId = player?.currentRoomId ?: "unknown_space"
+        val roomName = worldState.getRoom(currentRoomId)?.name ?: "Unknown Space"
+
+        val title = questTitles[theme]?.randomOrNull(random) ?: "Scout the Abyss"
+
+        val objective = QuestObjective.ExploreRoom(
+            id = "obj_explore_$currentRoomId",
+            description = "Scout your immediate surroundings.",
+            targetRoomId = currentRoomId,
+            targetRoomName = roomName
+        )
+
+        return Quest(
+            id = "quest_${System.currentTimeMillis()}_${random.nextInt(1000)}",
+            title = title,
+            description = "Before delving deeper, get your bearings and assess the area around you.",
+            giver = null,
+            objectives = listOf(objective),
+            reward = QuestReward(
+                experiencePoints = 20,
+                goldAmount = 15,
+                description = "Basic scouting reward"
+            ),
+            flavorText = "Even seasoned adventurers start by understanding where they stand."
+        )
     }
 }
