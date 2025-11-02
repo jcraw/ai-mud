@@ -2,6 +2,7 @@ package com.jcraw.mud.memory.world
 
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.SQLException
 
 /**
  * SQLite database for world generation system persistence
@@ -52,10 +53,19 @@ class WorldDatabase(
                 CREATE TABLE IF NOT EXISTS world_seed (
                     id INTEGER PRIMARY KEY CHECK (id = 1),
                     seed_string TEXT NOT NULL,
-                    global_lore TEXT NOT NULL
+                    global_lore TEXT NOT NULL,
+                    starting_space_id TEXT
                 )
                 """.trimIndent()
             )
+
+            try {
+                stmt.execute("ALTER TABLE world_seed ADD COLUMN starting_space_id TEXT")
+            } catch (e: SQLException) {
+                if (!e.message.orEmpty().contains("duplicate column name")) {
+                    throw e
+                }
+            }
 
             // World chunks table (hierarchical structure)
             stmt.execute(

@@ -5,6 +5,7 @@ import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.WorldChunkComponent
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
+import com.jcraw.mud.core.repository.WorldSeedInfo
 import com.jcraw.mud.core.repository.WorldSeedRepository
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.core.world.TerrainType
@@ -17,13 +18,16 @@ import kotlin.test.*
  */
 class WorldPersistenceTest {
 
-    private val testSeed = mutableListOf<Pair<String, String>?>()
+    private val testSeed = mutableListOf<WorldSeedInfo?>()
     private val testChunks = mutableMapOf<String, WorldChunkComponent>()
     private val testSpaces = mutableMapOf<String, SpacePropertiesComponent>()
 
     private val mockSeedRepo = object : WorldSeedRepository {
-        override fun save(seed: String, globalLore: String) =
-            Result.success(Unit).also { testSeed.clear(); testSeed.add(seed to globalLore) }
+        override fun save(seed: String, globalLore: String, startingSpaceId: String?) =
+            Result.success(Unit).also {
+                testSeed.clear()
+                testSeed.add(WorldSeedInfo(seed, globalLore, startingSpaceId))
+            }
 
         override fun get() = Result.success(testSeed.firstOrNull())
     }
@@ -80,7 +84,7 @@ class WorldPersistenceTest {
 
     @Test
     fun `loadWorldState retrieves global lore and space`() = runBlocking {
-        testSeed.add("seed123" to "Ancient dungeon lore")
+        testSeed.add(WorldSeedInfo("seed123", "Ancient dungeon lore", "space_start"))
         val space = SpacePropertiesComponent(
             "Start room", emptyList(), 100, TerrainType.NORMAL, emptyList(), emptyList(),
             emptyList(), emptyList(), emptyMap()
@@ -162,19 +166,21 @@ class WorldPersistenceTest {
     fun `saveWorldSeed stores seed and lore`() = runBlocking {
         persistence.saveWorldSeed("seed123", "Epic dungeon lore").getOrThrow()
 
-        val (seed, lore) = testSeed.first()!!
-        assertEquals("seed123", seed)
-        assertEquals("Epic dungeon lore", lore)
+        val seedInfo = testSeed.first()!!
+        assertEquals("seed123", seedInfo.seed)
+        assertEquals("Epic dungeon lore", seedInfo.globalLore)
+        assertNull(seedInfo.startingSpaceId)
     }
 
     @Test
     fun `getWorldSeed retrieves stored seed`() = runBlocking {
-        testSeed.add("seed456" to "Ancient ruins lore")
+        testSeed.add(WorldSeedInfo("seed456", "Ancient ruins lore", "space_start"))
 
-        val (seed, lore) = persistence.getWorldSeed().getOrThrow()!!
+        val seedInfo = persistence.getWorldSeed().getOrThrow()!!
 
-        assertEquals("seed456", seed)
-        assertEquals("Ancient ruins lore", lore)
+        assertEquals("seed456", seedInfo.seed)
+        assertEquals("Ancient ruins lore", seedInfo.globalLore)
+        assertEquals("space_start", seedInfo.startingSpaceId)
     }
 
     @Test

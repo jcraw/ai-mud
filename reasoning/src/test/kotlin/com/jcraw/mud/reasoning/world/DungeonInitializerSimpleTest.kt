@@ -93,8 +93,9 @@ class DungeonInitializerSimpleTest {
 
         val seed = seedRepo.get().getOrThrow()
         assertNotNull(seed)
-        assertEquals("test-seed-456", seed?.first)
-        assertTrue(seed?.second?.contains("Ancient Abyss") == true)
+        assertEquals("test-seed-456", seed?.seed)
+        assertTrue(seed?.globalLore?.contains("Ancient Abyss") == true)
+        assertEquals(result.getOrNull(), seed?.startingSpaceId)
     }
 
     @Test

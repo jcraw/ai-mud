@@ -5,6 +5,7 @@ import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.WorldChunkComponent
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
+import com.jcraw.mud.core.repository.WorldSeedInfo
 import com.jcraw.mud.core.repository.WorldSeedRepository
 import com.jcraw.mud.core.world.NavigationState
 
@@ -55,8 +56,10 @@ open class WorldPersistence(
         startingSpaceId: String
     ): Result<Pair<String, SpacePropertiesComponent>?> = runCatching {
         // Load world seed to get global lore
-        val (_, globalLore) = worldSeedRepository.get().getOrThrow()
+        val seedInfo = worldSeedRepository.get().getOrThrow()
             ?: return@runCatching null
+
+        val globalLore = seedInfo.globalLore
 
         // Load starting space
         val startingSpace = spacePropertiesRepository.findByChunkId(startingSpaceId).getOrThrow()
@@ -132,7 +135,7 @@ open class WorldPersistence(
      * @return Result indicating success or failure
      */
     suspend fun saveWorldSeed(seed: String, globalLore: String): Result<Unit> {
-        return worldSeedRepository.save(seed, globalLore)
+        return worldSeedRepository.save(seed, globalLore, null)
     }
 
     /**
@@ -141,9 +144,7 @@ open class WorldPersistence(
      *
      * @return Pair of (seed, globalLore) or null
      */
-    suspend fun getWorldSeed(): Result<Pair<String, String>?> {
-        return worldSeedRepository.get()
-    }
+    suspend fun getWorldSeed(): Result<WorldSeedInfo?> = worldSeedRepository.get()
 
     /**
      * Clears all world data from the database.

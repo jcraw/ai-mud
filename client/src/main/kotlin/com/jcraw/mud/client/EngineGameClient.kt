@@ -127,29 +127,89 @@ class EngineGameClient(
                 townGenerator, bossGenerator, hiddenExitPlacer
             )
 
-            // Generate Ancient Abyss
-            emitEvent(GameEvent.System("Generating the Ancient Abyss... This may take a moment."))
-            val abyssData = runBlocking {
-                dungeonInitializer.initializeAncientAbyss().getOrElse {
-                    emitEvent(GameEvent.System("Failed to generate dungeon: ${it.message}", GameEvent.MessageLevel.ERROR))
-                    throw it
+            val existingSeedInfo = runBlocking {
+                worldSeedRepository.get().getOrElse { error ->
+                    emitEvent(
+                        GameEvent.System(
+                            "Failed to read existing world seed: ${error.message}",
+                            GameEvent.MessageLevel.ERROR
+                        )
+                    )
+                    null
                 }
             }
-            emitEvent(GameEvent.System("Ancient Abyss generated! Starting in the town..."))
 
-            // Initialize navigation state
-            navigationState = runBlocking {
-                com.jcraw.mud.core.world.NavigationState.fromSpaceId(
-                    abyssData.townSpaceId,
-                    worldChunkRepository
-                ).getOrThrow()
+            val existingStartingSpaceId = existingSeedInfo?.startingSpaceId
+            val existingSpaceAvailable = if (existingStartingSpaceId != null) {
+                runBlocking {
+                    spacePropertiesRepository.findByChunkId(existingStartingSpaceId).getOrElse { error ->
+                        emitEvent(
+                            GameEvent.System(
+                                "Failed to load existing starting space: ${error.message}",
+                                GameEvent.MessageLevel.ERROR
+                            )
+                        )
+                        null
+                    }
+                }
+            } else {
+                null
             }
 
-            // Create minimal world state for World V2 (navigation uses repositories)
+            var startingSpaceIdForPlayer: String? = null
+            var navState: com.jcraw.mud.core.world.NavigationState? = null
+
+            if (existingSeedInfo != null && existingStartingSpaceId != null && existingSpaceAvailable != null) {
+                val navResult = runBlocking {
+                    com.jcraw.mud.core.world.NavigationState.fromSpaceId(
+                        existingStartingSpaceId,
+                        worldChunkRepository
+                    )
+                }
+
+                navState = navResult.getOrElse { error ->
+                    emitEvent(
+                        GameEvent.System(
+                            "Existing navigation state invalid: ${error.message}. Regenerating world...",
+                            GameEvent.MessageLevel.WARNING
+                        )
+                    )
+                    null
+                }
+
+                if (navState != null) {
+                    emitEvent(GameEvent.System("Loading existing Ancient Abyss world..."))
+                    startingSpaceIdForPlayer = existingStartingSpaceId
+                }
+            }
+
+            if (startingSpaceIdForPlayer == null || navState == null) {
+                // Generate Ancient Abyss
+                emitEvent(GameEvent.System("Generating the Ancient Abyss... This may take a moment."))
+                val abyssData = runBlocking {
+                    dungeonInitializer.initializeAncientAbyss().getOrElse {
+                        emitEvent(GameEvent.System("Failed to generate dungeon: ${it.message}", GameEvent.MessageLevel.ERROR))
+                        throw it
+                    }
+                }
+                emitEvent(GameEvent.System("Ancient Abyss generated! Starting in the town..."))
+
+                val navResult = runBlocking {
+                    com.jcraw.mud.core.world.NavigationState.fromSpaceId(
+                        abyssData.townSpaceId,
+                        worldChunkRepository
+                    )
+                }
+                navState = navResult.getOrElse { throw it }
+                startingSpaceIdForPlayer = abyssData.townSpaceId
+            }
+
+            navigationState = navState
+
             val playerState = PlayerState(
                 id = "player_ui",
                 name = "Adventurer",
-                currentRoomId = abyssData.townSpaceId, // Use town space ID
+                currentRoomId = startingSpaceIdForPlayer ?: error("Starting space missing"),
                 health = 40,
                 maxHealth = 40,
                 stats = Stats(
@@ -163,7 +223,7 @@ class EngineGameClient(
             )
 
             worldState = WorldState(
-                rooms = emptyMap(), // World V2 uses SpacePropertiesRepository
+                rooms = emptyMap(),
                 players = mapOf(playerState.id to playerState)
             )
         } else {

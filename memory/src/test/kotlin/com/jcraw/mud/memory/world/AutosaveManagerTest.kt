@@ -21,8 +21,8 @@ class AutosaveManagerTest {
     private val savedStates = mutableListOf<Triple<String, PlayerState, Map<String, SpacePropertiesComponent>>>()
 
     private val mockSeedRepo = object : WorldSeedRepository {
-        override fun save(seed: String, globalLore: String) = Result.success(Unit)
-        override fun get() = Result.success<Pair<String, String>?>(null)
+        override fun save(seed: String, globalLore: String, startingSpaceId: String?) = Result.success(Unit)
+        override fun get() = Result.success<com.jcraw.mud.core.repository.WorldSeedInfo?>(null)
     }
 
     private val mockChunkRepo = object : WorldChunkRepository {

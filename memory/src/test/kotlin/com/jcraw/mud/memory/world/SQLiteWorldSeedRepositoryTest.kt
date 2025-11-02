@@ -33,12 +33,13 @@ class SQLiteWorldSeedRepositoryTest {
 
     @Test
     fun `save and get seed`() {
-        repository.save("test-seed-123", "Ancient dungeon lore").getOrThrow()
+        repository.save("test-seed-123", "Ancient dungeon lore", "space_start").getOrThrow()
 
         val result = repository.get().getOrThrow()
         assertNotNull(result)
-        assertEquals("test-seed-123", result?.first)
-        assertEquals("Ancient dungeon lore", result?.second)
+        assertEquals("test-seed-123", result?.seed)
+        assertEquals("Ancient dungeon lore", result?.globalLore)
+        assertEquals("space_start", result?.startingSpaceId)
     }
 
     @Test
@@ -49,23 +50,24 @@ class SQLiteWorldSeedRepositoryTest {
 
     @Test
     fun `save overwrites existing seed`() {
-        repository.save("first-seed", "First lore").getOrThrow()
-        repository.save("second-seed", "Second lore").getOrThrow()
+        repository.save("first-seed", "First lore", "space_one").getOrThrow()
+        repository.save("second-seed", "Second lore", "space_two").getOrThrow()
 
         val result = repository.get().getOrThrow()
         assertNotNull(result)
-        assertEquals("second-seed", result?.first)
-        assertEquals("Second lore", result?.second)
+        assertEquals("second-seed", result?.seed)
+        assertEquals("Second lore", result?.globalLore)
+        assertEquals("space_two", result?.startingSpaceId)
     }
 
     @Test
     fun `seed with long lore text persists correctly`() {
         val longLore = "A".repeat(10000) // 10k characters
-        repository.save("seed", longLore).getOrThrow()
+        repository.save("seed", longLore, null).getOrThrow()
 
         val result = repository.get().getOrThrow()
-        assertEquals(longLore, result?.second)
-        assertEquals(10000, result?.second?.length)
+        assertEquals(longLore, result?.globalLore)
+        assertEquals(10000, result?.globalLore?.length)
     }
 
     @Test
@@ -73,19 +75,20 @@ class SQLiteWorldSeedRepositoryTest {
         val specialSeed = "seed-with-!@#$%^&*()_+-={}[]|:;<>?,./~`"
         val specialLore = "Lore with unicode: \u00A9 \u2122 \u00AE \u2665 \u266A"
 
-        repository.save(specialSeed, specialLore).getOrThrow()
+        repository.save(specialSeed, specialLore, "space_special").getOrThrow()
 
         val result = repository.get().getOrThrow()
-        assertEquals(specialSeed, result?.first)
-        assertEquals(specialLore, result?.second)
+        assertEquals(specialSeed, result?.seed)
+        assertEquals(specialLore, result?.globalLore)
+        assertEquals("space_special", result?.startingSpaceId)
     }
 
     @Test
     fun `multiple updates preserve singleton constraint`() {
         // Multiple saves should always result in exactly one row
-        repository.save("seed1", "lore1").getOrThrow()
-        repository.save("seed2", "lore2").getOrThrow()
-        repository.save("seed3", "lore3").getOrThrow()
+        repository.save("seed1", "lore1", "space1").getOrThrow()
+        repository.save("seed2", "lore2", "space2").getOrThrow()
+        repository.save("seed3", "lore3", "space3").getOrThrow()
 
         val conn = database.getConnection()
         conn.prepareStatement("SELECT COUNT(*) FROM world_seed").use { stmt ->
@@ -95,25 +98,27 @@ class SQLiteWorldSeedRepositoryTest {
         }
 
         val result = repository.get().getOrThrow()
-        assertEquals("seed3", result?.first)
+        assertEquals("seed3", result?.seed)
+        assertEquals("space3", result?.startingSpaceId)
     }
 
     @Test
     fun `empty seed and lore strings persist correctly`() {
-        repository.save("", "").getOrThrow()
+        repository.save("", "", null).getOrThrow()
 
         val result = repository.get().getOrThrow()
         assertNotNull(result)
-        assertEquals("", result?.first)
-        assertEquals("", result?.second)
+        assertEquals("", result?.seed)
+        assertEquals("", result?.globalLore)
+        assertNull(result?.startingSpaceId)
     }
 
     @Test
     fun `save and get with whitespace-only lore`() {
         val whitespaceLore = "   \n\t\r   "
-        repository.save("seed", whitespaceLore).getOrThrow()
+        repository.save("seed", whitespaceLore, null).getOrThrow()
 
         val result = repository.get().getOrThrow()
-        assertEquals(whitespaceLore, result?.second)
+        assertEquals(whitespaceLore, result?.globalLore)
     }
 }

@@ -48,7 +48,7 @@ class DungeonInitializer(
         """.trimIndent()
 
         // Save world seed
-        worldSeedRepo.save(seed, globalLore).getOrElse { return Result.failure(it) }
+        worldSeedRepo.save(seed, globalLore, null).getOrElse { return Result.failure(it) }
 
         // Generate WORLD level
         val worldContext = GenerationContext(
@@ -98,6 +98,8 @@ class DungeonInitializer(
             globalLore,
             regionIds.first()
         ).getOrElse { return Result.failure(it) }
+
+        worldSeedRepo.save(seed, globalLore, startingSpaceId).getOrElse { return Result.failure(it) }
 
         return Result.success(startingSpaceId)
     }
@@ -180,7 +182,7 @@ class DungeonInitializer(
         """.trimIndent()
 
         // Save world seed
-        worldSeedRepo.save(seed, globalLore).getOrElse { return Result.failure(it) }
+        worldSeedRepo.save(seed, globalLore, null).getOrElse { return Result.failure(it) }
 
         // Generate WORLD level
         val worldContext = GenerationContext(
@@ -250,6 +252,8 @@ class DungeonInitializer(
             seed,
             globalLore
         ).getOrElse { return Result.failure(it) }
+
+        worldSeedRepo.save(seed, globalLore, townSpaceId).getOrElse { return Result.failure(it) }
 
         return Result.success(
             AncientAbyssData(

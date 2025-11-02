@@ -252,9 +252,9 @@ This plan implements a hierarchical, on-demand procedural world generation syste
 
 6. **WorldSeedRepository.kt** (core/repository:30)
    - Interface:
-     - `save(seed: String, globalLore: String): Result<Unit>`
-     - `get(): Result<Pair<String, String>?>` - Returns (seed, globalLore) or null
-   - *Reasoning*: Single global seed; simple interface
+     - `save(seed: String, globalLore: String, startingSpaceId: String? = null): Result<Unit>`
+     - `get(): Result<WorldSeedInfo?>` - Returns seed, lore, and optional starting space
+   - *Reasoning*: Single global seed; tracks entry point for reloads
 
 7. **SQLiteWorldSeedRepository.kt** (memory:80)
    - Implements `WorldSeedRepository`
