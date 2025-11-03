@@ -18,6 +18,9 @@
 
 ## Next Major Feature
 
+### Immediate Follow-up
+- Integrate the player-facing inventory with `InventoryComponent` and update trading/loot handlers to use V2 items before expanding merchant features.
+
 ### World Generation System V2
 **Status:** Partially complete - test fixes needed
 **Description:** Hierarchical, on-demand procedural world generation for infinite, lore-consistent open worlds

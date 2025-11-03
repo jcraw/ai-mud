@@ -1,6 +1,8 @@
 package com.jcraw.mud.perception
 
 import com.jcraw.mud.core.Direction
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 /**
@@ -280,8 +282,12 @@ sealed class Intent {
      * Rest at a safe location to regenerate HP and Mana
      * @param location Optional location to rest at (defaults to "current")
      */
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
-    data class Rest(val location: String = "current") : Intent()
+    data class Rest(
+        @EncodeDefault(EncodeDefault.Mode.ALWAYS)
+        val location: String = "current"
+    ) : Intent()
 
     /**
      * Request help/available commands

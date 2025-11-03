@@ -265,6 +265,13 @@ object ClientSocialHandlers {
             }
 
             game.lastConversationNpcId = npc.id
+
+            merchantResponse(game, npc, topic)?.let { reply ->
+                game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
+                game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+                return
+            }
+
             val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
             game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
             game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"$answer\""))
@@ -281,6 +288,12 @@ object ClientSocialHandlers {
         val (entityId, npcCandidate) = resolved
         val npc = game.loadEntity(entityId) as? Entity.NPC ?: npcCandidate
         game.lastConversationNpcId = entityId
+
+        merchantResponse(game, npc, topic)?.let { reply ->
+            game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
+            game.trackQuests(QuestAction.TalkedToNPC(entityId))
+            return
+        }
 
         val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
         game.spaceEntityRepository.save(updatedNpc).onFailure {
@@ -323,6 +336,38 @@ object ClientSocialHandlers {
         }
 
         return null
+    }
+
+    private fun merchantResponse(game: EngineGameClient, npc: Entity.NPC, topic: String): String? {
+        val trading = npc.getComponent<TradingComponent>(ComponentType.TRADING) ?: return null
+        val lowerTopic = topic.lowercase()
+        val keywords = listOf("sell", "stock", "wares", "goods", "buy", "inventory", "offer", "shop")
+        if (keywords.none { lowerTopic.contains(it) }) {
+            return null
+        }
+
+        if (trading.stock.isEmpty()) {
+            return "I'm afraid my shelves are empty right now."
+        }
+
+        val disposition = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)?.disposition ?: 0
+        val entries = trading.stock
+            .sortedBy { it.templateId }
+            .take(5)
+            .map { instance ->
+                val template = game.getItemTemplate(instance.templateId)
+                val price = trading.calculateBuyPrice(template, instance, disposition)
+                val quantityText = if (instance.quantity > 1) " (x${instance.quantity})" else ""
+                "${template.name}$quantityText for $price gold"
+            }
+
+        val moreSuffix = if (trading.stock.size > entries.size) {
+            " Ask if you'd like to see the rest."
+        } else {
+            ""
+        }
+
+        return "I'm selling ${entries.joinToString(", ")}.$moreSuffix"
     }
 
     private fun resolveSpaceNpc(

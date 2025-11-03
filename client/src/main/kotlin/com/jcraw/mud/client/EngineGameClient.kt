@@ -14,11 +14,17 @@ import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.mud.memory.social.SocialDatabase
 import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
 import com.jcraw.mud.memory.social.SqliteSocialEventRepository
+import com.jcraw.mud.memory.item.ItemDatabase
+import com.jcraw.mud.memory.item.SQLiteItemRepository
 import com.jcraw.sophia.llm.OpenAIClient
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.runBlocking
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * Real game client implementation that wraps the actual game engine.
@@ -48,6 +54,12 @@ class EngineGameClient(
     internal val sceneryGenerator: SceneryDescriptionGenerator
     private val questGenerator: QuestGenerator
     private val questTracker: QuestTracker
+
+    // Item system components
+    private val itemJson = Json { ignoreUnknownKeys = true }
+    private val itemDatabase = ItemDatabase("client_items.db")
+    internal val itemRepository = SQLiteItemRepository(itemDatabase)
+    private val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
 
     // Social system components
     private val socialDatabase: SocialDatabase
@@ -288,12 +300,91 @@ class EngineGameClient(
     override suspend fun close() {
         running = false
         llmClient?.close()
+        itemDatabase.close()
     }
 
     internal fun emitEvent(event: GameEvent) {
         runBlocking {
             _events.emit(event)
         }
+    }
+
+    private fun loadItemTemplateCache(): MutableMap<String, ItemTemplate> {
+        val existing = itemRepository.findAllTemplates().getOrElse { emptyMap() }
+        if (existing.isNotEmpty()) {
+            return existing.toMutableMap()
+        }
+
+        val templates = loadTemplatesFromResource()
+        if (templates.isNotEmpty()) {
+            itemRepository.saveTemplates(templates).onFailure {
+                emitEvent(
+                    GameEvent.System(
+                        "Warning: failed to seed item templates (${it.message})",
+                        GameEvent.MessageLevel.WARNING
+                    )
+                )
+            }
+        }
+        return templates.associateBy { it.id }.toMutableMap()
+    }
+
+    private fun loadTemplatesFromResource(): List<ItemTemplate> {
+        val resourceCandidates = listOf(
+            "item_templates.json",
+            "memory/src/main/resources/item_templates.json"
+        )
+
+        for (resource in resourceCandidates) {
+            val jsonText = readResourceText(resource)
+            if (jsonText != null) {
+                return runCatching {
+                    itemJson.decodeFromString<List<ItemTemplate>>(jsonText)
+                }.getOrElse { emptyList() }
+            }
+        }
+
+        return emptyList()
+    }
+
+    private fun readResourceText(path: String): String? {
+        val classLoaderStream = EngineGameClient::class.java.classLoader.getResourceAsStream(path)
+        if (classLoaderStream != null) {
+            return classLoaderStream.bufferedReader().use { it.readText() }
+        }
+
+        val filePath = Paths.get(path)
+        return if (Files.exists(filePath)) {
+            Files.readString(filePath)
+        } else {
+            null
+        }
+    }
+
+    internal fun getItemTemplate(templateId: String): ItemTemplate {
+        return itemTemplateCache[templateId]
+            ?: itemRepository.findTemplateById(templateId).getOrNull()?.also {
+                itemTemplateCache[templateId] = it
+            }
+            ?: createFallbackTemplate(templateId)
+    }
+
+    private fun createFallbackTemplate(templateId: String): ItemTemplate {
+        val displayName = templateId.split('_').joinToString(" ") { token ->
+            token.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
+        }.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
+
+        val fallback = ItemTemplate(
+            id = templateId,
+            name = displayName,
+            type = ItemType.MISC,
+            tags = emptyList(),
+            properties = mapOf("value" to "10"),
+            rarity = Rarity.COMMON,
+            description = "A $displayName."
+        )
+        itemTemplateCache[templateId] = fallback
+        return fallback
     }
 
     /**
@@ -445,7 +536,7 @@ class EngineGameClient(
             is Intent.Interact -> ClientMovementHandlers.handleInteract(this, intent.target)
             is Intent.Craft -> emitEvent(GameEvent.System("Crafting not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Pickpocket -> emitEvent(GameEvent.System("Pickpocketing not yet integrated", GameEvent.MessageLevel.WARNING))
-            is Intent.Trade -> emitEvent(GameEvent.System("Trading not yet integrated", GameEvent.MessageLevel.WARNING))
+            is Intent.Trade -> ClientTradeHandlers.handleTrade(this, intent)
             is Intent.UseItem -> emitEvent(GameEvent.System("Advanced item use not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Inventory -> ClientItemHandlers.handleInventory(this)
             is Intent.Take -> ClientItemHandlers.handleTake(this, intent.target)

@@ -137,6 +137,11 @@ Valid intent types:
 - "check" - Perform a skill check on a feature (requires target, extract ANY identifying word)
 - "persuade" - Persuade an NPC (requires target, extract ANY identifying word from NPC name)
 - "intimidate" - Intimidate an NPC (requires target, extract ANY identifying word from NPC name)
+- "trade" - Buy, sell, or list merchant stock. Include:
+  - "action": "buy", "sell", or "list"
+  - "target": item name (or "stock" when listing)
+  - "quantity": integer quantity (default 1 if omitted)
+  - "merchant_target": merchant name, or null if not specified
 - "save" - Save game (target is save name, defaults to "quicksave")
 - "load" - Load game (target is save name, defaults to "quicksave")
 - "quests" - View quest journal (no target)
@@ -178,6 +183,8 @@ Important parsing rules:
 19. SKILL TRAINING: "train sword fighting with knight", "practice magic with wizard" → train_skill with skill in "target" and method/NPC in "npc_target"
 20. PERK SELECTION: "choose perk 1 for sword fighting", "select second perk for fire magic" → choose_perk with skill in "target" and choice in "perk_choice"
 21. VIEW SKILLS: "skills", "skill sheet", "show skills", "abilities", "character sheet" → view_skills (no target)
+22. LIST STOCK: Commands like "list stock", "show stock", "list merchant stock", "show Alara's stock" map to trade intent with action="list". Include merchant name if mentioned.
+23. BUY/SELL: Extract quantity if a number appears before the item ("buy 3 potions from Alara" → quantity 3). Merchant names typically follow words like "from", "to", or "with".
 
 Response format (JSON only, no markdown):
 {
@@ -235,12 +242,18 @@ Response format (JSON only, no markdown):
             val targetMatch = Regex(""""target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
             val npcTargetMatch = Regex(""""npc_target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
             val skillNameMatch = Regex(""""skill_name"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
+            val tradeActionMatch = Regex(""""action"\s*:\s*"([^"]+)"""").find(jsonText)
+            val merchantTargetMatch = Regex(""""merchant_target"\s*:\s*(?:"([^"]*)"|null)""").find(jsonText)
+            val quantityMatch = Regex(""""quantity"\s*:\s*(-?\d+)""").find(jsonText)
             val perkChoiceMatch = Regex(""""perk_choice"\s*:\s*(\d+)""").find(jsonText)
 
             val intentType = intentMatch?.groupValues?.get(1) ?: return Intent.Invalid("Unknown command")
             val target = targetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
             val npcTarget = npcTargetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
             val skillName = skillNameMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val tradeAction = tradeActionMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val merchantTarget = merchantTargetMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
+            val quantity = quantityMatch?.groupValues?.getOrNull(1)?.toIntOrNull()
             val perkChoice = perkChoiceMatch?.groupValues?.getOrNull(1)?.toIntOrNull()
 
             return when (intentType.lowercase()) {
@@ -290,6 +303,17 @@ Response format (JSON only, no markdown):
                 "abandon_quest" -> if (target != null) Intent.AbandonQuest(target) else Intent.Invalid("Abandon which quest?")
                 "claim_reward" -> if (target != null) Intent.ClaimReward(target) else Intent.Invalid("Claim reward for which quest?")
                 "emote" -> if (target != null) Intent.Emote(target, npcTarget) else Intent.Invalid("What emotion do you want to express?")
+                "trade" -> {
+                    val action = tradeAction?.lowercase()
+                    val normalizedQuantity = quantity?.takeIf { it > 0 } ?: 1
+                    val itemTarget = target ?: ""
+                    when {
+                        action == null -> Intent.Invalid("Trade action missing")
+                        action in setOf("list") -> Intent.Trade(action, if (itemTarget.isNotBlank()) itemTarget else "stock", normalizedQuantity, merchantTarget)
+                        itemTarget.isBlank() -> Intent.Invalid("${action.replaceFirstChar { it.uppercase() }} what?")
+                        else -> Intent.Trade(action, itemTarget, normalizedQuantity, merchantTarget)
+                    }
+                }
                 "ask_question" -> {
                     if (npcTarget != null && target != null) {
                         Intent.AskQuestion(npcTarget, target)
@@ -624,9 +648,90 @@ Response format (JSON only, no markdown):
             }
             "skills", "abilities", "sheet" -> Intent.ViewSkills
             "inventory", "i" -> Intent.Inventory
+            "buy", "purchase" -> parseTradeCommand(args, action = "buy", missingItemMessage = "Buy what?", merchantPrepositions = listOf("from", "with"))
+            "sell" -> parseTradeCommand(args, action = "sell", missingItemMessage = "Sell what?", merchantPrepositions = listOf("to", "with"))
+            "list" -> parseListStock(args)
+            "show" -> {
+                if (args != null && args.contains("stock", ignoreCase = true)) {
+                    parseListStock(args)
+                } else {
+                    Intent.Invalid("Show what?")
+                }
+            }
             "help", "h", "?" -> Intent.Help
             "quit", "exit", "q" -> Intent.Quit
             else -> Intent.Invalid("Unknown command: $command. Type 'help' for available commands.")
         }
+    }
+
+    private fun parseTradeCommand(
+        args: String?,
+        action: String,
+        missingItemMessage: String,
+        merchantPrepositions: List<String>
+    ): Intent {
+        if (args.isNullOrBlank()) {
+            return Intent.Invalid(missingItemMessage)
+        }
+
+        var itemSegment = args.trim()
+        var merchant: String? = null
+
+        for (preposition in merchantPrepositions) {
+            val regex = Regex("\\b$preposition\\b", RegexOption.IGNORE_CASE)
+            val match = regex.find(itemSegment)
+            if (match != null) {
+                merchant = itemSegment.substring(match.range.last + 1).trim().takeIf { it.isNotBlank() }
+                itemSegment = itemSegment.substring(0, match.range.first).trim()
+                break
+            }
+        }
+
+        if (itemSegment.isEmpty()) {
+            return Intent.Invalid(missingItemMessage)
+        }
+
+        val quantityMatch = Regex("^(\\d+)\\s+(.+)$").find(itemSegment)
+        val quantity = quantityMatch?.groupValues?.getOrNull(1)?.toIntOrNull()?.takeIf { it > 0 } ?: 1
+        val itemName = quantityMatch?.groupValues?.getOrNull(2)?.trim().takeIf { !it.isNullOrBlank() } ?: itemSegment
+
+        if (itemName.isBlank()) {
+            return Intent.Invalid(missingItemMessage)
+        }
+
+        val sanitizedMerchant = sanitizeNpcTarget(merchant)
+        return Intent.Trade(action.lowercase(), itemName, quantity, sanitizedMerchant)
+    }
+
+    private fun parseListStock(args: String?): Intent {
+        if (args.isNullOrBlank()) {
+            return Intent.Trade(action = "list", target = "stock", quantity = 1, merchantTarget = null)
+        }
+
+        var descriptor = args.trim()
+        var merchant: String? = null
+
+        val prepositions = listOf("from", "at", "with")
+        for (preposition in prepositions) {
+            val regex = Regex("\\b$preposition\\b", RegexOption.IGNORE_CASE)
+            val match = regex.find(descriptor)
+            if (match != null) {
+                merchant = descriptor.substring(match.range.last + 1).trim().takeIf { it.isNotBlank() }
+                descriptor = descriptor.substring(0, match.range.first).trim()
+                break
+            }
+        }
+
+        if (descriptor.isBlank()) {
+            descriptor = "stock"
+        }
+
+        val lowerDescriptor = descriptor.lowercase()
+        if (!lowerDescriptor.contains("stock") && !lowerDescriptor.contains("wares")) {
+            merchant = merchant ?: descriptor
+        }
+
+        val sanitizedMerchant = sanitizeNpcTarget(merchant)
+        return Intent.Trade(action = "list", target = "stock", quantity = 1, merchantTarget = sanitizedMerchant)
     }
 }
