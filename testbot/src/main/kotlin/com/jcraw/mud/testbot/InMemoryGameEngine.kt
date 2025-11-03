@@ -585,14 +585,44 @@ class InMemoryGameEngine(
 
         lastConversationNpcId = npc.id
 
-        // Query knowledge
-        val (answer, updatedNpc) = knowledgeManager.queryKnowledge(npc, topic)
+        val worldContext = buildQuestionContext(room, npc, topic)
+        val knowledgeResult = knowledgeManager.queryKnowledge(npc, topic, worldContext)
+        var updatedNpc = knowledgeResult.npc
+
+        val questionEvent = com.jcraw.mud.core.SocialEvent.QuestionAsked(
+            topic = knowledgeResult.normalizedTopic,
+            questionText = knowledgeResult.question,
+            answerText = knowledgeResult.answer,
+            description = "${worldState.player.name} asked ${npc.name} about \"${knowledgeResult.question}\""
+        )
+        updatedNpc = dispositionManager?.applyEvent(updatedNpc, questionEvent) ?: updatedNpc
 
         // Update world state with updated NPC (may have new knowledge)
         worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
 
         val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
-        return "${npc.name} says: \"$answer\"" + questNotifications
+        return "${npc.name} says: \"${knowledgeResult.answer}\"" + questNotifications
+    }
+
+    private fun buildQuestionContext(room: com.jcraw.mud.core.Room, npc: Entity.NPC, topic: String): String {
+        val social = npc.getComponent<com.jcraw.mud.core.SocialComponent>(com.jcraw.mud.core.ComponentType.SOCIAL)
+        return buildString {
+            appendLine("Location: ${room.name}")
+            if (room.traits.isNotEmpty()) {
+                appendLine("Location traits: ${room.traits.joinToString()}")
+            }
+            appendLine("NPC name: ${npc.name}")
+            appendLine("NPC description: ${npc.description}")
+            if (social != null) {
+                appendLine("NPC personality: ${social.personality}")
+                if (social.traits.isNotEmpty()) {
+                    appendLine("NPC traits: ${social.traits.joinToString()}")
+                }
+                appendLine("NPC disposition score: ${social.disposition}")
+            }
+            appendLine("Player name: ${worldState.player.name}")
+            appendLine("Topic requested: $topic")
+        }
     }
 
     private fun handleUseSkill(skill: String?, action: String): String {

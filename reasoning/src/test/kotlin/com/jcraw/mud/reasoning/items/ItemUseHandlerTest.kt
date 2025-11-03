@@ -1,7 +1,7 @@
 package com.jcraw.mud.reasoning.items
 
 import com.jcraw.mud.core.*
-import com.jcraw.mud.core.repository.ItemRepository
+import com.jcraw.mud.reasoning.TestItemRepository
 import kotlin.test.*
 
 /**
@@ -10,7 +10,7 @@ import kotlin.test.*
  */
 class ItemUseHandlerTest {
 
-    private lateinit var mockItemRepository: ItemRepository
+    private lateinit var itemRepository: TestItemRepository
     private lateinit var itemUseHandler: ItemUseHandler
 
     // Test item templates
@@ -120,9 +120,8 @@ class ItemUseHandlerTest {
 
     @BeforeTest
     fun setup() {
-        // Create mock repository
-        mockItemRepository = object : ItemRepository {
-            private val templates = mapOf(
+        itemRepository = TestItemRepository(
+            initialTemplates = mapOf(
                 "pot_clay_001" to clayPotTemplate,
                 "dynamite_001" to dynamiteTemplate,
                 "sword_iron_001" to ironSwordTemplate,
@@ -131,24 +130,9 @@ class ItemUseHandlerTest {
                 "rope_001" to ropeTemplate,
                 "backpack_leather_001" to backpackTemplate
             )
+        )
 
-            override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(templates[templateId])
-            override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(templates)
-            override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> =
-                Result.success(templates.values.filter { it.type == type })
-            override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> =
-                Result.success(templates.values.filter { it.rarity == rarity })
-            override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
-            override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
-            override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
-            override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
-            override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
-            override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-            override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
-            override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
-        }
-
-        itemUseHandler = ItemUseHandler(mockItemRepository)
+        itemUseHandler = ItemUseHandler(itemRepository)
     }
 
     @Test

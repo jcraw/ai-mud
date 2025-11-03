@@ -4,6 +4,8 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.memory.social.*
 import com.jcraw.mud.reasoning.skill.SkillManager
 import com.jcraw.mud.reasoning.skill.SkillCheckResult
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Manages NPC disposition and social event application
@@ -19,6 +21,7 @@ class DispositionManager(
     private val eventRepo: SocialEventRepository,
     private val skillManager: SkillManager? = null // Optional for backward compatibility
 ) {
+    private val json = Json { ignoreUnknownKeys = true }
 
     /**
      * Apply social event to NPC, persisting changes to database
@@ -52,7 +55,8 @@ class DispositionManager(
             eventType = event.eventType,
             dispositionDelta = event.dispositionDelta,
             description = event.description,
-            timestamp = System.currentTimeMillis()
+            timestamp = System.currentTimeMillis(),
+            metadata = event.metadata.takeIf { it.isNotEmpty() }?.let { json.encodeToString(it) }
         )
         val logResult = eventRepo.save(eventRecord)
         if (logResult.isFailure) {

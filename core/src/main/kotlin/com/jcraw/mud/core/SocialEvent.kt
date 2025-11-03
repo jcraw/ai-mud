@@ -11,6 +11,7 @@ sealed class SocialEvent {
     abstract val dispositionDelta: Int
     abstract val description: String
     abstract val eventType: String
+    open val metadata: Map<String, String> = emptyMap()
 
     @Serializable
     data class HelpProvided(
@@ -104,6 +105,22 @@ sealed class SocialEvent {
         override val description: String = "You had a conversation"
     ) : SocialEvent() {
         override val eventType: String = "CONVERSATION_HELD"
+    }
+
+    @Serializable
+    data class QuestionAsked(
+        val topic: String,
+        val questionText: String,
+        val answerText: String,
+        override val description: String,
+        override val dispositionDelta: Int = 0
+    ) : SocialEvent() {
+        override val eventType: String = "QUESTION_ASKED"
+        override val metadata: Map<String, String> = mapOf(
+            "topic" to topic,
+            "question" to questionText,
+            "answer" to answerText
+        )
     }
 
     @Serializable

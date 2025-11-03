@@ -272,9 +272,20 @@ object ClientSocialHandlers {
                 return
             }
 
-            val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
+            val worldContext = buildRoomQuestionContext(game, room, npc, topic)
+            val knowledgeResult = game.npcKnowledgeManager.queryKnowledge(npc, topic, worldContext)
+            var updatedNpc = knowledgeResult.npc
+
+            val questionEvent = SocialEvent.QuestionAsked(
+                topic = knowledgeResult.normalizedTopic,
+                questionText = knowledgeResult.question,
+                answerText = knowledgeResult.answer,
+                description = "${game.worldState.player.name} asked ${npc.name} about \"${knowledgeResult.question}\""
+            )
+            updatedNpc = game.dispositionManager.applyEvent(updatedNpc, questionEvent)
+
             game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-            game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"$answer\""))
+            game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"${knowledgeResult.answer}\""))
             game.trackQuests(QuestAction.TalkedToNPC(npc.id))
             return
         }
@@ -295,12 +306,23 @@ object ClientSocialHandlers {
             return
         }
 
-        val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
+        val worldContext = buildSpaceQuestionContext(game, space, npc, topic)
+        val knowledgeResult = game.npcKnowledgeManager.queryKnowledge(npc, topic, worldContext)
+        var updatedNpc = knowledgeResult.npc
+
+        val questionEvent = SocialEvent.QuestionAsked(
+            topic = knowledgeResult.normalizedTopic,
+            questionText = knowledgeResult.question,
+            answerText = knowledgeResult.answer,
+            description = "${game.worldState.player.name} asked ${npc.name} about \"${knowledgeResult.question}\""
+        )
+        updatedNpc = game.dispositionManager.applyEvent(updatedNpc, questionEvent)
+
         game.spaceEntityRepository.save(updatedNpc).onFailure {
             println("Warning: failed to persist NPC knowledge update: ${it.message}")
         }
 
-        game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"$answer\""))
+        game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"${knowledgeResult.answer}\""))
         game.trackQuests(QuestAction.TalkedToNPC(entityId))
     }
 
@@ -336,6 +358,55 @@ object ClientSocialHandlers {
         }
 
         return null
+    }
+
+    private fun buildRoomQuestionContext(
+        game: EngineGameClient,
+        room: Room,
+        npc: Entity.NPC,
+        topic: String
+    ): String {
+        val social = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)
+        return buildString {
+            appendLine("Location: ${room.name}")
+            if (room.traits.isNotEmpty()) {
+                appendLine("Location traits: ${room.traits.joinToString()}")
+            }
+            appendLine("NPC name: ${npc.name}")
+            appendLine("NPC description: ${npc.description}")
+            if (social != null) {
+                appendLine("NPC personality: ${social.personality}")
+                if (social.traits.isNotEmpty()) {
+                    appendLine("NPC traits: ${social.traits.joinToString()}")
+                }
+                appendLine("NPC disposition score: ${social.disposition}")
+            }
+            appendLine("Player name: ${game.worldState.player.name}")
+            appendLine("Topic requested: $topic")
+        }
+    }
+
+    private fun buildSpaceQuestionContext(
+        game: EngineGameClient,
+        space: SpacePropertiesComponent,
+        npc: Entity.NPC,
+        topic: String
+    ): String {
+        val social = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)
+        return buildString {
+            appendLine("Space description: ${space.description}")
+            appendLine("NPC name: ${npc.name}")
+            appendLine("NPC description: ${npc.description}")
+            if (social != null) {
+                appendLine("NPC personality: ${social.personality}")
+                if (social.traits.isNotEmpty()) {
+                    appendLine("NPC traits: ${social.traits.joinToString()}")
+                }
+                appendLine("NPC disposition score: ${social.disposition}")
+            }
+            appendLine("Player name: ${game.worldState.player.name}")
+            appendLine("Topic requested: $topic")
+        }
     }
 
     private fun merchantResponse(game: EngineGameClient, npc: Entity.NPC, topic: String): String? {

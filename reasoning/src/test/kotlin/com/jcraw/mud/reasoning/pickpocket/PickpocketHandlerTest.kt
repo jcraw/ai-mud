@@ -1,7 +1,7 @@
 package com.jcraw.mud.reasoning.pickpocket
 
 import com.jcraw.mud.core.*
-import com.jcraw.mud.core.repository.ItemRepository
+import com.jcraw.mud.reasoning.TestItemRepository
 import kotlin.random.Random
 import kotlin.test.*
 
@@ -11,7 +11,7 @@ import kotlin.test.*
  */
 class PickpocketHandlerTest {
 
-    private lateinit var mockItemRepository: ItemRepository
+    private lateinit var itemRepository: TestItemRepository
     private lateinit var pickpocketHandler: PickpocketHandler
 
     // Test item templates
@@ -55,36 +55,20 @@ class PickpocketHandlerTest {
 
     @BeforeTest
     fun setup() {
-        // Create mock repository
-        mockItemRepository = object : ItemRepository {
-            private val templates = mapOf(
+        itemRepository = TestItemRepository(
+            initialTemplates = mapOf(
                 "dagger_001" to daggerTemplate,
                 "potion_health_001" to potionTemplate,
                 "dynamite_001" to dynamiteTemplate
             )
-
-            override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(templates[templateId])
-            override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(templates)
-            override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> =
-                Result.success(templates.values.filter { it.type == type })
-            override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> =
-                Result.success(templates.values.filter { it.rarity == rarity })
-            override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
-            override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
-            override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
-            override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
-            override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
-            override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-            override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
-            override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
-        }
+        )
     }
 
     @Test
     fun `stealFromNPC success - steal gold from NPC`() {
         // High roll to ensure success
         val fixedRandom = Random(12345) // Seed for consistent rolls
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -135,7 +119,7 @@ class PickpocketHandlerTest {
     @Test
     fun `stealFromNPC success - steal specific item from NPC`() {
         val fixedRandom = Random(12345)
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val daggerInstance = ItemInstance(
             id = "dagger_instance_001",
@@ -195,7 +179,7 @@ class PickpocketHandlerTest {
     @Test
     fun `placeItemOnNPC success - place item in NPC inventory`() {
         val fixedRandom = Random(12345)
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val dynamiteInstance = ItemInstance(
             id = "dynamite_instance_001",
@@ -261,7 +245,7 @@ class PickpocketHandlerTest {
             override fun nextInt(from: Int, until: Int): Int = 1 // Always roll minimum
             override fun nextBits(bitCount: Int): Int = 0
         }
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -322,7 +306,7 @@ class PickpocketHandlerTest {
             override fun nextInt(from: Int, until: Int): Int = 1
             override fun nextBits(bitCount: Int): Int = 0
         }
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -378,7 +362,7 @@ class PickpocketHandlerTest {
     @Test
     fun `high Stealth overcomes low Perception`() {
         val fixedRandom = Random(99999) // Decent roll
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -425,7 +409,7 @@ class PickpocketHandlerTest {
     @Test
     fun `wariness status increases difficulty on retry`() {
         val fixedRandom = Random(54321)
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -497,7 +481,7 @@ class PickpocketHandlerTest {
 
     @Test
     fun `stealFromNPC failure - target has no inventory`() {
-        pickpocketHandler = PickpocketHandler(mockItemRepository)
+        pickpocketHandler = PickpocketHandler(itemRepository)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -535,7 +519,7 @@ class PickpocketHandlerTest {
 
     @Test
     fun `stealFromNPC failure - target has no gold`() {
-        pickpocketHandler = PickpocketHandler(mockItemRepository)
+        pickpocketHandler = PickpocketHandler(itemRepository)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -582,7 +566,7 @@ class PickpocketHandlerTest {
 
     @Test
     fun `stealFromNPC failure - target doesn't have specified item`() {
-        pickpocketHandler = PickpocketHandler(mockItemRepository)
+        pickpocketHandler = PickpocketHandler(itemRepository)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),
@@ -629,7 +613,7 @@ class PickpocketHandlerTest {
 
     @Test
     fun `placeItemOnNPC failure - player doesn't have item`() {
-        pickpocketHandler = PickpocketHandler(mockItemRepository)
+        pickpocketHandler = PickpocketHandler(itemRepository)
 
         val playerInventory = InventoryComponent(
             items = emptyList(), // Empty
@@ -677,7 +661,7 @@ class PickpocketHandlerTest {
     @Test
     fun `Agility skill can be used instead of Stealth`() {
         val fixedRandom = Random(12345)
-        pickpocketHandler = PickpocketHandler(mockItemRepository, fixedRandom)
+        pickpocketHandler = PickpocketHandler(itemRepository, fixedRandom)
 
         val playerInventory = InventoryComponent(
             items = emptyList(),

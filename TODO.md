@@ -32,7 +32,7 @@
 - ❌ Test compilation errors (ItemRepository API changes, WorldGenerationIntegrationTest needs fixes)
 
 **Next Steps:**
-1. Fix test compilation errors in ItemUseHandlerTest and PickpocketHandlerTest (ItemRepository API mismatch)
+1. ✅ Fix test compilation errors in ItemUseHandlerTest and PickpocketHandlerTest (ItemRepository API mismatch) — introduced shared TestItemRepository stub for Result-based API
 2. Fix WorldGenerationIntegrationTest nullable type issues
 3. Run integration tests to validate complete system
 4. Update CLAUDE.md status when tests pass

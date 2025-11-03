@@ -167,14 +167,54 @@ object SocialHandlers {
 
         game.lastConversationNpcId = npc.id
 
-        // Query knowledge
-        val (answer, updatedNpc) = game.npcKnowledgeManager.queryKnowledge(npc, topic)
+        // Query knowledge with full world context for better LLM grounding
+        val worldContext = buildQuestionContext(game, room, npc, topic)
+        val knowledgeResult = game.npcKnowledgeManager.queryKnowledge(npc, topic, worldContext)
+        var updatedNpc = knowledgeResult.npc
 
-        // Update world state with updated NPC (may have new knowledge)
+        // Log social event for analytics/history
+        val questionEvent = com.jcraw.mud.core.SocialEvent.QuestionAsked(
+            topic = knowledgeResult.normalizedTopic,
+            questionText = knowledgeResult.question,
+            answerText = knowledgeResult.answer,
+            description = "${game.worldState.player.name} asked ${npc.name} about \"${knowledgeResult.question}\""
+        )
+        updatedNpc = game.dispositionManager.applyEvent(updatedNpc, questionEvent)
+
+        // Update world state with updated NPC (may have new knowledge or disposition)
         game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
 
-        println("\n${npc.name} says: \"$answer\"")
+        println("\n${npc.name} says: \"${knowledgeResult.answer}\"")
         game.trackQuests(QuestAction.TalkedToNPC(npc.id))
+    }
+
+    private fun buildQuestionContext(
+        game: MudGame,
+        room: com.jcraw.mud.core.Room,
+        npc: Entity.NPC,
+        topic: String
+    ): String {
+        val player = game.worldState.player
+        val social = npc.getComponent<com.jcraw.mud.core.SocialComponent>(com.jcraw.mud.core.ComponentType.SOCIAL)
+
+        return buildString {
+            appendLine("Location: ${room.name}")
+            if (room.traits.isNotEmpty()) {
+                appendLine("Location traits: ${room.traits.joinToString()}")
+            }
+            appendLine("NPC name: ${npc.name}")
+            appendLine("NPC description: ${npc.description}")
+            if (social != null) {
+                appendLine("NPC personality: ${social.personality}")
+                if (social.traits.isNotEmpty()) {
+                    appendLine("NPC traits: ${social.traits.joinToString()}")
+                }
+                appendLine("NPC disposition score: ${social.disposition}")
+            }
+            appendLine("Player name: ${player.name}")
+            appendLine("Player disposition towards NPC: ${npc.getDisposition()}")
+            appendLine("Topic requested: $topic")
+        }
     }
 
     /**

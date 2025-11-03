@@ -122,6 +122,7 @@ Last updated: 2025-11-01
 - [x] Fix WorldPersistenceTest.kt mocks (Repository API mismatch) - Fixed AutosaveManagerTest mock repositories
 - [x] Fix GenerationCacheTest.kt (parentChunkId parameter added to GenerationContext) - No changes needed, tests already correct
 - [x] Fix WorldDatabaseTest.kt foreign key constraint test - Enabled PRAGMA foreign_keys in WorldDatabase
+- [x] Fix ItemUseHandlerTest / PickpocketHandlerTest (ItemRepository Result API) - Added shared TestItemRepository stub for tests
 
 ## Current Priority
 

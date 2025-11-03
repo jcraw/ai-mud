@@ -60,6 +60,8 @@ class SocialDatabaseTest {
             KnowledgeEntry(
                 id = "k1",
                 entityId = "npc1",
+                topic = "test-knowledge",
+                question = "What is your test knowledge?",
                 content = "Test knowledge",
                 isCanon = false,
                 source = KnowledgeSource.PLAYER_TAUGHT,
@@ -117,6 +119,8 @@ class KnowledgeRepositoryTest {
         val entry = KnowledgeEntry(
             id = "k1",
             entityId = "npc1",
+            topic = "dragon location",
+            question = "Where does the dragon sleep?",
             content = "The dragon sleeps in the mountain",
             isCanon = false,
             source = KnowledgeSource.PLAYER_TAUGHT,
@@ -130,15 +134,17 @@ class KnowledgeRepositoryTest {
         assertNotNull(result)
         assertEquals("k1", result.id)
         assertEquals("npc1", result.entityId)
+        assertEquals("dragon location", result.topic)
+        assertEquals("Where does the dragon sleep?", result.question)
         assertEquals("The dragon sleeps in the mountain", result.content)
         assertEquals("rumor", result.tags["category"])
     }
 
     @Test
     fun `findByNpcId returns all entries for NPC`() {
-        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
-        val entry2 = KnowledgeEntry("k2", "npc1", "Fact 2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
-        val entry3 = KnowledgeEntry("k3", "npc2", "Fact 3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
+        val entry1 = KnowledgeEntry("k1", "npc1", "fact topic", "What fact?", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
+        val entry2 = KnowledgeEntry("k2", "npc1", "rumor topic", "Tell me a rumor", "Fact 2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
+        val entry3 = KnowledgeEntry("k3", "npc2", "other topic", "Other question", "Fact 3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
 
         repository.save(entry1)
         repository.save(entry2)
@@ -153,9 +159,9 @@ class KnowledgeRepositoryTest {
 
     @Test
     fun `findByCategory filters by category`() {
-        val entry1 = KnowledgeEntry("k1", "npc1", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
-        val entry2 = KnowledgeEntry("k2", "npc1", "Rumor 1", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
-        val entry3 = KnowledgeEntry("k3", "npc1", "Fact 2", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
+        val entry1 = KnowledgeEntry("k1", "npc1", "fact topic", "Share a fact", "Fact 1", false, KnowledgeSource.OBSERVED, 1000L, mapOf("category" to "fact"))
+        val entry2 = KnowledgeEntry("k2", "npc1", "rumor topic", "Share a rumor", "Rumor 1", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor"))
+        val entry3 = KnowledgeEntry("k3", "npc1", "second fact", "Another fact?", "Fact 2", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact"))
 
         repository.save(entry1)
         repository.save(entry2)
@@ -169,7 +175,7 @@ class KnowledgeRepositoryTest {
 
     @Test
     fun `delete removes entry`() {
-        val entry = KnowledgeEntry("k1", "npc1", "Content", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact"))
+        val entry = KnowledgeEntry("k1", "npc1", "test topic", "Test question", "Content", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact"))
         repository.save(entry)
 
         val beforeDelete = repository.findById("k1").getOrNull()
@@ -183,9 +189,9 @@ class KnowledgeRepositoryTest {
 
     @Test
     fun `deleteAllForNpc removes all NPC entries`() {
-        repository.save(KnowledgeEntry("k1", "npc1", "C1", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact")))
-        repository.save(KnowledgeEntry("k2", "npc1", "C2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor")))
-        repository.save(KnowledgeEntry("k3", "npc2", "C3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact")))
+        repository.save(KnowledgeEntry("k1", "npc1", "topic1", "Q1", "C1", false, KnowledgeSource.PLAYER_TAUGHT, 1000L, mapOf("category" to "fact")))
+        repository.save(KnowledgeEntry("k2", "npc1", "topic2", "Q2", "C2", false, KnowledgeSource.PLAYER_TAUGHT, 2000L, mapOf("category" to "rumor")))
+        repository.save(KnowledgeEntry("k3", "npc2", "topic3", "Q3", "C3", true, KnowledgeSource.PREDEFINED, 3000L, mapOf("category" to "fact")))
 
         repository.deleteAllForNpc("npc1")
 

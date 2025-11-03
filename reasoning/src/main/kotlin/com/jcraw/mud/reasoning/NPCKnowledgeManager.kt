@@ -38,28 +38,51 @@ class NPCKnowledgeManager(
         npc: Entity.NPC,
         question: String,
         worldContext: String = ""
-    ): Pair<String, Entity.NPC> {
-        // Search existing knowledge
+    ): KnowledgeResult {
+        val trimmedQuestion = question.trim().ifBlank { "Unknown topic" }
+        val normalizedTopic = normalizeTopic(trimmedQuestion)
         val existingKnowledge = knowledgeRepo.findByNpcId(npc.id).getOrElse { emptyList() }
 
-        // Simple keyword matching for existing knowledge
+        // Exact topic match first, then fallback to loose keyword match for backward compatibility
         val relevantKnowledge = existingKnowledge.find { entry ->
-            containsRelevantKeywords(entry.content, question)
+            topicsMatch(entry, normalizedTopic) || containsRelevantKeywords(entry.content, trimmedQuestion)
         }
 
         if (relevantKnowledge != null) {
             // Return existing knowledge
-            return relevantKnowledge.content to npc
+            val topicId = relevantKnowledge.topic.takeIf { it.isNotBlank() } ?: normalizedTopic
+            return KnowledgeResult(
+                answer = relevantKnowledge.content,
+                npc = npc,
+                normalizedTopic = topicId,
+                question = trimmedQuestion
+            )
         }
 
         // No existing knowledge - generate new canon if LLM available
         if (llmClient != null) {
-            val (answer, updatedNpc) = generateCanonKnowledge(npc, question, worldContext)
-            return answer to updatedNpc
+            val (answer, updatedNpc) = generateCanonKnowledge(
+                npc = npc,
+                question = trimmedQuestion,
+                normalizedTopic = normalizedTopic,
+                worldContext = worldContext,
+                existingKnowledge = existingKnowledge
+            )
+            return KnowledgeResult(
+                answer = answer,
+                npc = updatedNpc,
+                normalizedTopic = normalizedTopic,
+                question = trimmedQuestion
+            )
         }
 
         // Fallback if no LLM
-        return "${npc.name} doesn't know anything about that." to npc
+        return KnowledgeResult(
+            answer = "${npc.name} doesn't know anything about that.",
+            npc = npc,
+            normalizedTopic = normalizedTopic,
+            question = trimmedQuestion
+        )
     }
 
     /**
@@ -70,14 +93,26 @@ class NPCKnowledgeManager(
     private suspend fun generateCanonKnowledge(
         npc: Entity.NPC,
         question: String,
-        worldContext: String
+        normalizedTopic: String,
+        worldContext: String,
+        existingKnowledge: List<KnowledgeEntry>
     ): Pair<String, Entity.NPC> {
         val social = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)
         val personality = social?.personality ?: "ordinary"
+        val traits = social?.traits?.takeIf { it.isNotEmpty() }?.joinToString(", ")
+        val disposition = social?.getDispositionTier()
+        val knowledgeSummary = buildKnowledgeSummary(existingKnowledge)
 
         // Build LLM prompt
-        val systemPrompt = buildCanonGenerationPrompt(personality, worldContext)
-        val userPrompt = "Question: $question"
+        val systemPrompt = buildCanonGenerationPrompt(
+            npcName = npc.name,
+            personality = personality,
+            traits = traits,
+            disposition = disposition,
+            worldContext = worldContext,
+            existingKnowledge = knowledgeSummary
+        )
+        val userPrompt = buildUserPrompt(question, existingKnowledge)
 
         // Call LLM (using runCatching to handle failures gracefully)
         val answer = runCatching {
@@ -103,11 +138,17 @@ class NPCKnowledgeManager(
         val entry = KnowledgeEntry(
             id = knowledgeId,
             entityId = npc.id,
+            topic = normalizedTopic,
+            question = question,
             content = answer,
             isCanon = true,
             source = KnowledgeSource.GENERATED,
             timestamp = System.currentTimeMillis(),
-            tags = mapOf("category" to "canon")
+            tags = mapOf(
+                "category" to "canon",
+                "topic" to normalizedTopic,
+                "question" to question
+            )
         )
 
         val saveResult = knowledgeRepo.save(entry)
@@ -130,14 +171,33 @@ class NPCKnowledgeManager(
     /**
      * Build LLM prompt for canon knowledge generation
      */
-    private fun buildCanonGenerationPrompt(personality: String, worldContext: String): String {
+    private fun buildCanonGenerationPrompt(
+        npcName: String,
+        personality: String,
+        traits: String?,
+        disposition: DispositionTier?,
+        worldContext: String,
+        existingKnowledge: String
+    ): String {
         return buildString {
             appendLine("You are generating lore for a fantasy MUD game world.")
-            appendLine("You are speaking as an NPC with personality: $personality")
+            appendLine("You are speaking as the NPC named $npcName.")
+            appendLine("NPC personality: $personality")
+            if (!traits.isNullOrBlank()) {
+                appendLine("NPC traits: $traits")
+            }
+            if (disposition != null) {
+                appendLine("NPC disposition towards the player: ${disposition.name.lowercase()}")
+            }
             appendLine()
             if (worldContext.isNotEmpty()) {
                 appendLine("World context:")
                 appendLine(worldContext)
+                appendLine()
+            }
+            if (existingKnowledge.isNotBlank()) {
+                appendLine("Existing knowledge you have already confirmed:")
+                appendLine(existingKnowledge)
                 appendLine()
             }
             appendLine("Rules:")
@@ -146,6 +206,21 @@ class NPCKnowledgeManager(
             appendLine("- Generate consistent, believable fantasy lore")
             appendLine("- Don't contradict established world facts")
             appendLine("- If you don't know, say so in character")
+        }
+    }
+
+    private fun buildUserPrompt(question: String, existingKnowledge: List<KnowledgeEntry>): String {
+        val relatedExamples = existingKnowledge
+            .filter { containsRelevantKeywords(it.content, question) }
+            .joinToString(separator = "\n") { "- Previously answered (${it.topic}): ${it.content}" }
+
+        return buildString {
+            appendLine("Player question: $question")
+            if (relatedExamples.isNotBlank()) {
+                appendLine()
+                appendLine("Similar answers you've given before:")
+                appendLine(relatedExamples)
+            }
         }
     }
 
@@ -175,18 +250,26 @@ class NPCKnowledgeManager(
      */
     fun addPredefinedKnowledge(
         npc: Entity.NPC,
+        topic: String,
         content: String,
+        question: String = topic,
         category: String = "predefined"
     ): Entity.NPC {
         val knowledgeId = UUID.randomUUID().toString()
         val entry = KnowledgeEntry(
             id = knowledgeId,
             entityId = npc.id,
+            topic = normalizeTopic(topic),
+            question = question,
             content = content,
             isCanon = true,
             source = KnowledgeSource.PREDEFINED,
             timestamp = System.currentTimeMillis(),
-            tags = mapOf("category" to category)
+            tags = mapOf(
+                "category" to category,
+                "topic" to normalizeTopic(topic),
+                "question" to question
+            )
         )
 
         // Save to repository
@@ -221,4 +304,34 @@ class NPCKnowledgeManager(
     fun getKnowledgeByCategory(npcId: String, category: String): List<KnowledgeEntry> {
         return knowledgeRepo.findByCategory(npcId, category).getOrElse { emptyList() }
     }
+
+    private fun normalizeTopic(input: String): String {
+        return input.lowercase()
+            .replace(Regex("[^a-z0-9\\s]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
+
+    private fun topicsMatch(entry: KnowledgeEntry, normalizedTopic: String): Boolean {
+        val entryTopic = entry.topic.ifBlank { entry.question }
+        return normalizeTopic(entryTopic) == normalizedTopic
+    }
+
+    private fun buildKnowledgeSummary(entries: List<KnowledgeEntry>): String {
+        if (entries.isEmpty()) return ""
+        return entries
+            .sortedByDescending { it.timestamp }
+            .take(5)
+            .joinToString(separator = "\n") { entry ->
+                val topic = entry.topic.ifBlank { entry.question }
+                "- Topic: $topic | Answer: ${entry.content}"
+            }
+    }
+
+    data class KnowledgeResult(
+        val answer: String,
+        val npc: Entity.NPC,
+        val normalizedTopic: String,
+        val question: String
+    )
 }

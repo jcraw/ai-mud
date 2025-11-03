@@ -391,6 +391,8 @@ class ComponentSystemTest {
             val entry = KnowledgeEntry(
                 id = "knowledge-1",
                 entityId = "npc-1",
+                topic = "ancient ruins location",
+                question = "Where are the ancient ruins?",
                 content = "The ancient ruins lie to the north",
                 isCanon = true,
                 source = KnowledgeSource.PREDEFINED
@@ -408,6 +410,8 @@ class ComponentSystemTest {
             val entry = KnowledgeEntry(
                 id = "knowledge-1",
                 entityId = "npc-1",
+                topic = "ancient ruins location",
+                question = "Where are the ancient ruins?",
                 content = "The ancient ruins lie to the north",
                 isCanon = true,
                 source = KnowledgeSource.PREDEFINED,
@@ -423,6 +427,8 @@ class ComponentSystemTest {
             val predefined = KnowledgeEntry(
                 id = "k1",
                 entityId = "npc-1",
+                topic = "test topic",
+                question = "Test question?",
                 content = "Test",
                 isCanon = true,
                 source = KnowledgeSource.PREDEFINED
@@ -431,6 +437,8 @@ class ComponentSystemTest {
             val generated = KnowledgeEntry(
                 id = "k2",
                 entityId = "npc-1",
+                topic = "test topic",
+                question = "Test question?",
                 content = "Test",
                 isCanon = true,
                 source = KnowledgeSource.GENERATED
@@ -439,6 +447,8 @@ class ComponentSystemTest {
             val playerTaught = KnowledgeEntry(
                 id = "k3",
                 entityId = "npc-1",
+                topic = "test topic",
+                question = "Test question?",
                 content = "Test",
                 isCanon = false,
                 source = KnowledgeSource.PLAYER_TAUGHT

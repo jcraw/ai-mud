@@ -45,12 +45,14 @@ class SocialDatabase(
                 CREATE TABLE IF NOT EXISTS knowledge_entries (
                     id TEXT PRIMARY KEY,
                     npc_id TEXT NOT NULL,
+                    topic TEXT NOT NULL DEFAULT '',
+                    question TEXT NOT NULL DEFAULT '',
                     content TEXT NOT NULL,
                     category TEXT NOT NULL,
                     timestamp INTEGER NOT NULL,
                     source TEXT NOT NULL,
                     is_canon INTEGER DEFAULT 1,
-                    tags TEXT DEFAULT ''
+                    tags TEXT DEFAULT '{}'
                 )
                 """.trimIndent()
             )
@@ -89,6 +91,8 @@ class SocialDatabase(
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_events_npc ON social_events(npc_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_events_timestamp ON social_events(timestamp)")
         }
+
+        ensureKnowledgeColumns(conn)
     }
 
     /**
@@ -100,6 +104,34 @@ class SocialDatabase(
             stmt.execute("DELETE FROM knowledge_entries")
             stmt.execute("DELETE FROM social_events")
             stmt.execute("DELETE FROM social_components")
+        }
+    }
+
+    private fun ensureKnowledgeColumns(conn: Connection) {
+        val columns = mutableSetOf<String>()
+        conn.createStatement().use { stmt ->
+            val rs = stmt.executeQuery("PRAGMA table_info(knowledge_entries)")
+            while (rs.next()) {
+                columns.add(rs.getString("name"))
+            }
+        }
+
+        if ("topic" !in columns) {
+            conn.createStatement().use { stmt ->
+                stmt.execute("ALTER TABLE knowledge_entries ADD COLUMN topic TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        if ("question" !in columns) {
+            conn.createStatement().use { stmt ->
+                stmt.execute("ALTER TABLE knowledge_entries ADD COLUMN question TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        if ("tags" !in columns) {
+            conn.createStatement().use { stmt ->
+                stmt.execute("ALTER TABLE knowledge_entries ADD COLUMN tags TEXT DEFAULT '{}'")
+            }
         }
     }
 }

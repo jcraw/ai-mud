@@ -40,6 +40,7 @@ All social interactions create `SocialEvent` records:
 - **Emotes** - Player expresses emotion toward NPC
 - **Questions** - Player asks NPC about a topic
 - **Quest completion** - Player completes quest for NPC (+15 disposition bonus)
+- **Knowledge exchanges** - Every question/answer pair is persisted with normalized topic, original phrasing, and canon reply
 
 ## Emote System
 
@@ -89,9 +90,9 @@ The Elder tells you: "The ancient artifact you seek lies deep in the crypt..."
 1. Player asks question
 2. System searches NPC's knowledge base for relevant information
 3. If knowledge exists, NPC provides factual answer
-4. If no knowledge, LLM generates answer and determines canon facts
-5. Canon facts stored in knowledge base for future reference
-6. All questions/answers recorded as social events
+4. If no knowledge, LLM generates an in-character answer using room context, NPC personality, and prior canon
+5. Canon facts are stored with normalized topic + original question and reused for future conversations
+6. Every exchange is logged as a `QUESTION_ASKED` social event with question/answer metadata
 
 ## Disposition System
 
@@ -222,7 +223,8 @@ Social data persists in SQLite with 3 tables:
 CREATE TABLE knowledge_entries (
     id TEXT PRIMARY KEY,
     entity_id TEXT NOT NULL,     -- NPC who knows this
-    topic TEXT NOT NULL,          -- What the knowledge is about
+    topic TEXT NOT NULL,          -- Normalized topic identifier
+    question TEXT NOT NULL,       -- Original player phrasing
     content TEXT NOT NULL,        -- The actual knowledge
     is_canon INTEGER NOT NULL,    -- 1 if confirmed true, 0 if uncertain
     source TEXT NOT NULL,         -- CONVERSATION, OBSERVATION, QUEST, etc.
@@ -237,7 +239,7 @@ CREATE TABLE social_events (
     id TEXT PRIMARY KEY,
     entity_id TEXT NOT NULL,     -- NPC involved
     event_type TEXT NOT NULL,    -- EMOTE, QUESTION, QUEST_COMPLETE
-    details TEXT NOT NULL,       -- JSON event data
+    details TEXT NOT NULL,       -- JSON event data (legacy; use metadata where possible)
     disposition_change INTEGER NOT NULL,
     timestamp INTEGER NOT NULL
 )

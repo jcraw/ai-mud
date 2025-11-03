@@ -10,11 +10,13 @@ import kotlinx.serialization.Serializable
 data class KnowledgeEntry(
     val id: String,
     val entityId: String, // Which NPC knows this
+    val topic: String, // Normalized topic identifier
+    val question: String, // Player's phrasing of the question
     val content: String, // The actual knowledge text
     val isCanon: Boolean, // True if this is official lore
     val source: KnowledgeSource,
     val timestamp: Long = System.currentTimeMillis(),
-    val tags: Map<String, String> = emptyMap() // For categorization
+    val tags: Map<String, String> = emptyMap() // For categorization and metadata
 )
 
 @Serializable
