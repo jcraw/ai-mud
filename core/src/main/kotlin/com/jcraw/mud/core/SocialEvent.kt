@@ -11,7 +11,8 @@ sealed class SocialEvent {
     abstract val dispositionDelta: Int
     abstract val description: String
     abstract val eventType: String
-    open val metadata: Map<String, String> = emptyMap()
+    open val metadata: Map<String, String>
+        get() = emptyMap()
 
     @Serializable
     data class HelpProvided(
