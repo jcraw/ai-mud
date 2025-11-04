@@ -1,0 +1,103 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 19
+        - Passed: 12
+        - Failed: 7
+        - Pass Rate: 63%
+
+        Timing:
+        - Start: 2025-11-04T22:29:19.984123242Z
+        - End: 2025-11-04T22:30:48.932596821Z
+        - Duration: 88.95s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: equip iron sword
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: equip chainmail
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: take health potion
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: go north
+Reason: Player input 'go north' was not recognized, preventing progression to the throne room.
+
+Step 12: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 15: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 16: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 17: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 18: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 19: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
