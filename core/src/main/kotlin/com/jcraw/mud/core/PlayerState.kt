@@ -10,15 +10,16 @@ data class PlayerState(
     val health: Int = 100,
     val maxHealth: Int = 100,
     val stats: Stats = Stats(),
-    val inventory: List<Entity.Item> = emptyList(),
-    val equippedWeapon: Entity.Item? = null,
-    val equippedArmor: Entity.Item? = null,
+    val inventory: List<Entity.Item> = emptyList(), // Legacy - use inventoryComponent instead
+    val equippedWeapon: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
+    val equippedArmor: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
     val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap(),
     val activeQuests: List<Quest> = emptyList(),
     val completedQuests: List<QuestId> = emptyList(),
     val experiencePoints: Int = 0,
-    val gold: Int = 0
+    val gold: Int = 0, // Legacy - use inventoryComponent.gold instead
+    val inventoryComponent: InventoryComponent? = null // V2 inventory system
 ) {
     fun addToInventory(item: Entity.Item): PlayerState = copy(inventory = inventory + item)
 
@@ -140,4 +141,63 @@ data class PlayerState(
     fun hasQuest(questId: QuestId): Boolean = activeQuests.any { it.id == questId }
 
     fun hasCompletedQuest(questId: QuestId): Boolean = completedQuests.contains(questId)
+
+    // V2 Inventory Component Methods
+
+    /**
+     * Get or initialize the inventory component
+     * Creates a new one if it doesn't exist, with capacity based on Strength
+     */
+    fun getOrInitInventory(): InventoryComponent {
+        return inventoryComponent ?: InventoryComponent(
+            capacityWeight = stats.strength * 5.0
+        )
+    }
+
+    /**
+     * Update inventory component
+     */
+    fun updateInventory(component: InventoryComponent): PlayerState {
+        return copy(inventoryComponent = component)
+    }
+
+    /**
+     * Add item instance to V2 inventory
+     * Returns null if item cannot be added (weight limit)
+     */
+    fun addItemInstance(instance: ItemInstance, templates: Map<String, ItemTemplate>): PlayerState? {
+        val inv = getOrInitInventory()
+        val template = templates[instance.templateId] ?: return null
+
+        if (!inv.canAdd(template, instance.quantity, templates)) {
+            return null // Over weight limit
+        }
+
+        return updateInventory(inv.addItem(instance))
+    }
+
+    /**
+     * Add gold to V2 inventory
+     */
+    fun addGoldV2(amount: Int): PlayerState {
+        val inv = getOrInitInventory()
+        return updateInventory(inv.addGold(amount))
+    }
+
+    /**
+     * Remove gold from V2 inventory
+     * Returns null if insufficient gold
+     */
+    fun removeGoldV2(amount: Int): PlayerState? {
+        val inv = getOrInitInventory()
+        val updated = inv.removeGold(amount) ?: return null
+        return updateInventory(updated)
+    }
+
+    /**
+     * Check if player has sufficient gold in V2 inventory
+     */
+    fun hasGoldV2(amount: Int): Boolean {
+        return getOrInitInventory().gold >= amount
+    }
 }

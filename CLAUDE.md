@@ -43,8 +43,9 @@ For complete documentation, see:
 - **Skill System V2**: ✅ **Phases 1-11 COMPLETE** - Use-based progression, infinite growth, perks, resources, social integration
 - **Item System V2**: ✅ **COMPLETE** - Comprehensive item system with inventory management, gathering, crafting, trading, and pickpocketing
   - **Inventory**: ECS-based InventoryComponent, weight limits (Strength * 5kg + bonuses), 53 item templates across 10 types
+  - **Player Integration**: ✅ PlayerState.inventoryComponent with V2 looting and weight-based inventory display
   - **Equipment**: 12 equip slots, quality scaling (1-10), skill bonuses, damage/defense modifiers
-  - **Loot**: Weighted drop tables, rarity tiers, corpse-based loot with gold
+  - **Loot**: Weighted drop tables, rarity tiers, corpse-based loot with gold (integrated with player inventory)
   - **Gathering**: Finite harvestable features, skill checks, tool requirements, XP rewards
   - **Crafting**: 24 recipes, D&D-style skill checks, quality scaling, failure mechanics
   - **Trading**: Disposition-based pricing, finite merchant gold, stock management

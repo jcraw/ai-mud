@@ -60,32 +60,86 @@ object ItemHandlers {
     fun handleInventory(game: MudGame) {
         println("Inventory:")
 
-        // Show equipped items
-        if (game.worldState.player.equippedWeapon != null) {
-            println("  Equipped Weapon: ${game.worldState.player.equippedWeapon!!.name} (+${game.worldState.player.equippedWeapon!!.damageBonus} damage)")
-        } else {
-            println("  Equipped Weapon: (none)")
-        }
+        val player = game.worldState.player
+        val invComp = player.inventoryComponent
 
-        if (game.worldState.player.equippedArmor != null) {
-            println("  Equipped Armor: ${game.worldState.player.equippedArmor!!.name} (+${game.worldState.player.equippedArmor!!.defenseBonus} defense)")
-        } else {
-            println("  Equipped Armor: (none)")
-        }
+        // Display V2 inventory if available
+        if (invComp != null) {
+            // Show gold
+            println("  Gold: ${invComp.gold}")
 
-        // Show inventory items
-        if (game.worldState.player.inventory.isEmpty()) {
-            println("  Carrying: (nothing)")
-        } else {
-            println("  Carrying:")
-            game.worldState.player.inventory.forEach { item ->
-                val extra = when (item.itemType) {
-                    ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
-                    ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
-                    ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
-                    else -> ""
+            // Show weight capacity
+            val templates = mutableMapOf<String, ItemTemplate>()
+            invComp.items.forEach { instance ->
+                val result = game.itemRepository.findTemplateById(instance.templateId)
+                result.getOrNull()?.let { templates[it.id] = it }
+            }
+            val currentWeight = invComp.currentWeight(templates)
+            val capacity = invComp.capacityWeight
+            println("  Weight: ${"%.1f".format(currentWeight)}kg / ${"%.1f".format(capacity)}kg")
+
+            // Show equipped items
+            if (invComp.equipped.isNotEmpty()) {
+                println("\n  Equipped:")
+                invComp.equipped.forEach { (slot, instance) ->
+                    val template = templates[instance.templateId]
+                    if (template != null) {
+                        val info = formatItemInfo(instance, template)
+                        println("    $slot: ${template.name}$info")
+                    }
                 }
-                println("    - ${item.name}$extra")
+            } else {
+                println("\n  Equipped: (nothing)")
+            }
+
+            // Show inventory items (exclude equipped)
+            val unequippedItems = invComp.items.filter { item ->
+                !invComp.equipped.values.any { it.id == item.id }
+            }
+
+            if (unequippedItems.isEmpty()) {
+                println("  Carrying: (nothing)")
+            } else {
+                println("  Carrying:")
+                unequippedItems.forEach { instance ->
+                    val template = templates[instance.templateId]
+                    if (template != null) {
+                        val info = formatItemInfo(instance, template)
+                        println("    - ${template.name}$info")
+                    }
+                }
+            }
+        } else {
+            // Fall back to legacy display
+            println("  Gold: ${player.gold}")
+
+            // Show equipped items
+            if (player.equippedWeapon != null) {
+                println("  Equipped Weapon: ${player.equippedWeapon!!.name} (+${player.equippedWeapon!!.damageBonus} damage)")
+            } else {
+                println("  Equipped Weapon: (none)")
+            }
+
+            if (player.equippedArmor != null) {
+                println("  Equipped Armor: ${player.equippedArmor!!.name} (+${player.equippedArmor!!.defenseBonus} defense)")
+            } else {
+                println("  Equipped Armor: (none)")
+            }
+
+            // Show inventory items
+            if (player.inventory.isEmpty()) {
+                println("  Carrying: (nothing)")
+            } else {
+                println("  Carrying:")
+                player.inventory.forEach { item ->
+                    val extra = when (item.itemType) {
+                        ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
+                        ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
+                        ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
+                        else -> ""
+                    }
+                    println("    - ${item.name}$extra")
+                }
             }
         }
     }
@@ -387,15 +441,18 @@ object ItemHandlers {
         // Special case: looting gold
         if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
             if (corpse.goldAmount > 0) {
-                val updatedCorpse = corpse.removeGold(corpse.goldAmount)
-                // TODO: Add gold to player inventory when InventoryComponent is integrated
+                val goldAmount = corpse.goldAmount
+                val updatedCorpse = corpse.removeGold(goldAmount)
+                val updatedPlayer = game.worldState.player.addGoldV2(goldAmount)
+
                 val newState = game.worldState
+                    .updatePlayer(updatedPlayer)
                     .removeEntityFromRoom(room.id, corpse.id)
                     ?.addEntityToRoom(room.id, updatedCorpse)
 
                 if (newState != null) {
                     game.worldState = newState
-                    println("You take ${corpse.goldAmount} gold from ${corpse.name}.")
+                    println("You take $goldAmount gold from ${corpse.name}.")
                 } else {
                     println("Something went wrong.")
                 }
@@ -421,13 +478,28 @@ object ItemHandlers {
 
         // Get template for display
         val templateResult = game.itemRepository.findTemplateById(matchingItem.templateId)
-        val templateName = templateResult.getOrNull()?.name ?: "item"
+        val template = templateResult.getOrNull()
+        val templateName = template?.name ?: "item"
+
+        if (template == null) {
+            println("Something went wrong.")
+            return
+        }
+
+        // Add item to player inventory (V2)
+        val templates = mapOf(template.id to template)
+        val updatedPlayer = game.worldState.player.addItemInstance(matchingItem, templates)
+
+        if (updatedPlayer == null) {
+            println("You can't carry that - you're already carrying too much weight.")
+            return
+        }
 
         // Remove item from corpse
-        // TODO: Add item to player inventory when InventoryComponent is integrated
         val updatedCorpse = corpse.removeItem(matchingItem.id)
 
         val newState = game.worldState
+            .updatePlayer(updatedPlayer)
             .removeEntityFromRoom(room.id, corpse.id)
             ?.addEntityToRoom(room.id, updatedCorpse)
 
@@ -463,30 +535,53 @@ object ItemHandlers {
         }
 
         var lootedCount = 0
+        var failedCount = 0
         var currentCorpse: Entity.Corpse = corpse
+        var currentPlayer = game.worldState.player
 
-        // Loot all items
-        // TODO: Add items to player inventory when InventoryComponent is integrated
+        // Collect all templates first
+        val templateMap = mutableMapOf<String, ItemTemplate>()
         corpse.contents.forEach { instance ->
             val templateResult = game.itemRepository.findTemplateById(instance.templateId)
-            val templateName = templateResult.getOrNull()?.name ?: "item"
+            templateResult.getOrNull()?.let { template ->
+                templateMap[template.id] = template
+            }
+        }
 
-            currentCorpse = currentCorpse.removeItem(instance.id)
-            println("You take the $templateName.")
-            lootedCount++
+        // Loot all items
+        corpse.contents.forEach { instance ->
+            val template = templateMap[instance.templateId]
+            val templateName = template?.name ?: "item"
 
-            // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(instance.id))
+            if (template != null) {
+                val updatedPlayer = currentPlayer.addItemInstance(instance, templateMap)
+                if (updatedPlayer != null) {
+                    currentPlayer = updatedPlayer
+                    currentCorpse = currentCorpse.removeItem(instance.id)
+                    println("You take the $templateName.")
+                    lootedCount++
+
+                    // Track item collection for quests
+                    game.trackQuests(QuestAction.CollectedItem(instance.id))
+                } else {
+                    println("You can't carry the $templateName - too heavy.")
+                    failedCount++
+                }
+            } else {
+                failedCount++
+            }
         }
 
         // Loot gold
-        if (corpse.goldAmount > 0) {
-            println("You take ${corpse.goldAmount} gold.")
-            currentCorpse = currentCorpse.removeGold(corpse.goldAmount)
-            // TODO: Add gold to player inventory when InventoryComponent is integrated
+        val goldAmount = corpse.goldAmount
+        if (goldAmount > 0) {
+            println("You take $goldAmount gold.")
+            currentCorpse = currentCorpse.removeGold(goldAmount)
+            currentPlayer = currentPlayer.addGoldV2(goldAmount)
         }
 
         val newState = game.worldState
+            .updatePlayer(currentPlayer)
             .removeEntityFromRoom(room.id, corpse.id)
             ?.addEntityToRoom(room.id, currentCorpse)
 
@@ -498,13 +593,16 @@ object ItemHandlers {
                 if (lootedCount > 0) {
                     append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
                 }
-                if (lootedCount > 0 && corpse.goldAmount > 0) {
+                if (lootedCount > 0 && goldAmount > 0) {
                     append(" and ")
                 }
-                if (corpse.goldAmount > 0) {
-                    append("${corpse.goldAmount} gold")
+                if (goldAmount > 0) {
+                    append("$goldAmount gold")
                 }
                 append(" from ${corpse.name}.")
+                if (failedCount > 0) {
+                    append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
+                }
             }
             println(summary)
         } else {

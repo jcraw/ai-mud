@@ -19,7 +19,11 @@
 ## Next Major Feature
 
 ### Immediate Follow-up
-- Integrate the player-facing inventory with `InventoryComponent` and update trading/loot handlers to use V2 items before expanding merchant features.
+- ✅ **COMPLETED** - Player inventory integrated with `InventoryComponent`:
+  - Added `inventoryComponent` field to PlayerState with V2 helpers (addItemInstance, addGoldV2, etc.)
+  - Updated loot handlers to use V2 system (handleLoot, handleLootAll)
+  - Updated inventory display to show weight capacity, equipped items, and V2 data
+  - Legacy fields remain for backward compatibility during migration
 
 ### World Generation System V2
 **Status:** Partially complete - test fixes needed
