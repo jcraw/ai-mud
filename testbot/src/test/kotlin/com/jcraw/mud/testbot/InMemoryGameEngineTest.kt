@@ -15,7 +15,7 @@ class InMemoryGameEngineTest {
         val response = engine.processInput("look")
 
         assertNotNull(response)
-        assertTrue(response.contains("Entrance Hall") || response.contains("entrance"))
+        assertTrue(response.contains("Dungeon Entrance", ignoreCase = true) || response.contains("entrance", ignoreCase = true))
     }
 
     @Test

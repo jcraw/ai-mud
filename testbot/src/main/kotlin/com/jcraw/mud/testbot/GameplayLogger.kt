@@ -16,16 +16,25 @@ class GameplayLogger(
         ignoreUnknownKeys = true
     }
 ) {
+    // Compact JSON for JSONL format (one object per line)
+    private val compactJson = Json {
+        prettyPrint = false
+        ignoreUnknownKeys = true
+    }
     init {
         // Ensure output directory exists
         File(outputDir).mkdirs()
     }
 
     /**
-     * Log a single step to text file.
+     * Log a single step to both JSON and text files.
      */
     fun logStep(sessionId: String, step: TestStep) {
+        val jsonFile = getJsonFile(sessionId)
         val textFile = getTextFile(sessionId)
+
+        // Append to JSON log (JSONL format)
+        appendJsonStep(jsonFile, step)
 
         // Append to human-readable log
         appendTextStep(textFile, step)
@@ -53,6 +62,10 @@ class GameplayLogger(
         return "${scenario.name}_$timestamp"
     }
 
+    private fun getJsonFile(sessionId: String): File {
+        return Paths.get(outputDir, "$sessionId.json").toFile()
+    }
+
     private fun getTextFile(sessionId: String): File {
         return Paths.get(outputDir, "$sessionId.txt").toFile()
     }
@@ -63,6 +76,13 @@ class GameplayLogger(
 
     private fun getSummaryFile(sessionId: String): File {
         return Paths.get(outputDir, "${sessionId}_summary.txt").toFile()
+    }
+
+    private fun appendJsonStep(file: File, step: TestStep) {
+        synchronized(this) {
+            val jsonLine = compactJson.encodeToString(step)
+            file.appendText(jsonLine + "\n")
+        }
     }
 
     private fun appendTextStep(file: File, step: TestStep) {

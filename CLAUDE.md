@@ -71,9 +71,11 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **All tests passing** across all modules (100% pass rate)
+- **All unit tests passing** across all modules (100% pass rate)
   - Memory module: 215 tests passing
+  - Testbot module: 21 tests passing (GameplayLogger, InMemoryGameEngine, OutputValidator)
   - All compilation errors fixed (2025-01-30)
+  - Testbot test fixes completed (2025-11-04)
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -228,9 +230,10 @@ Memory (store for RAG)
   - ✅ Chunk 8: Integration (all handlers wired, Intent.Rest/LootCorpse integrated, App.kt/GameServer.kt fixed)
 - ✅ All main application code compiles successfully
 - ✅ Code refactoring complete (all files under 600 lines)
-- ✅ Core test suite passing (~685 tests)
+- ✅ Core test suite passing (~706 tests)
 - ✅ WorldAction serialization fixed (added @SerialName annotations, updated tests to use sealed type)
+- ✅ Testbot unit tests fixed (GameplayLogger JSONL, ValidationParsers, InMemoryGameEngine - all 21 tests passing)
 - ⚠️ Optional: RespawnManagerTest, SpacePopulatorTest (require extensive API rework, non-blocking)
-- ⚠️ Minor testbot test failures (5 tests failing in GameplayLoggerTest, OutputValidatorTest, InMemoryGameEngineTest - non-blocking)
+- ⚠️ Optional: AllPlaythroughsTest integration test (long-running, non-blocking)
 
 **Latest updates** can be found in the git commit history and individual documentation files.

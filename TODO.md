@@ -34,7 +34,7 @@
 **Next Steps:**
 1. ✅ Fix test compilation errors in ItemUseHandlerTest and PickpocketHandlerTest (ItemRepository API mismatch) — introduced shared TestItemRepository stub for Result-based API
 2. ✅ Fix WorldAction serialization issues in WorldActionTest (added @SerialName to all subclasses, updated test to use sealed type)
-3. Investigate and fix testbot test failures (some tests timing out or failing assertions)
+3. ✅ Investigate and fix testbot test failures — Fixed GameplayLogger JSONL serialization, ValidationParsers fallback logic, and InMemoryGameEngine test expectations (all testbot unit tests passing)
 4. Run integration tests to validate complete system
 5. Update CLAUDE.md status when tests pass
 

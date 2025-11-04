@@ -18,9 +18,26 @@ object ValidationParsers {
                 val jsonText = responseText.substring(jsonStart, jsonEnd)
                 json.decodeFromString<ValidationResult>(jsonText)
             } else {
-                // Fallback: assume pass if no errors mentioned
-                val pass = !responseText.contains("error", ignoreCase = true) &&
-                        !responseText.contains("fail", ignoreCase = true)
+                // Fallback: check if response contains validation language
+                val lowerText = responseText.lowercase()
+                val hasValidationLanguage = listOf(
+                    "looks", "good", "validated", "correct", "coherent", "pass",
+                    "error", "fail", "invalid", "incorrect", "incoherent"
+                ).any { lowerText.contains(it) }
+
+                if (!hasValidationLanguage) {
+                    // Malformed response - fail conservatively
+                    return ValidationResult(
+                        pass = false,
+                        reason = "Failed to parse validation response: No JSON or validation keywords found",
+                        details = mapOf("error" to "malformed_response")
+                    )
+                }
+
+                // Check for error/fail indicators, but ignore negations
+                val hasError = lowerText.contains("error") && !lowerText.contains("no error")
+                val hasFail = lowerText.contains("fail") && !lowerText.contains("no fail")
+                val pass = !hasError && !hasFail
                 ValidationResult(
                     pass = pass,
                     reason = "Fallback validation: $responseText",
