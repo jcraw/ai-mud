@@ -1,0 +1,107 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 20
+        - Passed: 12
+        - Failed: 8
+        - Pass Rate: 60%
+
+        Timing:
+        - Start: 2025-11-04T23:18:59.481364892Z
+        - End: 2025-11-04T23:20:29.178326071Z
+        - Duration: 89.70s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: equip iron sword
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: equip chainmail
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: take health potion
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 14: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 15: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 16: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 17: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 18: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 19: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 20: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

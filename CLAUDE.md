@@ -236,10 +236,11 @@ Memory (store for RAG)
 - ✅ WorldAction serialization fixed (added @SerialName annotations, updated tests to use sealed type)
 - ✅ Testbot unit tests fixed (GameplayLogger JSONL, ValidationParsers, InMemoryGameEngine - all 21 tests passing)
 - ✅ Integration tests validated (AllPlaythroughsTest scenarios execute successfully)
-- ✅ **Spatial Coherence (2/6 tasks complete)** - See [TODO.md](TODO.md#spatial-coherence--town-entrance-fix)
+- ✅ **Spatial Coherence (3/6 tasks complete)** - See [TODO.md](TODO.md#spatial-coherence--town-entrance-fix)
   - Directional adjacency tracking implemented (WorldChunkComponent.adjacency, SQLiteWorldChunkRepository.findAdjacent, 21 tests)
   - GenerationContext.direction fed into all WorldGenerator and LoreInheritanceEngine prompts for spatial consistency
-  - Remaining: ExitLinker adjacency consultation, TownGenerator/DungeonInitializer guaranteed exits, client ExitResolver, integration tests
+  - ExitLinker reworked to consult adjacency, reuse neighbor IDs, handle vertical exits, and collapse duplicates
+  - Remaining: TownGenerator/DungeonInitializer guaranteed exits, client ExitResolver, integration tests
 - ⚠️ Optional: RespawnManagerTest, SpacePopulatorTest (require extensive API rework, non-blocking)
 
 **Latest updates** can be found in the git commit history and individual documentation files.

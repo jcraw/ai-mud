@@ -1,6 +1,6 @@
 # TODO
 
-*Last Updated: 2025-11-04*
+*Last Updated: 2025-11-05*
 
 ## Current Status
 
@@ -45,7 +45,7 @@
 5. ✅ Update documentation with test results
 
 ### Spatial Coherence & Town Entrance Fix
-**Progress:** 2/6 tasks complete
+**Progress:** 3/6 tasks complete
 
 1. ✅ **COMPLETE** - Implement directional adjacency tracking in `WorldChunkRepository`
    - Adjacency map (`Map<String, String>`) already persisted in `WorldChunkComponent` (core/src/main/kotlin/com/jcraw/mud/core/WorldChunkComponent.kt:21)
@@ -60,7 +60,14 @@
    - Direction already fed into `WorldGenerator.generateSpaceData()` prompts (WorldGenerator.kt:260,266)
    - LLM prompts explicitly instruct consideration of spatial implications (e.g., "north = colder, down = deeper/older")
 
-3. **TODO** - Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
+3. ✅ **COMPLETE** - Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
+   - Implemented `collapseDuplicateExits()` to remove duplicate directional exits (ExitLinker.kt:97-111)
+   - Added adjacency map consultation before generating new spaces (ExitLinker.kt:62-72)
+   - Implemented `isVerticalDirection()` to detect up/down movement (ExitLinker.kt:113-121)
+   - Implemented `handleVerticalExit()` for spawning new subzones on vertical movement (ExitLinker.kt:124-165)
+   - Implemented `linkToAdjacentSubzone()` to reuse adjacent chunks (ExitLinker.kt:167-205)
+   - All main code compiles successfully
+
 4. **TODO** - Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
 5. **TODO** - Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
 6. **TODO** - Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered

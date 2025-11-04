@@ -1,0 +1,711 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.BruteForcePlaythrough"
+    },
+    "totalSteps": 20,
+    "passedSteps": 12,
+    "failedSteps": 8,
+    "finalStatus": "PASSED",
+    "startTime": "2025-11-04T23:18:59.481364892Z",
+    "endTime": "2025-11-04T23:20:29.178326071Z",
+    "duration": 89697,
+    "steps": [
+        {
+            "timestamp": "2025-11-04T23:19:06.759218629Z",
+            "playerInput": "look",
+            "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway, its edges worn and jagged, hinting at the weight of time. Moss-covered walls cling to the entrance like a reluctant embrace, their dampness releasing a musty scent that fills the air. Flickering torchlight dances along the surface, revealing ancient runes carved deeply into the doorframe, whispering secrets of a long-forgotten era. The atmosphere feels heavy with anticipation, as if the dungeon itself holds its breath, waiting for the brave to venture inside.\nExits: north\nYou see: Old Guard",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent and immersive description of the Dungeon Entrance, adhering to MUD conventions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:12.037481231Z",
+            "playerInput": "go north",
+            "gmResponse": "Dark Corridor\nYou step into a narrow stone passage, the walls closing in around you like the embrace of a shadowy giant. Each echoing footstep reverberates off the rough surfaces, merging with the distant sound of water dripping rhythmically from unseen crevices. Spider webs cling to the corners, delicate filaments glistening in the dim light, while the worn flagstone floor beneath your feet speaks of countless journeys taken before yours. The air is tinged with a damp chill, wrapping around you like a shroud as you delve deeper into the unknown.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:19.679395407Z",
+            "playerInput": "go west",
+            "gmResponse": "Forgotten Armory\nYou find yourself in the Forgotten Armory, where rusty weapon racks lean precariously against crumbling walls, their former glory long faded. Tarnished armor stands loom like specters, their metal surfaces dulled and pockmarked, whispering tales of valiant warriors who once donned them. The air is thick with the smell of old leather and metal, mingling with the faint, musty aroma of dust that has settled over the decades. Cobwebs drape languidly over shields, casting a ghostly veil over ancient battle standards that hang limply, bearing the insignias of conflicts long past, while the stillness of the room feels charged with echoes of clashing steel and cries of triumph.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Forgotten Armory'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Forgotten Armory",
+                    "room_id": "armory"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:22.675015226Z",
+            "playerInput": "take iron sword",
+            "gmResponse": "You take the Rusty Iron Sword.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'iron sword' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "iron sword"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:25.525012033Z",
+            "playerInput": "take chainmail",
+            "gmResponse": "You take the Heavy Chainmail.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'chainmail' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "chainmail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:29.079823407Z",
+            "playerInput": "equip iron sword",
+            "gmResponse": "You equip the Rusty Iron Sword (+5 damage).",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'iron sword' successfully equipped",
+                "details": {
+                    "validation_type": "code",
+                    "item": "iron sword"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:32.058939454Z",
+            "playerInput": "equip chainmail",
+            "gmResponse": "You equip the Heavy Chainmail (+4 defense).",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'chainmail' successfully equipped",
+                "details": {
+                    "validation_type": "code",
+                    "item": "chainmail"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:37.827139797Z",
+            "playerInput": "go east",
+            "gmResponse": "Dark Corridor\nYou find yourself in the Dark Corridor, where the narrow stone passage constricts any sense of freedom, creating an uneasy intimacy with the shadows. Your echoing footsteps create a haunting rhythm, intertwining with the persistent drip of water that falls like a metronome in the gloom. Spider webs cling in the corners, their silken threads shimmering faintly, while the worn flagstone floor bears the scuffs and scratches of countless travelers who have tread this path before you. The air is thick and musty, a reminder of the dampness that seeps into every crevice, wrapping around you like a lingering ghost.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:45.599503268Z",
+            "playerInput": "go east",
+            "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air buzzes with a palpable magical aura that dances around you like an unseen breeze. Gleaming gold coins scatter across the cold stone floor, their surfaces catching the light and sending twinkling reflections onto the crumbling walls. Ornate treasure chests, intricately carved and adorned, stand sentinel among jeweled artifacts displayed on pedestals, each piece glinting with secrets of a bygone era. Dust motes swirl lazily in a soft shaft of light, creating a mesmerizing display that feels almost ethereal, a silent testament to the wealth and wonder that once filled this hallowed space.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Ancient Treasury",
+                    "room_id": "treasury"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:48.896743919Z",
+            "playerInput": "take health potion",
+            "gmResponse": "You take the Red Health Potion.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Item 'health potion' successfully taken",
+                "details": {
+                    "validation_type": "code",
+                    "item": "health potion"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:19:55.939529099Z",
+            "playerInput": "go west",
+            "gmResponse": "Dark Corridor\nYou find yourself enveloped in a narrow stone passage, the walls pressing tightly around you like a constrictor. Your footsteps echo hauntingly, each sound amplifying the oppressive silence, as if the corridor itself listens intently. The persistent drip of water punctuates the stillness, a reminder of the unseen depths that lie ahead, while spider webs cling in the corners, their delicate artistry catching the faintest glimmers of light. The worn flagstone floor beneath you tells a story of countless souls who have traversed this path, and the air, thick with the scent of damp stone, wraps around you like a chilling embrace.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:02.808364616Z",
+            "playerInput": "go north",
+            "gmResponse": "Abandoned Throne Room\nYou enter the Abandoned Throne Room, where a massive stone throne looms at the far end, its grandeur now a mere shadow of its former splendor. Faded royal tapestries hang limply from the walls, their vibrant colors dulled to whispers of history, while ominous shadows creep across the cracked marble floor, shifting as if alive with memories of forgotten reigns. A cold draft sweeps through the chamber from unseen passages, carrying with it the chill of ages gone by, and you notice a skeletal figure slumped on the throne, a silent sentinel of the decay that has taken hold here. The air is thick with a sense of foreboding, as if the very walls are holding their breath, awaiting the return of a long-lost king.\nExits: south, north\nYou see: Skeleton King",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Abandoned Throne Room",
+                    "room_id": "throne_room"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:05.467632747Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 19 damage!\nSkeleton King strikes back for 7 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:08.553596370Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 20 damage!\nSkeleton King strikes back for 3 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:11.865599596Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 11 damage!\nSkeleton King strikes back for 5 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:14.858112367Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 18 damage!\nSkeleton King strikes back for 8 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:18.467847372Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 15 damage!\nSkeleton King strikes back for 5 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:22.533569645Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 20 damage!\nSkeleton King strikes back for 4 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:25.171446111Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 12 damage!\nSkeleton King strikes back for 5 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-04T23:20:29.077878123Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 18 damage!\nSkeleton King strikes back for 7 damage!\nYou have been defeated! Game over.",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-11-04T23:19:06.759218629Z",
+                "playerInput": "look",
+                "gmResponse": "Dungeon Entrance\nYou stand before a crumbling stone archway, its edges worn and jagged, hinting at the weight of time. Moss-covered walls cling to the entrance like a reluctant embrace, their dampness releasing a musty scent that fills the air. Flickering torchlight dances along the surface, revealing ancient runes carved deeply into the doorframe, whispering secrets of a long-forgotten era. The atmosphere feels heavy with anticipation, as if the dungeon itself holds its breath, waiting for the brave to venture inside.\nExits: north\nYou see: Old Guard",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent and immersive description of the Dungeon Entrance, adhering to MUD conventions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-11-04T23:19:12.037481231Z",
+                "playerInput": "go north",
+                "gmResponse": "Dark Corridor\nYou step into a narrow stone passage, the walls closing in around you like the embrace of a shadowy giant. Each echoing footstep reverberates off the rough surfaces, merging with the distant sound of water dripping rhythmically from unseen crevices. Spider webs cling to the corners, delicate filaments glistening in the dim light, while the worn flagstone floor beneath your feet speaks of countless journeys taken before yours. The air is tinged with a damp chill, wrapping around you like a shroud as you delve deeper into the unknown.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-11-04T23:19:19.679395407Z",
+                "playerInput": "go west",
+                "gmResponse": "Forgotten Armory\nYou find yourself in the Forgotten Armory, where rusty weapon racks lean precariously against crumbling walls, their former glory long faded. Tarnished armor stands loom like specters, their metal surfaces dulled and pockmarked, whispering tales of valiant warriors who once donned them. The air is thick with the smell of old leather and metal, mingling with the faint, musty aroma of dust that has settled over the decades. Cobwebs drape languidly over shields, casting a ghostly veil over ancient battle standards that hang limply, bearing the insignias of conflicts long past, while the stillness of the room feels charged with echoes of clashing steel and cries of triumph.\nExits: east\nYou see: Rusty Iron Sword, Sharp Steel Dagger, Worn Leather Armor, Heavy Chainmail",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Forgotten Armory'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Forgotten Armory",
+                        "room_id": "armory"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-11-04T23:19:22.675015226Z",
+                "playerInput": "take iron sword",
+                "gmResponse": "You take the Rusty Iron Sword.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'iron sword' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "iron sword"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-11-04T23:19:25.525012033Z",
+                "playerInput": "take chainmail",
+                "gmResponse": "You take the Heavy Chainmail.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'chainmail' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "chainmail"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-11-04T23:19:29.079823407Z",
+                "playerInput": "equip iron sword",
+                "gmResponse": "You equip the Rusty Iron Sword (+5 damage).",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'iron sword' successfully equipped",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "iron sword"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-11-04T23:19:32.058939454Z",
+                "playerInput": "equip chainmail",
+                "gmResponse": "You equip the Heavy Chainmail (+4 defense).",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'chainmail' successfully equipped",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "chainmail"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-11-04T23:19:37.827139797Z",
+                "playerInput": "go east",
+                "gmResponse": "Dark Corridor\nYou find yourself in the Dark Corridor, where the narrow stone passage constricts any sense of freedom, creating an uneasy intimacy with the shadows. Your echoing footsteps create a haunting rhythm, intertwining with the persistent drip of water that falls like a metronome in the gloom. Spider webs cling in the corners, their silken threads shimmering faintly, while the worn flagstone floor bears the scuffs and scratches of countless travelers who have tread this path before you. The air is thick and musty, a reminder of the dampness that seeps into every crevice, wrapping around you like a lingering ghost.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-11-04T23:19:45.599503268Z",
+                "playerInput": "go east",
+                "gmResponse": "Ancient Treasury\nYou step into the Ancient Treasury, where the air buzzes with a palpable magical aura that dances around you like an unseen breeze. Gleaming gold coins scatter across the cold stone floor, their surfaces catching the light and sending twinkling reflections onto the crumbling walls. Ornate treasure chests, intricately carved and adorned, stand sentinel among jeweled artifacts displayed on pedestals, each piece glinting with secrets of a bygone era. Dust motes swirl lazily in a soft shaft of light, creating a mesmerizing display that feels almost ethereal, a silent testament to the wealth and wonder that once filled this hallowed space.\nExits: west\nYou see: Heavy Gold Pouch, Red Health Potion, Locked Ornate Chest",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Ancient Treasury'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Ancient Treasury",
+                        "room_id": "treasury"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-11-04T23:19:48.896743919Z",
+                "playerInput": "take health potion",
+                "gmResponse": "You take the Red Health Potion.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Item 'health potion' successfully taken",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "health potion"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 11,
+            "step": {
+                "timestamp": "2025-11-04T23:19:55.939529099Z",
+                "playerInput": "go west",
+                "gmResponse": "Dark Corridor\nYou find yourself enveloped in a narrow stone passage, the walls pressing tightly around you like a constrictor. Your footsteps echo hauntingly, each sound amplifying the oppressive silence, as if the corridor itself listens intently. The persistent drip of water punctuates the stillness, a reminder of the unseen depths that lie ahead, while spider webs cling in the corners, their delicate artistry catching the faintest glimmers of light. The worn flagstone floor beneath you tells a story of countless souls who have traversed this path, and the air, thick with the scent of damp stone, wraps around you like a chilling embrace.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 12,
+            "step": {
+                "timestamp": "2025-11-04T23:20:02.808364616Z",
+                "playerInput": "go north",
+                "gmResponse": "Abandoned Throne Room\nYou enter the Abandoned Throne Room, where a massive stone throne looms at the far end, its grandeur now a mere shadow of its former splendor. Faded royal tapestries hang limply from the walls, their vibrant colors dulled to whispers of history, while ominous shadows creep across the cracked marble floor, shifting as if alive with memories of forgotten reigns. A cold draft sweeps through the chamber from unseen passages, carrying with it the chill of ages gone by, and you notice a skeletal figure slumped on the throne, a silent sentinel of the decay that has taken hold here. The air is thick with a sense of foreboding, as if the very walls are holding their breath, awaiting the return of a long-lost king.\nExits: south, north\nYou see: Skeleton King",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Abandoned Throne Room",
+                        "room_id": "throne_room"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 13,
+            "step": {
+                "timestamp": "2025-11-04T23:20:05.467632747Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 19 damage!\nSkeleton King strikes back for 7 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-11-04T23:20:08.553596370Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 20 damage!\nSkeleton King strikes back for 3 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-11-04T23:20:11.865599596Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 11 damage!\nSkeleton King strikes back for 5 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 16,
+            "step": {
+                "timestamp": "2025-11-04T23:20:14.858112367Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 18 damage!\nSkeleton King strikes back for 8 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 17,
+            "step": {
+                "timestamp": "2025-11-04T23:20:18.467847372Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 15 damage!\nSkeleton King strikes back for 5 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 18,
+            "step": {
+                "timestamp": "2025-11-04T23:20:22.533569645Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 20 damage!\nSkeleton King strikes back for 4 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 19,
+            "step": {
+                "timestamp": "2025-11-04T23:20:25.171446111Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 12 damage!\nSkeleton King strikes back for 5 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 20,
+            "step": {
+                "timestamp": "2025-11-04T23:20:29.077878123Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with Rusty Iron Sword for 18 damage!\nSkeleton King strikes back for 7 damage!\nYou have been defeated! Game over.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        }
+    ],
+    "uniqueRoomsVisited": 5,
+    "roomNames": [
+        "Dungeon Entrance",
+        "Dark Corridor",
+        "Forgotten Armory",
+        "Ancient Treasury",
+        "Abandoned Throne Room"
+    ],
+    "combatRounds": 8
+}
