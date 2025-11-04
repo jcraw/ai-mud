@@ -83,6 +83,7 @@ class EngineGameClient(
     internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
     internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
     internal val spaceEntityRepository: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
+    internal val exitLinker: com.jcraw.mud.reasoning.world.ExitLinker?
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
 
     init {
@@ -134,6 +135,7 @@ class EngineGameClient(
         if (llmClient != null) {
             val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
             val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
+            exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
             val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
@@ -242,6 +244,7 @@ class EngineGameClient(
                 players = mapOf(playerState.id to playerState)
             )
         } else {
+            exitLinker = null
             // Fallback to Sample Dungeon if no API key
             emitEvent(GameEvent.System("No API key provided - using Sample Dungeon fallback", GameEvent.MessageLevel.WARNING))
             val baseWorldState = SampleDungeon.createInitialWorldState()

@@ -201,7 +201,92 @@ object ClientMovementHandlers {
         currentSpace: SpacePropertiesComponent
     ) {
         val player = game.worldState.player
-        val exit = currentSpace.resolveExit(direction.displayName, player)
+        var activeSpace = currentSpace
+        var exit = activeSpace.resolveExit(direction.displayName, player)
+
+        if (exit != null && exit.targetId == "PLACEHOLDER") {
+            val linker = game.exitLinker
+            if (linker == null) {
+                game.emitEvent(
+                    GameEvent.System(
+                        "This exit hasn't been generated yet and the world generator is unavailable.",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+
+            val spaceChunk = game.worldChunkRepository.findById(player.currentRoomId).getOrElse { error ->
+                game.emitEvent(
+                    GameEvent.System(
+                        "Failed to inspect current location: ${error.message}",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            } ?: run {
+                game.emitEvent(
+                    GameEvent.System(
+                        "Current space metadata missing. Navigation aborted.",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+
+            val parentSubzoneId = spaceChunk.parentId ?: run {
+                game.emitEvent(
+                    GameEvent.System(
+                        "Current space has no parent subzone. Navigation aborted.",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+
+            val parentSubzone = game.worldChunkRepository.findById(parentSubzoneId).getOrElse { error ->
+                game.emitEvent(
+                    GameEvent.System(
+                        "Failed to load parent subzone: ${error.message}",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            } ?: run {
+                game.emitEvent(
+                    GameEvent.System(
+                        "Parent subzone not found for ${parentSubzoneId}.",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+
+            val linkedSpace = runBlocking {
+                linker.linkExits(player.currentRoomId, activeSpace, parentSubzoneId, parentSubzone)
+            }.getOrElse { error ->
+                game.emitEvent(
+                    GameEvent.System(
+                        "Failed to generate adjacent space: ${error.message}",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                return
+            }
+
+            activeSpace = linkedSpace
+            exit = activeSpace.resolveExit(direction.displayName, player)
+
+            if (exit == null || exit.targetId == "PLACEHOLDER") {
+                game.emitEvent(
+                    GameEvent.System(
+                        "The way ${direction.displayName} still leads into unfinished space.",
+                        GameEvent.MessageLevel.WARNING
+                    )
+                )
+                return
+            }
+        }
 
         if (exit == null) {
             game.emitEvent(

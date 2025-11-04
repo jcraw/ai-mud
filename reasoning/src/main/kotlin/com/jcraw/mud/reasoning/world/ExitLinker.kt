@@ -36,6 +36,7 @@ class ExitLinker(
         parentSubzone: WorldChunkComponent
     ): Result<SpacePropertiesComponent> = runCatching {
         var updatedSpace = space
+        var currentParentSubzone = parentSubzone
         val linkedExits = mutableListOf<ExitData>()
 
         // Process each exit
@@ -44,7 +45,7 @@ class ExitLinker(
                 // Generate adjacent space in this direction
                 val (newSpace, newSpaceId) = worldGenerator.generateSpace(
                     parentSubzoneId = parentSubzoneId,
-                    parentSubzone = parentSubzone
+                    parentSubzone = currentParentSubzone
                 ).getOrThrow()
 
                 // Update this exit to point to new space
@@ -67,6 +68,11 @@ class ExitLinker(
 
                 // Save new space to DB
                 spacePropsRepo.save(updatedNewSpace, newSpaceId).getOrThrow()
+
+                if (!currentParentSubzone.children.contains(newSpaceId)) {
+                    currentParentSubzone = currentParentSubzone.addChild(newSpaceId)
+                    worldChunkRepo.save(currentParentSubzone, parentSubzoneId).getOrThrow()
+                }
             } else {
                 // Keep existing linked exit
                 linkedExits.add(exit)
