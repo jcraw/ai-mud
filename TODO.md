@@ -45,12 +45,25 @@
 5. ✅ Update documentation with test results
 
 ### Spatial Coherence & Town Entrance Fix
-1. Implement directional adjacency tracking in `WorldChunkRepository` (persist adjacency metadata, finish `findAdjacent`, add unit coverage)
-2. Feed `GenerationContext.direction` into `WorldGenerator` prompts so newly linked spaces respect described orientation/verticality
-3. Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
-4. Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
-5. Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
-6. Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered
+**Progress:** 2/6 tasks complete
+
+1. ✅ **COMPLETE** - Implement directional adjacency tracking in `WorldChunkRepository`
+   - Adjacency map (`Map<String, String>`) already persisted in `WorldChunkComponent` (core/src/main/kotlin/com/jcraw/mud/core/WorldChunkComponent.kt:21)
+   - `findAdjacent` already implemented in `SQLiteWorldChunkRepository` (memory/src/main/kotlin/com/jcraw/mud/memory/world/SQLiteWorldChunkRepository.kt:115-124)
+   - Unit tests already exist and pass (21 tests in `SQLiteWorldChunkRepositoryTest`, including adjacency-specific tests at lines 184-264)
+   - `withAdjacency()` helper method available for immutable updates (WorldChunkComponent.kt:97-100)
+
+2. ✅ **COMPLETE** - Feed `GenerationContext.direction` into `WorldGenerator` prompts
+   - `GenerationContext.direction` field already exists (core/src/main/kotlin/com/jcraw/mud/core/world/GenerationContext.kt:24)
+   - Direction already fed into `LoreInheritanceEngine.varyLore()` prompts (reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/LoreInheritanceEngine.kt:37,48,59)
+   - Direction already fed into `WorldGenerator.generateChunkData()` prompts (reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/WorldGenerator.kt:208)
+   - Direction already fed into `WorldGenerator.generateSpaceData()` prompts (WorldGenerator.kt:260,266)
+   - LLM prompts explicitly instruct consideration of spatial implications (e.g., "north = colder, down = deeper/older")
+
+3. **TODO** - Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
+4. **TODO** - Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
+5. **TODO** - Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
+6. **TODO** - Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered
 
 ---
 

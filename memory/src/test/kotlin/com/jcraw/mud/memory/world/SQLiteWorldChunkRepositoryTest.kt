@@ -484,10 +484,4 @@ class SQLiteWorldChunkRepositoryTest {
             assertEquals(level, loaded?.level)
         }
     }
-
-    @Test
-    fun `findAdjacent returns null (not implemented yet)`() {
-        val result = repository.findAdjacent("chunk1", "north").getOrThrow()
-        assertNull(result)
-    }
 }
