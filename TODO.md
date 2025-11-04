@@ -1,6 +1,6 @@
 # TODO
 
-*Last Updated: 2025-10-28*
+*Last Updated: 2025-11-04*
 
 ## Current Status
 
@@ -29,21 +29,61 @@
 **Progress:**
 - ✅ Chunks 1-6 complete (foundation, database, generation, exits, content, persistence)
 - ✅ Main code compiles successfully
-- ❌ Test compilation errors (ItemRepository API changes, WorldGenerationIntegrationTest needs fixes)
+- ✅ WorldAction serialization fixed (added @SerialName annotations, updated tests)
 
 **Next Steps:**
 1. ✅ Fix test compilation errors in ItemUseHandlerTest and PickpocketHandlerTest (ItemRepository API mismatch) — introduced shared TestItemRepository stub for Result-based API
-2. Fix WorldGenerationIntegrationTest nullable type issues
-3. Run integration tests to validate complete system
-4. Update CLAUDE.md status when tests pass
+2. ✅ Fix WorldAction serialization issues in WorldActionTest (added @SerialName to all subclasses, updated test to use sealed type)
+3. Investigate and fix testbot test failures (some tests timing out or failing assertions)
+4. Run integration tests to validate complete system
+5. Update CLAUDE.md status when tests pass
 
 ### Spatial Coherence & Town Entrance Fix
 1. Implement directional adjacency tracking in `WorldChunkRepository` (persist adjacency metadata, finish `findAdjacent`, add unit coverage)
 2. Feed `GenerationContext.direction` into `WorldGenerator` prompts so newly linked spaces respect described orientation/verticality
 3. Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
-4. Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed “descend into the dungeon” exit that targets the first combat subzone, plus a reciprocal “return to town” path
+4. Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
 5. Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
 6. Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered
+
+---
+
+## Code Quality & Refactoring
+
+### File Size Violations (CLAUDE_GUIDELINES.md: 300-500 lines)
+**Priority:** High - maintainability and readability at risk
+
+1. **Refactor `GameServer.kt` (822 lines)**
+   - Extract session management to `PlayerSessionManager.kt`
+   - Extract event broadcasting to `EventBroadcaster.kt`
+   - Extract state synchronization to `WorldStateSynchronizer.kt`
+   - Keep core server initialization and command dispatch in `GameServer.kt`
+
+2. **Refactor `SkillQuestHandlers.kt` (798 lines)**
+   - Split into `SkillHandlers.kt` (skill checks, training, perks)
+   - Split into `QuestHandlers.kt` (quest accept, progress, claim)
+   - Keep common utilities in `HandlerUtils.kt` if needed
+
+3. **Refactor `MudGameEngine.kt` (632 lines)**
+   - Extract combat loop to `CombatEngine.kt`
+   - Extract inventory operations to `InventoryManager.kt`
+   - Extract social interactions to `SocialInteractionManager.kt`
+   - Keep core game loop and intent routing in `MudGameEngine.kt`
+
+4. **Refactor `EngineGameClient.kt` (608 lines)**
+   - Extract initialization logic to `EngineInitializer.kt`
+   - Extract state management to `ClientStateManager.kt`
+   - Extract event handling to `ClientEventDispatcher.kt`
+   - Keep GameClient interface implementation in `EngineGameClient.kt`
+
+### Code Duplication Removal
+**Priority:** Medium - DRY principle violation
+
+1. **Extract `buildQuestionContext()` to shared utility**
+   - Duplicated in `app/src/.../handlers/SocialHandlers.kt` and `client/src/.../handlers/ClientSocialHandlers.kt`
+   - Move to `utils/src/main/kotlin/com/jcraw/mud/utils/SocialContextBuilder.kt`
+   - Support both Room-based and SpacePropertiesComponent-based contexts
+   - Update both console and client handlers to use shared utility
 
 **Key Features:**
 - Hierarchical chunks (WORLD > REGION > ZONE > SUBZONE > SPACE)

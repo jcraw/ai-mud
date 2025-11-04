@@ -1,6 +1,7 @@
 package com.jcraw.mud.core.world
 
 import com.jcraw.mud.core.ItemInstance
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -14,6 +15,7 @@ sealed class WorldAction {
      * Sets the flag to true, potentially opening new exits or revealing items.
      */
     @Serializable
+    @SerialName("DestroyObstacle")
     data class DestroyObstacle(
         val flag: String,
         val skillRequired: String? = null,
@@ -25,6 +27,7 @@ sealed class WorldAction {
      * Marks the trap as triggered, preventing future triggers.
      */
     @Serializable
+    @SerialName("TriggerTrap")
     data class TriggerTrap(val trapId: String) : WorldAction()
 
     /**
@@ -32,6 +35,7 @@ sealed class WorldAction {
      * Removes or depletes the resource from the space.
      */
     @Serializable
+    @SerialName("HarvestResource")
     data class HarvestResource(val nodeId: String) : WorldAction()
 
     /**
@@ -39,6 +43,7 @@ sealed class WorldAction {
      * Adds item to the space's itemsDropped list.
      */
     @Serializable
+    @SerialName("PlaceItem")
     data class PlaceItem(val item: ItemInstance) : WorldAction()
 
     /**
@@ -46,6 +51,7 @@ sealed class WorldAction {
      * Removes item from the space's itemsDropped list.
      */
     @Serializable
+    @SerialName("RemoveItem")
     data class RemoveItem(val itemId: String) : WorldAction()
 
     /**
@@ -53,6 +59,7 @@ sealed class WorldAction {
      * Removes conditions from the exit or marks unlock flag.
      */
     @Serializable
+    @SerialName("UnlockExit")
     data class UnlockExit(
         val exitDirection: String,
         val keyItem: String? = null
@@ -63,6 +70,7 @@ sealed class WorldAction {
      * Can be used for any world state modification not covered by specific actions.
      */
     @Serializable
+    @SerialName("SetFlag")
     data class SetFlag(
         val flag: String,
         val value: Boolean = true

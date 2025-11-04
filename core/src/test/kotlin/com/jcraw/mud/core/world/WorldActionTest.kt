@@ -18,13 +18,13 @@ class WorldActionTest {
 
     @Test
     fun `DestroyObstacle serialization roundtrip`() {
-        val action = WorldAction.DestroyObstacle(
+        val action: WorldAction = WorldAction.DestroyObstacle(
             flag = "boulder_destroyed",
             skillRequired = "Strength",
             difficulty = 15
         )
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -32,9 +32,9 @@ class WorldActionTest {
 
     @Test
     fun `DestroyObstacle with nulls serialization`() {
-        val action = WorldAction.DestroyObstacle(flag = "vines_cut")
+        val action: WorldAction = WorldAction.DestroyObstacle(flag = "vines_cut")
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -42,9 +42,9 @@ class WorldActionTest {
 
     @Test
     fun `TriggerTrap serialization roundtrip`() {
-        val action = WorldAction.TriggerTrap(trapId = "trap_123")
+        val action: WorldAction = WorldAction.TriggerTrap(trapId = "trap_123")
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -52,9 +52,9 @@ class WorldActionTest {
 
     @Test
     fun `HarvestResource serialization roundtrip`() {
-        val action = WorldAction.HarvestResource(nodeId = "node_456")
+        val action: WorldAction = WorldAction.HarvestResource(nodeId = "node_456")
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -69,9 +69,9 @@ class WorldActionTest {
             charges = null,
             quantity = 1
         )
-        val action = WorldAction.PlaceItem(item = item)
+        val action: WorldAction = WorldAction.PlaceItem(item = item)
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -79,9 +79,9 @@ class WorldActionTest {
 
     @Test
     fun `RemoveItem serialization roundtrip`() {
-        val action = WorldAction.RemoveItem(itemId = "item_999")
+        val action: WorldAction = WorldAction.RemoveItem(itemId = "item_999")
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -89,12 +89,12 @@ class WorldActionTest {
 
     @Test
     fun `UnlockExit serialization roundtrip`() {
-        val action = WorldAction.UnlockExit(
+        val action: WorldAction = WorldAction.UnlockExit(
             exitDirection = "north",
             keyItem = "rusty_key"
         )
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -102,9 +102,9 @@ class WorldActionTest {
 
     @Test
     fun `UnlockExit without key serialization`() {
-        val action = WorldAction.UnlockExit(exitDirection = "up")
+        val action: WorldAction = WorldAction.UnlockExit(exitDirection = "up")
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -112,9 +112,9 @@ class WorldActionTest {
 
     @Test
     fun `SetFlag serialization roundtrip`() {
-        val action = WorldAction.SetFlag(flag = "puzzle_solved", value = true)
+        val action: WorldAction = WorldAction.SetFlag(flag = "puzzle_solved", value = true)
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)
@@ -122,9 +122,9 @@ class WorldActionTest {
 
     @Test
     fun `SetFlag with false value`() {
-        val action = WorldAction.SetFlag(flag = "door_locked", value = false)
+        val action: WorldAction = WorldAction.SetFlag(flag = "door_locked", value = false)
 
-        val serialized = json.encodeToString(action)
+        val serialized = json.encodeToString<WorldAction>(action)
         val deserialized = json.decodeFromString<WorldAction>(serialized)
 
         assertEquals(action, deserialized)

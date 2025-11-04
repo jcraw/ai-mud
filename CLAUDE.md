@@ -229,6 +229,8 @@ Memory (store for RAG)
 - ✅ All main application code compiles successfully
 - ✅ Code refactoring complete (all files under 600 lines)
 - ✅ Core test suite passing (~685 tests)
+- ✅ WorldAction serialization fixed (added @SerialName annotations, updated tests to use sealed type)
 - ⚠️ Optional: RespawnManagerTest, SpacePopulatorTest (require extensive API rework, non-blocking)
+- ⚠️ Minor testbot test failures (5 tests failing in GameplayLoggerTest, OutputValidatorTest, InMemoryGameEngineTest - non-blocking)
 
 **Latest updates** can be found in the git commit history and individual documentation files.
