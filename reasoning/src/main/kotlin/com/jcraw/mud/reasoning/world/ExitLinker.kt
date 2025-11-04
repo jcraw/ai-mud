@@ -45,7 +45,8 @@ class ExitLinker(
                 // Generate adjacent space in this direction
                 val (newSpace, newSpaceId) = worldGenerator.generateSpace(
                     parentSubzoneId = parentSubzoneId,
-                    parentSubzone = currentParentSubzone
+                    parentSubzone = currentParentSubzone,
+                    directionHint = exit.direction
                 ).getOrThrow()
 
                 // Update this exit to point to new space

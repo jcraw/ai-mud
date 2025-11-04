@@ -80,10 +80,19 @@ class WorldDatabase(
                     size_estimate INTEGER NOT NULL,
                     mob_density REAL NOT NULL,
                     difficulty_level INTEGER NOT NULL,
+                    adjacency TEXT NOT NULL DEFAULT '{}',
                     FOREIGN KEY (parent_id) REFERENCES world_chunks(id)
                 )
                 """.trimIndent()
             )
+
+            try {
+                stmt.execute("ALTER TABLE world_chunks ADD COLUMN adjacency TEXT NOT NULL DEFAULT '{}'")
+            } catch (e: SQLException) {
+                if (!e.message.orEmpty().contains("duplicate column name")) {
+                    throw e
+                }
+            }
 
             // Space properties table (detailed space data)
             stmt.execute(

@@ -217,6 +217,7 @@ Output concise theme name (2-4 words).
 ```
 
 **Direction Hints**: Spatial coherence (e.g., "north" = colder, "down" = darker)
+WorldGenerator feeds these hints directly into both chunk and space prompts so newly generated areas mention how they sit relative to their parent (e.g., "downward stairwell", "northern glacier passage").
 
 ### ID Generation
 
@@ -575,11 +576,14 @@ CREATE TABLE world_chunks (
     size_estimate INTEGER NOT NULL,
     mob_density REAL NOT NULL,
     difficulty_level INTEGER NOT NULL,
+    adjacency TEXT NOT NULL DEFAULT '{}',  -- JSON map of direction -> chunk_id
     FOREIGN KEY (parent_id) REFERENCES world_chunks(id)
 );
 CREATE INDEX idx_chunks_parent ON world_chunks(parent_id);
 CREATE INDEX idx_chunks_level ON world_chunks(level);
 ```
+
+`adjacency` caches normalized direction → chunk ID pairs so `WorldChunkRepository.findAdjacent()` can resolve known neighbors without re-querying the generator.
 
 ### space_properties
 ```sql

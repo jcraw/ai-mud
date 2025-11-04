@@ -17,7 +17,8 @@ data class WorldChunkComponent(
     val biomeTheme: String = "",
     val sizeEstimate: Int = 1,
     val mobDensity: Double = 0.0,
-    val difficultyLevel: Int = 1
+    val difficultyLevel: Int = 1,
+    val adjacency: Map<String, String> = emptyMap()
 ) : Component {
     override val componentType: ComponentType
         get() = ComponentType.WORLD_CHUNK
@@ -89,4 +90,12 @@ data class WorldChunkComponent(
      */
     fun withTheme(newTheme: String): WorldChunkComponent =
         copy(biomeTheme = newTheme)
+
+    /**
+     * Record adjacency between this chunk and another.
+     */
+    fun withAdjacency(direction: String, targetChunkId: String): WorldChunkComponent {
+        val normalized = direction.trim().lowercase()
+        return copy(adjacency = adjacency + (normalized to targetChunkId))
+    }
 }

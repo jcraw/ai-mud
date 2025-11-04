@@ -21,8 +21,8 @@ class SQLiteWorldChunkRepository(
             val conn = database.getConnection()
             val sql = """
                 INSERT OR REPLACE INTO world_chunks
-                (id, level, parent_id, children, lore, biome_theme, size_estimate, mob_density, difficulty_level)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (id, level, parent_id, children, lore, biome_theme, size_estimate, mob_density, difficulty_level, adjacency)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
             conn.prepareStatement(sql).use { stmt ->
@@ -39,6 +39,7 @@ class SQLiteWorldChunkRepository(
                 stmt.setInt(7, chunk.sizeEstimate)
                 stmt.setDouble(8, chunk.mobDensity)
                 stmt.setInt(9, chunk.difficultyLevel)
+                stmt.setString(10, json.encodeToString(chunk.adjacency))
                 stmt.executeUpdate()
             }
 
@@ -66,7 +67,8 @@ class SQLiteWorldChunkRepository(
                         biomeTheme = rs.getString("biome_theme"),
                         sizeEstimate = rs.getInt("size_estimate"),
                         mobDensity = rs.getDouble("mob_density"),
-                        difficultyLevel = rs.getInt("difficulty_level")
+                        difficultyLevel = rs.getInt("difficulty_level"),
+                        adjacency = json.decodeFromString<Map<String, String>>(rs.getString("adjacency"))
                     )
                     Result.success(chunk)
                 } else {
@@ -98,7 +100,8 @@ class SQLiteWorldChunkRepository(
                         biomeTheme = rs.getString("biome_theme"),
                         sizeEstimate = rs.getInt("size_estimate"),
                         mobDensity = rs.getDouble("mob_density"),
-                        difficultyLevel = rs.getInt("difficulty_level")
+                        difficultyLevel = rs.getInt("difficulty_level"),
+                        adjacency = json.decodeFromString<Map<String, String>>(rs.getString("adjacency"))
                     )
                     chunks.add(id to chunk)
                 }
@@ -110,13 +113,14 @@ class SQLiteWorldChunkRepository(
     }
 
     override fun findAdjacent(currentId: String, direction: String): Result<WorldChunkComponent?> {
-        // TODO: Implement LLM-based spatial reasoning in Chunk 3
-        // For now, return null (no adjacent chunk found)
-        // This will be enhanced with:
-        // 1. Query parent's children
-        // 2. LLM prompt: "Given chunks [list], which is [direction] of [currentId]?"
-        // 3. Cache results in adjacency map
-        return Result.success(null)
+        return try {
+            val normalized = direction.trim().lowercase()
+            val currentChunk = findById(currentId).getOrThrow() ?: return Result.success(null)
+            val targetId = currentChunk.adjacency[normalized] ?: return Result.success(null)
+            findById(targetId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun delete(id: String): Result<Unit> {
@@ -151,7 +155,8 @@ class SQLiteWorldChunkRepository(
                         biomeTheme = rs.getString("biome_theme"),
                         sizeEstimate = rs.getInt("size_estimate"),
                         mobDensity = rs.getDouble("mob_density"),
-                        difficultyLevel = rs.getInt("difficulty_level")
+                        difficultyLevel = rs.getInt("difficulty_level"),
+                        adjacency = json.decodeFromString<Map<String, String>>(rs.getString("adjacency"))
                     )
                     chunks[id] = chunk
                 }

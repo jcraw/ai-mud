@@ -179,6 +179,90 @@ class SQLiteWorldChunkRepositoryTest {
         assertTrue(loaded?.children?.isEmpty() == true)
     }
 
+    // === Adjacency Tests ===
+
+    @Test
+    fun `adjacency map persists`() {
+        val origin = WorldChunkComponent(
+            level = ChunkLevel.ZONE,
+            parentId = null,
+            children = emptyList(),
+            lore = "Origin",
+            biomeTheme = "Hub",
+            sizeEstimate = 5,
+            mobDensity = 0.2,
+            difficultyLevel = 2,
+            adjacency = mapOf("north" to "zone_north")
+        )
+
+        val neighbor = WorldChunkComponent(
+            level = ChunkLevel.ZONE,
+            parentId = null,
+            children = emptyList(),
+            lore = "North zone",
+            biomeTheme = "Frost",
+            sizeEstimate = 5,
+            mobDensity = 0.3,
+            difficultyLevel = 3
+        )
+
+        repository.save(origin, "zone_origin").getOrThrow()
+        repository.save(neighbor, "zone_north").getOrThrow()
+
+        val loadedOrigin = repository.findById("zone_origin").getOrThrow()
+        assertEquals("zone_north", loadedOrigin?.adjacency?.get("north"))
+    }
+
+    @Test
+    fun `findAdjacent returns neighbor when tracked`() {
+        val origin = WorldChunkComponent(
+            level = ChunkLevel.ZONE,
+            parentId = null,
+            children = emptyList(),
+            lore = "Origin",
+            biomeTheme = "Hub",
+            sizeEstimate = 5,
+            mobDensity = 0.2,
+            difficultyLevel = 2
+        ).withAdjacency("North", "zone_north")
+
+        val neighbor = WorldChunkComponent(
+            level = ChunkLevel.ZONE,
+            parentId = null,
+            children = emptyList(),
+            lore = "North zone",
+            biomeTheme = "Frost",
+            sizeEstimate = 5,
+            mobDensity = 0.3,
+            difficultyLevel = 3
+        )
+
+        repository.save(origin, "zone_origin").getOrThrow()
+        repository.save(neighbor, "zone_north").getOrThrow()
+
+        val adjacent = repository.findAdjacent("zone_origin", "north").getOrThrow()
+        assertEquals(neighbor, adjacent)
+    }
+
+    @Test
+    fun `findAdjacent returns null when no adjacency recorded`() {
+        val origin = WorldChunkComponent(
+            level = ChunkLevel.ZONE,
+            parentId = null,
+            children = emptyList(),
+            lore = "Origin",
+            biomeTheme = "Hub",
+            sizeEstimate = 5,
+            mobDensity = 0.2,
+            difficultyLevel = 2
+        )
+
+        repository.save(origin, "zone_origin").getOrThrow()
+
+        val adjacent = repository.findAdjacent("zone_origin", "east").getOrThrow()
+        assertNull(adjacent)
+    }
+
     // === Hierarchy Query Tests ===
 
     @Test

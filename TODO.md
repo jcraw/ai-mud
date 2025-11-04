@@ -37,6 +37,14 @@
 3. Run integration tests to validate complete system
 4. Update CLAUDE.md status when tests pass
 
+### Spatial Coherence & Town Entrance Fix
+1. Implement directional adjacency tracking in `WorldChunkRepository` (persist adjacency metadata, finish `findAdjacent`, add unit coverage)
+2. Feed `GenerationContext.direction` into `WorldGenerator` prompts so newly linked spaces respect described orientation/verticality
+3. Rework `ExitLinker` to consult adjacency: reuse known neighbor IDs, spawn new subzones/zones when taking vertical exits, and collapse duplicate directional exits from LLM output before saving
+4. Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed “descend into the dungeon” exit that targets the first combat subzone, plus a reciprocal “return to town” path
+5. Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
+6. Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered
+
 **Key Features:**
 - Hierarchical chunks (WORLD > REGION > ZONE > SUBZONE > SPACE)
 - LLM-generated lore, themes, descriptions

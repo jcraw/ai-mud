@@ -76,12 +76,13 @@ class WorldGenerator(
      */
     suspend fun generateSpace(
         parentSubzone: WorldChunkComponent,
-        parentSubzoneId: String
+        parentSubzoneId: String,
+        directionHint: String? = null
     ): Result<Pair<SpacePropertiesComponent, String>> {
         val spaceId = ChunkIdGenerator.generate(ChunkLevel.SPACE, parentSubzoneId)
 
         // Generate space details via LLM
-        val spaceData = generateSpaceData(parentSubzone).getOrElse { return Result.failure(it) }
+        val spaceData = generateSpaceData(parentSubzone, directionHint).getOrElse { return Result.failure(it) }
 
         // Generate traps
         val traps = if (Random.nextDouble() < TRAP_PROBABILITY) {
@@ -243,7 +244,10 @@ class WorldGenerator(
         }
     }
 
-    private suspend fun generateSpaceData(parentSubzone: WorldChunkComponent): Result<SpaceData> {
+    private suspend fun generateSpaceData(
+        parentSubzone: WorldChunkComponent,
+        directionHint: String?
+    ): Result<SpaceData> {
         val systemPrompt = """
             You are a world-building assistant for a fantasy dungeon MUD.
             Generate space (room) data in JSON format only. No additional text.
@@ -253,10 +257,13 @@ class WorldGenerator(
             Theme: ${parentSubzone.biomeTheme}
             Lore: ${parentSubzone.lore}
             Difficulty: ${parentSubzone.difficultyLevel}
+            Direction Hint: ${directionHint ?: "unspecified"}
 
             Generate a room/space with:
             - Vivid description (2-3 sentences)
             - 3-6 exits (mix cardinal directions like "north", "south" and descriptive like "climb ladder", "through archway")
+            - If Direction Hint references vertical movement (e.g., "down", "climb ladder"), ensure at least one exit that fits that motion
+            - Describe how this space lies ${directionHint ?: "relative to its parent"} so navigation text stays coherent
             - Brightness (0=pitch black, 50=dim, 100=bright)
             - Terrain type (NORMAL, DIFFICULT, or IMPASSABLE)
 
