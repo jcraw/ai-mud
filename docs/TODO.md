@@ -21,7 +21,28 @@ All core systems are implemented and integrated:
 
 ## Next Actions
 
-All planned features and refactoring work complete. See "Optional Enhancements" below for future work.
+**🚧 In Progress: World System V3 - Graph-Based Navigation**
+
+Starting implementation of V3 upgrade to world generation system. See `docs/requirements/V3/FEATURE_PLAN_world_system_v3.md` for complete plan.
+
+**Next Step**: Chunk 1 - GraphNodeComponent and Data Structures (3-4h)
+- Add `GRAPH_NODE` to ComponentType enum
+- Create `GraphNodeComponent.kt` with node structure
+- Create `GraphTypes.kt` with NodeType sealed class and EdgeData
+- Add unit tests for component immutability and EdgeData
+- Document in ARCHITECTURE.md
+
+**Remaining Chunks** (see feature plan for details):
+- Chunk 2: Database Schema and GraphNodeRepository
+- Chunk 3: Graph Generation Algorithms
+- Chunk 4: Graph Validation System
+- Chunk 5: Integrate Graph Generation with World System
+- Chunk 6: Hidden Exit Revelation via Perception
+- Chunk 7: Dynamic Edge Modification (Player Agency)
+- Chunk 8: Breakout Edges to New Biomes
+- Chunk 9: Update Exit Resolution for Graph Structure
+- Chunk 10: Comprehensive Testing
+- Chunk 11: Documentation Updates
 
 ## Completed Systems Summary
 
