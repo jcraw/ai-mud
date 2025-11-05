@@ -30,7 +30,7 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 - ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
 - ✅ Chunk 4: Graph Validation System - GraphValidator.kt with 212 lines, ValidationResult sealed class (Success, Failure), isFullyConnected() BFS check, hasLoop() DFS cycle detection, avgDegree() calculation (>= 3.0 threshold), frontierCount() validation (>= 2), comprehensive unit tests (GraphValidatorTest.kt with 20 tests), WORLD_GENERATION.md updated with validation criteria
-- 🚧 Chunk 5: Integrate Graph Generation with World System - **Generation layer complete, integration pending**:
+- ✅ Chunk 5: Integrate Graph Generation with World System - **Option B adapter layer complete**:
   - ✅ WorldGenerator.kt updated with `generateChunk()` - generates graph at SUBZONE level (lines 78-85)
   - ✅ `generateGraphTopology()` - Graph generation with layout selection, seeded RNG, validation (lines 96-127)
   - ✅ `generateSpaceStub()` - creates space stubs with empty descriptions for lazy-fill (lines 211-252)
@@ -39,38 +39,40 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
   - ✅ `determineNodeProperties()` - Node type-based brightness/terrain determination (lines 343-360)
   - ✅ `ChunkGenerationResult` data class - returns chunk + graph nodes (lines 562-566)
   - ✅ Graph validation before persistence in `generateGraphTopology()`
+  - ✅ **GraphToRoomAdapter.kt** (193 lines) - Adapter layer for V3 → V2 conversion:
+    - `toRoom()` - Converts GraphNodeComponent + SpacePropertiesComponent to Room
+    - Cardinal direction mapping (Direction enum conversion)
+    - Non-cardinal exits stored in properties map for future custom movement
+    - Trait generation from space properties (brightness, terrain, features)
+    - Batch conversion via `toRooms()` for chunk-level conversion
+  - ✅ **GraphToRoomAdapterTest.kt** (16 tests) - Comprehensive adapter tests:
+    - Name extraction and fallback behavior
+    - Cardinal vs non-cardinal direction handling
+    - Brightness/terrain/node type trait generation
+    - Properties map population
+    - Batch conversion validation
 
-  **Integration Work Needed**:
-  - ❌ **Architectural Decision Required**: V3 uses ECS (GraphNodeComponent, SpacePropertiesComponent) while current game uses Room-based WorldState. Two approaches:
-    - **Option A** (Full Migration): Refactor WorldState, MovementHandlers, and game loop to use ECS components throughout. Significant architectural change, requires:
-      - Update `WorldState.movePlayer()` to use GraphNodeComponent edges instead of Room.exits
-      - Refactor `MudGame.getCurrentRoom()` to query SpacePropertiesComponent
-      - Update all handlers to work with components instead of Room objects
-      - Migration path for existing save files
-    - **Option B** (Parallel Systems): Keep V2 Room system for current dungeons, add V3 as separate generation mode. Create adapter layer:
-      - Convert GraphNodeComponent + SpacePropertiesComponent to Room format at runtime
-      - Maintain two generation paths: V2 (generateSpace) and V3 (generateChunk with graph)
-      - Simpler integration, allows gradual migration
+  **Architectural Decision: Option B (Parallel Systems) Implemented**
+  - V3 generation coexists with V2 without breaking existing dungeons
+  - Adapter layer provides runtime conversion at boundary
+  - KISS principle: Additive, non-disruptive, gradual migration path
 
-  - ❌ **Movement Handler Integration** (pending architectural decision):
+  **Remaining Integration Work**:
+  - ❌ **Movement Handler Integration**:
+    - Integrate GraphToRoomAdapter into movement handlers
     - Call `fillSpaceContent()` when entering a space with empty description
     - Handle frontier traversal (create new chunk when frontier node entered)
-    - Update exit resolution to use GraphNodeComponent neighbors
 
-  - ❌ **Integration Tests** (blocked on architectural decision):
-    - End-to-end test: Generate chunk with graph → enter space → verify lazy-fill
+  - ❌ **Integration Tests**:
+    - End-to-end test: Generate chunk with graph → convert to rooms → verify navigation
     - Frontier cascade test: Enter frontier node → verify new chunk created
     - Save/load test: Verify graph structure persists
 
-  📝 **Recommendation**: Option B (Parallel Systems) follows KISS principle - add V3 as new generation mode without breaking existing V2 system. Full ECS migration can be future enhancement once V3 is proven.
-
 **Next Step**:
-1. **DECIDE**: Choose Option A (full migration) or Option B (parallel systems)
-2. **IF Option B**: Implement adapter layer (GraphNode → Room conversion) - Est. 3-4h
-3. **IF Option A**: Create migration plan document first - Est. 6-8h planning + 15-20h implementation
-4. Complete movement handler integration based on chosen approach
-5. Add integration tests
-6. OR defer integration and move to Chunk 6-11 (hidden exits, dynamic edges, breakouts)
+1. ✅ **COMPLETED**: Option B adapter layer implemented (GraphToRoomAdapter.kt)
+2. ❌ **Integrate adapter into movement handlers** - Est. 2-3h
+3. ❌ **Add end-to-end integration tests** - Est. 2-3h
+4. OR defer full integration and move to Chunk 6-11 (hidden exits, dynamic edges, breakouts)
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms

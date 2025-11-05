@@ -437,6 +437,15 @@ Memory (store for RAG)
       - `generateSpace()` (lines 139-200) - V2 immediate generation for existing dungeons
       - Supports both V2 (immediate content) and V3 (graph-first lazy-fill) modes in parallel
     - **Integration Status**: Generation layer complete, movement handler integration pending (see TODO.md)
+  - `GraphToRoomAdapter.kt` - **V3 Chunk 5 Adapter Layer (Option B: Parallel Systems)**
+    - Converts V3 components (GraphNodeComponent + SpacePropertiesComponent) to V2 Room format
+    - `toRoom()` - Single space conversion with name extraction, trait building, exit mapping
+    - `toRooms()` - Batch conversion for chunk-level operations
+    - Cardinal direction mapping (Direction enum), non-cardinal exits stored in properties
+    - Trait generation from brightness, terrain, node type, features (traps/resources/safe zones)
+    - Properties map preserves V3 metadata for potential future use
+    - Tested with 16 comprehensive tests covering edge cases and data integrity
+    - **Design Philosophy**: KISS principle - additive, non-disruptive, allows gradual ECS migration
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
   - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
   - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)

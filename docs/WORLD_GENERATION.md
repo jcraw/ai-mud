@@ -933,19 +933,25 @@ WorldGenerator supports both modes simultaneously:
 - `generateNodeDescription()` uses node type and neighbors for contextual descriptions
 - `determineNodeProperties()` sets brightness/terrain based on node type
 
-**❌ Integration Pending** (requires architectural decision):
-- Movement handlers still use V2 Room-based system
+**✅ Adapter Layer Complete** (Option B: Parallel Systems):
+- `GraphToRoomAdapter.kt` (193 lines, 16 tests) converts V3 components to V2 Room format
+- `toRoom()` - Single space conversion with name extraction, trait building, exit mapping
+- `toRooms()` - Batch conversion for chunk-level operations
+- Cardinal direction mapping, non-cardinal exits stored in properties map
+- Trait generation from brightness, terrain, node type, features
+- **Design Philosophy**: KISS principle - additive, non-disruptive, gradual ECS migration path
+- **Status**: Ready for movement handler integration
+
+**❌ Integration Pending**:
+- Movement handlers still use V2 Room-based system (adapter not yet integrated)
 - `fillSpaceContent()` not yet called from game loop
 - Frontier traversal not implemented (cascade to new chunks)
-- Two integration options:
-  - **Option A**: Full ECS migration (refactor WorldState, handlers, game loop)
-  - **Option B**: Parallel systems with adapter layer (convert GraphNode → Room)
-- Recommendation: Option B follows KISS principle (see TODO.md)
+- See TODO.md for integration plan
 
 ### File Locations
 
 - **Core**: `GraphNodeComponent.kt`, `world/GraphTypes.kt`
-- **Reasoning**: `worldgen/GraphGenerator.kt`, `worldgen/GraphValidator.kt`, `worldgen/GraphLayout.kt`
+- **Reasoning**: `worldgen/GraphGenerator.kt`, `worldgen/GraphValidator.kt`, `worldgen/GraphLayout.kt`, `world/GraphToRoomAdapter.kt`
 - **Memory**: `GraphNodeRepository.kt`, `SQLiteGraphNodeRepository.kt`
 
 ### Testing
@@ -953,8 +959,9 @@ WorldGenerator supports both modes simultaneously:
 - **GraphGeneratorTest**: 31 tests (layouts, MST, loops, node types, hidden edges)
 - **GraphLayoutTest**: 25 tests (algorithm-specific validation)
 - **GraphValidatorTest**: 20 tests (connectivity, loops, degree, frontiers)
+- **GraphToRoomAdapterTest**: 16 tests (name extraction, direction mapping, trait generation, batch conversion)
 
-**Total V3 Tests**: 76 tests passing (100% pass rate)
+**Total V3 Tests**: 92 tests passing (100% pass rate)
 
 ## V3 Roadmap
 
