@@ -45,3 +45,7 @@ bin/
 .DS_Store
 # Secrets
 local.properties
+
+# Game data (databases)
+data/
+*.db

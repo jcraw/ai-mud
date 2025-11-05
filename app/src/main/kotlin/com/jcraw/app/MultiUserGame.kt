@@ -45,7 +45,7 @@ class MultiUserGame(
         val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
 
         // Initialize game server with social system
-        val socialDatabase = SocialDatabase("social.db")
+        val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
         val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
         gameServer = GameServer(
             worldState = initialWorldState,

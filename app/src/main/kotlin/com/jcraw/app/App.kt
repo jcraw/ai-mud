@@ -17,6 +17,9 @@ import com.jcraw.sophia.llm.OpenAIClient
  * Main game application - console-based MUD interface
  */
 fun main() {
+    // Initialize shared database configuration
+    com.jcraw.mud.core.DatabaseConfig.init()
+
     // Get OpenAI API key from environment or system property (from local.properties)
     val apiKey = System.getenv("OPENAI_API_KEY")
         ?: System.getProperty("openai.api.key")
@@ -65,7 +68,7 @@ fun main() {
         } else {
             // Initialize world generation components
             val llmClient = OpenAIClient(apiKey)
-            val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("world.db")
+            val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
             val worldSeedRepo = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
             val chunkRepo = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
             val spaceRepo = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)

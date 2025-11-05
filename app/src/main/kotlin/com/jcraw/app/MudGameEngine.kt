@@ -70,7 +70,7 @@ class MudGame(
     internal val llmService = llmClient
 
     // Item System V2 components
-    private val itemDatabase = ItemDatabase("items.db")
+    private val itemDatabase = ItemDatabase(com.jcraw.mud.core.DatabaseConfig.ITEMS_DB)
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
     internal val recipeRepository = com.jcraw.mud.memory.item.SQLiteRecipeRepository(itemDatabase)
     private val lootGenerator = LootGenerator(itemRepository)
@@ -78,7 +78,7 @@ class MudGame(
     internal val corpseDecayManager = CorpseDecayManager()
 
     // Social system components
-    private val socialDatabase = SocialDatabase("social.db")
+    private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
     private val socialEventRepo = SqliteSocialEventRepository(socialDatabase)
     private val knowledgeRepo = com.jcraw.mud.memory.social.SqliteKnowledgeRepository(socialDatabase)
@@ -88,14 +88,14 @@ class MudGame(
     private val questTracker = QuestTracker(dispositionManager)
 
     // Skill system components
-    private val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase("skills.db")
+    private val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(com.jcraw.mud.core.DatabaseConfig.SKILLS_DB)
     private val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
     private val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
     internal val skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
     internal val perkSelector = com.jcraw.mud.reasoning.skill.PerkSelector(skillComponentRepo, memoryManager)
 
     // World Generation V2 components
-    private val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("world.db")
+    private val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
     private val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
     internal val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
     internal val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)

@@ -57,7 +57,7 @@ class EngineGameClient(
 
     // Item system components
     private val itemJson = Json { ignoreUnknownKeys = true }
-    private val itemDatabase = ItemDatabase("client_items.db")
+    private val itemDatabase = ItemDatabase(DatabaseConfig.ITEMS_DB)
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
     private val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
 
@@ -88,8 +88,11 @@ class EngineGameClient(
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
 
     init {
+        // Initialize shared database configuration
+        DatabaseConfig.init()
+
         // Initialize social system components
-        socialDatabase = SocialDatabase("client_social.db")
+        socialDatabase = SocialDatabase(DatabaseConfig.SOCIAL_DB)
         socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
         socialEventRepo = SqliteSocialEventRepository(socialDatabase)
         knowledgeRepo = com.jcraw.mud.memory.social.SqliteKnowledgeRepository(socialDatabase)
@@ -111,7 +114,7 @@ class EngineGameClient(
         npcKnowledgeManager = NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)
 
         // Initialize skill system components
-        skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase("client_skills.db")
+        skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(DatabaseConfig.SKILLS_DB)
         skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
         skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
         skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
@@ -126,7 +129,7 @@ class EngineGameClient(
         questTracker = QuestTracker(dispositionManager)
 
         // Initialize World V2 components
-        worldDatabase = com.jcraw.mud.memory.world.WorldDatabase("client_world.db")
+        worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(DatabaseConfig.WORLD_DB)
         worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
         worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
