@@ -408,7 +408,7 @@ Memory (store for RAG)
 - **Intents** (`perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`)
   - Craft, Trade, Pickpocket, UseItem intents
 
-### World Generation System V2 (Chunks 1-6 Complete)
+### World Generation System V2/V3 (Chunks 1-6 Complete, V3 Chunk 3 Complete)
 - **Component-based architecture** for hierarchical world generation (5 levels)
   - `WorldChunkComponent` - Chunk hierarchy (WORLD → REGION → ZONE → SUBZONE → SPACE) with lore inheritance (`core`)
   - `SpacePropertiesComponent` - Space details (description, exits, traps, resources, entities, state flags) (`core`)
@@ -427,6 +427,20 @@ Memory (store for RAG)
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
   - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
   - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)
+- **Graph generation (V3)** (`reasoning/worldgen/`)
+  - `GraphLayout.kt` - Sealed class for algorithm selection (Grid, BSP, FloodFill)
+    - Grid: Regular NxM rectangular layout for dungeons, buildings
+    - BSP: Binary space partitioning for hierarchical rooms, temples
+    - FloodFill: Organic growth for caves, natural formations
+    - Helper methods: forBiome(), forNodeCount() for automatic selection
+  - `GraphGenerator.kt` - Core topology generation engine
+    - Three layout algorithms: generateGridNodes(), generateBSPNodes(), generateFloodFillNodes()
+    - Kruskal MST for connectivity (ensures all nodes reachable)
+    - Add 20% extra edges for loops (creates exploration choices)
+    - Node type assignment: 1-2 Hubs, 1 Boss, 2+ Frontiers, 20% Dead-ends
+    - Hidden edge marking: 15-25% edges marked with Perception DC 10-30
+    - Bidirectional edges with cardinal direction labels (N/S/E/W)
+  - `GraphValidator.kt` - Post-generation validation (Chunk 4, pending)
 - **Exit system** (`reasoning/world/`)
   - `ExitResolver.kt` - Three-phase resolution (exact → fuzzy → LLM)
   - `ExitLinker.kt` - Links placeholder exits and creates reciprocal paths
@@ -444,8 +458,8 @@ Memory (store for RAG)
   - `RespawnManager.kt` - Mob regeneration preserving player changes
   - `AutosaveManager.kt` - Periodic autosave (every 5 moves or 2 minutes)
   - `GenerationCache.kt` - LRU cache (1000 chunks) for performance
-- **Testing** - 576+ unit/integration tests across chunks 1-6
-- **Status** - Foundation complete, ready for handler integration (Chunk 7)
+- **Testing** - 576+ unit/integration tests across V2 chunks 1-6, comprehensive tests for V3 GraphGenerator and GraphLayout
+- **Status** - V2 foundation complete, V3 graph generation (Chunk 3) complete
 - See [World Generation Documentation](./WORLD_GENERATION.md) for complete details
 
 ### Sample Content

@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - Chunk 2 Complete
+Last updated: 2025-11-05 - V3 Chunk 3 Complete
 
 ## Current Status
 
@@ -28,16 +28,17 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 **Completed Chunks**:
 - ✅ Chunk 1: GraphNodeComponent and Data Structures - GRAPH_NODE enum, GraphNodeComponent.kt with 155 lines (29 tests passing), GraphTypes.kt with NodeType sealed class and EdgeData, documented in ARCHITECTURE.md
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
+- ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
 
-**Next Step**: Chunk 3 - Graph Generation Algorithms (5-6h)
-- Create `GraphGenerator.kt` with layout algorithms (grid, BSP, flood-fill)
-- Create `GraphLayout.kt` sealed class for algorithm selection
+**Next Step**: Chunk 4 - Graph Validation System (3h)
 - Create `GraphValidator.kt` for post-generation validation
-- Implement Kruskal MST for connectivity
-- Add 20% extra edges for loops
-- Assign node types and mark 15-25% edges as hidden
-- Add unit tests for generation algorithms
-- Update ARCHITECTURE.md reasoning module section
+- Implement reachability checks (BFS from entry)
+- Implement loop detection (cycle detection via DFS)
+- Implement avg degree calculation (check >= 3.0 threshold)
+- Implement frontier count validation (require >= 2)
+- Return ValidationResult sealed class (Success, Failure)
+- Add unit tests for validation checks
+- Update WORLD_GENERATION.md with validation criteria
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms
