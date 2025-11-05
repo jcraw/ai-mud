@@ -684,9 +684,189 @@ Returns starting space ID for player spawn.
 - **Serialization roundtrips** (save/load data integrity)
 - **Edge cases** (missing parents, orphaned chunks, corrupted DB)
 
+## V3: Graph-Based Navigation
+
+**Status**: Chunks 1-4 complete. Graph topology generation with validation.
+
+V3 upgrades the World Generation system from V2's exit-based navigation to pre-generated graph topology. This enables:
+- Structured layouts (Grid/BSP/FloodFill algorithms)
+- Hidden exits (15-25% edges, revealed via Perception)
+- Infinite exploration (Frontier nodes cascade to new chunks)
+- Player agency (Tunnel skill creates edges, explosives remove edges)
+- Quality assurance (Post-generation validation)
+
+### Graph Components
+
+#### GraphNodeComponent
+
+Pre-generated topology nodes defining connectivity before content generation.
+
+```kotlin
+data class GraphNodeComponent(
+    val id: String,
+    val position: Pair<Int, Int>?,  // For Grid/BSP layouts
+    val type: NodeType,              // HUB, LINEAR, BRANCHING, DEAD_END, BOSS, FRONTIER, QUESTABLE
+    val neighbors: List<EdgeData>,
+    val chunkId: String
+) : Component
+```
+
+**Node Types**:
+- **Hub**: Safe zones, towns, high connectivity (4+ edges)
+- **Linear**: Corridors, 2 edges (in/out)
+- **Branching**: Choice points, 3+ edges
+- **DeadEnd**: Treasure/traps, 1 edge
+- **Boss**: Major encounters, farthest from entry
+- **Frontier**: Boundary nodes, trigger cascade to new chunks
+- **Questable**: Future quest system integration
+
+#### EdgeData
+
+```kotlin
+data class EdgeData(
+    val targetId: String,
+    val direction: String,
+    val hidden: Boolean = false,
+    val conditions: List<Condition> = emptyList()
+)
+```
+
+### Graph Generation
+
+`GraphGenerator` creates topology using one of three algorithms:
+
+1. **Grid Layout**: Regular NxM arrangement for dungeons
+   - Parameters: `width`, `height`
+   - Use case: Structured dungeons, maze-like areas
+
+2. **BSP Layout**: Binary space partitioning for buildings
+   - Parameters: `minRoomSize`, `maxDepth`
+   - Use case: Castles, temples, indoor structures
+
+3. **FloodFill Layout**: Organic growth for caves
+   - Parameters: `nodeCount`, `density` (0.0-1.0)
+   - Use case: Natural caves, organic environments
+
+**Generation Steps**:
+1. Generate node positions based on layout algorithm
+2. Connect nodes via Kruskal MST (ensures connectivity)
+3. Add 20% extra edges for loops (exploration choices)
+4. Assign node types (1-2 hubs, 1 boss, 2+ frontiers, 20% dead-ends)
+5. Mark 15-25% edges as hidden with Perception difficulty (10-30)
+6. Validate graph structure
+
+### Graph Validation
+
+`GraphValidator` enforces quality requirements post-generation. All generated graphs must pass validation before being saved to the database.
+
+#### Validation Criteria
+
+**1. Full Connectivity**
+- All nodes must be reachable from the first node (entry point)
+- Uses BFS traversal to verify reachability
+- **Why**: Prevents isolated nodes that break navigation
+- **Failure**: "Graph not fully connected - some nodes are unreachable"
+
+**2. Loop Existence**
+- Graph must contain at least one cycle
+- Uses DFS with recursion stack to detect back edges
+- **Why**: Loops provide exploration choice and prevent linear progression
+- **Failure**: "No loops found - graph is a tree"
+
+**3. Minimum Average Degree**
+- Average edges per node must be >= 3.0
+- Calculated as: `total_edges / node_count`
+- **Why**: Ensures sufficient connectivity for interesting exploration
+- **Failure**: "Average degree X.XX < 3.0 - insufficient connectivity"
+
+**4. Minimum Frontier Count**
+- At least 2 frontier nodes required
+- Counts nodes with `type == NodeType.Frontier`
+- **Why**: Enables robust infinite expansion capability
+- **Failure**: "Frontier count X < 2 - insufficient expansion points"
+
+#### ValidationResult
+
+```kotlin
+sealed class ValidationResult {
+    object Success : ValidationResult()
+    data class Failure(val reasons: List<String>) : ValidationResult()
+}
+```
+
+**Usage**:
+```kotlin
+val validator = GraphValidator()
+val validation = validator.validate(nodes)
+
+when (validation) {
+    is ValidationResult.Success -> {
+        // Save graph to database
+    }
+    is ValidationResult.Failure -> {
+        // Log failures, retry generation, or throw exception
+        throw GenerationException("Graph validation failed: ${validation.reasons}")
+    }
+}
+```
+
+#### Validation Flow
+
+```
+GraphGenerator.generate()
+    ↓
+GraphValidator.validate(nodes)
+    ↓
+    ├─ Check 1: isFullyConnected() [BFS]
+    ├─ Check 2: hasLoop() [DFS cycle detection]
+    ├─ Check 3: avgDegree() [>= 3.0]
+    └─ Check 4: frontierCount() [>= 2]
+    ↓
+ValidationResult.Success or ValidationResult.Failure
+    ↓
+Save to database or retry generation
+```
+
+### Graph Integration with V2
+
+Graph generation occurs at the **SUBZONE level** (V2 hierarchy):
+- V2 creates hierarchical chunks (WORLD → REGION → ZONE → SUBZONE)
+- V3 generates graph topology when SUBZONE is created
+- Graph nodes become SPACE entities (V2 atomic rooms)
+- SpaceProperties filled lazily on first player visit
+
+**Benefits**:
+- Reduced LLM calls (topology pre-computed, content generated on-demand)
+- Consistent structure (validated graphs ensure quality)
+- Dynamic modification (edges can be added/removed at runtime)
+- Infinite expansion (frontier nodes trigger new chunk generation)
+
+### File Locations
+
+- **Core**: `GraphNodeComponent.kt`, `world/GraphTypes.kt`
+- **Reasoning**: `worldgen/GraphGenerator.kt`, `worldgen/GraphValidator.kt`, `worldgen/GraphLayout.kt`
+- **Memory**: `GraphNodeRepository.kt`, `SQLiteGraphNodeRepository.kt`
+
+### Testing
+
+- **GraphGeneratorTest**: 31 tests (layouts, MST, loops, node types, hidden edges)
+- **GraphLayoutTest**: 25 tests (algorithm-specific validation)
+- **GraphValidatorTest**: 20 tests (connectivity, loops, degree, frontiers)
+
+**Total V3 Tests**: 76 tests passing (100% pass rate)
+
 ## V3 Roadmap
 
-Future enhancements (not in V2 MVP):
+Future V3 enhancements (Chunks 5-11):
+
+- **Integration with World System**: Lazy-fill content on node entry
+- **Hidden Exit Revelation**: Perception checks reveal hidden edges
+- **Dynamic Edge Modification**: Tunnel skill adds edges, explosives remove edges
+- **Breakout Edges**: Every 3-5 chunks, add edges to new biomes
+- **Exit Resolution Update**: Use GraphNodeComponent as source of truth
+- **Comprehensive Testing**: Bot tests for full exploration flow
+
+Future V4 enhancements (post-V3):
 
 - **Open World**: Horizontal regions, multiple dungeons
 - **Weather System**: Dynamic weather affecting visibility/terrain

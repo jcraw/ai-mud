@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Chunk 3 Complete
+Last updated: 2025-11-05 - V3 Chunk 4 Complete
 
 ## Current Status
 
@@ -29,16 +29,16 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 1: GraphNodeComponent and Data Structures - GRAPH_NODE enum, GraphNodeComponent.kt with 155 lines (29 tests passing), GraphTypes.kt with NodeType sealed class and EdgeData, documented in ARCHITECTURE.md
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 - ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
+- ✅ Chunk 4: Graph Validation System - GraphValidator.kt with 212 lines, ValidationResult sealed class (Success, Failure), isFullyConnected() BFS check, hasLoop() DFS cycle detection, avgDegree() calculation (>= 3.0 threshold), frontierCount() validation (>= 2), comprehensive unit tests (GraphValidatorTest.kt with 20 tests), WORLD_GENERATION.md updated with validation criteria
 
-**Next Step**: Chunk 4 - Graph Validation System (3h)
-- Create `GraphValidator.kt` for post-generation validation
-- Implement reachability checks (BFS from entry)
-- Implement loop detection (cycle detection via DFS)
-- Implement avg degree calculation (check >= 3.0 threshold)
-- Implement frontier count validation (require >= 2)
-- Return ValidationResult sealed class (Success, Failure)
-- Add unit tests for validation checks
-- Update WORLD_GENERATION.md with validation criteria
+**Next Step**: Chunk 5 - Integrate Graph Generation with World System (4-5h)
+- Update WorldGenerator to pre-generate graph topology before content
+- Generate graph on SUBZONE chunk creation
+- Validate graph before saving to database
+- Create SpaceProperties stubs (lazy-fill descriptions)
+- Implement fillSpaceContent() for on-demand LLM generation
+- Handle frontier traversal (cascade to new chunks)
+- Add integration tests for generation flow
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms
