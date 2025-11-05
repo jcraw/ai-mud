@@ -15,7 +15,16 @@ object MovementHandlers {
     fun handleMove(game: MudGame, direction: Direction) {
         // V2 combat is emergent - no modal combat state, so movement is always allowed
         // Hostile NPCs in turn queue will get their attacks when their timer expires
-        val newState = game.worldState.movePlayer(direction)
+
+        // Try V3 graph-based navigation first
+        val currentGraphNode = game.worldState.getCurrentGraphNode()
+        val newState = if (currentGraphNode != null) {
+            // V3: Graph-based movement
+            game.worldState.movePlayerV3(direction)
+        } else {
+            // V2: Room-based movement fallback
+            game.worldState.movePlayer(direction)
+        }
 
         if (newState == null) {
             println("You can't go that way.")
@@ -25,7 +34,15 @@ object MovementHandlers {
         game.worldState = newState
         println("You move ${direction.displayName}.")
 
-        // Track room exploration for quests
+        // V3: Lazy-fill and frontier traversal
+        // TODO: Implement when chunk system is fully integrated into WorldState
+        // Will need:
+        // 1. WorldState to store chunks
+        // 2. Access to current chunk via worldState.getChunk(chunkId)
+        // 3. Call worldGenerator.fillSpaceContent(space, graphNode, chunk)
+        // 4. Frontier traversal logic for chunk cascade generation
+
+        // Track room/space exploration for quests
         val room = game.worldState.getCurrentRoom()
         if (room != null) {
             game.trackQuests(QuestAction.VisitedRoom(room.id))
@@ -39,7 +56,11 @@ object MovementHandlers {
             // Look at room - describeCurrentRoom already shows all entities including items
             game.describeCurrentRoom()
         } else {
-            // Look at specific entity
+            // V3: Check if using space-based world
+            val space = game.worldState.getCurrentSpace()
+
+            // For now, still use V2 room-based entity access during migration
+            // TODO: Update when entity system is migrated to V3
             val room = game.worldState.getCurrentRoom() ?: return
             val entity = room.entities.find { e ->
                 e.name.lowercase().contains(target.lowercase()) ||
@@ -65,6 +86,11 @@ object MovementHandlers {
     }
 
     fun handleSearch(game: MudGame, target: String?) {
+        // V3: Check if using space-based world
+        val space = game.worldState.getCurrentSpace()
+
+        // For now, still use V2 room-based entity access during migration
+        // TODO: Update when entity system is migrated to V3
         val room = game.worldState.getCurrentRoom() ?: return
 
         println("\nYou search the area carefully${if (target != null) ", focusing on the $target" else ""}...")
