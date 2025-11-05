@@ -202,7 +202,40 @@ object ClientMovementHandlers {
     ) {
         val player = game.worldState.player
         var activeSpace = currentSpace
-        var exit = activeSpace.resolveExit(direction.displayName, player)
+
+        // Use ExitResolver if available, otherwise fall back to simple resolution
+        val resolver = game.exitResolver
+        var exit: com.jcraw.mud.core.world.ExitData? = null
+
+        if (resolver != null) {
+            // Use three-phase exit resolution (exact, fuzzy, LLM)
+            val resolveResult = runBlocking {
+                resolver.resolve(direction.displayName, activeSpace, player)
+            }
+
+            when (resolveResult) {
+                is com.jcraw.mud.reasoning.world.ResolveResult.Success -> {
+                    exit = resolveResult.exit
+                }
+                is com.jcraw.mud.reasoning.world.ResolveResult.Failure -> {
+                    game.emitEvent(GameEvent.System(resolveResult.reason, GameEvent.MessageLevel.WARNING))
+                    return
+                }
+                is com.jcraw.mud.reasoning.world.ResolveResult.Ambiguous -> {
+                    val suggestions = buildString {
+                        appendLine("Which exit did you mean?")
+                        resolveResult.suggestions.forEach { (dir, desc) ->
+                            appendLine("  - $dir: $desc")
+                        }
+                    }
+                    game.emitEvent(GameEvent.System(suggestions, GameEvent.MessageLevel.INFO))
+                    return
+                }
+            }
+        } else {
+            // Fallback: use simple resolution
+            exit = activeSpace.resolveExit(direction.displayName, player)
+        }
 
         if (exit != null && exit.targetId == "PLACEHOLDER") {
             val linker = game.exitLinker
@@ -275,7 +308,19 @@ object ClientMovementHandlers {
             }
 
             activeSpace = linkedSpace
-            exit = activeSpace.resolveExit(direction.displayName, player)
+
+            // Re-resolve exit after linking
+            if (resolver != null) {
+                val resolveResult = runBlocking {
+                    resolver.resolve(direction.displayName, activeSpace, player)
+                }
+                exit = when (resolveResult) {
+                    is com.jcraw.mud.reasoning.world.ResolveResult.Success -> resolveResult.exit
+                    else -> null
+                }
+            } else {
+                exit = activeSpace.resolveExit(direction.displayName, player)
+            }
 
             if (exit == null || exit.targetId == "PLACEHOLDER") {
                 game.emitEvent(
