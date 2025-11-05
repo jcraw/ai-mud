@@ -11,6 +11,7 @@ import java.sql.SQLException
  * Database schema:
  * - world_seed: Global seed and lore for world generation (singleton)
  * - world_chunks: Hierarchical world chunks (WORLD/REGION/ZONE/SUBZONE/SPACE levels)
+ * - graph_nodes: V3 graph topology for pre-generated navigation structure
  * - space_properties: Detailed space properties (descriptions, exits, content)
  * - respawn_components: Mob respawn timers and regeneration state
  * - corpses: Player death corpses with inventory/equipment (Dark Souls-style)
@@ -94,6 +95,21 @@ class WorldDatabase(
                 }
             }
 
+            // Graph nodes table (V3 pre-generated topology)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS graph_nodes (
+                    id TEXT PRIMARY KEY,
+                    chunk_id TEXT NOT NULL,
+                    position_x INTEGER,
+                    position_y INTEGER,
+                    type TEXT NOT NULL,
+                    neighbors TEXT NOT NULL,
+                    FOREIGN KEY (chunk_id) REFERENCES world_chunks(id)
+                )
+                """.trimIndent()
+            )
+
             // Space properties table (detailed space data)
             stmt.execute(
                 """
@@ -155,6 +171,7 @@ class WorldDatabase(
             // Create indices for common queries
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_parent ON world_chunks(parent_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_level ON world_chunks(level)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_graph_nodes_chunk ON graph_nodes(chunk_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_space_chunk ON space_properties(chunk_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_respawn_space ON respawn_components(space_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_space ON corpses(space_id)")
@@ -172,6 +189,7 @@ class WorldDatabase(
             stmt.execute("DELETE FROM respawn_components")
             stmt.execute("DELETE FROM space_entities")
             stmt.execute("DELETE FROM space_properties")
+            stmt.execute("DELETE FROM graph_nodes")
             stmt.execute("DELETE FROM world_chunks")
             stmt.execute("DELETE FROM world_seed")
         }

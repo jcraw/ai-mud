@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-04 - Chunk 1 Complete
+Last updated: 2025-11-05 - Chunk 2 Complete
 
 ## Current Status
 
@@ -27,13 +27,17 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 
 **Completed Chunks**:
 - ✅ Chunk 1: GraphNodeComponent and Data Structures - GRAPH_NODE enum, GraphNodeComponent.kt with 155 lines (29 tests passing), GraphTypes.kt with NodeType sealed class and EdgeData, documented in ARCHITECTURE.md
+- ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 
-**Next Step**: Chunk 2 - Database Schema and GraphNodeRepository (3-4h)
-- Add migration script `V4__graph_nodes.sql`
-- Create `GraphNodeRepository.kt` interface
-- Create `SQLiteGraphNodeRepository.kt` implementation
-- Add unit tests for repository CRUD operations
-- Update ARCHITECTURE.md database schema section
+**Next Step**: Chunk 3 - Graph Generation Algorithms (5-6h)
+- Create `GraphGenerator.kt` with layout algorithms (grid, BSP, flood-fill)
+- Create `GraphLayout.kt` sealed class for algorithm selection
+- Create `GraphValidator.kt` for post-generation validation
+- Implement Kruskal MST for connectivity
+- Add 20% extra edges for loops
+- Assign node types and mark 15-25% edges as hidden
+- Add unit tests for generation algorithms
+- Update ARCHITECTURE.md reasoning module section
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms

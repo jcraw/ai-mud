@@ -415,12 +415,13 @@ Memory (store for RAG)
   - `GraphNodeComponent` - Pre-generated graph topology for V3 navigation (7 node types: HUB, LINEAR, BRANCHING, DEAD_END, BOSS, FRONTIER, QUESTABLE) (`core`)
   - `GraphTypes.kt` - NodeType sealed class and EdgeData with hidden exits and conditions (`core/world`)
   - `ChunkLevel.kt`, `TerrainType.kt`, `ExitData.kt`, `TrapData.kt`, `ResourceNode.kt`, `GenerationContext.kt`, `NavigationState.kt`, `WorldAction.kt` (`core/world`)
-- **Database persistence** - SQLite schema with 3 tables (`memory/world/WorldDatabase.kt`)
-  - world_seed (singleton with global lore), world_chunks, space_properties
-  - JSON serialization for complex fields (exits, traps, resources, entities, stateFlags)
+- **Database persistence** - SQLite schema with 4 tables (`memory/world/WorldDatabase.kt`)
+  - world_seed (singleton with global lore), world_chunks, graph_nodes (V3), space_properties
+  - JSON serialization for complex fields (neighbors, exits, traps, resources, entities, stateFlags)
+  - graph_nodes stores pre-generated topology (id, chunk_id, position_x, position_y, type, neighbors as JSON)
 - **Repositories** (`core/repository/`, `memory/world/`)
-  - `WorldChunkRepository.kt`, `SpacePropertiesRepository.kt`, `WorldSeedRepository.kt`
-  - `SQLiteWorldChunkRepository.kt`, `SQLiteSpacePropertiesRepository.kt`, `SQLiteWorldSeedRepository.kt`
+  - `WorldChunkRepository.kt`, `SpacePropertiesRepository.kt`, `WorldSeedRepository.kt`, `GraphNodeRepository.kt` (V3)
+  - `SQLiteWorldChunkRepository.kt`, `SQLiteSpacePropertiesRepository.kt`, `SQLiteWorldSeedRepository.kt`, `SQLiteGraphNodeRepository.kt` (V3)
 - **Generation pipeline** (`reasoning/world/`)
   - `WorldGenerator.kt` - Primary generation engine with LLM integration
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
