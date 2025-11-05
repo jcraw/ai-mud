@@ -205,12 +205,13 @@ All V2 systems fully integrated and tested:
 - ✅ Starting Dungeon (8 chunks) - Ancient Abyss with town, merchants, respawn, boss fight
 - ✅ GUI Client - Compose Multiplatform with real engine integration
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
-- 🚧 World System V3 (Chunks 1-5 adapter layer complete, movement integration pending):
+- 🚧 World System V3 (Chunks 1-5 WorldState refactoring complete, handler integration pending):
   - ✅ Chunk 1-2: GraphNodeComponent ECS component (155 lines, 29 tests), database schema, GraphNodeRepository (219 lines, 29 unit tests)
   - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, 20% extra edges for loops, node type assignment (31 tests GraphGeneratorTest, 25 tests GraphLayoutTest)
   - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers (212 lines, 20 tests GraphValidatorTest)
-  - ✅ Chunk 5 Generation & Adapter: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system, GraphToRoomAdapter.kt (193 lines, 16 tests) for V3→V2 conversion following Option B (Parallel Systems)
-  - ❌ Movement handler integration - Use adapter to enable V3 graph navigation
+  - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system
+  - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces storage, 12 new V3 methods (movePlayerV3, getCurrentSpace, etc.), Room deprecated
+  - ❌ Handler integration - Update all handlers (movement, combat, items, social) to use V3 methods (~12-15h remaining)
   - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
 - ✅ 773 tests passing (0 failures, 100% pass rate)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)

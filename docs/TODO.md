@@ -30,7 +30,7 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 - ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
 - ✅ Chunk 4: Graph Validation System - GraphValidator.kt with 212 lines, ValidationResult sealed class (Success, Failure), isFullyConnected() BFS check, hasLoop() DFS cycle detection, avgDegree() calculation (>= 3.0 threshold), frontierCount() validation (>= 2), comprehensive unit tests (GraphValidatorTest.kt with 20 tests), WORLD_GENERATION.md updated with validation criteria
-- ✅ Chunk 5: Integrate Graph Generation with World System - **Option B adapter layer complete**:
+- ✅ Chunk 5: Integrate Graph Generation with World System - **V3 WorldState refactoring in progress** (Option 2: Full ECS replacement):
   - ✅ WorldGenerator.kt updated with `generateChunk()` - generates graph at SUBZONE level (lines 78-85)
   - ✅ `generateGraphTopology()` - Graph generation with layout selection, seeded RNG, validation (lines 96-127)
   - ✅ `generateSpaceStub()` - creates space stubs with empty descriptions for lazy-fill (lines 211-252)
@@ -39,40 +39,69 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
   - ✅ `determineNodeProperties()` - Node type-based brightness/terrain determination (lines 343-360)
   - ✅ `ChunkGenerationResult` data class - returns chunk + graph nodes (lines 562-566)
   - ✅ Graph validation before persistence in `generateGraphTopology()`
-  - ✅ **GraphToRoomAdapter.kt** (193 lines) - Adapter layer for V3 → V2 conversion:
-    - `toRoom()` - Converts GraphNodeComponent + SpacePropertiesComponent to Room
-    - Cardinal direction mapping (Direction enum conversion)
-    - Non-cardinal exits stored in properties map for future custom movement
-    - Trait generation from space properties (brightness, terrain, features)
-    - Batch conversion via `toRooms()` for chunk-level conversion
-  - ✅ **GraphToRoomAdapterTest.kt** (16 tests) - Comprehensive adapter tests:
-    - Name extraction and fallback behavior
-    - Cardinal vs non-cardinal direction handling
-    - Brightness/terrain/node type trait generation
-    - Properties map population
-    - Batch conversion validation
+  - ✅ **WorldState.kt V3 Refactoring** (248 lines) - Full ECS component integration:
+    - Added `graphNodes: Map<SpaceId, GraphNodeComponent>` - Graph topology storage
+    - Added `spaces: Map<SpaceId, SpacePropertiesComponent>` - Space content storage
+    - Deprecated `rooms` field (marked for removal after migration)
+    - **V3 Methods** (12 new methods):
+      - `getCurrentSpace()` / `getCurrentGraphNode()` - Component-based location queries
+      - `getSpace()` / `getGraphNode()` - Direct component access
+      - `updateSpace()` / `updateGraphNode()` - Immutable component updates
+      - `addSpace()` - Combined node + space addition
+      - `movePlayerV3()` - Graph-based navigation using GraphNodeComponent edges
+      - `getAvailableExitsV3()` - Perception-aware exit listing
+      - `addEntityToSpaceV3()` / `removeEntityFromSpaceV3()` - Entity management
+    - **Migration Strategy**: Incremental - V2 methods remain alongside V3 for gradual handler migration
+    - Compiles successfully with deprecation warnings on V2 methods
 
-  **Architectural Decision: Option B (Parallel Systems) Implemented**
-  - V3 generation coexists with V2 without breaking existing dungeons
-  - Adapter layer provides runtime conversion at boundary
-  - KISS principle: Additive, non-disruptive, gradual migration path
+  **Architectural Decision: Option 2 (Full ECS Replacement) - In Progress**
+  - V3 replaces V2 entirely (no parallel systems, no migrations)
+  - Database can be wiped between versions
+  - WorldState refactored to use ECS components directly
+  - Room abstraction deprecated (will be removed after handler migration)
 
-  **Remaining Integration Work**:
-  - ❌ **Movement Handler Integration**:
-    - Integrate GraphToRoomAdapter into movement handlers
-    - Call `fillSpaceContent()` when entering a space with empty description
-    - Handle frontier traversal (create new chunk when frontier node entered)
+  **Remaining Integration Work** (Est. 12-15h):
+  - ❌ **Movement Handlers** (~3-4h):
+    - Update `MovementHandlers.kt` to use `movePlayerV3()` and `getAvailableExitsV3()`
+    - Implement lazy-fill: Call `WorldGenerator.fillSpaceContent()` when space.description is empty
+    - Implement frontier traversal: Generate new chunk when frontier node entered
+    - Update exit resolution to use GraphNodeComponent edges
 
-  - ❌ **Integration Tests**:
-    - End-to-end test: Generate chunk with graph → convert to rooms → verify navigation
+  - ❌ **Item/Combat/Social Handlers** (~4-5h):
+    - Update `ItemHandlers.kt` to use `getCurrentSpace()` / `updateSpace()`
+    - Update `CombatHandlers.kt` to use SpacePropertiesComponent for entity access
+    - Update `SocialHandlers.kt` to use V3 space methods
+    - Update `SkillQuestHandlers.kt` for V3 compatibility
+
+  - ❌ **Game Loop** (~2-3h):
+    - Update `MudGameEngine.kt` to initialize with V3 WorldState
+    - Update `MultiUserGame.kt` for V3 compatibility
+    - Update world generation entry points to use V3 generation
+
+  - ❌ **GUI Client** (~2-3h):
+    - Update `EngineGameClient.kt` and all client handlers for V3
+    - Update character creation to spawn in V3-generated world
+
+  - ❌ **Remove V2 Code** (~1h):
+    - Remove deprecated `rooms` field from WorldState
+    - Remove V2 Room-based methods (getCurrentRoom, movePlayer, etc.)
+    - Remove GraphToRoomAdapter (no longer needed with full ECS)
+    - Update all tests to use V3 methods
+
+  - ❌ **Integration Tests** (~2h):
+    - End-to-end test: Generate chunk with graph → navigate → verify lazy-fill
     - Frontier cascade test: Enter frontier node → verify new chunk created
-    - Save/load test: Verify graph structure persists
+    - Save/load test: Verify graph + space persistence
+    - Multi-user test: Verify V3 works with concurrent players
 
 **Next Step**:
-1. ✅ **COMPLETED**: Option B adapter layer implemented (GraphToRoomAdapter.kt)
-2. ❌ **Integrate adapter into movement handlers** - Est. 2-3h
-3. ❌ **Add end-to-end integration tests** - Est. 2-3h
-4. OR defer full integration and move to Chunk 6-11 (hidden exits, dynamic edges, breakouts)
+1. ✅ **COMPLETED**: WorldState V3 refactoring - ECS component storage added
+2. ❌ **Update movement handlers** to use V3 methods (~3-4h)
+3. ❌ **Update remaining handlers** for V3 compatibility (~4-5h)
+4. ❌ **Update game loop and clients** for V3 (~4-6h)
+5. ❌ **Remove deprecated V2 code** and add integration tests (~3h)
+
+**Note**: V3 is a full architectural replacement requiring ~12-15h of work across all handlers, game loop, and clients. WorldState foundation is complete and compiles successfully.
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms
