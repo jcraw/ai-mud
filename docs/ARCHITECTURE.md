@@ -423,13 +423,20 @@ Memory (store for RAG)
   - `WorldChunkRepository.kt`, `SpacePropertiesRepository.kt`, `WorldSeedRepository.kt`, `GraphNodeRepository.kt` (V3)
   - `SQLiteWorldChunkRepository.kt`, `SQLiteSpacePropertiesRepository.kt`, `SQLiteWorldSeedRepository.kt`, `SQLiteGraphNodeRepository.kt` (V3)
 - **Generation pipeline** (`reasoning/world/`)
-  - `WorldGenerator.kt` - Primary generation engine with LLM integration
-    - **V3 UPDATE**: Now generates graph topology at SUBZONE level before content
-    - Returns `ChunkGenerationResult` with chunk + graph nodes (empty list for V2 mode or non-SUBZONE levels)
-    - `generateGraphTopology()` - Creates validated graph structure before space generation
-    - `generateSpaceStub()` - V3 method to create SpaceProperties with empty description (lazy-fill)
-    - `fillSpaceContent()` - V3 method for on-demand LLM generation when player enters space
-    - Supports both V2 (immediate content generation) and V3 (graph-first with lazy-fill) modes
+  - `WorldGenerator.kt` - Primary generation engine with LLM integration (567 lines)
+    - **V3 Chunk 5 UPDATE (Generation Layer Complete)**:
+      - `generateChunk()` (lines 48-85) - Now generates graph topology at SUBZONE level before content
+      - `generateGraphTopology()` (lines 96-127) - Creates validated graph using GraphGenerator, seeded RNG
+      - Returns `ChunkGenerationResult` with chunk + graph nodes (empty list for V2 mode or non-SUBZONE levels)
+    - **V3 Lazy-Fill System**:
+      - `generateSpaceStub()` (lines 211-252) - Creates SpacePropertiesComponent with empty description for on-demand generation
+      - `fillSpaceContent()` (lines 264-287) - On-demand LLM generation when player enters space for first time
+      - `generateNodeDescription()` (lines 293-341) - LLM generates description using node type, neighbors, chunk lore
+      - `determineNodeProperties()` (lines 343-360) - Node type-based brightness/terrain (Hub=bright/safe, Frontier=dark/difficult)
+    - **V2 Methods (Still Active)**:
+      - `generateSpace()` (lines 139-200) - V2 immediate generation for existing dungeons
+      - Supports both V2 (immediate content) and V3 (graph-first lazy-fill) modes in parallel
+    - **Integration Status**: Generation layer complete, movement handler integration pending (see TODO.md)
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
   - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
   - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)

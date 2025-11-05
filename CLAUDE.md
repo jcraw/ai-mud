@@ -205,12 +205,12 @@ All V2 systems fully integrated and tested:
 - ✅ Starting Dungeon (8 chunks) - Ancient Abyss with town, merchants, respawn, boss fight
 - ✅ GUI Client - Compose Multiplatform with real engine integration
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
-- 🚧 World System V3 (Chunks 1-5 generation layer complete):
-  - ✅ Chunk 1-2: GraphNodeComponent ECS component, database schema, GraphNodeRepository (persistence layer)
-  - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, 20% extra edges for loops
-  - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers
-  - ✅ Chunk 5 (partial): WorldGenerator integration - `generateChunk()` with graph at SUBZONE, `generateSpaceStub()` lazy-fill, `fillSpaceContent()` on-demand LLM
-  - ❌ Chunk 5 (pending): Movement handler integration to bridge V3 ECS (GraphNodeComponent) with V2 Room system
+- 🚧 World System V3 (Chunks 1-5 generation layer complete, integration pending):
+  - ✅ Chunk 1-2: GraphNodeComponent ECS component (155 lines, 29 tests), database schema, GraphNodeRepository (219 lines, 29 unit tests)
+  - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, 20% extra edges for loops, node type assignment (31 tests GraphGeneratorTest, 25 tests GraphLayoutTest)
+  - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers (212 lines, 20 tests GraphValidatorTest)
+  - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with `generateChunk()` graph at SUBZONE (lines 48-85), `generateGraphTopology()` with validation (lines 96-127), `generateSpaceStub()` lazy-fill (lines 211-252), `fillSpaceContent()` on-demand LLM (lines 264-287), `generateNodeDescription()` (lines 293-341), `determineNodeProperties()` (lines 343-360)
+  - ❌ Chunk 5 Integration: Movement handler integration pending **architectural decision** - V3 ECS (GraphNodeComponent, SpacePropertiesComponent) vs V2 Room system. Two options: (A) Full ECS migration (6-8h planning + 15-20h impl) or (B) Parallel systems with adapter layer (3-4h). Recommendation: Option B (KISS principle). See TODO.md for details.
   - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
 - ✅ 773 tests passing (0 failures, 100% pass rate)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)

@@ -841,7 +841,7 @@ Graph generation occurs at the **SUBZONE level** (V2 hierarchy):
 - Dynamic modification (edges can be added/removed at runtime)
 - Infinite expansion (frontier nodes trigger new chunk generation)
 
-### V3 Generation Flow with Lazy-Fill (Chunk 5 In Progress)
+### V3 Generation Flow with Lazy-Fill (Chunk 5: Generation Layer Complete, Integration Pending)
 
 WorldGenerator now supports two generation modes:
 
@@ -922,6 +922,25 @@ WorldGenerator supports both modes simultaneously:
 - V3 callers: Pass graph components, receive topology, use stubs + lazy-fill
 - Existing V2 worlds: Compatible (graph nodes optional)
 - New V3 worlds: Graph-first generation at SUBZONE level
+
+#### Implementation Status (Chunk 5)
+
+**✅ Generation Layer Complete** (WorldGenerator.kt lines 48-360):
+- `generateChunk()` generates graph topology at SUBZONE level with validation
+- `generateGraphTopology()` creates validated graphs using GraphGenerator
+- `generateSpaceStub()` creates SpaceProperties with empty descriptions
+- `fillSpaceContent()` performs on-demand LLM generation on first visit
+- `generateNodeDescription()` uses node type and neighbors for contextual descriptions
+- `determineNodeProperties()` sets brightness/terrain based on node type
+
+**❌ Integration Pending** (requires architectural decision):
+- Movement handlers still use V2 Room-based system
+- `fillSpaceContent()` not yet called from game loop
+- Frontier traversal not implemented (cascade to new chunks)
+- Two integration options:
+  - **Option A**: Full ECS migration (refactor WorldState, handlers, game loop)
+  - **Option B**: Parallel systems with adapter layer (convert GraphNode → Room)
+- Recommendation: Option B follows KISS principle (see TODO.md)
 
 ### File Locations
 
