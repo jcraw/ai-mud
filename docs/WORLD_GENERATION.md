@@ -841,6 +841,88 @@ Graph generation occurs at the **SUBZONE level** (V2 hierarchy):
 - Dynamic modification (edges can be added/removed at runtime)
 - Infinite expansion (frontier nodes trigger new chunk generation)
 
+### V3 Generation Flow with Lazy-Fill (Chunk 5 In Progress)
+
+WorldGenerator now supports two generation modes:
+
+#### V2 Mode (Immediate Content Generation)
+```kotlin
+val generator = WorldGenerator(llmClient, loreEngine) // No graph components
+val result = generator.generateChunk(context)
+// Returns ChunkGenerationResult with empty graphNodes list
+// Spaces generated via generateSpace() with full LLM content
+```
+
+#### V3 Mode (Graph-First with Lazy-Fill)
+```kotlin
+val graphGenerator = GraphGenerator(rng, difficultyLevel)
+val graphValidator = GraphValidator()
+val generator = WorldGenerator(llmClient, loreEngine, graphGenerator, graphValidator)
+
+// 1. Generate SUBZONE chunk
+val result = generator.generateChunk(context)
+// result.graphNodes contains validated graph topology
+
+// 2. Generate SpaceProperties stubs for each graph node
+for (node in result.graphNodes) {
+    val stub = generator.generateSpaceStub(node, result.chunk)
+    // stub.description is empty - lazy-fill
+    // stub.exits come from node.neighbors (not LLM)
+}
+
+// 3. Fill content on-demand when player enters
+val filled = generator.fillSpaceContent(currentSpace, graphNode, chunk)
+// LLM generates description based on node type and neighbors
+// Brightness and terrain set based on node type
+```
+
+#### Lazy-Fill Benefits
+
+**Performance**:
+- Initial generation: ~$0.00008 per chunk (no space LLM calls)
+- On-demand fill: ~$0.00012 per space (only when visited)
+- 100-space SUBZONE: $0.00008 (V3) vs $0.01200 (V2) if visiting all spaces
+- 10% exploration: $0.00128 (V3) vs $0.01200 (V2) = 90% cost savings
+
+**Gameplay**:
+- Instant chunk generation (no waiting for 100 LLM calls)
+- Descriptions incorporate node type context (Hub = "gathering point", DeadEnd = "dead-end chamber")
+- Consistent structure (validated graph prevents navigation bugs)
+- Player-driven content (only generate what's explored)
+
+#### Node Type-Based Generation
+
+`fillSpaceContent()` uses node type to guide LLM generation:
+
+| Node Type | Description Context | Brightness | Terrain |
+|-----------|---------------------|------------|---------|
+| Hub | "safe zone or gathering point" | 70 | NORMAL |
+| Linear | "corridor or passage" | 40 | NORMAL |
+| Branching | "junction or crossroads" | 50 | NORMAL |
+| DeadEnd | "dead-end chamber" | 30 | DIFFICULT |
+| Boss | "ominous boss chamber" | 60 | NORMAL |
+| Frontier | "unexplored frontier" | 20 | DIFFICULT |
+| Questable | "significant quest location" | 55 | NORMAL |
+
+**LLM Prompt Template**:
+```
+Theme: {chunk.biomeTheme}
+Lore: {chunk.lore}
+Node Type: {nodeTypeDescription}
+Exits: {exitDirections}
+
+Generate a vivid 2-3 sentence description for this space.
+Return ONLY the description text, no JSON, no formatting.
+```
+
+#### Migration Path
+
+WorldGenerator supports both modes simultaneously:
+- V2 callers: Continue using `generateChunk()` → empty graph nodes
+- V3 callers: Pass graph components, receive topology, use stubs + lazy-fill
+- Existing V2 worlds: Compatible (graph nodes optional)
+- New V3 worlds: Graph-first generation at SUBZONE level
+
 ### File Locations
 
 - **Core**: `GraphNodeComponent.kt`, `world/GraphTypes.kt`

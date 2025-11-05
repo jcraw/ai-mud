@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Chunk 4 Complete
+Last updated: 2025-11-05 - V3 Chunk 5 In Progress
 
 ## Current Status
 
@@ -30,8 +30,9 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 - ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
 - ✅ Chunk 4: Graph Validation System - GraphValidator.kt with 212 lines, ValidationResult sealed class (Success, Failure), isFullyConnected() BFS check, hasLoop() DFS cycle detection, avgDegree() calculation (>= 3.0 threshold), frontierCount() validation (>= 2), comprehensive unit tests (GraphValidatorTest.kt with 20 tests), WORLD_GENERATION.md updated with validation criteria
+- 🚧 Chunk 5: Integrate Graph Generation with World System - WorldGenerator.kt updated with graph generation at SUBZONE level, generateSpaceStub() for lazy-fill stubs, fillSpaceContent() for on-demand LLM generation, ChunkGenerationResult data class, compiles successfully. **Still needed**: Update movement handlers to trigger lazy-fill, integration tests, full integration with game loop.
 
-**Next Step**: Chunk 5 - Integrate Graph Generation with World System (4-5h)
+**Next Step**: Complete Chunk 5 - Movement handler integration and integration tests
 - Update WorldGenerator to pre-generate graph topology before content
 - Generate graph on SUBZONE chunk creation
 - Validate graph before saving to database

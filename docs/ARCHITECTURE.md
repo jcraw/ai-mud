@@ -424,6 +424,12 @@ Memory (store for RAG)
   - `SQLiteWorldChunkRepository.kt`, `SQLiteSpacePropertiesRepository.kt`, `SQLiteWorldSeedRepository.kt`, `SQLiteGraphNodeRepository.kt` (V3)
 - **Generation pipeline** (`reasoning/world/`)
   - `WorldGenerator.kt` - Primary generation engine with LLM integration
+    - **V3 UPDATE**: Now generates graph topology at SUBZONE level before content
+    - Returns `ChunkGenerationResult` with chunk + graph nodes (empty list for V2 mode or non-SUBZONE levels)
+    - `generateGraphTopology()` - Creates validated graph structure before space generation
+    - `generateSpaceStub()` - V3 method to create SpaceProperties with empty description (lazy-fill)
+    - `fillSpaceContent()` - V3 method for on-demand LLM generation when player enters space
+    - Supports both V2 (immediate content generation) and V3 (graph-first with lazy-fill) modes
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
   - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
   - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)

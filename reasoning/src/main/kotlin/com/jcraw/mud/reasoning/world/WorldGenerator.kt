@@ -2,6 +2,10 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.world.*
+import com.jcraw.mud.reasoning.worldgen.GraphGenerator
+import com.jcraw.mud.reasoning.worldgen.GraphValidator
+import com.jcraw.mud.reasoning.worldgen.GraphLayout
+import com.jcraw.mud.reasoning.worldgen.ValidationResult
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -10,12 +14,15 @@ import kotlin.random.Random
 /**
  * Primary world generation engine.
  *
+ * V3 UPDATE: Now generates graph topology at SUBZONE level before content generation.
  * Handles LLM-driven chunk and space generation with lore inheritance and theme coherence.
  * Uses JSON-structured prompts for consistent, parseable output.
  */
 class WorldGenerator(
     private val llmClient: LLMClient,
-    private val loreEngine: LoreInheritanceEngine
+    private val loreEngine: LoreInheritanceEngine,
+    private val graphGenerator: GraphGenerator? = null,
+    private val graphValidator: GraphValidator? = null
 ) {
     companion object {
         private const val MODEL = "gpt-4o-mini"
@@ -32,10 +39,13 @@ class WorldGenerator(
     /**
      * Generates a world chunk (WORLD, REGION, ZONE, or SUBZONE level).
      *
+     * V3 UPDATE: At SUBZONE level, generates graph topology before content.
+     * Graph nodes are returned for caller to persist to GraphNodeRepository.
+     *
      * @param context Generation context with seed, lore, parent chunk
-     * @return Result with (WorldChunkComponent, chunkId) pair
+     * @return Result with ChunkGenerationResult (chunk, chunkId, graphNodes)
      */
-    suspend fun generateChunk(context: GenerationContext): Result<Pair<WorldChunkComponent, String>> {
+    suspend fun generateChunk(context: GenerationContext): Result<ChunkGenerationResult> {
         val chunkId = ChunkIdGenerator.generate(context.level, context.parentChunkId)
 
         // Generate lore variation from parent
@@ -64,11 +74,63 @@ class WorldGenerator(
             difficultyLevel = chunkData.difficultyLevel.coerceIn(1, 20)
         )
 
-        return Result.success(chunk to chunkId)
+        // V3: Generate graph topology at SUBZONE level
+        val graphNodes = if (context.level == ChunkLevel.SUBZONE && graphGenerator != null && graphValidator != null) {
+            generateGraphTopology(chunkId, chunk).getOrElse { return Result.failure(it) }
+        } else {
+            emptyList()
+        }
+
+        return Result.success(ChunkGenerationResult(chunk, chunkId, graphNodes))
+    }
+
+    /**
+     * Generates graph topology for a SUBZONE chunk.
+     * Uses GraphGenerator with layout based on biome theme.
+     * Validates graph before returning.
+     *
+     * @param chunkId ID of the chunk
+     * @param chunk The chunk component
+     * @return Result with list of GraphNodeComponents
+     */
+    private fun generateGraphTopology(
+        chunkId: String,
+        chunk: WorldChunkComponent
+    ): Result<List<GraphNodeComponent>> {
+        require(graphGenerator != null) { "GraphGenerator required for V3 generation" }
+        require(graphValidator != null) { "GraphValidator required for V3 generation" }
+
+        // Select layout algorithm based on biome theme
+        val layout = GraphLayout.forBiome(chunk.biomeTheme)
+
+        // Generate graph with seeded RNG for reproducibility
+        val seed = chunkId.hashCode().toLong()
+        val rng = Random(seed)
+        val generator = GraphGenerator(rng, chunk.difficultyLevel)
+
+        // Generate graph topology
+        val graphNodes = try {
+            generator.generate(chunkId, layout)
+        } catch (e: Exception) {
+            return Result.failure(Exception("Graph generation failed for chunk $chunkId: ${e.message}", e))
+        }
+
+        // Validate graph structure
+        val validation = graphValidator.validate(graphNodes)
+        if (validation is ValidationResult.Failure) {
+            return Result.failure(
+                Exception("Graph validation failed for chunk $chunkId: ${validation.reasons.joinToString(", ")}")
+            )
+        }
+
+        return Result.success(graphNodes)
     }
 
     /**
      * Generates a space (room) within a subzone.
+     *
+     * V2 METHOD: Generates full space content immediately via LLM.
+     * For V3 graph-based generation, use generateSpaceStub() instead.
      *
      * @param parentSubzone Parent subzone chunk
      * @param parentSubzoneId Entity ID of parent subzone
@@ -135,6 +197,166 @@ class WorldGenerator(
         )
 
         return Result.success(space to spaceId)
+    }
+
+    /**
+     * V3: Generates a space stub with empty description for lazy-fill.
+     * Description will be filled on-demand when player enters via fillSpaceContent().
+     * Exits come from GraphNodeComponent neighbors instead of LLM generation.
+     *
+     * @param graphNode The graph node defining connectivity
+     * @param chunk The parent chunk for theme/difficulty
+     * @return Result with SpacePropertiesComponent stub
+     */
+    fun generateSpaceStub(
+        graphNode: GraphNodeComponent,
+        chunk: WorldChunkComponent
+    ): Result<SpacePropertiesComponent> {
+        // Convert GraphNodeComponent edges to ExitData
+        val exits = graphNode.neighbors.map { edge ->
+            ExitData(
+                targetId = edge.targetId,
+                direction = edge.direction,
+                description = "", // Lazy-fill
+                conditions = edge.conditions,
+                isHidden = edge.hidden
+            )
+        }
+
+        // Probabilistic trap/resource generation (same as V2)
+        val traps = if (Random.nextDouble() < TRAP_PROBABILITY) {
+            listOf(generateTrap(chunk.biomeTheme, chunk.difficultyLevel))
+        } else {
+            emptyList()
+        }
+
+        val resources = if (Random.nextDouble() < RESOURCE_PROBABILITY) {
+            listOf(generateResource(chunk.biomeTheme))
+        } else {
+            emptyList()
+        }
+
+        val space = SpacePropertiesComponent(
+            description = "", // LAZY-FILL: Will be generated on first visit
+            exits = exits,
+            brightness = 50, // Default brightness, can be adjusted by node type
+            terrainType = TerrainType.NORMAL,
+            traps = traps,
+            resources = resources,
+            entities = emptyList(), // Populated later via MobSpawner
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
+        )
+
+        return Result.success(space)
+    }
+
+    /**
+     * V3: Fills space content on-demand (lazy-fill).
+     * Generates description and updates brightness/terrain based on node type.
+     * Called when player enters a space for the first time.
+     *
+     * @param currentSpace The space stub to fill
+     * @param graphNode The graph node defining structure
+     * @param chunk The parent chunk for theme/lore
+     * @return Result with updated SpacePropertiesComponent
+     */
+    suspend fun fillSpaceContent(
+        currentSpace: SpacePropertiesComponent,
+        graphNode: GraphNodeComponent,
+        chunk: WorldChunkComponent
+    ): Result<SpacePropertiesComponent> {
+        // Skip if already filled
+        if (currentSpace.description.isNotEmpty()) {
+            return Result.success(currentSpace)
+        }
+
+        // Generate description using LLM based on node type and neighbors
+        val description = generateNodeDescription(graphNode, chunk).getOrElse { return Result.failure(it) }
+
+        // Determine brightness and terrain based on node type
+        val (brightness, terrain) = determineNodeProperties(graphNode.type, chunk)
+
+        val filled = currentSpace.copy(
+            description = description,
+            brightness = brightness,
+            terrainType = terrain
+        )
+
+        return Result.success(filled)
+    }
+
+    /**
+     * V3: Generate description for a graph node.
+     * Uses node type, neighbors, and chunk lore to create contextual description.
+     */
+    private suspend fun generateNodeDescription(
+        node: GraphNodeComponent,
+        chunk: WorldChunkComponent
+    ): Result<String> {
+        val nodeTypeDescription = when (node.type) {
+            is com.jcraw.mud.core.world.NodeType.Hub -> "safe zone or gathering point"
+            is com.jcraw.mud.core.world.NodeType.Linear -> "corridor or passage"
+            is com.jcraw.mud.core.world.NodeType.Branching -> "junction or crossroads"
+            is com.jcraw.mud.core.world.NodeType.DeadEnd -> "dead-end chamber"
+            is com.jcraw.mud.core.world.NodeType.Boss -> "ominous boss chamber"
+            is com.jcraw.mud.core.world.NodeType.Frontier -> "unexplored frontier"
+            is com.jcraw.mud.core.world.NodeType.Questable -> "significant quest location"
+        }
+
+        val exitDirections = node.neighbors.map { it.direction }.joinToString(", ")
+
+        val systemPrompt = """
+            You are a world-building assistant for a fantasy dungeon MUD.
+            Generate atmospheric room descriptions. 2-3 sentences, vivid but concise.
+        """.trimIndent()
+
+        val userContext = """
+            Theme: ${chunk.biomeTheme}
+            Lore: ${chunk.lore}
+            Node Type: $nodeTypeDescription
+            Exits: $exitDirections
+
+            Generate a vivid 2-3 sentence description for this space.
+            The description should reflect the node type and available exits naturally.
+            Return ONLY the description text, no JSON, no formatting.
+        """.trimIndent()
+
+        return try {
+            val response = llmClient.chatCompletion(
+                modelId = MODEL,
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                maxTokens = 200,
+                temperature = TEMPERATURE
+            )
+
+            val description = response.choices.firstOrNull()?.message?.content?.trim()
+                ?: return Result.failure(Exception("LLM returned empty response"))
+
+            Result.success(description)
+        } catch (e: Exception) {
+            Result.failure(Exception("Failed to generate node description: ${e.message}", e))
+        }
+    }
+
+    /**
+     * V3: Determine brightness and terrain based on node type.
+     * Heuristic defaults that match node purpose.
+     */
+    private fun determineNodeProperties(
+        nodeType: com.jcraw.mud.core.world.NodeType,
+        chunk: WorldChunkComponent
+    ): Pair<Int, TerrainType> {
+        return when (nodeType) {
+            is com.jcraw.mud.core.world.NodeType.Hub -> 70 to TerrainType.NORMAL // Well-lit, safe
+            is com.jcraw.mud.core.world.NodeType.Linear -> 40 to TerrainType.NORMAL // Dim passages
+            is com.jcraw.mud.core.world.NodeType.Branching -> 50 to TerrainType.NORMAL // Moderate light
+            is com.jcraw.mud.core.world.NodeType.DeadEnd -> 30 to TerrainType.DIFFICULT // Dark, challenging
+            is com.jcraw.mud.core.world.NodeType.Boss -> 60 to TerrainType.NORMAL // Dramatic lighting
+            is com.jcraw.mud.core.world.NodeType.Frontier -> 20 to TerrainType.DIFFICULT // Unexplored, rough
+            is com.jcraw.mud.core.world.NodeType.Questable -> 55 to TerrainType.NORMAL // Interesting, accessible
+        }
     }
 
     /**
@@ -328,4 +550,17 @@ private data class ExitDataJson(
     val direction: String,
     val description: String,
     val targetId: String
+)
+
+/**
+ * Result of chunk generation including graph topology for V3
+ *
+ * @param chunk The generated chunk component
+ * @param chunkId The entity ID for the chunk
+ * @param graphNodes List of graph nodes (empty if not SUBZONE or V2 mode)
+ */
+data class ChunkGenerationResult(
+    val chunk: WorldChunkComponent,
+    val chunkId: String,
+    val graphNodes: List<GraphNodeComponent> = emptyList()
 )
