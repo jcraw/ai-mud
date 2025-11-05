@@ -123,6 +123,24 @@ class MudGame(
     internal val bossCombatEnhancements = com.jcraw.mud.reasoning.boss.BossCombatEnhancements()
     private val bossSummonedTracker = mutableSetOf<String>() // Track which bosses have already summoned
 
+    // World System V3 components (graph-based navigation)
+    private val loreInheritanceEngine = if (llmClient != null) {
+        com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
+    } else null
+    private val graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(
+        rng = kotlin.random.Random.Default,
+        difficultyLevel = 1 // Default difficulty, can be adjusted per chunk
+    )
+    private val graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
+    internal val worldGenerator = if (llmClient != null && loreInheritanceEngine != null) {
+        com.jcraw.mud.reasoning.world.WorldGenerator(
+            llmClient = llmClient,
+            loreEngine = loreInheritanceEngine,
+            graphGenerator = graphGenerator,
+            graphValidator = graphValidator
+        )
+    } else null
+
     /**
      * Start the main game loop.
      */

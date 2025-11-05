@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Chunk 5 WorldState Complete, Movement Handler Integration Analyzed
+Last updated: 2025-11-05 - V3 Chunk 5 Complete (WorldState + MudGame V3 dependencies), Ready for Handler Implementation
 
 ## Current Status
 
@@ -60,13 +60,13 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
   - WorldState refactored to use ECS components directly
   - Room abstraction deprecated (will be removed after handler migration)
 
-  **Remaining Integration Work** (Est. 12-15h):
-  - ❌ **Movement Handlers** (~3-4h) - **ANALYZED, READY FOR IMPLEMENTATION**:
-    **Required Dependencies** (must be added to MudGame first):
-    - LoreInheritanceEngine(llmClient) - for WorldGenerator
-    - GraphGenerator(rng, difficultyLevel) - for V3 graph topology
-    - GraphValidator() - for V3 graph validation
-    - WorldGenerator(llmClient, loreEngine, graphGenerator, graphValidator) - for lazy-fill and chunk generation
+  **Remaining Integration Work** (Est. 11-14h):
+  - ❌ **Movement Handlers** (~3-3.5h) - **READY FOR IMPLEMENTATION**:
+    **✅ V3 Dependencies Added** (MudGameEngine.kt lines 126-142):
+    - ✅ LoreInheritanceEngine(llmClient) - for WorldGenerator
+    - ✅ GraphGenerator(rng, difficultyLevel) - for V3 graph topology
+    - ✅ GraphValidator() - for V3 graph validation
+    - ✅ WorldGenerator(llmClient, loreEngine, graphGenerator, graphValidator) - accessible as `game.worldGenerator`
 
     **Console MovementHandlers.kt** (app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt):
     - Update `handleMove()` (line 15):
@@ -119,8 +119,8 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 
 **Next Step**:
 1. ✅ **COMPLETED**: WorldState V3 refactoring - ECS component storage added
-2. 🔍 **ANALYZED**: Movement handlers requirements documented (see detailed plan above)
-3. ❌ **IMPLEMENT**: Add V3 dependencies to MudGame (~30min)
+2. ✅ **COMPLETED**: Movement handlers requirements documented (see detailed plan above)
+3. ✅ **COMPLETED**: Add V3 dependencies to MudGame - LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator added (MudGameEngine.kt:126-142, compiles successfully)
 4. ❌ **IMPLEMENT**: Update console MovementHandlers.kt with V3 support (~1-1.5h)
 5. ❌ **IMPLEMENT**: Update client ClientMovementHandlers.kt with V3 support (~1-1.5h)
 6. ❌ **TEST**: Movement integration tests (~30min)

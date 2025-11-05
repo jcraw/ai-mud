@@ -193,7 +193,7 @@ Memory (store for RAG)
 ## Current Status
 
 **✅ PRODUCTION READY - ALL SYSTEMS COMPLETE**
-**🚧 V3 IN PROGRESS** - Graph-Based Navigation (Chunk 5 WorldState refactoring complete, movement handler integration analyzed)
+**🚧 V3 IN PROGRESS** - Graph-Based Navigation (Chunk 5 complete: WorldState refactored + MudGame dependencies added, ready for handler implementation)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones
@@ -211,8 +211,9 @@ All V2 systems fully integrated and tested:
   - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers (212 lines, 20 tests GraphValidatorTest)
   - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system
   - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces storage, 12 new V3 methods (movePlayerV3, getCurrentSpace, etc.), Room deprecated
-  - 🔍 Chunk 5 Movement Handler Integration: **ANALYZED** - Dependencies identified (LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator), detailed migration plan documented in TODO.md lines 64-91
-  - ❌ Handler implementation - Implement V3 in all handlers (movement, combat, items, social) (~12-15h remaining)
+  - ✅ Chunk 5 MudGame V3 Dependencies: LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator added to MudGameEngine.kt (lines 126-142), compiles successfully
+  - 🔍 Chunk 5 Movement Handler Integration: **READY** - Detailed migration plan in TODO.md lines 64-91
+  - ❌ Handler implementation - Implement V3 in all handlers (movement, combat, items, social) (~11-14h remaining)
   - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
 - ✅ 773 tests passing (0 failures, 100% pass rate)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
