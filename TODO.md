@@ -45,7 +45,7 @@
 5. ✅ Update documentation with test results
 
 ### Spatial Coherence & Town Entrance Fix
-**Progress:** 3/6 tasks complete
+**Progress:** 4/6 tasks complete
 
 1. ✅ **COMPLETE** - Implement directional adjacency tracking in `WorldChunkRepository`
    - Adjacency map (`Map<String, String>`) already persisted in `WorldChunkComponent` (core/src/main/kotlin/com/jcraw/mud/core/WorldChunkComponent.kt:21)
@@ -68,7 +68,14 @@
    - Implemented `linkToAdjacentSubzone()` to reuse adjacent chunks (ExitLinker.kt:167-205)
    - All main code compiles successfully
 
-4. **TODO** - Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
+4. ✅ **COMPLETE** - Update `TownGenerator`/`DungeonInitializer` to wire a guaranteed "descend into the dungeon" exit that targets the first combat subzone, plus a reciprocal "return to town" path
+   - Implemented `generateFirstCombatSubzone()` in DungeonInitializer (DungeonInitializer.kt:330-369)
+   - Implemented `linkTownToDungeon()` to wire bidirectional exits (DungeonInitializer.kt:371-417)
+   - Town has "down" exit to first combat space with description
+   - First combat space has "up" exit back to town with description
+   - Updated `generateTownInUpperDepths()` to generate both town and combat subzones (DungeonInitializer.kt:277-328)
+   - Main code compiles successfully
+
 5. **TODO** - Switch client movement over to `ExitResolver` for both typed directions and natural language, emitting navigation breadcrumbs when loops close
 6. **TODO** - Add integration tests that verify four-step loops return to origin, town→dungeon hand-off works, and hidden exits become traversable once discovered
 

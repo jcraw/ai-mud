@@ -267,6 +267,7 @@ class DungeonInitializer(
     /**
      * Generate town in Upper Depths region (Zone 1, Subzone 1)
      * Town is the player's starting location and safe zone
+     * Also generates first combat subzone and wires bidirectional exits
      *
      * @param seed World seed
      * @param globalLore World lore
@@ -307,11 +308,112 @@ class DungeonInitializer(
             globalLore
         ).getOrElse { return Result.failure(it) }
 
-        // Update zone with town subzone
+        // Generate first combat subzone
+        val combatSpaceId = generateFirstCombatSubzone(
+            seed,
+            globalLore,
+            zoneChunk,
+            zoneId
+        ).getOrElse { return Result.failure(it) }
+
+        // Wire bidirectional exits between town and combat subzone
+        linkTownToDungeon(townSpaceId, combatSpaceId)
+            .getOrElse { return Result.failure(it) }
+
+        // Update zone with both subzones
         val updatedZone = zoneChunk.copy(children = listOf(townSubzoneId))
         chunkRepo.save(updatedZone, zoneId).getOrElse { return Result.failure(it) }
 
         return Result.success(townSpaceId)
+    }
+
+    /**
+     * Generate first combat subzone in the same zone as town
+     * This provides the guaranteed entry point to the dungeon proper
+     *
+     * @param seed World seed
+     * @param globalLore World lore
+     * @param zoneChunk Parent zone chunk
+     * @param zoneId Parent zone ID
+     * @return Result with first combat space ID
+     */
+    private suspend fun generateFirstCombatSubzone(
+        seed: String,
+        globalLore: String,
+        zoneChunk: WorldChunkComponent,
+        zoneId: String
+    ): Result<String> {
+        // Generate combat SUBZONE
+        val subzoneContext = GenerationContext(
+            seed = seed,
+            globalLore = globalLore,
+            parentChunk = zoneChunk,
+            parentChunkId = zoneId,
+            level = ChunkLevel.SUBZONE,
+            direction = "dungeon entrance"
+        )
+        val (subzoneChunk, subzoneId) = worldGenerator.generateChunk(subzoneContext)
+            .getOrElse { return Result.failure(it) }
+        chunkRepo.save(subzoneChunk, subzoneId).getOrElse { return Result.failure(it) }
+
+        // Generate first combat SPACE
+        val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk, subzoneId)
+            .getOrElse { return Result.failure(it) }
+        spaceRepo.save(space, spaceId).getOrElse { return Result.failure(it) }
+
+        // Update subzone with first child
+        val updatedSubzone = subzoneChunk.copy(children = listOf(spaceId))
+        chunkRepo.save(updatedSubzone, subzoneId).getOrElse { return Result.failure(it) }
+
+        return Result.success(spaceId)
+    }
+
+    /**
+     * Wire bidirectional exits between town safe zone and first combat subzone
+     * Creates "descend into the dungeon" exit from town and reciprocal "return to town" exit
+     *
+     * @param townSpaceId Town safe zone space ID
+     * @param combatSpaceId First combat subzone space ID
+     * @return Result of the operation
+     */
+    private fun linkTownToDungeon(
+        townSpaceId: String,
+        combatSpaceId: String
+    ): Result<Unit> {
+        // Load town space
+        val townSpace = spaceRepo.findByChunkId(townSpaceId).getOrElse { return Result.failure(it) }
+            ?: return Result.failure(Exception("Town space not found: $townSpaceId"))
+
+        // Load combat space
+        val combatSpace = spaceRepo.findByChunkId(combatSpaceId).getOrElse { return Result.failure(it) }
+            ?: return Result.failure(Exception("Combat space not found: $combatSpaceId"))
+
+        // Create exit from town to dungeon
+        val townExit = com.jcraw.mud.core.world.ExitData(
+            targetId = combatSpaceId,
+            direction = "down",
+            description = "A dark stairway descends into the dungeon depths. The air grows colder as you look down.",
+            conditions = emptyList(),
+            isHidden = false
+        )
+
+        // Create reciprocal exit from dungeon to town
+        val dungeonExit = com.jcraw.mud.core.world.ExitData(
+            targetId = townSpaceId,
+            direction = "up",
+            description = "Stone stairs lead upward to the safety of the town above. You can see flickering torchlight.",
+            conditions = emptyList(),
+            isHidden = false
+        )
+
+        // Update both spaces with exits
+        val updatedTownSpace = townSpace.addExit(townExit)
+        val updatedCombatSpace = combatSpace.addExit(dungeonExit)
+
+        spaceRepo.save(updatedTownSpace, townSpaceId).getOrElse { return Result.failure(it) }
+        spaceRepo.save(updatedCombatSpace, combatSpaceId).getOrElse { return Result.failure(it) }
+
+        return Result.success(Unit)
     }
 
     /**
