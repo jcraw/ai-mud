@@ -412,6 +412,8 @@ Memory (store for RAG)
 - **Component-based architecture** for hierarchical world generation (5 levels)
   - `WorldChunkComponent` - Chunk hierarchy (WORLD → REGION → ZONE → SUBZONE → SPACE) with lore inheritance (`core`)
   - `SpacePropertiesComponent` - Space details (description, exits, traps, resources, entities, state flags) (`core`)
+  - `GraphNodeComponent` - Pre-generated graph topology for V3 navigation (7 node types: HUB, LINEAR, BRANCHING, DEAD_END, BOSS, FRONTIER, QUESTABLE) (`core`)
+  - `GraphTypes.kt` - NodeType sealed class and EdgeData with hidden exits and conditions (`core/world`)
   - `ChunkLevel.kt`, `TerrainType.kt`, `ExitData.kt`, `TrapData.kt`, `ResourceNode.kt`, `GenerationContext.kt`, `NavigationState.kt`, `WorldAction.kt` (`core/world`)
 - **Database persistence** - SQLite schema with 3 tables (`memory/world/WorldDatabase.kt`)
   - world_seed (singleton with global lore), world_chunks, space_properties

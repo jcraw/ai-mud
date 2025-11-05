@@ -27,6 +27,7 @@ enum class ComponentType {
     SPACE_PROPERTIES,
     RESPAWN,
     CORPSE,
+    GRAPH_NODE,
     // Future component types can be added here
 }
 
