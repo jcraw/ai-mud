@@ -193,7 +193,7 @@ Memory (store for RAG)
 ## Current Status
 
 **✅ PRODUCTION READY - ALL SYSTEMS COMPLETE**
-**🚧 V3 IN PROGRESS** - Graph-Based Navigation (Chunk 4/11 complete)
+**🚧 V3 IN PROGRESS** - Graph-Based Navigation (Chunk 5 generation layer complete, integration pending)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones
@@ -205,7 +205,13 @@ All V2 systems fully integrated and tested:
 - ✅ Starting Dungeon (8 chunks) - Ancient Abyss with town, merchants, respawn, boss fight
 - ✅ GUI Client - Compose Multiplatform with real engine integration
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
-- 🚧 World System V3 (4/11 chunks) - GraphNodeComponent, database schema, repository layer, graph generation algorithms (Grid/BSP/FloodFill), graph validation system (reachability, loops, degree, frontiers)
+- 🚧 World System V3 (Chunks 1-5 generation layer complete):
+  - ✅ Chunk 1-2: GraphNodeComponent ECS component, database schema, GraphNodeRepository (persistence layer)
+  - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, 20% extra edges for loops
+  - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers
+  - ✅ Chunk 5 (partial): WorldGenerator integration - `generateChunk()` with graph at SUBZONE, `generateSpaceStub()` lazy-fill, `fillSpaceContent()` on-demand LLM
+  - ❌ Chunk 5 (pending): Movement handler integration to bridge V3 ECS (GraphNodeComponent) with V2 Room system
+  - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
 - ✅ 773 tests passing (0 failures, 100% pass rate)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
 

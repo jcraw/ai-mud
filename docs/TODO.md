@@ -30,16 +30,24 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 2: Database Schema and GraphNodeRepository - graph_nodes table in WorldDatabase.kt, GraphNodeRepository.kt interface, SQLiteGraphNodeRepository.kt with 219 lines (29 unit tests), ARCHITECTURE.md updated
 - ✅ Chunk 3: Graph Generation Algorithms - GraphLayout.kt sealed class (Grid/BSP/FloodFill), GraphGenerator.kt with layout algorithms (grid, BSP, flood-fill), Kruskal MST for connectivity, 20% extra edges for loops, node type assignment, 15-25% hidden edges, comprehensive unit tests (GraphGeneratorTest.kt with 31 tests, GraphLayoutTest.kt with 25 tests), ARCHITECTURE.md updated
 - ✅ Chunk 4: Graph Validation System - GraphValidator.kt with 212 lines, ValidationResult sealed class (Success, Failure), isFullyConnected() BFS check, hasLoop() DFS cycle detection, avgDegree() calculation (>= 3.0 threshold), frontierCount() validation (>= 2), comprehensive unit tests (GraphValidatorTest.kt with 20 tests), WORLD_GENERATION.md updated with validation criteria
-- 🚧 Chunk 5: Integrate Graph Generation with World System - WorldGenerator.kt updated with graph generation at SUBZONE level, generateSpaceStub() for lazy-fill stubs, fillSpaceContent() for on-demand LLM generation, ChunkGenerationResult data class, compiles successfully. **Still needed**: Update movement handlers to trigger lazy-fill, integration tests, full integration with game loop.
+- 🚧 Chunk 5: Integrate Graph Generation with World System - **Generation layer complete**:
+  - ✅ WorldGenerator.kt updated with `generateChunk()` - generates graph at SUBZONE level
+  - ✅ `generateSpaceStub()` - creates space stubs with empty descriptions for lazy-fill
+  - ✅ `fillSpaceContent()` - on-demand LLM generation when player enters space
+  - ✅ `ChunkGenerationResult` data class - returns chunk + graph nodes
+  - ✅ Graph validation before persistence
+  - ✅ Node type-based brightness/terrain determination
+  - ❌ **Still needed for full integration**: Update movement handlers (MovementHandlers.kt) to:
+    - Call `fillSpaceContent()` when entering a space for first time
+    - Handle frontier traversal (cascade to new chunks)
+    - Bridge V3 ECS architecture (GraphNodeComponent, SpacePropertiesComponent) with V2 Room-based game loop
+  - ❌ Integration tests (started but needs LLMClient interface fixes)
+  - 📝 **Note**: V3 introduces ECS-based navigation system alongside existing V2 Room system - full migration requires architectural planning
 
-**Next Step**: Complete Chunk 5 - Movement handler integration and integration tests
-- Update WorldGenerator to pre-generate graph topology before content
-- Generate graph on SUBZONE chunk creation
-- Validate graph before saving to database
-- Create SpaceProperties stubs (lazy-fill descriptions)
-- Implement fillSpaceContent() for on-demand LLM generation
-- Handle frontier traversal (cascade to new chunks)
-- Add integration tests for generation flow
+**Next Step**: Complete Chunk 5 integration OR move to Chunk 6-11 (hidden exits, dynamic edges, breakouts) if deferring full integration
+- **Option A** (Full Integration): Refactor MovementHandlers to use GraphNodeComponent + SpacePropertiesComponent
+- **Option B** (Parallel Systems): Keep V2 Room system, add V3 as alternate generation mode for future dungeons
+- Add integration tests once movement integration approach is decided
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms
