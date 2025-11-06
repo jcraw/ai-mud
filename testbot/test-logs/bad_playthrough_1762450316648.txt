@@ -1,0 +1,84 @@
+        ================================================================================
+        [2025-11-06T17:32:03.185505726Z]
+
+        Player: go north
+
+        Game Master:
+        Dark Corridor
+You find yourself in a narrow stone passage, where the walls loom ominously close, their dampness seeping into the very air you breathe. Each step you take sends an echo ricocheting off the cold stones, mingling with the rhythmic drip of water that punctuates the silence. In the corners, delicate spider webs shimmer faintly, remnants of a life that once thrived in the shadows. The worn flagstone floor beneath your feet bears the weight of countless travelers, whispering their secrets of long-lost journeys.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-11-06T17:32:10.470192209Z]
+
+        Player: go north
+
+        Game Master:
+        Abandoned Throne Room
+You emerge into the abandoned throne room, where a massive stone throne looms like a forgotten sentinel amidst the decay. Faded royal tapestries, once vibrant, now hang limply on the cracked marble walls, their colors muted by time's relentless grasp. The air is chilled by a draft that sweeps through unseen passages, causing the ominous shadows to flicker and stretch across the floor, where a skeleton slumps lifelessly, a ghostly reminder of power lost. A profound silence wraps around you, broken only by the distant echo of your own breath, as if the very room holds its breath in anticipation.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-11-06T17:32:19.657809281Z]
+
+        Player: look
+
+        Game Master:
+        Abandoned Throne Room
+You step back into the abandoned throne room, the massive stone throne dominating the space like a relic of fallen majesty. Faded royal tapestries drape the walls, their once resplendent colors now ghosts of glory, while the cracked marble floor feels cold and unyielding beneath your feet. An unsettling draft swirls around you, stirring the ominous shadows that cling to the corners, where the skeleton slumped on the throne seems to watch, a silent witness to the echoes of power now draped in silence. The air is thick with an ancient chill, as if the very essence of forgotten royalty lingers, waiting for a moment to awaken.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: Combat initiated correctly with the Skeleton King, and the player took reasonable damage leading to death.
+        ================================================================================
+        [2025-11-06T17:32:22.731986434Z]
+
+        Player: attack Skeleton King
+
+        Game Master:
+        You attack Skeleton King with bare fists for 11 damage!
+Skeleton King strikes back for 11 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+        ================================================================================
+        [2025-11-06T17:32:25.954259374Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You attack Skeleton King with bare fists for 10 damage!
+Skeleton King strikes back for 15 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+        ================================================================================
+        [2025-11-06T17:32:29.164788094Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You attack Skeleton King with bare fists for 9 damage!
+Skeleton King strikes back for 13 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+        ================================================================================
+        [2025-11-06T17:32:33.448490669Z]
+
+        Player: attack skeleton king
+
+        Game Master:
+        You attack Skeleton King with bare fists for 9 damage!
+Skeleton King strikes back for 8 damage!
+You have been defeated! Game over.
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start

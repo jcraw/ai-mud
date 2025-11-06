@@ -187,7 +187,7 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ✅ Chunk 3: Graph generation algorithms - layouts, MST, edge generation (COMPLETE)
 - ✅ Chunk 4: Graph validation - reachability, loops, degree, frontiers (COMPLETE)
 - ✅ Chunk 5: Integrate graph generation (COMPLETE - frontier traversal implemented)
-- ❌ Chunk 6: Hidden exit revelation via perception
+- ✅ Chunk 6: Hidden exit revelation via perception (COMPLETE - search command reveals hidden exits)
 - ❌ Chunk 7: Dynamic edge modification (player agency)
 - ❌ Chunk 8: Breakout edges to new biomes
 - ❌ Chunk 9: Update exit resolution for graph structure

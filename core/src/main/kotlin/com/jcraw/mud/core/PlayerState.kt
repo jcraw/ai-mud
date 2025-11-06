@@ -15,6 +15,7 @@ data class PlayerState(
     val equippedArmor: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
     val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap(),
+    val revealedExits: Set<String> = emptySet(), // V3: Hidden exits revealed by Perception checks
     val activeQuests: List<Quest> = emptyList(),
     val completedQuests: List<QuestId> = emptyList(),
     val experiencePoints: Int = 0,
@@ -141,6 +142,18 @@ data class PlayerState(
     fun hasQuest(questId: QuestId): Boolean = activeQuests.any { it.id == questId }
 
     fun hasCompletedQuest(questId: QuestId): Boolean = completedQuests.contains(questId)
+
+    // V3 Hidden Exit Methods
+
+    /**
+     * Reveal a hidden exit by its edge ID (fromSpaceId:targetSpaceId)
+     */
+    fun revealExit(edgeId: String): PlayerState = copy(revealedExits = revealedExits + edgeId)
+
+    /**
+     * Check if an exit has been revealed
+     */
+    fun hasRevealedExit(edgeId: String): Boolean = revealedExits.contains(edgeId)
 
     // V2 Inventory Component Methods
 

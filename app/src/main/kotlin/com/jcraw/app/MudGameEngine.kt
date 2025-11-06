@@ -195,39 +195,83 @@ class MudGame(
      * Describe the current room, including combat status, exits, and entities.
      */
     internal fun describeCurrentRoom() {
-        val room = worldState.getCurrentRoom() ?: return
+        // Try V3 space-based description first
+        val currentSpace = worldState.getCurrentSpace()
+        val currentNode = worldState.getCurrentGraphNode()
+        val player = worldState.player
 
-        val npcs = room.entities.filterIsInstance<Entity.NPC>()
-        if (lastConversationNpcId != null && npcs.none { it.id == lastConversationNpcId }) {
-            lastConversationNpcId = null
-        }
+        if (currentSpace != null && currentNode != null) {
+            // V3: Graph-based world
+            println("\n${currentSpace.name}")
+            println("-" * currentSpace.name.length)
+            println(currentSpace.description.ifEmpty { "An unexplored area..." })
 
-        println("\n${room.name}")
-        println("-" * room.name.length)
-        println(generateRoomDescription(room))
+            // Display filtered exits (hidden exits only visible if revealed)
+            val visibleExits = currentNode.neighbors.filter { edge ->
+                !edge.hidden || player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
+            }
 
-        if (room.exits.isNotEmpty()) {
-            println("\nExits: ${room.exits.keys.joinToString(", ") { direction -> direction.displayName }}")
-        }
+            if (visibleExits.isNotEmpty()) {
+                println("\nExits: ${visibleExits.joinToString(", ") { edge -> edge.direction }}")
+            }
 
-        if (room.entities.isNotEmpty()) {
-            println("\nYou see:")
-            room.entities.forEach { entity ->
-                when (entity) {
-                    is Entity.NPC -> {
-                        // Show disposition-based combat status
-                        val disposition = entity.getDisposition()
-                        val statusText = when {
-                            disposition < -75 -> " ⚔️  (hostile - glares at you!)"
-                            disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
-                            disposition < -25 -> " (neutral)"
-                            disposition < 25 -> " (neutral)"
-                            disposition < 75 -> " ✓ (friendly)"
-                            else -> " ★ (allied)"
+            // Display entities (V3)
+            val entities = worldState.getEntitiesInSpace(player.currentRoomId)
+            if (entities.isNotEmpty()) {
+                println("\nYou see:")
+                entities.forEach { entity ->
+                    when (entity) {
+                        is Entity.NPC -> {
+                            val disposition = entity.getDisposition()
+                            val statusText = when {
+                                disposition < -75 -> " ⚔️  (hostile - glares at you!)"
+                                disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
+                                disposition < -25 -> " (neutral)"
+                                disposition < 25 -> " (neutral)"
+                                disposition < 75 -> " ✓ (friendly)"
+                                else -> " ★ (allied)"
+                            }
+                            println("  - ${entity.name}$statusText")
                         }
-                        println("  - ${entity.name}$statusText")
+                        else -> println("  - ${entity.name}")
                     }
-                    else -> println("  - ${entity.name}")
+                }
+            }
+        } else {
+            // V2 fallback: Room-based world
+            val room = worldState.getCurrentRoom() ?: return
+
+            val npcs = room.entities.filterIsInstance<Entity.NPC>()
+            if (lastConversationNpcId != null && npcs.none { it.id == lastConversationNpcId }) {
+                lastConversationNpcId = null
+            }
+
+            println("\n${room.name}")
+            println("-" * room.name.length)
+            println(generateRoomDescription(room))
+
+            if (room.exits.isNotEmpty()) {
+                println("\nExits: ${room.exits.keys.joinToString(", ") { direction -> direction.displayName }}")
+            }
+
+            if (room.entities.isNotEmpty()) {
+                println("\nYou see:")
+                room.entities.forEach { entity ->
+                    when (entity) {
+                        is Entity.NPC -> {
+                            val disposition = entity.getDisposition()
+                            val statusText = when {
+                                disposition < -75 -> " ⚔️  (hostile - glares at you!)"
+                                disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
+                                disposition < -25 -> " (neutral)"
+                                disposition < 25 -> " (neutral)"
+                                disposition < 75 -> " ✓ (friendly)"
+                                else -> " ★ (allied)"
+                            }
+                            println("  - ${entity.name}$statusText")
+                        }
+                        else -> println("  - ${entity.name}")
+                    }
                 }
             }
         }

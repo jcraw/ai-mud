@@ -95,17 +95,21 @@ The world generation system enables infinite, procedurally-generated worlds with
 - **Hierarchical world**: 5 levels (WORLD → REGION → ZONE → SUBZONE → SPACE)
 - **LLM-driven generation**: Rich lore inheritance and theme-based content
 - **Hybrid exits**: Cardinal directions (n/s/e/w/up/down) + natural language ("climb ladder", "through door")
-- **Hidden exits**: Require Perception checks to discover (DC = 10 + difficulty level)
+- **Hidden exits** (V3): 15-25% of exits are hidden and require `search` command to reveal
+  - Use `search` to roll Perception check (DC 15)
+  - Revealed exits persist across sessions
+  - Hidden exits are invisible in exit list until discovered
 - **Conditional exits**: May require skill checks or specific items
 - **Terrain types**: NORMAL (1 tick), DIFFICULT (2 ticks + Agility check), IMPASSABLE (blocks)
 - **Content placement**: Theme-based traps (~15%), resources (~5%), and mobs
-- **State persistence**: Player changes persist; mobs respawn on restart
+- **State persistence**: Player changes persist; mobs respawn on restart; revealed exits persist
 - **Deep dungeon MVP**: Start at top, descend deeper (100+ floors possible)
 
 For complete details, see [World Generation Documentation](./WORLD_GENERATION.md)
 
 ### Interaction
 - `look` or `look <target>` - Examine room or specific object
+- `search` or `search <target>` - Search carefully for hidden objects and exits (Perception check)
 - `take <item>` or `get <item>` - Pick up an item
 - `drop <item>` or `put <item>` - Drop an item from inventory
 - `talk <npc>` or `speak <npc>` - Talk to an NPC

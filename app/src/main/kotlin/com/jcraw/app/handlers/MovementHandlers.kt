@@ -183,20 +183,18 @@ object MovementHandlers {
     }
 
     fun handleSearch(game: MudGame, target: String?) {
-        // V3: Check if using space-based world
-        val space = game.worldState.getCurrentSpace()
-
-        // For now, still use V2 room-based entity access during migration
-        // TODO: Update when entity system is migrated to V3
-        val room = game.worldState.getCurrentRoom() ?: return
+        // V3: Check if using graph-based world with hidden exits
+        val currentNode = game.worldState.getCurrentGraphNode()
+        val player = game.worldState.player
+        val hasV3Graph = currentNode != null
 
         println("\nYou search the area carefully${if (target != null) ", focusing on the $target" else ""}...")
 
-        // Perform a Wisdom (Perception) skill check to find hidden items
+        // Perform a Wisdom (Perception) skill check
         val result = game.skillCheckResolver.checkPlayer(
-            game.worldState.player,
+            player,
             com.jcraw.mud.core.StatType.WISDOM,
-            com.jcraw.mud.core.Difficulty.MEDIUM  // DC 15 for finding hidden items
+            com.jcraw.mud.core.Difficulty.MEDIUM  // DC 15 for finding hidden items/exits
         )
 
         // Display roll details
@@ -212,24 +210,49 @@ object MovementHandlers {
         if (result.success) {
             println("\n✅ Success!")
 
-            // Find hidden items in the room
-            val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-            val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+            var foundSomething = false
 
-            if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
+            // V3: Check for hidden exits
+            if (hasV3Graph && currentNode != null) {
+                // Find hidden exits that haven't been revealed yet
+                val hiddenExits = currentNode.neighbors.filter { edge ->
+                    edge.hidden && !player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
+                }
+
+                if (hiddenExits.isNotEmpty()) {
+                    // Reveal the first hidden exit
+                    val revealedExit = hiddenExits.first()
+                    val edgeId = "${currentNode.id}:${revealedExit.targetId}"
+                    game.worldState = game.worldState.updatePlayer(player.revealExit(edgeId))
+
+                    println("\n🔍 You discover a hidden exit: ${revealedExit.direction}!")
+                    foundSomething = true
+                }
+            }
+
+            // V2: Check for hidden items (backward compatibility)
+            val room = game.worldState.getCurrentRoom()
+            if (room != null) {
+                val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+                val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
                 if (pickupableItems.isNotEmpty()) {
-                    println("You find the following items:")
+                    println("\nYou find the following items:")
                     pickupableItems.forEach { item ->
                         println("  - ${item.name}: ${item.description}")
                     }
+                    foundSomething = true
                 }
                 if (hiddenItems.isNotEmpty()) {
                     println("\nYou also notice some interesting features:")
                     hiddenItems.forEach { item ->
                         println("  - ${item.name}: ${item.description}")
                     }
+                    foundSomething = true
                 }
-            } else {
+            }
+
+            if (!foundSomething) {
                 println("You don't find anything hidden here.")
             }
         } else {

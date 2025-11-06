@@ -225,9 +225,10 @@ All V2 systems fully integrated and tested:
   - ✅ Chunk 5 V3 Initialization: App.kt updated with V3 option - generates single chunk with graph topology, populates WorldState with graphNodes/spaces/chunks, persists to database
   - ✅ Chunk 5 GUI Client V3: EngineGameClient.kt updated (added graphNodeRepository, loreInheritanceEngine, graphGenerator, graphValidator, worldGenerator - lines 86-95, 144-162), build successful
   - ⏸️ Game loop refinement: Deferred - V3 initialization working, single-chunk worlds playable, multi-chunk traversal ready for testing
-  - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
+  - ✅ Chunk 6: Hidden exit revelation - Added revealedExits field to PlayerState, handleSearch reveals hidden exits via Perception check (DC 15), exit display filters unrevealed hidden exits
+  - ❌ Chunks 7-11: Dynamic edges, breakouts, exit resolution, testing, docs
 
-  **Note**: V3 initialization complete. Players can select "World Generation V3" at startup to generate a graph-based world. All game modes (console, multi-user, GUI client) support V3 with V2 fallback. Single-chunk worlds fully playable, multi-chunk frontier traversal implemented and ready for testing.
+  **Note**: V3 initialization complete. Players can select "World Generation V3" at startup to generate a graph-based world. All game modes (console, multi-user, GUI client) support V3 with V2 fallback. Single-chunk worlds fully playable, multi-chunk frontier traversal implemented and ready for testing. Hidden exit revelation via `search` command now functional.
 - ✅ 793 tests passing (0 failures, 100% pass rate)
   - Includes 20 new V3 integration tests (WorldSystemV3IntegrationTest.kt)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
