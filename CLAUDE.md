@@ -212,9 +212,9 @@ All V2 systems fully integrated and tested:
   - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system
   - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces/chunks storage, 15 new V3 methods (movePlayerV3, getCurrentSpace, getChunk, etc.), Room deprecated
   - ✅ Chunk 5 MudGame V3 Dependencies: LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator added to MudGameEngine.kt (lines 126-142), compiles successfully
-  - ✅ Chunk 5 Console Movement Handlers: MovementHandlers.kt updated (handleMove uses movePlayerV3, lazy-fill on empty description, handleLook/handleSearch check getCurrentSpace), compiles successfully
-  - ✅ Chunk 5 Client Movement Handlers: ClientMovementHandlers.kt updated (handleMove uses movePlayerV3 with lazy-fill, V2 fallback), compiles successfully
-  - ✅ Chunk 5 Lazy-fill integration: Chunk storage added to WorldState (chunks map, getChunk/updateChunk/addChunk), lazy-fill integrated in both handlers
+  - ✅ Chunk 5 Console Movement Handlers: MovementHandlers.kt updated (handleMove uses movePlayerV3, lazy-fill on empty description with null-safe worldGenerator check, handleLook/handleSearch check getCurrentSpace), compiles successfully (122 lines)
+  - ✅ Chunk 5 Client Movement Handlers: ClientMovementHandlers.kt updated (handleMove uses movePlayerV3 for V3 graph navigation, V2 fallback, lazy-fill TODO added), compiles successfully (35 lines for V3 path)
+  - ✅ Chunk 5 Lazy-fill integration: Chunk storage added to WorldState (chunks map, getChunk/updateChunk/addChunk), lazy-fill integrated in console handler with null-safe worldGenerator check
   - ❌ Chunk 5 Frontier traversal: Needs chunk cascade generation logic (~1-2h)
   - ❌ Handler implementation - Implement V3 in remaining handlers (combat, items, social) (~4-5h remaining)
   - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs

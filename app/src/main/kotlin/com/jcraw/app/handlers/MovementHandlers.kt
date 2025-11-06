@@ -47,13 +47,13 @@ object MovementHandlers {
                 val chunkId = spaceId.substringBeforeLast("_node_")
                 val chunk = game.worldState.getChunk(chunkId)
 
-                if (chunk != null) {
+                if (chunk != null && game.worldGenerator != null) {
                     // Generate content for this space
                     runBlocking {
-                        val result = game.worldGenerator.fillSpaceContent(currentSpace, currentNode, chunk)
-                        result.onSuccess { filledSpace ->
+                        val result = game.worldGenerator?.fillSpaceContent(currentSpace, currentNode, chunk)
+                        result?.onSuccess { filledSpace ->
                             game.worldState = game.worldState.updateSpace(spaceId, filledSpace)
-                        }.onFailure { error ->
+                        }?.onFailure { error ->
                             // Lazy-fill failed, but continue with empty description
                             println("(Content generation unavailable)")
                         }
