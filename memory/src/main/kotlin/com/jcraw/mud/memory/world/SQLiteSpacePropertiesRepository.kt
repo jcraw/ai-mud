@@ -89,21 +89,22 @@ class SQLiteSpacePropertiesRepository(
             // Now save space properties
             val sql = """
                 INSERT OR REPLACE INTO space_properties
-                (chunk_id, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (chunk_id, name, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
             conn.prepareStatement(sql).use { stmt ->
                 stmt.setString(1, chunkId)
-                stmt.setString(2, properties.description)
-                stmt.setString(3, json.encodeToString(properties.exits))
-                stmt.setInt(4, properties.brightness)
-                stmt.setString(5, properties.terrainType.name)
-                stmt.setString(6, json.encodeToString(properties.traps))
-                stmt.setString(7, json.encodeToString(properties.resources))
-                stmt.setString(8, json.encodeToString(properties.entities))
-                stmt.setString(9, json.encodeToString(properties.itemsDropped))
-                stmt.setString(10, json.encodeToString(properties.stateFlags))
+                stmt.setString(2, properties.name)
+                stmt.setString(3, properties.description)
+                stmt.setString(4, json.encodeToString(properties.exits))
+                stmt.setInt(5, properties.brightness)
+                stmt.setString(6, properties.terrainType.name)
+                stmt.setString(7, json.encodeToString(properties.traps))
+                stmt.setString(8, json.encodeToString(properties.resources))
+                stmt.setString(9, json.encodeToString(properties.entities))
+                stmt.setString(10, json.encodeToString(properties.itemsDropped))
+                stmt.setString(11, json.encodeToString(properties.stateFlags))
                 stmt.executeUpdate()
             }
 
@@ -124,6 +125,7 @@ class SQLiteSpacePropertiesRepository(
 
                 if (rs.next()) {
                     val properties = SpacePropertiesComponent(
+                        name = rs.getString("name"),
                         description = rs.getString("description"),
                         exits = json.decodeFromString<List<ExitData>>(rs.getString("exits")),
                         brightness = rs.getInt("brightness"),

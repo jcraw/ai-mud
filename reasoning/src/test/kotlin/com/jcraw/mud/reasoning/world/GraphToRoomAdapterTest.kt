@@ -16,6 +16,7 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRoom converts basic space to room with name and description`() {
         val space = SpacePropertiesComponent(
+            name = "Dark Corridor",
             description = "A dark corridor stretches ahead. Torches flicker on the walls.",
             brightness = 30,
             terrainType = TerrainType.NORMAL
@@ -36,7 +37,7 @@ class GraphToRoomAdapterTest {
             chunkId = "chunk_1"
         )
 
-        val space = SpacePropertiesComponent(description = "")
+        val space = SpacePropertiesComponent(name = "Unknown", description = "")
 
         val room = GraphToRoomAdapter.toRoom("node_hub", space, graphNode)
 
@@ -52,6 +53,7 @@ class GraphToRoomAdapterTest {
         )
 
         val space = SpacePropertiesComponent(
+            name = "Junction",
             description = "Junction",
             exits = exits
         )
@@ -73,6 +75,7 @@ class GraphToRoomAdapterTest {
         )
 
         val space = SpacePropertiesComponent(
+            name = "Mixed Exit Room",
             description = "Room with mixed exits",
             exits = exits
         )
@@ -103,6 +106,7 @@ class GraphToRoomAdapterTest {
 
         cases.forEach { (brightness, expectedTrait) ->
             val space = SpacePropertiesComponent(
+                name = "Test Room",
                 description = "Test room",
                 brightness = brightness
             )
@@ -124,6 +128,7 @@ class GraphToRoomAdapterTest {
 
         terrainCases.forEach { (terrain, expectedTrait) ->
             val space = SpacePropertiesComponent(
+                name = "Test Room",
                 description = "Test room",
                 terrainType = terrain
             )
@@ -150,7 +155,7 @@ class GraphToRoomAdapterTest {
                 type = nodeType,
                 chunkId = "chunk_1"
             )
-            val space = SpacePropertiesComponent(description = "Test")
+            val space = SpacePropertiesComponent(name = "Test", description = "Test")
             val room = GraphToRoomAdapter.toRoom("test_node", space, graphNode)
 
             assertTrue(
@@ -166,6 +171,7 @@ class GraphToRoomAdapterTest {
         val resource = ResourceNode("res_1", "iron_ore", 3)
 
         val space = SpacePropertiesComponent(
+            name = "Dangerous Room",
             description = "Dangerous room",
             traps = listOf(trap),
             resources = listOf(resource),
@@ -182,6 +188,7 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRoom marks safe zones correctly`() {
         val space = SpacePropertiesComponent(
+            name = "Safe Haven",
             description = "Safe haven",
             isSafeZone = true
         )
@@ -195,6 +202,7 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRoom stores space properties in room properties map`() {
         val space = SpacePropertiesComponent(
+            name = "Test",
             description = "Test",
             brightness = 45,
             terrainType = TerrainType.DIFFICULT,
@@ -226,6 +234,7 @@ class GraphToRoomAdapterTest {
         )
 
         val space = SpacePropertiesComponent(
+            name = "Central Junction",
             description = "Central junction",
             exits = exits
         )
@@ -248,9 +257,9 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRooms batch converts multiple spaces`() {
         val spaces = listOf(
-            "room_1" to SpacePropertiesComponent(description = "Room 1"),
-            "room_2" to SpacePropertiesComponent(description = "Room 2"),
-            "room_3" to SpacePropertiesComponent(description = "Room 3")
+            "room_1" to SpacePropertiesComponent(name = "Room 1", description = "Room 1"),
+            "room_2" to SpacePropertiesComponent(name = "Room 2", description = "Room 2"),
+            "room_3" to SpacePropertiesComponent(name = "Room 3", description = "Room 3")
         )
 
         val rooms = GraphToRoomAdapter.toRooms(spaces)
@@ -264,7 +273,7 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRooms uses graph nodes when provided`() {
         val spaces = listOf(
-            "hub" to SpacePropertiesComponent(description = "")
+            "hub" to SpacePropertiesComponent(name = "Hub", description = "")
         )
 
         val graphNodes = mapOf(
@@ -286,7 +295,7 @@ class GraphToRoomAdapterTest {
     fun `toRoom extracts name from long description correctly`() {
         val longDesc = "This is a very long sentence that exceeds forty characters and should be truncated. More text here."
 
-        val space = SpacePropertiesComponent(description = longDesc)
+        val space = SpacePropertiesComponent(name = "Long Description Room", description = longDesc)
         val room = GraphToRoomAdapter.toRoom("test", space)
 
         // Name should be truncated to 40 chars from first sentence
@@ -297,6 +306,7 @@ class GraphToRoomAdapterTest {
     @Test
     fun `toRoom handles space with no exits`() {
         val space = SpacePropertiesComponent(
+            name = "Dead End Chamber",
             description = "Dead end chamber",
             exits = emptyList()
         )

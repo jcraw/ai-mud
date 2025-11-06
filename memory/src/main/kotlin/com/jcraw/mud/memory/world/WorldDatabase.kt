@@ -115,6 +115,7 @@ class WorldDatabase(
                 """
                 CREATE TABLE IF NOT EXISTS space_properties (
                     chunk_id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL DEFAULT 'Unknown Location',
                     description TEXT NOT NULL,
                     exits TEXT NOT NULL,
                     brightness INTEGER NOT NULL,
@@ -128,6 +129,15 @@ class WorldDatabase(
                 )
                 """.trimIndent()
             )
+
+            // Add name column for existing databases
+            try {
+                stmt.execute("ALTER TABLE space_properties ADD COLUMN name TEXT NOT NULL DEFAULT 'Unknown Location'")
+            } catch (e: SQLException) {
+                if (!e.message.orEmpty().contains("duplicate column name")) {
+                    throw e
+                }
+            }
 
             stmt.execute(
                 """

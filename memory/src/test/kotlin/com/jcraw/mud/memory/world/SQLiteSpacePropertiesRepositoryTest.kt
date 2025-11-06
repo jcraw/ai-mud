@@ -57,6 +57,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `save and find space properties by chunk ID`() {
         val props = SpacePropertiesComponent(
+            name = "Dark Room",
             description = "A dark room",
             exits = listOf(ExitData("chunk2", "north", "A passage north", emptyList(), false)),
             brightness = 30,
@@ -84,6 +85,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `update space properties overwrites existing`() {
         val original = SpacePropertiesComponent(
+            name = "Original Room",
             description = "Original",
             exits = emptyList(),
             brightness = 50,
@@ -116,6 +118,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         )
 
         val props = SpacePropertiesComponent(
+            name = "Test Room",
             description = "Test",
             exits = exits,
             brightness = 50,
@@ -139,6 +142,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `empty exits list persists correctly`() {
         val props = SpacePropertiesComponent(
+            name = "No Exits Room",
             description = "No exits",
             exits = emptyList(),
             brightness = 50,
@@ -163,6 +167,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `all terrain types persist correctly`() {
         TerrainType.entries.forEach { terrain ->
             val props = SpacePropertiesComponent(
+                name = "Test $terrain Room",
                 description = "Test $terrain",
                 exits = emptyList(),
                 brightness = 50,
@@ -209,6 +214,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         )
 
         val props = SpacePropertiesComponent(
+            name = "Trapped Room",
             description = "Trapped room",
             exits = emptyList(),
             brightness = 50,
@@ -239,6 +245,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         )
 
         val props = SpacePropertiesComponent(
+            name = "Resource Area",
             description = "Resource-rich area",
             exits = emptyList(),
             brightness = 50,
@@ -267,6 +274,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         val entities = listOf("entity1", "entity2", "entity3")
 
         val props = SpacePropertiesComponent(
+            name = "Populated Room",
             description = "Populated room",
             exits = emptyList(),
             brightness = 50,
@@ -295,6 +303,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         )
 
         val props = SpacePropertiesComponent(
+            name = "Loot Room",
             description = "Room with loot",
             exits = emptyList(),
             brightness = 50,
@@ -326,6 +335,7 @@ class SQLiteSpacePropertiesRepositoryTest {
         )
 
         val props = SpacePropertiesComponent(
+            name = "Stateful Room",
             description = "Stateful room",
             exits = emptyList(),
             brightness = 50,
@@ -350,6 +360,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `updateDescription updates only description`() {
         val props = SpacePropertiesComponent(
+            name = "Original Room",
             description = "Original",
             exits = listOf(ExitData("target", "north", "Exit", emptyList(), false)),
             brightness = 50,
@@ -373,6 +384,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `updateFlags updates only flags`() {
         val props = SpacePropertiesComponent(
+            name = "Test Room",
             description = "Test",
             exits = emptyList(),
             brightness = 50,
@@ -396,6 +408,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `addItems appends to existing items`() {
         val props = SpacePropertiesComponent(
+            name = "Test Room",
             description = "Test",
             exits = emptyList(),
             brightness = 50,
@@ -423,6 +436,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `delete removes space properties`() {
         val props = SpacePropertiesComponent(
+            name = "Delete Me",
             description = "Delete me",
             exits = emptyList(),
             brightness = 50,
@@ -452,6 +466,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `brightness extremes persist correctly`() {
         val darkProps = SpacePropertiesComponent(
+            name = "Pitch Black",
             description = "Pitch black",
             exits = emptyList(),
             brightness = 0,
@@ -495,6 +510,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     fun `very long description persists correctly`() {
         val longDesc = "A".repeat(10000)
         val props = SpacePropertiesComponent(
+            name = "Long Description",
             description = longDesc,
             exits = emptyList(),
             brightness = 50,
@@ -515,6 +531,7 @@ class SQLiteSpacePropertiesRepositoryTest {
     @Test
     fun `complex nested data persists correctly`() {
         val complexProps = SpacePropertiesComponent(
+            name = "Complex Room",
             description = "Complex room with everything",
             exits = listOf(
                 ExitData("t1", "north", "Hidden", listOf(Condition.SkillCheck("Perception", 15)), true),

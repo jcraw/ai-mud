@@ -91,6 +91,7 @@ class RespawnManagerTest {
 
         val oldMob = Entity.NPC("mob_old", "Old Goblin", "desc", 10, mapOf(), true, null, 5)
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             description = "A room",
             exits = emptyMap(),
             brightness = 50,
@@ -121,10 +122,16 @@ class RespawnManagerTest {
 
         val item = com.jcraw.mud.core.ItemInstance("item_1", "sword", 5, null, 1)
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            listOf(Entity.NPC("mob", "Orc", "desc", 15, mapOf(), true, null, 10)),
-            listOf(item),
-            mapOf("treasure_found" to true, "trap_triggered" to true)
+            name = "Test Room",
+            description = "Room",
+            exits = emptyMap(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = listOf(Entity.NPC("mob", "Orc", "desc", 15, mapOf(), true, null, 10)),
+            itemsDropped = listOf(item),
+            stateFlags = mapOf("treasure_found" to true, "trap_triggered" to true)
         )
         testSpaces["space_1"] = space
 
@@ -138,13 +145,19 @@ class RespawnManagerTest {
     @Test
     fun `clearSpaceEntities removes all mobs`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            listOf(
+            name = "Test Room",
+            description = "Room",
+            exits = emptyMap(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = listOf(
                 Entity.NPC("mob1", "Goblin", "desc", 10, mapOf(), true, null, 5),
                 Entity.NPC("mob2", "Orc", "desc", 20, mapOf(), true, null, 10)
             ),
-            emptyList(),
-            emptyMap()
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_1"] = space
 
@@ -156,8 +169,16 @@ class RespawnManagerTest {
     @Test
     fun `respawnSpaceEntities generates new mobs`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room",
+            description = "Room",
+            exits = emptyMap(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_1"] = space
 
@@ -201,9 +222,16 @@ class RespawnManagerTest {
         testChunks["space_1"] = spaceChunk
 
         val space = SpacePropertiesComponent(
-            "Room", emptyMap(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            listOf(Entity.NPC("old", "Old", "desc", 10, mapOf(), true, null, 5)),
-            emptyList(), emptyMap()
+            name = "Test Room",
+            description = "Room",
+            exits = emptyMap(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = listOf(Entity.NPC("old", "Old", "desc", 10, mapOf(), true, null, 5)),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_1"] = space
 

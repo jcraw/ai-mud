@@ -253,7 +253,7 @@ class WorldGenerator(
 
     /**
      * V3: Fills space content on-demand (lazy-fill).
-     * Generates description and updates brightness/terrain based on node type.
+     * Generates name and description, updates brightness/terrain based on node type.
      * Called when player enters a space for the first time.
      *
      * @param currentSpace The space stub to fill
@@ -271,13 +271,14 @@ class WorldGenerator(
             return Result.success(currentSpace)
         }
 
-        // Generate description using LLM based on node type and neighbors
-        val description = generateNodeDescription(graphNode, chunk).getOrElse { return Result.failure(it) }
+        // Generate name and description using LLM based on node type and neighbors
+        val (name, description) = generateNodeNameAndDescription(graphNode, chunk).getOrElse { return Result.failure(it) }
 
         // Determine brightness and terrain based on node type
         val (brightness, terrain) = determineNodeProperties(graphNode.type, chunk)
 
         val filled = currentSpace.copy(
+            name = name,
             description = description,
             brightness = brightness,
             terrainType = terrain
@@ -287,13 +288,14 @@ class WorldGenerator(
     }
 
     /**
-     * V3: Generate description for a graph node.
-     * Uses node type, neighbors, and chunk lore to create contextual description.
+     * V3: Generate name and description for a graph node.
+     * Uses node type, neighbors, and chunk lore to create contextual content.
+     * Returns Pair<name, description>
      */
-    private suspend fun generateNodeDescription(
+    private suspend fun generateNodeNameAndDescription(
         node: GraphNodeComponent,
         chunk: WorldChunkComponent
-    ): Result<String> {
+    ): Result<Pair<String, String>> {
         val nodeTypeDescription = when (node.type) {
             is com.jcraw.mud.core.world.NodeType.Hub -> "safe zone or gathering point"
             is com.jcraw.mud.core.world.NodeType.Linear -> "corridor or passage"
@@ -308,7 +310,7 @@ class WorldGenerator(
 
         val systemPrompt = """
             You are a world-building assistant for a fantasy dungeon MUD.
-            Generate atmospheric room descriptions. 2-3 sentences, vivid but concise.
+            Generate atmospheric space names and descriptions in JSON format only.
         """.trimIndent()
 
         val userContext = """
@@ -317,9 +319,15 @@ class WorldGenerator(
             Node Type: $nodeTypeDescription
             Exits: $exitDirections
 
-            Generate a vivid 2-3 sentence description for this space.
-            The description should reflect the node type and available exits naturally.
-            Return ONLY the description text, no JSON, no formatting.
+            Generate a vivid name and description for this space.
+            Name should be 2-4 words, evocative and thematic (e.g., "Treacherous Alley", "Crystal Cavern").
+            Description should be 2-3 sentences reflecting the node type and available exits.
+
+            Output JSON only:
+            {
+              "name": "space name",
+              "description": "vivid 2-3 sentence description"
+            }
         """.trimIndent()
 
         return try {
@@ -327,16 +335,27 @@ class WorldGenerator(
                 modelId = MODEL,
                 systemPrompt = systemPrompt,
                 userContext = userContext,
-                maxTokens = 200,
+                maxTokens = 250,
                 temperature = TEMPERATURE
             )
 
-            val description = response.choices.firstOrNull()?.message?.content?.trim()
+            val content = response.choices.firstOrNull()?.message?.content?.trim()
                 ?: return Result.failure(Exception("LLM returned empty response"))
 
-            Result.success(description)
+            // Strip markdown code blocks if present
+            val jsonContent = content
+                .removePrefix("```json")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+
+            @Serializable
+            data class SpaceNameAndDescription(val name: String, val description: String)
+
+            val data = json.decodeFromString<SpaceNameAndDescription>(jsonContent)
+            Result.success(data.name to data.description)
         } catch (e: Exception) {
-            Result.failure(Exception("Failed to generate node description: ${e.message}", e))
+            Result.failure(Exception("Failed to generate node name and description: ${e.message}", e))
         }
     }
 

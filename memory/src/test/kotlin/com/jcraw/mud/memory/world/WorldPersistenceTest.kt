@@ -67,8 +67,16 @@ class WorldPersistenceTest {
     fun `saveWorldState persists chunks and spaces`() = runBlocking {
         val chunk = WorldChunkComponent(ChunkLevel.SPACE, "world", emptyList(), "lore", "cave", 5, 0.5, 3)
         val space = SpacePropertiesComponent(
-            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room",
+            description = "A test room",
+            exits = emptyList(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
 
         persistence.saveWorldState(
@@ -86,8 +94,16 @@ class WorldPersistenceTest {
     fun `loadWorldState retrieves global lore and space`() = runBlocking {
         testSeed.add(WorldSeedInfo("seed123", "Ancient dungeon lore", "space_start"))
         val space = SpacePropertiesComponent(
-            "Start room", emptyList(), 100, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Starting Chamber",
+            description = "The starting room",
+            exits = emptyList(),
+            brightness = 100,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_start"] = space
 
@@ -107,8 +123,16 @@ class WorldPersistenceTest {
     @Test
     fun `saveSpace performs incremental save`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room",
+            description = "A test room",
+            exits = emptyList(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
 
         persistence.saveSpace(space, "space_1").getOrThrow()
@@ -129,8 +153,16 @@ class WorldPersistenceTest {
     @Test
     fun `loadSpace retrieves space by chunk ID`() = runBlocking {
         val space = SpacePropertiesComponent(
-            "Room", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room",
+            description = "A test room",
+            exits = emptyList(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_1"] = space
 
@@ -142,12 +174,28 @@ class WorldPersistenceTest {
     @Test
     fun `prefetchAdjacentSpaces loads multiple spaces`() = runBlocking {
         val space1 = SpacePropertiesComponent(
-            "Room 1", emptyList(), 50, TerrainType.NORMAL, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room 1",
+            description = "First test room",
+            exits = emptyList(),
+            brightness = 50,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         val space2 = SpacePropertiesComponent(
-            "Room 2", emptyList(), 60, TerrainType.DIFFICULT, emptyList(), emptyList(),
-            emptyList(), emptyList(), emptyMap()
+            name = "Test Room 2",
+            description = "Second test room",
+            exits = emptyList(),
+            brightness = 60,
+            terrainType = TerrainType.DIFFICULT,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap()
         )
         testSpaces["space_1"] = space1
         testSpaces["space_2"] = space2

@@ -37,10 +37,11 @@ class SpacePopulatorTest {
 
     private fun createEmptySpace(): SpacePropertiesComponent {
         return SpacePropertiesComponent(
+            name = "Empty Space",
             description = "An empty space.",
             exits = emptyList(),
             brightness = 5,
-            terrain = TerrainType.NORMAL,
+            terrainType = TerrainType.NORMAL,
             traps = emptyList(),
             resources = emptyList(),
             entities = emptyList(),

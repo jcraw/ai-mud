@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class SpacePropertiesComponent(
+    val name: String = "Unknown Location",
     val description: String = "",
     val exits: List<ExitData> = emptyList(),
     val brightness: Int = 50,

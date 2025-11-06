@@ -53,6 +53,7 @@ class StateChangeHandlerTest {
 
     private fun createTestSpace(): SpacePropertiesComponent {
         return SpacePropertiesComponent(
+            name = "Test Room",
             description = "A dark room",
             exits = emptyMap(),
             brightness = 50,

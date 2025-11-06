@@ -1,0 +1,265 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.BadPlaythrough"
+    },
+    "totalSteps": 7,
+    "passedSteps": 3,
+    "failedSteps": 4,
+    "finalStatus": "PASSED",
+    "startTime": "2025-11-06T21:01:50.931725927Z",
+    "endTime": "2025-11-06T21:02:38.482174721Z",
+    "duration": 47551,
+    "steps": [
+        {
+            "timestamp": "2025-11-06T21:01:58.868288810Z",
+            "playerInput": "go north",
+            "gmResponse": "Dark Corridor\nYou find yourself in a narrow stone passage, where the walls loom close and cold against your skin. Each footstep you take echoes ominously, swallowed by the heavy silence that surrounds you. The distant sound of dripping water punctuates the stillness, while cobwebs cling in the corners, their silken threads shimmering faintly in the gloom. The worn flagstone floor, slick with age, feels uneven beneath your feet, as if the stones themselves have borne witness to countless secrets over the years.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:08.651454930Z",
+            "playerInput": "go north",
+            "gmResponse": "Abandoned Throne Room\nYou enter the abandoned throne room, where a massive stone throne looms like a forgotten sentinel, its surface marred by time and neglect. Faded royal tapestries hang limply from the walls, their vibrant colors long since surrendered to the dullness of dust and decay. The cracked marble floor beneath you echoes the weight of history, each step reverberating into the eerie silence. An ominous draft snakes through unseen passages, stirring the air with a chill that whispers of the past, while a skeleton slumped on the throne bears silent witness to the grandeur that once was.\nExits: south, north\nYou see: Skeleton King",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Abandoned Throne Room",
+                    "room_id": "throne_room"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:23.067202555Z",
+            "playerInput": "look",
+            "gmResponse": "Abandoned Throne Room\nYou return to the abandoned throne room, the air thick with a sense of foreboding. The massive stone throne, once a symbol of power, now stands like a guardian of forgotten dreams, its surface worn smooth by the touch of time. Faded royal tapestries hang limply from the walls, their intricate designs barely discernible beneath layers of dust, while shadows stretch ominously across the cracked marble floor. A cold draft snakes through the chamber, carrying with it the whispers of long-lost voices, as the skeleton slumped upon the throne gazes into the hollow depths of the past.\nExits: south, north\nYou see: Skeleton King",
+            "validationResult": {
+                "pass": true,
+                "reason": "Combat initiated correctly, damage numbers are reasonable, and player died as expected.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:26.327110582Z",
+            "playerInput": "attack Skeleton King",
+            "gmResponse": "You attack Skeleton King with bare fists for 12 damage!\nSkeleton King strikes back for 6 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:31.075319157Z",
+            "playerInput": "attack skeleton king",
+            "gmResponse": "You attack Skeleton King with bare fists for 12 damage!\nSkeleton King strikes back for 15 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:35.502020094Z",
+            "playerInput": "attack skeleton king",
+            "gmResponse": "You attack Skeleton King with bare fists for 8 damage!\nSkeleton King strikes back for 13 damage!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-06T21:02:38.481526260Z",
+            "playerInput": "attack skeleton king",
+            "gmResponse": "You attack Skeleton King with bare fists for 13 damage!\nSkeleton King strikes back for 15 damage!\nYou have been defeated! Game over.",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Skeleton King"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-11-06T21:01:58.868288810Z",
+                "playerInput": "go north",
+                "gmResponse": "Dark Corridor\nYou find yourself in a narrow stone passage, where the walls loom close and cold against your skin. Each footstep you take echoes ominously, swallowed by the heavy silence that surrounds you. The distant sound of dripping water punctuates the stillness, while cobwebs cling in the corners, their silken threads shimmering faintly in the gloom. The worn flagstone floor, slick with age, feels uneven beneath your feet, as if the stones themselves have borne witness to countless secrets over the years.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-11-06T21:02:08.651454930Z",
+                "playerInput": "go north",
+                "gmResponse": "Abandoned Throne Room\nYou enter the abandoned throne room, where a massive stone throne looms like a forgotten sentinel, its surface marred by time and neglect. Faded royal tapestries hang limply from the walls, their vibrant colors long since surrendered to the dullness of dust and decay. The cracked marble floor beneath you echoes the weight of history, each step reverberating into the eerie silence. An ominous draft snakes through unseen passages, stirring the air with a chill that whispers of the past, while a skeleton slumped on the throne bears silent witness to the grandeur that once was.\nExits: south, north\nYou see: Skeleton King",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Abandoned Throne Room",
+                        "room_id": "throne_room"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-11-06T21:02:23.067202555Z",
+                "playerInput": "look",
+                "gmResponse": "Abandoned Throne Room\nYou return to the abandoned throne room, the air thick with a sense of foreboding. The massive stone throne, once a symbol of power, now stands like a guardian of forgotten dreams, its surface worn smooth by the touch of time. Faded royal tapestries hang limply from the walls, their intricate designs barely discernible beneath layers of dust, while shadows stretch ominously across the cracked marble floor. A cold draft snakes through the chamber, carrying with it the whispers of long-lost voices, as the skeleton slumped upon the throne gazes into the hollow depths of the past.\nExits: south, north\nYou see: Skeleton King",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "Combat initiated correctly, damage numbers are reasonable, and player died as expected.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-11-06T21:02:26.327110582Z",
+                "playerInput": "attack Skeleton King",
+                "gmResponse": "You attack Skeleton King with bare fists for 12 damage!\nSkeleton King strikes back for 6 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Skeleton King' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-11-06T21:02:31.075319157Z",
+                "playerInput": "attack skeleton king",
+                "gmResponse": "You attack Skeleton King with bare fists for 12 damage!\nSkeleton King strikes back for 15 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-11-06T21:02:35.502020094Z",
+                "playerInput": "attack skeleton king",
+                "gmResponse": "You attack Skeleton King with bare fists for 8 damage!\nSkeleton King strikes back for 13 damage!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-11-06T21:02:38.481526260Z",
+                "playerInput": "attack skeleton king",
+                "gmResponse": "You attack Skeleton King with bare fists for 13 damage!\nSkeleton King strikes back for 15 damage!\nYou have been defeated! Game over.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Skeleton King"
+                    }
+                }
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'skeleton king' in room but combat didn't start"
+        }
+    ],
+    "uniqueRoomsVisited": 2,
+    "roomNames": [
+        "Dark Corridor",
+        "Abandoned Throne Room"
+    ],
+    "combatRounds": 4
+}

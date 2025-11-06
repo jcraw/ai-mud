@@ -44,6 +44,7 @@ class WorldSystemV3IntegrationTest {
         // Create minimal space stubs for each node
         val spaces = graphNodes.associate { node ->
             node.id to SpacePropertiesComponent(
+                name = "Node ${node.type}",
                 description = "Node ${node.id} - ${node.type}",
                 exits = emptyList(),
                 terrainType = TerrainType.NORMAL,
@@ -444,6 +445,7 @@ class WorldSystemV3IntegrationTest {
         val world = createV3WorldState()
 
         val newSpace = SpacePropertiesComponent(
+            name = "New Space",
             description = "Newly updated space",
             exits = emptyList(),
             terrainType = TerrainType.DIFFICULT,
@@ -502,6 +504,7 @@ class WorldSystemV3IntegrationTest {
         )
 
         val newSpace = SpacePropertiesComponent(
+            name = "New Space",
             description = "A new space",
             exits = emptyList(),
             terrainType = TerrainType.NORMAL,
@@ -529,6 +532,7 @@ class WorldSystemV3IntegrationTest {
 
         // Operations should not mutate original world
         val newSpace = SpacePropertiesComponent(
+            name = "Test Space",
             description = "Test",
             exits = emptyList(),
             terrainType = TerrainType.NORMAL,

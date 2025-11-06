@@ -27,6 +27,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `withDescription updates description and clears stale flag`() {
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             description = "Old description",
             descriptionStale = true
         )
@@ -38,7 +39,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `resolveExit finds exact match for cardinal direction`() {
         val exit = ExitData(targetId = "room-2", direction = "north", description = "A northern passage")
-        val space = SpacePropertiesComponent(exits = listOf(exit))
+        val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
         val resolved = space.resolveExit("north", player)
@@ -49,7 +50,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `resolveExit is case insensitive`() {
         val exit = ExitData(targetId = "room-2", direction = "north", description = "A northern passage")
-        val space = SpacePropertiesComponent(exits = listOf(exit))
+        val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
         val resolved = space.resolveExit("NORTH", player)
@@ -66,7 +67,7 @@ class SpacePropertiesComponentTest {
             isHidden = true,
             conditions = listOf(Condition.SkillCheck("Perception", 15))
         )
-        val space = SpacePropertiesComponent(exits = listOf(exit))
+        val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer(perceptionLevel = 5)
 
         val resolved = space.resolveExit("secret", player)
@@ -82,7 +83,7 @@ class SpacePropertiesComponentTest {
             isHidden = true,
             conditions = listOf(Condition.SkillCheck("Perception", 10))
         )
-        val space = SpacePropertiesComponent(exits = listOf(exit))
+        val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer(perceptionLevel = 15)
 
         val resolved = space.resolveExit("secret", player)
@@ -92,7 +93,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `resolveExit finds fuzzy match in description`() {
         val exit = ExitData(targetId = "room-2", direction = "up", description = "A wooden ladder leading upward")
-        val space = SpacePropertiesComponent(exits = listOf(exit))
+        val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
         val resolved = space.resolveExit("ladder", player)
@@ -138,6 +139,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `applyChange updates flags and marks description stale`() {
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             stateFlags = emptyMap(),
             descriptionStale = false
         )
@@ -150,6 +152,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `applyChange does not mark stale if flag unchanged`() {
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             stateFlags = mapOf("boulder_moved" to true),
             descriptionStale = false
         )
@@ -182,7 +185,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `updateTrap updates matching trap`() {
         val trap = TrapData(id = "trap-1", type = "pit", difficulty = 10, triggered = false)
-        val space = SpacePropertiesComponent(traps = listOf(trap))
+        val space = SpacePropertiesComponent(name = "Test Room", traps = listOf(trap))
 
         val triggered = trap.trigger()
         val updated = space.updateTrap("trap-1", triggered)
@@ -203,7 +206,7 @@ class SpacePropertiesComponentTest {
     fun `removeTrap removes trap by ID`() {
         val trap1 = TrapData(id = "trap-1", type = "pit", difficulty = 10)
         val trap2 = TrapData(id = "trap-2", type = "spike", difficulty = 15)
-        val space = SpacePropertiesComponent(traps = listOf(trap1, trap2))
+        val space = SpacePropertiesComponent(name = "Test Room", traps = listOf(trap1, trap2))
 
         val updated = space.removeTrap("trap-1")
         assertEquals(1, updated.traps.size)
@@ -222,7 +225,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `updateResource updates matching resource`() {
         val resource = ResourceNode(id = "res-1", templateId = "iron_ore", quantity = 5)
-        val space = SpacePropertiesComponent(resources = listOf(resource))
+        val space = SpacePropertiesComponent(name = "Test Room", resources = listOf(resource))
 
         val (harvested, _) = resource.harvest(2)
         val updated = space.updateResource("res-1", harvested)
@@ -234,7 +237,7 @@ class SpacePropertiesComponentTest {
     fun `removeResource removes resource by ID`() {
         val res1 = ResourceNode(id = "res-1", templateId = "iron_ore", quantity = 5)
         val res2 = ResourceNode(id = "res-2", templateId = "gold_ore", quantity = 3)
-        val space = SpacePropertiesComponent(resources = listOf(res1, res2))
+        val space = SpacePropertiesComponent(name = "Test Room", resources = listOf(res1, res2))
 
         val updated = space.removeResource("res-1")
         assertEquals(1, updated.resources.size)
@@ -251,7 +254,7 @@ class SpacePropertiesComponentTest {
 
     @Test
     fun `removeEntity removes entity ID`() {
-        val space = SpacePropertiesComponent(entities = listOf("entity-1", "entity-2"))
+        val space = SpacePropertiesComponent(name = "Test Room", entities = listOf("entity-1", "entity-2"))
         val updated = space.removeEntity("entity-1")
 
         assertEquals(1, updated.entities.size)
@@ -271,7 +274,7 @@ class SpacePropertiesComponentTest {
     fun `removeItem removes item by ID`() {
         val item1 = ItemInstance(id = "item-1", templateId = "sword", quality = 5)
         val item2 = ItemInstance(id = "item-2", templateId = "shield", quality = 3)
-        val space = SpacePropertiesComponent(itemsDropped = listOf(item1, item2))
+        val space = SpacePropertiesComponent(name = "Test Room", itemsDropped = listOf(item1, item2))
 
         val updated = space.removeItem("item-1")
         assertEquals(1, updated.itemsDropped.size)
@@ -282,7 +285,7 @@ class SpacePropertiesComponentTest {
     fun `tickResources updates all resource timers`() {
         val res1 = ResourceNode(id = "res-1", templateId = "iron_ore", quantity = 0, respawnTime = 100, timeSinceHarvest = 50)
         val res2 = ResourceNode(id = "res-2", templateId = "gold_ore", quantity = 5)
-        val space = SpacePropertiesComponent(resources = listOf(res1, res2))
+        val space = SpacePropertiesComponent(name = "Test Room", resources = listOf(res1, res2))
 
         val updated = space.tickResources(10)
 
@@ -298,13 +301,13 @@ class SpacePropertiesComponentTest {
 
     @Test
     fun `isSafeZone can be set to true`() {
-        val space = SpacePropertiesComponent(isSafeZone = true)
+        val space = SpacePropertiesComponent(name = "Test Room", isSafeZone = true)
         assertTrue(space.isSafeZone)
     }
 
     @Test
     fun `isSafeZone is preserved when copying space`() {
-        val space = SpacePropertiesComponent(isSafeZone = true)
+        val space = SpacePropertiesComponent(name = "Test Room", isSafeZone = true)
         val updated = space.addEntity("entity-1")
         assertTrue(updated.isSafeZone)
     }
@@ -313,6 +316,7 @@ class SpacePropertiesComponentTest {
     fun `safe zone can have exits but no traps`() {
         val exit = ExitData(targetId = "room-2", direction = "north", description = "North")
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             exits = listOf(exit),
             traps = emptyList(),
             isSafeZone = true
@@ -325,6 +329,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `safe zone can have entities (merchants)`() {
         val space = SpacePropertiesComponent(
+            name = "Test Room",
             entities = listOf("merchant-1", "merchant-2"),
             isSafeZone = true
         )
@@ -334,7 +339,7 @@ class SpacePropertiesComponentTest {
 
     @Test
     fun `safe zone flag is immutable`() {
-        val space = SpacePropertiesComponent(isSafeZone = false)
+        val space = SpacePropertiesComponent(name = "Test Room", isSafeZone = false)
         val updated = space.copy(isSafeZone = true)
         assertFalse(space.isSafeZone)
         assertTrue(updated.isSafeZone)
@@ -343,6 +348,7 @@ class SpacePropertiesComponentTest {
     @Test
     fun `safe zone serialization roundtrip preserves flag`() {
         val space = SpacePropertiesComponent(
+            name = "Town Square",
             description = "Town square",
             isSafeZone = true
         )
@@ -354,7 +360,7 @@ class SpacePropertiesComponentTest {
 
     @Test
     fun `multiple safe zone mutations preserve flag`() {
-        val space = SpacePropertiesComponent(isSafeZone = true)
+        val space = SpacePropertiesComponent(name = "Test Room", isSafeZone = true)
         val updated = space
             .addEntity("merchant-1")
             .addExit(ExitData(targetId = "room-2", direction = "north", description = "North"))
