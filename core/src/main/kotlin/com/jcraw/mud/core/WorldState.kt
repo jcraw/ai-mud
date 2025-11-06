@@ -16,6 +16,7 @@ data class WorldState(
     val graphNodes: Map<SpaceId, GraphNodeComponent> = emptyMap(),
     val spaces: Map<SpaceId, SpacePropertiesComponent> = emptyMap(),
     val chunks: Map<String, WorldChunkComponent> = emptyMap(), // V3: Chunk hierarchy storage
+    val entities: Map<String, Entity> = emptyMap(), // V3: Entity storage (SpacePropertiesComponent refs by ID)
 
     // V2 compatibility: Deprecated, will be removed after migration
     @Deprecated("Use graphNodes + spaces instead")
@@ -229,9 +230,10 @@ data class WorldState(
     fun getAvailableExitsV3(): List<Direction> = getAvailableExitsV3(player.id)
 
     /**
-     * Add entity to space (V3)
-     * Entities in V3 are stored as entity IDs in SpacePropertiesComponent
+     * Add entity to space (V3) - DEPRECATED
+     * Use addEntityToSpace() instead, which manages both entity storage and space linking
      */
+    @Deprecated("Use addEntityToSpace(spaceId, entity) to manage entity storage", ReplaceWith("addEntityToSpace(spaceId, entity)"))
     fun addEntityToSpaceV3(spaceId: SpaceId, entityId: String): WorldState? {
         val space = getSpace(spaceId) ?: return null
         val updatedSpace = space.addEntity(entityId)
@@ -239,8 +241,10 @@ data class WorldState(
     }
 
     /**
-     * Remove entity from space (V3)
+     * Remove entity from space (V3) - DEPRECATED
+     * Use removeEntityFromSpace() instead, which manages both entity storage and space unlinking
      */
+    @Deprecated("Use removeEntityFromSpace(spaceId, entityId) to manage entity storage", ReplaceWith("removeEntityFromSpace(spaceId, entityId)"))
     fun removeEntityFromSpaceV3(spaceId: SpaceId, entityId: String): WorldState? {
         val space = getSpace(spaceId) ?: return null
         val updatedSpace = space.removeEntity(entityId)
@@ -267,4 +271,66 @@ data class WorldState(
      */
     fun addChunk(chunkId: String, chunk: WorldChunkComponent): WorldState =
         copy(chunks = chunks + (chunkId to chunk))
+
+    // ========================================
+    // V3: Entity management methods
+    // ========================================
+
+    /**
+     * Get entity by ID (V3)
+     */
+    fun getEntity(entityId: String): Entity? = entities[entityId]
+
+    /**
+     * Add or update entity (V3)
+     */
+    fun updateEntity(entity: Entity): WorldState =
+        copy(entities = entities + (entity.id to entity))
+
+    /**
+     * Remove entity (V3)
+     */
+    fun removeEntity(entityId: String): WorldState =
+        copy(entities = entities - entityId)
+
+    /**
+     * Get all entities in a space (V3)
+     * Returns entities whose IDs are in the space's entity list
+     */
+    fun getEntitiesInSpace(spaceId: SpaceId): List<Entity> {
+        val space = getSpace(spaceId) ?: return emptyList()
+        return space.entities.mapNotNull { entityId -> entities[entityId] }
+    }
+
+    /**
+     * Add entity to space (V3)
+     * Adds entity to global storage and links it to the space
+     */
+    fun addEntityToSpace(spaceId: SpaceId, entity: Entity): WorldState? {
+        val space = getSpace(spaceId) ?: return null
+        val updatedSpace = space.addEntity(entity.id)
+        return updateEntity(entity).updateSpace(spaceId, updatedSpace)
+    }
+
+    /**
+     * Remove entity from space (V3)
+     * Removes entity from space's list AND global storage
+     */
+    fun removeEntityFromSpace(spaceId: SpaceId, entityId: String): WorldState? {
+        val space = getSpace(spaceId) ?: return null
+        val updatedSpace = space.removeEntity(entityId)
+        return updateSpace(spaceId, updatedSpace).removeEntity(entityId)
+    }
+
+    /**
+     * Replace entity in space (V3)
+     * Useful for entity transformations (e.g., NPC → Corpse)
+     */
+    fun replaceEntityInSpace(spaceId: SpaceId, oldEntityId: String, newEntity: Entity): WorldState? {
+        val space = getSpace(spaceId) ?: return null
+        val updatedSpace = space.removeEntity(oldEntityId).addEntity(newEntity.id)
+        return removeEntity(oldEntityId)
+            .updateEntity(newEntity)
+            .updateSpace(spaceId, updatedSpace)
+    }
 }

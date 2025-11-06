@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Chunk 5 Lazy-Fill Complete (Movement handlers updated with null-safe worldGenerator calls, integration tests deferred until WorldState refactoring complete)
+Last updated: 2025-11-05 - V3 Entity Storage Complete (Implemented entities map in WorldState with 7 CRUD methods, unblocking handler migration)
 
 ## Current Status
 
@@ -102,10 +102,25 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
     4. Test compilation and basic movement
     5. Add integration tests for lazy-fill and frontier traversal
 
-  - ❌ **Item/Combat/Social Handlers** (~4-5h):
-    - Update `ItemHandlers.kt` to use `getCurrentSpace()` / `updateSpace()`
-    - Update `CombatHandlers.kt` to use SpacePropertiesComponent for entity access
-    - Update `SocialHandlers.kt` to use V3 space methods
+  - ❌ **Item/Combat/Social Handlers** (~4-5h) - **UNBLOCKED**:
+    **✅ ENTITY STORAGE IMPLEMENTED** (WorldState.kt:19, 272-332):
+    - Added `entities: Map<String, Entity>` to WorldState (line 19)
+    - SpacePropertiesComponent stores entity IDs, WorldState stores Entity objects
+    - 7 new entity management methods:
+      - `getEntity(entityId)` - retrieve Entity by ID
+      - `updateEntity(entity)` - add/update entity in global storage
+      - `removeEntity(entityId)` - remove from global storage
+      - `getEntitiesInSpace(spaceId)` - get all entities in a space
+      - `addEntityToSpace(spaceId, entity)` - add to storage + link to space
+      - `removeEntityFromSpace(spaceId, entityId)` - unlink + remove from storage
+      - `replaceEntityInSpace(spaceId, oldId, newEntity)` - transform entities (NPC→Corpse)
+    - Deprecated old `addEntityToSpaceV3`/`removeEntityFromSpaceV3` methods
+    - Build successful with no errors
+
+    Handler migration tasks (ready to proceed):
+    - Update `ItemHandlers.kt` to use `getCurrentSpace()` / `updateSpace()` + entity methods
+    - Update `CombatHandlers.kt` to use V3 entity methods
+    - Update `SocialHandlers.kt` to use V3 space + entity methods
     - Update `SkillQuestHandlers.kt` for V3 compatibility
 
   - ❌ **Game Loop** (~2-3h):
@@ -137,12 +152,13 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 5. ✅ **COMPLETED**: Update client ClientMovementHandlers.kt with V3 support - handleMove() checks getCurrentGraphNode() first, uses movePlayerV3(), falls back to V2 space/room navigation, compiles successfully (ClientMovementHandlers.kt:14-529)
 6. ✅ **COMPLETED**: Add chunk storage to WorldState and integrate lazy-fill - chunks map added (WorldState.kt:18), getChunk/updateChunk/addChunk methods added (lines 257-269), lazy-fill integrated in both handlers (MovementHandlers.kt:50-61, ClientMovementHandlers.kt:42-54), null-safe worldGenerator checks added
 7. ⏸️ **DEFERRED**: Movement integration tests - Deferred until WorldState/PlayerState refactoring complete (players map vs single player field causes test compilation errors)
-8. ❌ **NEXT**: Update remaining handlers for V3 compatibility (~4-5h)
-9. ❌ **Update game loop and clients** for V3 (~4-6h)
-10. ❌ **Integration tests** after WorldState/PlayerState refactoring (~2-3h)
-11. ❌ **Remove deprecated V2 code** (~1h)
+8. ✅ **COMPLETED**: V3 entity storage implemented - Added entities map to WorldState (line 19), 7 new entity CRUD methods (lines 272-332), deprecated old V3 methods, build successful
+9. ❌ **NEXT**: Update remaining handlers for V3 compatibility (~4-5h) - entity storage unblocks migration
+10. ❌ **Update game loop and clients** for V3 (~4-6h)
+11. ❌ **Integration tests** after WorldState/PlayerState refactoring (~2-3h)
+12. ❌ **Remove deprecated V2 code** (~1h)
 
-**Note**: V3 is a full architectural replacement requiring ~12-15h of work across all handlers, game loop, and clients. WorldState foundation is complete and compiles successfully.
+**Note**: V3 entity storage complete. Handler migration ready to proceed (~4-5h estimated).
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms
