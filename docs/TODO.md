@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Entity Storage Complete (Implemented entities map in WorldState with 7 CRUD methods, unblocking handler migration)
+Last updated: 2025-11-05 - V3 Handler Migration Complete (All console handlers updated for V3 compatibility with V2 fallback)
 
 ## Current Status
 
@@ -102,26 +102,28 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
     4. Test compilation and basic movement
     5. Add integration tests for lazy-fill and frontier traversal
 
-  - ❌ **Item/Combat/Social Handlers** (~4-5h) - **UNBLOCKED**:
-    **✅ ENTITY STORAGE IMPLEMENTED** (WorldState.kt:19, 272-332):
-    - Added `entities: Map<String, Entity>` to WorldState (line 19)
-    - SpacePropertiesComponent stores entity IDs, WorldState stores Entity objects
-    - 7 new entity management methods:
-      - `getEntity(entityId)` - retrieve Entity by ID
-      - `updateEntity(entity)` - add/update entity in global storage
-      - `removeEntity(entityId)` - remove from global storage
-      - `getEntitiesInSpace(spaceId)` - get all entities in a space
-      - `addEntityToSpace(spaceId, entity)` - add to storage + link to space
-      - `removeEntityFromSpace(spaceId, entityId)` - unlink + remove from storage
-      - `replaceEntityInSpace(spaceId, oldId, newEntity)` - transform entities (NPC→Corpse)
-    - Deprecated old `addEntityToSpaceV3`/`removeEntityFromSpaceV3` methods
-    - Build successful with no errors
+  - ✅ **Console Handlers Migration** (~4-5h) - **COMPLETED**:
+    **✅ ALL CONSOLE HANDLERS UPDATED** (app/src/main/kotlin/com/jcraw/app/handlers/):
+    - ✅ **ItemHandlers.kt** (968 lines) - All 7 functions updated (handleTake, handleTakeAll, handleDrop, handleGive, handleEquip, handleUse, handleLoot, handleLootAll)
+      - V3 path: Uses getCurrentSpace(), getEntitiesInSpace(), addEntityToSpace(), removeEntityFromSpace(), replaceEntityInSpace()
+      - V2 fallback: Falls back to getCurrentRoom() and room-based methods
+    - ✅ **CombatHandlers.kt** (263 lines) - handleAttack and handleLegacyAttack updated
+      - V3 path: Uses getCurrentSpace(), getEntitiesInSpace(), replaceEntityInSpace(), removeEntityFromSpace()
+      - V2 fallback: Falls back to getCurrentRoom() and room-based methods
+    - ✅ **SocialHandlers.kt** (459 lines) - All 6 functions updated (handleTalk, handleSay, handleEmote, handleAskQuestion, handlePersuade, handleIntimidate)
+      - V3 path: Uses getCurrentSpace(), getEntitiesInSpace(), replaceEntityInSpace()
+      - V2 fallback: Falls back to getCurrentRoom() and room-based methods
+      - Updated resolveNpcTarget helper and buildQuestionContext for V3 compatibility
+    - ✅ **SkillQuestHandlers.kt** (425 lines) - 3 functions updated (handleInteract, handleCheck, handleTrainSkill)
+      - V3 path: Uses getCurrentSpace(), getEntitiesInSpace(), replaceEntityInSpace()
+      - V2 fallback: Falls back to getCurrentRoom() and room-based methods
+    - ✅ Build successful with no compilation errors
 
-    Handler migration tasks (ready to proceed):
-    - Update `ItemHandlers.kt` to use `getCurrentSpace()` / `updateSpace()` + entity methods
-    - Update `CombatHandlers.kt` to use V3 entity methods
-    - Update `SocialHandlers.kt` to use V3 space + entity methods
-    - Update `SkillQuestHandlers.kt` for V3 compatibility
+    **Migration Strategy**: Incremental V3 adoption with V2 fallback
+    - All handlers check `getCurrentSpace()` first to detect V3 worlds
+    - If V3 space available, use entity storage methods (getEntitiesInSpace, replaceEntityInSpace, etc.)
+    - If V3 not available, fall back to V2 room-based methods (getCurrentRoom, room.entities, replaceEntity)
+    - This allows gradual migration without breaking existing V2 worlds
 
   - ❌ **Game Loop** (~2-3h):
     - Update `MudGameEngine.kt` to initialize with V3 WorldState
@@ -153,12 +155,12 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 6. ✅ **COMPLETED**: Add chunk storage to WorldState and integrate lazy-fill - chunks map added (WorldState.kt:18), getChunk/updateChunk/addChunk methods added (lines 257-269), lazy-fill integrated in both handlers (MovementHandlers.kt:50-61, ClientMovementHandlers.kt:42-54), null-safe worldGenerator checks added
 7. ⏸️ **DEFERRED**: Movement integration tests - Deferred until WorldState/PlayerState refactoring complete (players map vs single player field causes test compilation errors)
 8. ✅ **COMPLETED**: V3 entity storage implemented - Added entities map to WorldState (line 19), 7 new entity CRUD methods (lines 272-332), deprecated old V3 methods, build successful
-9. ❌ **NEXT**: Update remaining handlers for V3 compatibility (~4-5h) - entity storage unblocks migration
-10. ❌ **Update game loop and clients** for V3 (~4-6h)
+9. ✅ **COMPLETED**: Console handlers updated for V3 compatibility - All 4 handler files migrated with V3/V2 fallback pattern, build successful (ItemHandlers.kt, CombatHandlers.kt, SocialHandlers.kt, SkillQuestHandlers.kt)
+10. ❌ **NEXT**: Update game loop and clients for V3 (~4-6h)
 11. ❌ **Integration tests** after WorldState/PlayerState refactoring (~2-3h)
 12. ❌ **Remove deprecated V2 code** (~1h)
 
-**Note**: V3 entity storage complete. Handler migration ready to proceed (~4-5h estimated).
+**Note**: Console handlers migration complete. All handlers use V3 entity storage with V2 fallback. Build successful with no errors.
 
 **Remaining Chunks** (see feature plan for details):
 - Chunk 3: Graph Generation Algorithms

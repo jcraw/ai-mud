@@ -16,13 +16,20 @@ object SkillQuestHandlers {
      * Supports skill checks, tool requirements, and XP rewards for gathering
      */
     fun handleInteract(game: MudGame, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Normalize target for matching
         val normalizedTarget = target.lowercase().replace("_", " ")
 
-        // Find the feature in the room
-        val feature = room.entities.filterIsInstance<Entity.Feature>()
+        // Find the feature
+        val feature = if (space != null) {
+            game.worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Feature>()
+        } else {
+            val room = game.worldState.getCurrentRoom() ?: return
+            room.entities.filterIsInstance<Entity.Feature>()
+        }
             .find { entity ->
                 val normalizedName = entity.name.lowercase()
                 val normalizedId = entity.id.lowercase().replace("_", " ")
@@ -185,20 +192,32 @@ object SkillQuestHandlers {
 
         // Mark feature as completed (harvested)
         val updatedFeature = feature.copy(isCompleted = true)
-        game.worldState = game.worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: game.worldState
+        if (space != null) {
+            game.worldState = game.worldState.replaceEntityInSpace(spaceId, feature.id, updatedFeature) ?: game.worldState
+        } else {
+            val room = game.worldState.getCurrentRoom() ?: return
+            game.worldState = game.worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: game.worldState
+        }
     }
 
     /**
      * Handle skill check on interactive features (D&D-style d20 rolls)
      */
     fun handleCheck(game: MudGame, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Normalize target for matching (replace underscores with spaces)
         val normalizedTarget = target.lowercase().replace("_", " ")
 
-        // Find the feature in the room with flexible matching
-        val feature = room.entities.filterIsInstance<Entity.Feature>()
+        // Find the feature with flexible matching
+        val feature = if (space != null) {
+            game.worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Feature>()
+        } else {
+            val room = game.worldState.getCurrentRoom() ?: return
+            room.entities.filterIsInstance<Entity.Feature>()
+        }
             .find { entity ->
                 val normalizedName = entity.name.lowercase()
                 val normalizedId = entity.id.lowercase().replace("_", " ")
@@ -256,7 +275,12 @@ object SkillQuestHandlers {
 
             // Mark feature as completed
             val updatedFeature = feature.copy(isCompleted = true)
-            game.worldState = game.worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: game.worldState
+            if (space != null) {
+                game.worldState = game.worldState.replaceEntityInSpace(spaceId, feature.id, updatedFeature) ?: game.worldState
+            } else {
+                val room = game.worldState.getCurrentRoom() ?: return
+                game.worldState = game.worldState.replaceEntity(room.id, feature.id, updatedFeature) ?: game.worldState
+            }
 
             // Track skill check for quests
             game.trackQuests(QuestAction.UsedSkill(feature.id))
@@ -339,7 +363,9 @@ object SkillQuestHandlers {
      * Handle training a skill with an NPC
      */
     fun handleTrainSkill(game: MudGame, skill: String, method: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Parse NPC name from method string (e.g., "with the knight" → "knight")
         val npcName = method.lowercase()
@@ -354,12 +380,22 @@ object SkillQuestHandlers {
             return
         }
 
-        // Find NPC in room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find {
-                it.name.lowercase().contains(npcName) ||
-                it.id.lowercase().contains(npcName)
-            }
+        // Find NPC
+        val npc = if (space != null) {
+            game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.NPC>()
+                .find {
+                    it.name.lowercase().contains(npcName) ||
+                    it.id.lowercase().contains(npcName)
+                }
+        } else {
+            val room = game.worldState.getCurrentRoom() ?: return
+            room.entities.filterIsInstance<Entity.NPC>()
+                .find {
+                    it.name.lowercase().contains(npcName) ||
+                    it.id.lowercase().contains(npcName)
+                }
+        }
 
         if (npc == null) {
             println("\nThere's no one here by that name to train with.")
@@ -377,7 +413,12 @@ object SkillQuestHandlers {
             println("\n$message")
 
             // Update world state with any NPC changes (disposition)
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, npc) ?: game.worldState
+            if (space != null) {
+                game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, npc) ?: game.worldState
+            } else {
+                val room = game.worldState.getCurrentRoom() ?: return
+                game.worldState = game.worldState.replaceEntity(room.id, npc.id, npc) ?: game.worldState
+            }
         }.onFailure { error ->
             println("\n${error.message}")
         }

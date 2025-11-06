@@ -145,88 +145,180 @@ object ItemHandlers {
     }
 
     fun handleTake(game: MudGame, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
-        // Find the item in the room
-        val item = room.entities.filterIsInstance<Entity.Item>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
+        if (space != null) {
+            // V3 path: use entity storage
+            val item = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.Item>()
+                .find { entity ->
+                    entity.name.lowercase().contains(target.lowercase()) ||
+                    entity.id.lowercase().contains(target.lowercase())
+                }
+
+            if (item == null) {
+                // Not an item - check if it's scenery
+                val entities = game.worldState.getEntitiesInSpace(spaceId)
+                val isScenery = entities.any { it.name.lowercase().contains(target.lowercase()) }
+                if (isScenery) {
+                    println("That's part of the environment and can't be taken.")
+                } else {
+                    println("You don't see that here.")
+                }
+                return
             }
 
-        if (item == null) {
-            // Not an item - check if it's scenery (room trait or entity)
-            val isScenery = room.traits.any { it.lowercase().contains(target.lowercase()) } ||
-                           room.entities.any { it.name.lowercase().contains(target.lowercase()) }
-            if (isScenery) {
+            if (!item.isPickupable) {
                 println("That's part of the environment and can't be taken.")
-            } else {
-                println("You don't see that here.")
+                return
             }
-            return
-        }
 
-        if (!item.isPickupable) {
-            println("That's part of the environment and can't be taken.")
-            return
-        }
+            // Remove item from space and add to inventory
+            val newState = game.worldState
+                .removeEntityFromSpace(spaceId, item.id)
+                ?.updatePlayer(game.worldState.player.addToInventory(item))
 
-        // Remove item from room and add to inventory
-        val newState = game.worldState
-            .removeEntityFromRoom(room.id, item.id)
-            ?.updatePlayer(game.worldState.player.addToInventory(item))
+            if (newState != null) {
+                game.worldState = newState
+                println("You take the ${item.name}.")
 
-        if (newState != null) {
-            game.worldState = newState
-            println("You take the ${item.name}.")
-
-            // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(item.id))
+                // Track item collection for quests
+                game.trackQuests(QuestAction.CollectedItem(item.id))
+            } else {
+                println("Something went wrong.")
+            }
         } else {
-            println("Something went wrong.")
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            // Find the item in the room
+            val item = room.entities.filterIsInstance<Entity.Item>()
+                .find { entity ->
+                    entity.name.lowercase().contains(target.lowercase()) ||
+                    entity.id.lowercase().contains(target.lowercase())
+                }
+
+            if (item == null) {
+                // Not an item - check if it's scenery (room trait or entity)
+                val isScenery = room.traits.any { it.lowercase().contains(target.lowercase()) } ||
+                               room.entities.any { it.name.lowercase().contains(target.lowercase()) }
+                if (isScenery) {
+                    println("That's part of the environment and can't be taken.")
+                } else {
+                    println("You don't see that here.")
+                }
+                return
+            }
+
+            if (!item.isPickupable) {
+                println("That's part of the environment and can't be taken.")
+                return
+            }
+
+            // Remove item from room and add to inventory
+            val newState = game.worldState
+                .removeEntityFromRoom(room.id, item.id)
+                ?.updatePlayer(game.worldState.player.addToInventory(item))
+
+            if (newState != null) {
+                game.worldState = newState
+                println("You take the ${item.name}.")
+
+                // Track item collection for quests
+                game.trackQuests(QuestAction.CollectedItem(item.id))
+            } else {
+                println("Something went wrong.")
+            }
         }
     }
 
     fun handleTakeAll(game: MudGame) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
-        // Find all pickupable items in the room
-        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+        if (space != null) {
+            // V3 path: use entity storage
+            val items = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.Item>()
+                .filter { it.isPickupable }
 
-        if (items.isEmpty()) {
-            println("There are no items to take here.")
-            return
-        }
-
-        var takenCount = 0
-        var currentState = game.worldState
-
-        items.forEach { item ->
-            val newState = currentState
-                .removeEntityFromRoom(room.id, item.id)
-                ?.updatePlayer(currentState.player.addToInventory(item))
-
-            if (newState != null) {
-                currentState = newState
-                println("You take the ${item.name}.")
-                takenCount++
+            if (items.isEmpty()) {
+                println("There are no items to take here.")
+                return
             }
-        }
 
-        game.worldState = currentState
+            var takenCount = 0
+            var currentState = game.worldState
 
-        if (takenCount > 0) {
-            println("\nYou took $takenCount item${if (takenCount > 1) "s" else ""}.")
-
-            // Track item collection for quests
             items.forEach { item ->
-                game.trackQuests(QuestAction.CollectedItem(item.id))
+                val newState = currentState
+                    .removeEntityFromSpace(spaceId, item.id)
+                    ?.updatePlayer(currentState.player.addToInventory(item))
+
+                if (newState != null) {
+                    currentState = newState
+                    println("You take the ${item.name}.")
+                    takenCount++
+                }
+            }
+
+            game.worldState = currentState
+
+            if (takenCount > 0) {
+                println("\nYou took $takenCount item${if (takenCount > 1) "s" else ""}.")
+
+                // Track item collection for quests
+                items.forEach { item ->
+                    game.trackQuests(QuestAction.CollectedItem(item.id))
+                }
+            }
+        } else {
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            // Find all pickupable items in the room
+            val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+
+            if (items.isEmpty()) {
+                println("There are no items to take here.")
+                return
+            }
+
+            var takenCount = 0
+            var currentState = game.worldState
+
+            items.forEach { item ->
+                val newState = currentState
+                    .removeEntityFromRoom(room.id, item.id)
+                    ?.updatePlayer(currentState.player.addToInventory(item))
+
+                if (newState != null) {
+                    currentState = newState
+                    println("You take the ${item.name}.")
+                    takenCount++
+                }
+            }
+
+            game.worldState = currentState
+
+            if (takenCount > 0) {
+                println("\nYou took $takenCount item${if (takenCount > 1) "s" else ""}.")
+
+                // Track item collection for quests
+                items.forEach { item ->
+                    game.trackQuests(QuestAction.CollectedItem(item.id))
+                }
             }
         }
     }
 
     fun handleDrop(game: MudGame, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Find the item in inventory
         var item = game.worldState.player.inventory.find { invItem ->
@@ -259,27 +351,46 @@ object ItemHandlers {
             return
         }
 
-        // Unequip if needed and add to room
+        // Unequip if needed
         val updatedPlayer = when {
             isEquippedWeapon -> game.worldState.player.copy(equippedWeapon = null)
             isEquippedArmor -> game.worldState.player.copy(equippedArmor = null)
             else -> game.worldState.player.removeFromInventory(item.id)
         }
 
-        val newState = game.worldState
-            .updatePlayer(updatedPlayer)
-            .addEntityToRoom(room.id, item)
+        if (space != null) {
+            // V3 path: use entity storage
+            val newState = game.worldState
+                .updatePlayer(updatedPlayer)
+                .addEntityToSpace(spaceId, item)
 
-        if (newState != null) {
-            game.worldState = newState
-            println("You drop the ${item.name}.")
+            if (newState != null) {
+                game.worldState = newState
+                println("You drop the ${item.name}.")
+            } else {
+                println("Something went wrong.")
+            }
         } else {
-            println("Something went wrong.")
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            val newState = game.worldState
+                .updatePlayer(updatedPlayer)
+                .addEntityToRoom(room.id, item)
+
+            if (newState != null) {
+                game.worldState = newState
+                println("You drop the ${item.name}.")
+            } else {
+                println("Something went wrong.")
+            }
         }
     }
 
     fun handleGive(game: MudGame, itemTarget: String, npcTarget: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Find the item in inventory
         val item = game.worldState.player.inventory.find { invItem ->
@@ -292,26 +403,53 @@ object ItemHandlers {
             return
         }
 
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(npcTarget.lowercase()) ||
-                entity.id.lowercase().contains(npcTarget.lowercase())
+        if (space != null) {
+            // V3 path: use entity storage
+            val npc = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.NPC>()
+                .find { entity ->
+                    entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                    entity.id.lowercase().contains(npcTarget.lowercase())
+                }
+
+            if (npc == null) {
+                println("There's no one here by that name.")
+                return
             }
 
-        if (npc == null) {
-            println("There's no one here by that name.")
-            return
+            // Remove item from inventory
+            val updatedPlayer = game.worldState.player.removeFromInventory(item.id)
+            game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+            println("You give the ${item.name} to ${npc.name}.")
+
+            // Track delivery for quests
+            game.trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
+        } else {
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            // Find the NPC in the room
+            val npc = room.entities.filterIsInstance<Entity.NPC>()
+                .find { entity ->
+                    entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                    entity.id.lowercase().contains(npcTarget.lowercase())
+                }
+
+            if (npc == null) {
+                println("There's no one here by that name.")
+                return
+            }
+
+            // Remove item from inventory
+            val updatedPlayer = game.worldState.player.removeFromInventory(item.id)
+            game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+            println("You give the ${item.name} to ${npc.name}.")
+
+            // Track delivery for quests
+            game.trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
         }
-
-        // Remove item from inventory
-        val updatedPlayer = game.worldState.player.removeFromInventory(item.id)
-        game.worldState = game.worldState.updatePlayer(updatedPlayer)
-
-        println("You give the ${item.name} to ${npc.name}.")
-
-        // Track delivery for quests
-        game.trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
     }
 
     fun handleEquip(game: MudGame, target: String) {
@@ -398,215 +536,433 @@ object ItemHandlers {
     }
 
     fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
-        // Find the corpse in the room
-        val corpse = room.entities.filterIsInstance<Entity.Corpse>()
-            .find { entity ->
-                entity.name.lowercase().contains(corpseTarget.lowercase()) ||
-                entity.id.lowercase().contains(corpseTarget.lowercase())
+        if (space != null) {
+            // V3 path: use entity storage
+            val corpse = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.Corpse>()
+                .find { entity ->
+                    entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                    entity.id.lowercase().contains(corpseTarget.lowercase())
+                }
+
+            if (corpse == null) {
+                println("There's no corpse here by that name.")
+                return
             }
 
-        if (corpse == null) {
-            println("There's no corpse here by that name.")
-            return
-        }
-
-        // If no item target specified, list contents
-        if (itemTarget == null) {
-            if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
-                println("The corpse is empty.")
-            } else {
-                println("${corpse.name} contains:")
-                corpse.contents.forEach { instance ->
-                    val templateResult = game.itemRepository.findTemplateById(instance.templateId)
-                    templateResult.onSuccess { template ->
-                        if (template != null) {
-                            val extra = formatItemInfo(instance, template)
-                            println("  - ${template.name}$extra")
-                        } else {
+            // If no item target specified, list contents
+            if (itemTarget == null) {
+                if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
+                    println("The corpse is empty.")
+                } else {
+                    println("${corpse.name} contains:")
+                    corpse.contents.forEach { instance ->
+                        val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                        templateResult.onSuccess { template ->
+                            if (template != null) {
+                                val extra = formatItemInfo(instance, template)
+                                println("  - ${template.name}$extra")
+                            } else {
+                                println("  - Unknown item (${instance.id})")
+                            }
+                        }.onFailure {
                             println("  - Unknown item (${instance.id})")
                         }
-                    }.onFailure {
-                        println("  - Unknown item (${instance.id})")
+                    }
+                    if (corpse.goldAmount > 0) {
+                        println("  - ${corpse.goldAmount} gold")
                     }
                 }
+                return
+            }
+
+            // Special case: looting gold
+            if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
                 if (corpse.goldAmount > 0) {
-                    println("  - ${corpse.goldAmount} gold")
-                }
-            }
-            return
-        }
+                    val goldAmount = corpse.goldAmount
+                    val updatedCorpse = corpse.removeGold(goldAmount)
+                    val updatedPlayer = game.worldState.player.addGoldV2(goldAmount)
 
-        // Special case: looting gold
-        if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
-            if (corpse.goldAmount > 0) {
-                val goldAmount = corpse.goldAmount
-                val updatedCorpse = corpse.removeGold(goldAmount)
-                val updatedPlayer = game.worldState.player.addGoldV2(goldAmount)
+                    val newState = game.worldState
+                        .updatePlayer(updatedPlayer)
+                        .replaceEntityInSpace(spaceId, corpse.id, updatedCorpse)
 
-                val newState = game.worldState
-                    .updatePlayer(updatedPlayer)
-                    .removeEntityFromRoom(room.id, corpse.id)
-                    ?.addEntityToRoom(room.id, updatedCorpse)
-
-                if (newState != null) {
-                    game.worldState = newState
-                    println("You take $goldAmount gold from ${corpse.name}.")
+                    if (newState != null) {
+                        game.worldState = newState
+                        println("You take $goldAmount gold from ${corpse.name}.")
+                    } else {
+                        println("Something went wrong.")
+                    }
                 } else {
-                    println("Something went wrong.")
+                    println("There's no gold in the corpse.")
                 }
-            } else {
-                println("There's no gold in the corpse.")
+                return
             }
-            return
-        }
 
-        // Find the item in the corpse by matching against template names
-        val matchingItem = corpse.contents.find { instance ->
-            val templateResult = game.itemRepository.findTemplateById(instance.templateId)
-            templateResult.getOrNull()?.let { template ->
-                template.name.lowercase().contains(itemTarget.lowercase()) ||
-                instance.id.lowercase().contains(itemTarget.lowercase())
-            } ?: false
-        }
+            // Find the item in the corpse by matching against template names
+            val matchingItem = corpse.contents.find { instance ->
+                val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                templateResult.getOrNull()?.let { template ->
+                    template.name.lowercase().contains(itemTarget.lowercase()) ||
+                    instance.id.lowercase().contains(itemTarget.lowercase())
+                } ?: false
+            }
 
-        if (matchingItem == null) {
-            println("That item isn't in the corpse.")
-            return
-        }
+            if (matchingItem == null) {
+                println("That item isn't in the corpse.")
+                return
+            }
 
-        // Get template for display
-        val templateResult = game.itemRepository.findTemplateById(matchingItem.templateId)
-        val template = templateResult.getOrNull()
-        val templateName = template?.name ?: "item"
+            // Get template for display
+            val templateResult = game.itemRepository.findTemplateById(matchingItem.templateId)
+            val template = templateResult.getOrNull()
+            val templateName = template?.name ?: "item"
 
-        if (template == null) {
-            println("Something went wrong.")
-            return
-        }
+            if (template == null) {
+                println("Something went wrong.")
+                return
+            }
 
-        // Add item to player inventory (V2)
-        val templates = mapOf(template.id to template)
-        val updatedPlayer = game.worldState.player.addItemInstance(matchingItem, templates)
+            // Add item to player inventory (V2)
+            val templates = mapOf(template.id to template)
+            val updatedPlayer = game.worldState.player.addItemInstance(matchingItem, templates)
 
-        if (updatedPlayer == null) {
-            println("You can't carry that - you're already carrying too much weight.")
-            return
-        }
+            if (updatedPlayer == null) {
+                println("You can't carry that - you're already carrying too much weight.")
+                return
+            }
 
-        // Remove item from corpse
-        val updatedCorpse = corpse.removeItem(matchingItem.id)
+            // Remove item from corpse
+            val updatedCorpse = corpse.removeItem(matchingItem.id)
 
-        val newState = game.worldState
-            .updatePlayer(updatedPlayer)
-            .removeEntityFromRoom(room.id, corpse.id)
-            ?.addEntityToRoom(room.id, updatedCorpse)
+            val newState = game.worldState
+                .updatePlayer(updatedPlayer)
+                .replaceEntityInSpace(spaceId, corpse.id, updatedCorpse)
 
-        if (newState != null) {
-            game.worldState = newState
-            println("You take the $templateName from ${corpse.name}.")
+            if (newState != null) {
+                game.worldState = newState
+                println("You take the $templateName from ${corpse.name}.")
 
-            // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(matchingItem.id))
+                // Track item collection for quests
+                game.trackQuests(QuestAction.CollectedItem(matchingItem.id))
+            } else {
+                println("Something went wrong.")
+            }
         } else {
-            println("Something went wrong.")
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            // Find the corpse in the room
+            val corpse = room.entities.filterIsInstance<Entity.Corpse>()
+                .find { entity ->
+                    entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                    entity.id.lowercase().contains(corpseTarget.lowercase())
+                }
+
+            if (corpse == null) {
+                println("There's no corpse here by that name.")
+                return
+            }
+
+            // If no item target specified, list contents
+            if (itemTarget == null) {
+                if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
+                    println("The corpse is empty.")
+                } else {
+                    println("${corpse.name} contains:")
+                    corpse.contents.forEach { instance ->
+                        val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                        templateResult.onSuccess { template ->
+                            if (template != null) {
+                                val extra = formatItemInfo(instance, template)
+                                println("  - ${template.name}$extra")
+                            } else {
+                                println("  - Unknown item (${instance.id})")
+                            }
+                        }.onFailure {
+                            println("  - Unknown item (${instance.id})")
+                        }
+                    }
+                    if (corpse.goldAmount > 0) {
+                        println("  - ${corpse.goldAmount} gold")
+                    }
+                }
+                return
+            }
+
+            // Special case: looting gold
+            if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
+                if (corpse.goldAmount > 0) {
+                    val goldAmount = corpse.goldAmount
+                    val updatedCorpse = corpse.removeGold(goldAmount)
+                    val updatedPlayer = game.worldState.player.addGoldV2(goldAmount)
+
+                    val newState = game.worldState
+                        .updatePlayer(updatedPlayer)
+                        .removeEntityFromRoom(room.id, corpse.id)
+                        ?.addEntityToRoom(room.id, updatedCorpse)
+
+                    if (newState != null) {
+                        game.worldState = newState
+                        println("You take $goldAmount gold from ${corpse.name}.")
+                    } else {
+                        println("Something went wrong.")
+                    }
+                } else {
+                    println("There's no gold in the corpse.")
+                }
+                return
+            }
+
+            // Find the item in the corpse by matching against template names
+            val matchingItem = corpse.contents.find { instance ->
+                val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                templateResult.getOrNull()?.let { template ->
+                    template.name.lowercase().contains(itemTarget.lowercase()) ||
+                    instance.id.lowercase().contains(itemTarget.lowercase())
+                } ?: false
+            }
+
+            if (matchingItem == null) {
+                println("That item isn't in the corpse.")
+                return
+            }
+
+            // Get template for display
+            val templateResult = game.itemRepository.findTemplateById(matchingItem.templateId)
+            val template = templateResult.getOrNull()
+            val templateName = template?.name ?: "item"
+
+            if (template == null) {
+                println("Something went wrong.")
+                return
+            }
+
+            // Add item to player inventory (V2)
+            val templates = mapOf(template.id to template)
+            val updatedPlayer = game.worldState.player.addItemInstance(matchingItem, templates)
+
+            if (updatedPlayer == null) {
+                println("You can't carry that - you're already carrying too much weight.")
+                return
+            }
+
+            // Remove item from corpse
+            val updatedCorpse = corpse.removeItem(matchingItem.id)
+
+            val newState = game.worldState
+                .updatePlayer(updatedPlayer)
+                .removeEntityFromRoom(room.id, corpse.id)
+                ?.addEntityToRoom(room.id, updatedCorpse)
+
+            if (newState != null) {
+                game.worldState = newState
+                println("You take the $templateName from ${corpse.name}.")
+
+                // Track item collection for quests
+                game.trackQuests(QuestAction.CollectedItem(matchingItem.id))
+            } else {
+                println("Something went wrong.")
+            }
         }
     }
 
     fun handleLootAll(game: MudGame, corpseTarget: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
-        // Find the corpse in the room
-        val corpse = room.entities.filterIsInstance<Entity.Corpse>()
-            .find { entity ->
-                entity.name.lowercase().contains(corpseTarget.lowercase()) ||
-                entity.id.lowercase().contains(corpseTarget.lowercase())
+        if (space != null) {
+            // V3 path: use entity storage
+            val corpse = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.Corpse>()
+                .find { entity ->
+                    entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                    entity.id.lowercase().contains(corpseTarget.lowercase())
+                }
+
+            if (corpse == null) {
+                println("There's no corpse here by that name.")
+                return
             }
 
-        if (corpse == null) {
-            println("There's no corpse here by that name.")
-            return
-        }
-
-        if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
-            println("The corpse is empty.")
-            return
-        }
-
-        var lootedCount = 0
-        var failedCount = 0
-        var currentCorpse: Entity.Corpse = corpse
-        var currentPlayer = game.worldState.player
-
-        // Collect all templates first
-        val templateMap = mutableMapOf<String, ItemTemplate>()
-        corpse.contents.forEach { instance ->
-            val templateResult = game.itemRepository.findTemplateById(instance.templateId)
-            templateResult.getOrNull()?.let { template ->
-                templateMap[template.id] = template
+            if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
+                println("The corpse is empty.")
+                return
             }
-        }
 
-        // Loot all items
-        corpse.contents.forEach { instance ->
-            val template = templateMap[instance.templateId]
-            val templateName = template?.name ?: "item"
+            var lootedCount = 0
+            var failedCount = 0
+            var currentCorpse: Entity.Corpse = corpse
+            var currentPlayer = game.worldState.player
 
-            if (template != null) {
-                val updatedPlayer = currentPlayer.addItemInstance(instance, templateMap)
-                if (updatedPlayer != null) {
-                    currentPlayer = updatedPlayer
-                    currentCorpse = currentCorpse.removeItem(instance.id)
-                    println("You take the $templateName.")
-                    lootedCount++
+            // Collect all templates first
+            val templateMap = mutableMapOf<String, ItemTemplate>()
+            corpse.contents.forEach { instance ->
+                val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                templateResult.getOrNull()?.let { template ->
+                    templateMap[template.id] = template
+                }
+            }
 
-                    // Track item collection for quests
-                    game.trackQuests(QuestAction.CollectedItem(instance.id))
+            // Loot all items
+            corpse.contents.forEach { instance ->
+                val template = templateMap[instance.templateId]
+                val templateName = template?.name ?: "item"
+
+                if (template != null) {
+                    val updatedPlayer = currentPlayer.addItemInstance(instance, templateMap)
+                    if (updatedPlayer != null) {
+                        currentPlayer = updatedPlayer
+                        currentCorpse = currentCorpse.removeItem(instance.id)
+                        println("You take the $templateName.")
+                        lootedCount++
+
+                        // Track item collection for quests
+                        game.trackQuests(QuestAction.CollectedItem(instance.id))
+                    } else {
+                        println("You can't carry the $templateName - too heavy.")
+                        failedCount++
+                    }
                 } else {
-                    println("You can't carry the $templateName - too heavy.")
                     failedCount++
                 }
+            }
+
+            // Loot gold
+            val goldAmount = corpse.goldAmount
+            if (goldAmount > 0) {
+                println("You take $goldAmount gold.")
+                currentCorpse = currentCorpse.removeGold(goldAmount)
+                currentPlayer = currentPlayer.addGoldV2(goldAmount)
+            }
+
+            val newState = game.worldState
+                .updatePlayer(currentPlayer)
+                .replaceEntityInSpace(spaceId, corpse.id, currentCorpse)
+
+            if (newState != null) {
+                game.worldState = newState
+
+                val summary = buildString {
+                    append("\nYou looted ")
+                    if (lootedCount > 0) {
+                        append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
+                    }
+                    if (lootedCount > 0 && goldAmount > 0) {
+                        append(" and ")
+                    }
+                    if (goldAmount > 0) {
+                        append("$goldAmount gold")
+                    }
+                    append(" from ${corpse.name}.")
+                    if (failedCount > 0) {
+                        append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
+                    }
+                }
+                println(summary)
             } else {
-                failedCount++
+                println("Something went wrong.")
             }
-        }
-
-        // Loot gold
-        val goldAmount = corpse.goldAmount
-        if (goldAmount > 0) {
-            println("You take $goldAmount gold.")
-            currentCorpse = currentCorpse.removeGold(goldAmount)
-            currentPlayer = currentPlayer.addGoldV2(goldAmount)
-        }
-
-        val newState = game.worldState
-            .updatePlayer(currentPlayer)
-            .removeEntityFromRoom(room.id, corpse.id)
-            ?.addEntityToRoom(room.id, currentCorpse)
-
-        if (newState != null) {
-            game.worldState = newState
-
-            val summary = buildString {
-                append("\nYou looted ")
-                if (lootedCount > 0) {
-                    append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
-                }
-                if (lootedCount > 0 && goldAmount > 0) {
-                    append(" and ")
-                }
-                if (goldAmount > 0) {
-                    append("$goldAmount gold")
-                }
-                append(" from ${corpse.name}.")
-                if (failedCount > 0) {
-                    append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
-                }
-            }
-            println(summary)
         } else {
-            println("Something went wrong.")
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+
+            // Find the corpse in the room
+            val corpse = room.entities.filterIsInstance<Entity.Corpse>()
+                .find { entity ->
+                    entity.name.lowercase().contains(corpseTarget.lowercase()) ||
+                    entity.id.lowercase().contains(corpseTarget.lowercase())
+                }
+
+            if (corpse == null) {
+                println("There's no corpse here by that name.")
+                return
+            }
+
+            if (corpse.contents.isEmpty() && corpse.goldAmount == 0) {
+                println("The corpse is empty.")
+                return
+            }
+
+            var lootedCount = 0
+            var failedCount = 0
+            var currentCorpse: Entity.Corpse = corpse
+            var currentPlayer = game.worldState.player
+
+            // Collect all templates first
+            val templateMap = mutableMapOf<String, ItemTemplate>()
+            corpse.contents.forEach { instance ->
+                val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                templateResult.getOrNull()?.let { template ->
+                    templateMap[template.id] = template
+                }
+            }
+
+            // Loot all items
+            corpse.contents.forEach { instance ->
+                val template = templateMap[instance.templateId]
+                val templateName = template?.name ?: "item"
+
+                if (template != null) {
+                    val updatedPlayer = currentPlayer.addItemInstance(instance, templateMap)
+                    if (updatedPlayer != null) {
+                        currentPlayer = updatedPlayer
+                        currentCorpse = currentCorpse.removeItem(instance.id)
+                        println("You take the $templateName.")
+                        lootedCount++
+
+                        // Track item collection for quests
+                        game.trackQuests(QuestAction.CollectedItem(instance.id))
+                    } else {
+                        println("You can't carry the $templateName - too heavy.")
+                        failedCount++
+                    }
+                } else {
+                    failedCount++
+                }
+            }
+
+            // Loot gold
+            val goldAmount = corpse.goldAmount
+            if (goldAmount > 0) {
+                println("You take $goldAmount gold.")
+                currentCorpse = currentCorpse.removeGold(goldAmount)
+                currentPlayer = currentPlayer.addGoldV2(goldAmount)
+            }
+
+            val newState = game.worldState
+                .updatePlayer(currentPlayer)
+                .removeEntityFromRoom(room.id, corpse.id)
+                ?.addEntityToRoom(room.id, currentCorpse)
+
+            if (newState != null) {
+                game.worldState = newState
+
+                val summary = buildString {
+                    append("\nYou looted ")
+                    if (lootedCount > 0) {
+                        append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
+                    }
+                    if (lootedCount > 0 && goldAmount > 0) {
+                        append(" and ")
+                    }
+                    if (goldAmount > 0) {
+                        append("$goldAmount gold")
+                    }
+                    append(" from ${corpse.name}.")
+                    if (failedCount > 0) {
+                        append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
+                    }
+                }
+                println(summary)
+            } else {
+                println("Something went wrong.")
+            }
         }
     }
 }

@@ -26,11 +26,12 @@ object CombatHandlers {
      * @param target Target identifier (NPC name or ID)
      */
     fun handleAttack(game: MudGame, target: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Try V3 first
+        val space = game.worldState.getCurrentSpace()
+        val spaceId = game.worldState.player.currentRoomId
 
         // Check if current space is a safe zone (blocks combat)
-        val currentSpaceId = game.worldState.player.currentRoomId
-        val currentSpace = game.spacePropertiesRepository.findByChunkId(currentSpaceId).getOrNull()
+        val currentSpace = game.spacePropertiesRepository.findByChunkId(spaceId).getOrNull()
 
         if (currentSpace != null && SafeZoneValidator.isSafeZone(currentSpace)) {
             println(SafeZoneValidator.getCombatBlockedMessage(target ?: "unknown"))
@@ -44,11 +45,23 @@ object CombatHandlers {
         }
 
         // Find the target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                entity.id.lowercase().contains(target.lowercase())
-            }
+        val npc = if (space != null) {
+            // V3 path: use entity storage
+            game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.NPC>()
+                .find { entity ->
+                    entity.name.lowercase().contains(target.lowercase()) ||
+                    entity.id.lowercase().contains(target.lowercase())
+                }
+        } else {
+            // V2 fallback
+            val room = game.worldState.getCurrentRoom() ?: return
+            room.entities.filterIsInstance<Entity.NPC>()
+                .find { entity ->
+                    entity.name.lowercase().contains(target.lowercase()) ||
+                    entity.id.lowercase().contains(target.lowercase())
+                }
+        }
 
         if (npc == null) {
             println("You don't see anyone by that name to attack.")
@@ -80,9 +93,16 @@ object CombatHandlers {
                 // Apply damage from AttackResolver - damage already applied to component
                 val updatedNpc = npc.withComponent(attackResult.updatedDefenderCombat) as Entity.NPC
 
-                // Update room with damaged NPC
-                val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
-                game.worldState = game.worldState.updateRoom(updatedRoom)
+                // Update space/room with damaged NPC
+                if (space != null) {
+                    // V3 path
+                    game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
+                } else {
+                    // V2 fallback
+                    val room = game.worldState.getCurrentRoom() ?: return
+                    val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
+                    game.worldState = game.worldState.updateRoom(updatedRoom)
+                }
 
                 // Generate and display attack narrative
                 val weapon = game.worldState.player.equippedWeapon?.name ?: "bare fists"
@@ -107,7 +127,15 @@ object CombatHandlers {
                 // Check if NPC died
                 if (attackResult.wasKilled) {
                     println("\nVictory! ${npc.name} has been defeated!")
-                    game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
+
+                    if (space != null) {
+                        // V3 path
+                        game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                    } else {
+                        // V2 fallback
+                        val room = game.worldState.getCurrentRoom() ?: return
+                        game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
+                    }
 
                     // Mark entity death for respawn system
                     game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
@@ -122,7 +150,7 @@ object CombatHandlers {
                 if (game.turnQueue != null) {
                     game.worldState = CombatBehavior.triggerCounterAttack(
                         npcId = npc.id,
-                        roomId = room.id,
+                        roomId = spaceId,  // Use spaceId which works for both V2 and V3
                         worldState = game.worldState,
                         turnQueue = game.turnQueue
                     )
@@ -141,7 +169,7 @@ object CombatHandlers {
                 if (game.turnQueue != null) {
                     game.worldState = CombatBehavior.triggerCounterAttack(
                         npcId = npc.id,
-                        roomId = room.id,
+                        roomId = spaceId,  // Use spaceId which works for both V2 and V3
                         worldState = game.worldState,
                         turnQueue = game.turnQueue
                     )
@@ -210,7 +238,15 @@ object CombatHandlers {
         when {
             attackResult.npcDied -> {
                 println("\nVictory! The enemy has been defeated!")
-                game.worldState = game.worldState.removeEntityFromRoom(game.worldState.getCurrentRoom()!!.id, npc.id) ?: game.worldState
+
+                // Remove NPC using V3 or V2 method
+                val spaceId = game.worldState.player.currentRoomId
+                val space = game.worldState.getCurrentSpace()
+                if (space != null) {
+                    game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                } else {
+                    game.worldState = game.worldState.removeEntityFromRoom(game.worldState.getCurrentRoom()!!.id, npc.id) ?: game.worldState
+                }
 
                 // Mark entity death for respawn system
                 game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
