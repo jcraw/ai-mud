@@ -12,12 +12,43 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
+        // Check if we have graph node support (V3) first
+        val currentGraphNode = game.worldState.getCurrentGraphNode()
+        if (currentGraphNode != null) {
+            // V3 path - use graph-based navigation
+            val newState = game.worldState.movePlayerV3(direction)
+
+            if (newState == null) {
+                game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            game.worldState = newState
+            game.emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
+
+            // TODO: Check if we need to fill space content (lazy-fill)
+            //       Requires chunk storage in WorldState (see TODO.md)
+
+            // TODO: Check if we entered a frontier node (chunk cascade)
+            //       Requires chunk cascade logic in WorldState (see TODO.md)
+
+            val space = game.worldState.getCurrentSpace()
+            if (space != null) {
+                game.trackQuests(QuestAction.VisitedRoom(game.worldState.player.currentRoomId))
+            }
+
+            game.describeCurrentRoom()
+            return
+        }
+
+        // Check for V2 space-based navigation
         val currentSpace = game.currentSpace()
         if (currentSpace != null) {
             handleSpaceMovement(game, direction, currentSpace)
             return
         }
 
+        // V2 fallback - use Room-based navigation
         val newState = game.worldState.movePlayer(direction)
 
         if (newState == null) {
