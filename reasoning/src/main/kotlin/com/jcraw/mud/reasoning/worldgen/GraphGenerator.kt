@@ -42,7 +42,7 @@ class GraphGenerator(
         // Step 2: Connect nodes via Kruskal MST
         val mstEdges = kruskalMST(nodes)
 
-        // Step 3: Add 20% extra edges for loops
+        // Step 3: Add 40-50% extra edges for loops
         val loopEdges = addLoopEdges(nodes, mstEdges)
         val allEdges = mstEdges + loopEdges
 
@@ -298,15 +298,17 @@ class GraphGenerator(
     // ==================== LOOP EDGES ====================
 
     /**
-     * Add 20% extra edges for loops
+     * Add 40-50% extra edges for loops
      * Creates alternative paths and exploration choices
+     * Promotes average degree of 3.0-3.5 for engaging navigation
      * Returns additional edges beyond MST
      */
     private fun addLoopEdges(
         nodes: List<GraphNodeComponent>,
         mstEdges: List<Pair<String, String>>
     ): List<Pair<String, String>> {
-        val targetCount = (mstEdges.size * 0.2).toInt().coerceAtLeast(1)
+        val extraEdgePercent = 0.40 + rng.nextDouble() * 0.10 // 40-50%
+        val targetCount = (mstEdges.size * extraEdgePercent).toInt().coerceAtLeast(1)
         val loopEdges = mutableListOf<Pair<String, String>>()
         val existingEdges = mstEdges.toSet()
 

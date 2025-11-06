@@ -458,7 +458,7 @@ Memory (store for RAG)
   - `GraphGenerator.kt` - Core topology generation engine
     - Three layout algorithms: generateGridNodes(), generateBSPNodes(), generateFloodFillNodes()
     - Kruskal MST for connectivity (ensures all nodes reachable)
-    - Add 20% extra edges for loops (creates exploration choices)
+    - Add 40-50% extra edges for loops (promotes avg degree 3.0-3.5 for engaging navigation)
     - Node type assignment: 1-2 Hubs, 1 Boss, 2+ Frontiers, 20% Dead-ends
     - Hidden edge marking: 15-25% edges marked with Perception DC 10-30
     - Bidirectional edges with cardinal direction labels (N/S/E/W)

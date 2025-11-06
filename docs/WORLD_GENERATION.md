@@ -750,7 +750,7 @@ data class EdgeData(
 **Generation Steps**:
 1. Generate node positions based on layout algorithm
 2. Connect nodes via Kruskal MST (ensures connectivity)
-3. Add 20% extra edges for loops (exploration choices)
+3. Add 40-50% extra edges for loops (promotes avg degree 3.0-3.5 for engaging navigation)
 4. Assign node types (1-2 hubs, 1 boss, 2+ frontiers, 20% dead-ends)
 5. Mark 15-25% edges as hidden with Perception difficulty (10-30)
 6. Validate graph structure

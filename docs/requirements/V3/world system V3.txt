@@ -78,7 +78,7 @@ SpacePropertiesRepository: Update desc/flags/exits.
 Impl: SQLiteWorldChunkRepository etc. (:persistence). Optimistic locking for changes.
 GENERATION PIPELINE
 3.1 Trigger and Cascade (Updated for V3)
-Pre-generate graph topology per chunk before content: Use algorithms like grid (e.g., 5x5), BSP trees, or RNG flood-fill to create nodes; connect via Kruskal MST + 20% extra edges for loops.
+Pre-generate graph topology per chunk before content: Use algorithms like grid (e.g., 5x5), BSP trees, or RNG flood-fill to create nodes; connect via Kruskal MST + 40-50% extra edges for loops to achieve avg degree 3.0-3.5.
 Frontier nodes auto-cascade to child chunks on traversal.
 Every 3-5 chunks, add 1-2 'breakout' edges to new REGION biomes (e.g., 'unstable wall' to 'Endless Caverns').
 On-demand: When player nears boundary (e.g., Intent.Travel near edge), gen adjacent chunk via coroutines.
@@ -89,7 +89,7 @@ Seed: Fixed MVP string ("dark fantasy DnD"); LLM uses for consistency (e.g., fan
 Generate graph first, then lazily fill SpaceProperties on entry using node type, position, neighbors, and parent lore for coherent themes.
 Node Tags: Mandatory 1-2 Hubs/treasure; 20% Dead-Ends; Boss at core; auto-place mobs/resources by tag+difficulty.
 Hidden Exits: 15-25% edges hidden (Perception diff 10-30).
-Validation: Post-gen checks for min 1 loop, avg 3.5 exits/node, reachability, at least 2 frontiers.
+Validation: Post-gen checks for min 1 loop, avg 3.0+ exits/node (target 3.0-3.5), reachability, at least 2 frontiers.
 LLM Prompt: "Based on seed [seed] and parent lore [parentLore], generate [level] details: rich lore (politics, inhabitants, weather stubs), theme, size, mob density, difficulty (deeper=harder)."
 Spaces: Add exits (3-6 avg; cardinal + descriptive), traps (theme-based, 10-20% chance), resources (scarce; plentiful veins rare), entities (mobs/NPCs via theme/density; respawn on restart).
 Hidden/Conditional: 20% exits hidden (Perception check); conditions via skills/items (e.g., "climb": Agility diff 15 or climbing kit).
