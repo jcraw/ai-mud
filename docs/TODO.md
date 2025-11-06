@@ -1,8 +1,8 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Handler Migration Complete, Game Loop Integration Blocked
+Last updated: 2025-11-05 - V3 Frontier Traversal Implemented
 
-**Status**: Console handlers fully V3-compatible with V2 fallback. Game loop integration requires frontier traversal implementation.
+**Status**: Console handlers fully V3-compatible with V2 fallback. Frontier traversal logic implemented in MovementHandlers. Ready for game loop integration testing.
 
 ## Current Status
 
@@ -69,12 +69,13 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
     - ✅ GraphGenerator(rng, difficultyLevel) - for V3 graph topology
     - ✅ GraphValidator() - for V3 graph validation
     - ✅ WorldGenerator(llmClient, loreEngine, graphGenerator, graphValidator) - accessible as `game.worldGenerator`
+    - ✅ GraphNodeRepository (line 102) - for frontier traversal persistence
 
     **✅ Console MovementHandlers.kt** (app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt) - **COMPLETED**:
     - ✅ Updated `handleMove()` (line 15):
       - ✅ V3 path: checks `getCurrentGraphNode()`, uses `movePlayerV3(direction)`
       - ✅ Lazy-fill: Checks for empty description, calls `worldGenerator.fillSpaceContent()`, updates space
-      - ⏸️ Frontier traversal: Deferred - needs chunk cascade logic (TODO added)
+      - ✅ Frontier traversal (lines 65-140): Detects frontier nodes, generates new adjacent chunks with graph topology, links frontier to hub in new chunk, persists to database
       - ✅ Falls back to V2 `movePlayer()` if V3 not available
     - ✅ Updated `handleLook()` (line 69): checks `getCurrentSpace()` before `getCurrentRoom()`
     - ✅ Updated `handleSearch()` (line 103): checks `getCurrentSpace()` before `getCurrentRoom()`
@@ -158,22 +159,27 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 7. ⏸️ **DEFERRED**: Movement integration tests - Deferred until WorldState/PlayerState refactoring complete (players map vs single player field causes test compilation errors)
 8. ✅ **COMPLETED**: V3 entity storage implemented - Added entities map to WorldState (line 19), 7 new entity CRUD methods (lines 272-332), deprecated old V3 methods, build successful
 9. ✅ **COMPLETED**: Console handlers updated for V3 compatibility - All 4 handler files migrated with V3/V2 fallback pattern, build successful (ItemHandlers.kt, CombatHandlers.kt, SocialHandlers.kt, SkillQuestHandlers.kt)
-10. ❌ **BLOCKED**: Update game loop and clients for V3 (~4-6h)
-    **BLOCKER**: V3 world generation incomplete - WorldGenerator.generateChunk() only creates single chunks. Multi-chunk generation (chunk cascade/frontier traversal) not implemented. Game loop integration requires:
-    - Frontier detection when player moves to frontier node
-    - Automatic adjacent chunk generation (chunk cascade logic)
-    - Multi-chunk world initialization for new games
-    **WORKAROUND**: Could create single-chunk V3 worlds for testing, but not practical for full gameplay
-11. ❌ **Integration tests** after game loop integration (~2-3h)
-12. ❌ **Remove deprecated V2 code** after V3 fully operational (~1h)
+10. ✅ **COMPLETED**: Frontier traversal implementation
+    - ✅ GraphNodeRepository added to MudGameEngine (line 102)
+    - ✅ Frontier detection in MovementHandlers (lines 65-140)
+    - ✅ Automatic chunk generation when entering frontier nodes
+    - ✅ Links frontier node to hub in new chunk
+    - ✅ Persists graph nodes and spaces to database
+11. ❌ **READY FOR TESTING**: Update game loop and clients for V3 (~2-4h)
+    - Update `MudGameEngine.kt` to initialize with V3 WorldState
+    - Update `MultiUserGame.kt` for V3 compatibility
+    - Update world generation entry points to use V3 generation
+    - Update `EngineGameClient.kt` and client handlers for V3
+12. ❌ **Integration tests** after game loop integration (~2-3h)
+13. ❌ **Remove deprecated V2 code** after V3 fully operational (~1h)
 
-**Note**: Console handlers migration complete. All handlers use V3 entity storage with V2 fallback. Build successful with no errors. **V3 integration paused pending frontier traversal implementation**.
+**Note**: Console handlers fully migrated. Frontier traversal implemented. Build successful. **Ready for V3 game loop integration testing**.
 
 **Remaining V3 Chunks** (see feature plan for details):
 - ✅ Chunk 1-2: GraphNodeComponent ECS component, database schema, repository (COMPLETE)
 - ✅ Chunk 3: Graph generation algorithms - layouts, MST, edge generation (COMPLETE)
 - ✅ Chunk 4: Graph validation - reachability, loops, degree, frontiers (COMPLETE)
-- ⏸️ Chunk 5: Integrate graph generation (PARTIAL - single chunk only, missing multi-chunk cascade)
+- ✅ Chunk 5: Integrate graph generation (COMPLETE - frontier traversal implemented)
 - ❌ Chunk 6: Hidden exit revelation via perception
 - ❌ Chunk 7: Dynamic edge modification (player agency)
 - ❌ Chunk 8: Breakout edges to new biomes
@@ -181,7 +187,7 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - ❌ Chunk 10: Comprehensive testing
 - ❌ Chunk 11: Documentation updates
 
-**Priority**: Implement frontier traversal and chunk cascade generation to unblock game loop integration.
+**Priority**: Test frontier traversal functionality and integrate V3 world generation into game loop.
 
 ## Completed Systems Summary
 

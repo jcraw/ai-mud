@@ -62,8 +62,82 @@ object MovementHandlers {
             }
         }
 
-        // V3: Frontier traversal
-        // TODO: Implement chunk cascade generation when entering frontier nodes
+        // V3: Frontier traversal - generate new chunk when entering frontier node
+        val frontierNode = game.worldState.getCurrentGraphNode()
+        if (frontierNode != null && frontierNode.type is com.jcraw.mud.core.world.NodeType.Frontier) {
+            // Extract chunk ID from current space
+            val playerId = game.worldState.player.id
+            val spaceId = game.worldState.players[playerId]?.currentRoomId
+            if (spaceId != null) {
+                val chunkId = spaceId.substringBeforeLast("_node_")
+                val chunk = game.worldState.getChunk(chunkId)
+
+                if (chunk != null && game.worldGenerator != null && game.graphNodeRepository != null) {
+                    // Check if frontier already has an edge to a generated chunk
+                    val hasGeneratedExit = frontierNode.neighbors.any { edge ->
+                        game.worldState.getGraphNode(edge.targetId) != null
+                    }
+
+                    if (!hasGeneratedExit) {
+                        // Generate new adjacent chunk
+                        runBlocking {
+                            val context = com.jcraw.mud.core.world.GenerationContext(
+                                seed = (chunkId.hashCode().toLong() + System.currentTimeMillis()).toString(),
+                                globalLore = chunk.lore,
+                                parentChunk = chunk,
+                                parentChunkId = chunk.parentId,
+                                level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
+                                direction = "frontier_expansion"
+                            )
+
+                            val result = game.worldGenerator?.generateChunk(context)
+                            result?.onSuccess { genResult ->
+                                // Persist new chunk
+                                game.worldChunkRepository.save(genResult.chunk, genResult.chunkId)
+                                game.worldState = game.worldState.addChunk(genResult.chunkId, genResult.chunk)
+
+                                // Persist graph nodes
+                                genResult.graphNodes.forEach { node ->
+                                    game.graphNodeRepository.save(node)
+                                    game.worldState = game.worldState.updateGraphNode(node.id, node)
+
+                                    // Generate space stub for this node
+                                    val spaceStub = game.worldGenerator?.generateSpaceStub(node, genResult.chunk)
+                                    spaceStub?.onSuccess { space ->
+                                        val nodeSpaceId = "${genResult.chunkId}_node_${node.id}"
+                                        game.spacePropertiesRepository.save(space, nodeSpaceId)
+                                        game.worldState = game.worldState.updateSpace(nodeSpaceId, space)
+                                    }
+                                }
+
+                                // Find hub node in new chunk to link to
+                                val hubNode = genResult.graphNodes.find { it.type is com.jcraw.mud.core.world.NodeType.Hub }
+                                if (hubNode != null) {
+                                    // Create edge from frontier to hub
+                                    val edgeDirection = "frontier passage"
+                                    val newEdge = com.jcraw.mud.core.world.EdgeData(
+                                        targetId = hubNode.id,
+                                        direction = edgeDirection,
+                                        hidden = false
+                                    )
+
+                                    // Update frontier node with new edge
+                                    val updatedFrontier = frontierNode.copy(
+                                        neighbors = frontierNode.neighbors + newEdge
+                                    )
+                                    game.graphNodeRepository.update(updatedFrontier)
+                                    game.worldState = game.worldState.updateGraphNode(updatedFrontier.id, updatedFrontier)
+
+                                    println("\n🗺️  You've discovered a new frontier! A passage opens before you...")
+                                }
+                            }?.onFailure { error ->
+                                println("(Frontier generation failed: ${error.message})")
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Track room/space exploration for quests
         val room = game.worldState.getCurrentRoom()

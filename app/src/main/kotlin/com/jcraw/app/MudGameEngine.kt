@@ -99,6 +99,7 @@ class MudGame(
     private val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
     internal val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
     internal val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+    internal val graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
     internal val exitResolver = if (llmClient != null) com.jcraw.mud.reasoning.world.ExitResolver(llmClient) else null
     internal val movementCostCalculator = com.jcraw.mud.reasoning.world.MovementCostCalculator()
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null

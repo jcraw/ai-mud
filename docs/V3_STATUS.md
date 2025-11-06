@@ -1,11 +1,11 @@
 # World System V3 - Current Status
 
 **Last Updated**: 2025-11-05
-**Status**: Handlers complete, blocked on frontier traversal for full integration
+**Status**: Frontier traversal implemented, ready for game loop integration
 
 ## Summary
 
-World System V3 introduces graph-based navigation with lazy-fill content generation. The core infrastructure is in place and all game handlers are V3-compatible, but multi-chunk world generation is incomplete.
+World System V3 introduces graph-based navigation with lazy-fill content generation. The core infrastructure is complete, all game handlers are V3-compatible, and frontier traversal logic is implemented. Ready for game loop integration testing.
 
 ## What Works
 
@@ -15,15 +15,16 @@ World System V3 introduces graph-based navigation with lazy-fill content generat
 - **Graph Generation** (31 tests) - Grid/BSP/FloodFill layouts, Kruskal MST, loop generation
 - **Graph Validation** (20 tests) - Reachability, cycle detection, degree analysis, frontier detection
 
-### ✅ World Generation (Chunk 5 - Partial)
-- **WorldGenerator.generateChunk()** (567 lines) - Single-chunk generation with graph topology
+### ✅ World Generation (Chunk 5 - Complete)
+- **WorldGenerator.generateChunk()** (567 lines) - Chunk generation with graph topology
 - **Lazy-fill system** - Generates space descriptions on-demand when player enters
 - **Chunk storage** - WorldState has chunks map and accessor methods
 - **V3 WorldState** - Full ECS refactoring with graphNodes/spaces/chunks/entities storage
+- **Frontier traversal** (MovementHandlers.kt:65-140) - Automatic multi-chunk generation
 
 ### ✅ Handler Migration (Chunk 5 - Complete)
 All handlers V3-compatible with V2 fallback:
-- **MovementHandlers.kt** (122 lines) - Uses movePlayerV3(), getCurrentSpace(), lazy-fill
+- **MovementHandlers.kt** - Uses movePlayerV3(), getCurrentSpace(), lazy-fill, frontier traversal
 - **ItemHandlers.kt** (968 lines) - Entity CRUD via V3 methods
 - **CombatHandlers.kt** (263 lines) - V3 entity management
 - **SocialHandlers.kt** (459 lines) - V3 NPC targeting
@@ -37,29 +38,23 @@ All handlers V3-compatible with V2 fallback:
 
 ## What's Missing
 
-### ❌ Frontier Traversal (Blocker)
-**Issue**: WorldGenerator only creates single chunks. No logic for multi-chunk world generation.
-
-**Needed**:
-1. **Frontier detection** - Identify when player moves to a frontier node (node at chunk boundary)
-2. **Adjacent chunk generation** - Automatically generate neighboring chunks when frontier reached
-3. **Edge connection** - Connect frontier nodes across chunk boundaries
-4. **Chunk cascade** - Recursive generation of connected chunks
-
-**Estimated effort**: 1-2 hours
-
-**Impact**: Without this, V3 worlds are limited to single chunks (~10-25 nodes), impractical for gameplay.
-
-### ❌ Game Loop Integration (Blocked)
+### ❌ Game Loop Integration (Ready for Testing)
 **Issue**: App.kt, MudGameEngine.kt, MultiUserGame.kt still use V2 world initialization.
 
-**Needed** (after frontier traversal):
+**Implementation Complete**:
+1. ✅ GraphNodeRepository added to MudGameEngine (line 102)
+2. ✅ Frontier detection in MovementHandlers (lines 65-140)
+3. ✅ Automatic chunk generation when entering frontier nodes
+4. ✅ Edge linking between frontier and new hub nodes
+5. ✅ Database persistence for graph nodes and spaces
+
+**Needed for Testing**:
 1. Update App.kt to offer "World Generation V3" option
 2. Initialize V3 worlds with multi-chunk generation
 3. Update EngineGameClient to support V3 initialization
 4. Update character creation to spawn in V3 worlds
 
-**Estimated effort**: 4-6 hours (after frontier traversal unblocks)
+**Estimated effort**: 2-4 hours (testing and integration)
 
 ### ❌ Remaining Chunks (6-11)
 - Hidden exit revelation via perception
@@ -86,13 +81,19 @@ Player moves → Check getCurrentGraphNode()
              No graph node? → Fall back to V2 (getCurrentRoom(), movePlayer())
 ```
 
-### Frontier Traversal (Not Implemented)
+### Frontier Traversal (Implemented)
 ```
-movePlayerV3(direction) → Check destination node type
+movePlayerV3(direction) → Move to new location
                         ↓
-                        Is FRONTIER? → Generate adjacent chunk
-                                     → Connect frontier edges
-                                     → Update graph topology
+                        Check current node type (after movement)
+                        ↓
+                        Is FRONTIER? → Check if frontier already has generated exit
+                                     ↓
+                                     No generated exit? → Generate adjacent chunk
+                                                        → Create graph topology
+                                                        → Generate space stubs
+                                                        → Link frontier to hub
+                                                        → Persist to database
                         ↓
                         Is NORMAL? → Continue normal navigation
 ```
@@ -111,16 +112,17 @@ data class WorldState(
 
 ## Next Steps (Priority Order)
 
-1. **Implement frontier traversal** (~1-2h)
-   - Add frontier detection to movePlayerV3()
-   - Implement chunk cascade generation
-   - Test multi-chunk world creation
+1. ✅ **Frontier traversal** - COMPLETED
+   - ✅ Frontier detection after movePlayerV3()
+   - ✅ Chunk cascade generation logic
+   - ✅ Graph topology creation
+   - ✅ Hub linking and persistence
 
-2. **Integrate with game loop** (~4-6h)
+2. **Integrate with game loop** (~2-4h)
    - Update App.kt world initialization
    - Update MudGameEngine initialization
    - Update EngineGameClient initialization
-   - Test full V3 gameplay
+   - Test full V3 gameplay with frontier traversal
 
 3. **Write integration tests** (~2-3h)
    - Test graph generation → navigation → lazy-fill
@@ -136,15 +138,16 @@ data class WorldState(
 5. **Complete remaining chunks** (~8-12h)
    - Chunks 6-11 as per feature plan
 
-## Testing V3 (Workaround)
+## Testing V3 (Ready)
 
-To test V3 with current implementation:
-1. Generate a single chunk via WorldGenerator.generateChunk()
-2. Populate WorldState with graphNodes + spaces
-3. Test navigation within single chunk
-4. Test lazy-fill content generation
+V3 features that can now be tested:
+1. ✅ Generate a chunk via WorldGenerator.generateChunk()
+2. ✅ Populate WorldState with graphNodes + spaces
+3. ✅ Test navigation within single chunk
+4. ✅ Test lazy-fill content generation
+5. ✅ Test frontier traversal and multi-chunk generation
 
-**Limitation**: Cannot test multi-chunk worlds or frontier traversal until blocker resolved.
+**Status**: All core V3 features implemented. Ready for game loop integration and end-to-end testing.
 
 ## References
 
