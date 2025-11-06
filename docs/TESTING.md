@@ -149,6 +149,7 @@ NavigationIntegrationTest.kt          // Natural language navigation
 SaveLoadIntegrationTest.kt            // Persistence roundtrip
 ProceduralDungeonIntegrationTest.kt   // All 4 dungeon themes
 FullGameplayIntegrationTest.kt        // Complete game loop
+WorldSystemV3IntegrationTest.kt       // V3 graph-based navigation
 ```
 
 **Example:**
@@ -208,6 +209,75 @@ class CombatIntegrationTest {
     }
 }
 ```
+
+#### World System V3 Integration Tests
+
+The `WorldSystemV3IntegrationTest` suite verifies the complete V3 graph-based navigation system:
+
+```kotlin
+class WorldSystemV3IntegrationTest {
+
+    // Graph Navigation - Tests movement using graph edges
+    @Test
+    fun `can navigate using graph edges in V3`() { }
+
+    @Test
+    fun `V3 navigation only allows valid graph edges`() { }
+
+    @Test
+    fun `V3 graph is fully connected via BFS`() { }
+
+    @Test
+    fun `V3 graph has loops for non-linear navigation`() { }
+
+    // Node Types - Verifies proper node type distribution
+    @Test
+    fun `V3 world has hub frontier and dead-end nodes`() { }
+
+    // Space Management - Tests lazy-fill and space properties
+    @Test
+    fun `V3 spaces start with stub descriptions`() { }
+
+    @Test
+    fun `V3 space properties include terrain and brightness`() { }
+
+    @Test
+    fun `V3 getCurrentSpace returns space for current player location`() { }
+
+    // Chunk Storage - Verifies hierarchical chunk system
+    @Test
+    fun `V3 world has chunk storage`() { }
+
+    @Test
+    fun `V3 can add new chunk to world`() { }
+
+    // Entity Storage - Tests V3 entity CRUD operations
+    @Test
+    fun `V3 can add entities to spaces`() { }
+
+    @Test
+    fun `V3 can remove entities from spaces`() { }
+
+    @Test
+    fun `V3 can replace entities in spaces`() { }
+
+    // V2 Fallback - Ensures backward compatibility
+    @Test
+    fun `V3 methods gracefully handle V2-only worlds`() { }
+
+    @Test
+    fun `V2 methods still work on V3 worlds with rooms`() { }
+}
+```
+
+**Coverage:**
+- ✅ Graph-based navigation using EdgeData
+- ✅ Node type assignment (Hub, Linear, Branching, DeadEnd, Boss, Frontier)
+- ✅ Graph connectivity validation (BFS reachability, loop detection)
+- ✅ Space component management and lazy-fill stubs
+- ✅ Chunk storage and hierarchical world structure
+- ✅ Entity CRUD operations in V3 spaces
+- ✅ V2/V3 compatibility and graceful fallback
 
 ### Layer 3: E2E Scenario Tests (Testbot Module)
 
@@ -479,7 +549,7 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** ~640 across all modules
+**Total Tests:** ~793 across all modules
 **Pass Rate:** 100%
 
 **Module Breakdown:**
@@ -487,7 +557,7 @@ We don't aim for line coverage metrics. Instead, we aim for:
 - ✅ **perception**: 8 tests
 - ✅ **reasoning**: 40 tests
 - ✅ **memory**: 15 tests
-- ✅ **app**: 128 integration tests
+- ✅ **app**: 148 integration tests (including 20 V3 graph navigation tests)
 - ✅ **client**: 7 tests
 - ✅ **testbot**: 12 E2E scenario tests
 

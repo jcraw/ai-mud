@@ -59,7 +59,8 @@ For complete documentation, see:
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
 ### Testing ✅
-- **773 tests passing** across all modules (0 failures, 100% pass rate)
+- **793 tests passing** across all modules (0 failures, 100% pass rate)
+  - Includes 20 V3 integration tests for graph-based navigation
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -167,7 +168,7 @@ Memory (store for RAG)
 
 ## Important Notes
 
-- **✅ Production Ready** - All planned features complete, 773 tests passing (100% pass rate)
+- **✅ Production Ready** - All planned features complete, 793 tests passing (100% pass rate)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -227,7 +228,8 @@ All V2 systems fully integrated and tested:
   - ❌ Chunks 6-11: Hidden exits, dynamic edges, breakouts, exit resolution, testing, docs
 
   **Note**: V3 initialization complete. Players can select "World Generation V3" at startup to generate a graph-based world. All game modes (console, multi-user, GUI client) support V3 with V2 fallback. Single-chunk worlds fully playable, multi-chunk frontier traversal implemented and ready for testing.
-- ✅ 773 tests passing (0 failures, 100% pass rate)
+- ✅ 793 tests passing (0 failures, 100% pass rate)
+  - Includes 20 new V3 integration tests (WorldSystemV3IntegrationTest.kt)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
 
 See detailed implementation plans in `docs/requirements/V2/` and [TODO.md](docs/TODO.md) for optional future enhancements.
