@@ -83,9 +83,16 @@ class EngineGameClient(
     internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
     internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
     internal val spaceEntityRepository: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
+    internal val graphNodeRepository: com.jcraw.mud.memory.world.SQLiteGraphNodeRepository
     internal val exitLinker: com.jcraw.mud.reasoning.world.ExitLinker?
     internal val exitResolver: com.jcraw.mud.reasoning.world.ExitResolver?
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
+
+    // World System V3 components (graph-based navigation)
+    private val loreInheritanceEngine: com.jcraw.mud.reasoning.world.LoreInheritanceEngine?
+    private val graphGenerator: com.jcraw.mud.reasoning.worldgen.GraphGenerator
+    private val graphValidator: com.jcraw.mud.reasoning.worldgen.GraphValidator
+    internal val worldGenerator: com.jcraw.mud.reasoning.world.WorldGenerator?
 
     init {
         // Initialize shared database configuration
@@ -134,18 +141,35 @@ class EngineGameClient(
         worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
         spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
+        graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
+
+        // Initialize World System V3 components
+        loreInheritanceEngine = if (llmClient != null) {
+            com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
+        } else null
+        graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(
+            rng = kotlin.random.Random.Default,
+            difficultyLevel = 1 // Default difficulty, can be adjusted per chunk
+        )
+        graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
+        worldGenerator = if (llmClient != null && loreInheritanceEngine != null) {
+            com.jcraw.mud.reasoning.world.WorldGenerator(
+                llmClient = llmClient,
+                loreEngine = loreInheritanceEngine!!,
+                graphGenerator = graphGenerator,
+                graphValidator = graphValidator
+            )
+        } else null
 
         // Initialize Ancient Abyss dungeon if LLM is available
-        if (llmClient != null) {
-            val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
-            val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
-            exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator, worldChunkRepository, spacePropertiesRepository)
+        if (llmClient != null && worldGenerator != null) {
+            exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator!!, worldChunkRepository, spacePropertiesRepository)
             exitResolver = com.jcraw.mud.reasoning.world.ExitResolver(llmClient)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
-            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
-            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator!!, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
+            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator!!, spacePropertiesRepository)
+            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator!!, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-                worldGenerator, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
+                worldGenerator!!, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
                 townGenerator, bossGenerator, hiddenExitPlacer
             )
 
