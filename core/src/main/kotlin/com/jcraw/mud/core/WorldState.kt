@@ -15,6 +15,7 @@ data class WorldState(
     // V3: Component storage (graph nodes define topology, spaces define content)
     val graphNodes: Map<SpaceId, GraphNodeComponent> = emptyMap(),
     val spaces: Map<SpaceId, SpacePropertiesComponent> = emptyMap(),
+    val chunks: Map<String, WorldChunkComponent> = emptyMap(), // V3: Chunk hierarchy storage
 
     // V2 compatibility: Deprecated, will be removed after migration
     @Deprecated("Use graphNodes + spaces instead")
@@ -245,4 +246,25 @@ data class WorldState(
         val updatedSpace = space.removeEntity(entityId)
         return updateSpace(spaceId, updatedSpace)
     }
+
+    // ========================================
+    // V3: Chunk management methods
+    // ========================================
+
+    /**
+     * Get chunk by ID (V3)
+     */
+    fun getChunk(chunkId: String): WorldChunkComponent? = chunks[chunkId]
+
+    /**
+     * Update chunk (V3)
+     */
+    fun updateChunk(chunkId: String, chunk: WorldChunkComponent): WorldState =
+        copy(chunks = chunks + (chunkId to chunk))
+
+    /**
+     * Add chunk (V3)
+     */
+    fun addChunk(chunkId: String, chunk: WorldChunkComponent): WorldState =
+        copy(chunks = chunks + (chunkId to chunk))
 }

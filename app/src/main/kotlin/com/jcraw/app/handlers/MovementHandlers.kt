@@ -34,13 +34,36 @@ object MovementHandlers {
         game.worldState = newState
         println("You move ${direction.displayName}.")
 
-        // V3: Lazy-fill and frontier traversal
-        // TODO: Implement when chunk system is fully integrated into WorldState
-        // Will need:
-        // 1. WorldState to store chunks
-        // 2. Access to current chunk via worldState.getChunk(chunkId)
-        // 3. Call worldGenerator.fillSpaceContent(space, graphNode, chunk)
-        // 4. Frontier traversal logic for chunk cascade generation
+        // V3: Lazy-fill content if space description is empty
+        val currentSpace = game.worldState.getCurrentSpace()
+        val currentNode = game.worldState.getCurrentGraphNode()
+        if (currentSpace != null && currentNode != null && currentSpace.description.isEmpty()) {
+            // Extract chunk ID from space ID (format: SUBZONE_ID)
+            val playerId = game.worldState.player.id
+            val spaceId = game.worldState.players[playerId]?.currentRoomId
+            if (spaceId != null) {
+                // Try to find parent chunk
+                // Space IDs are in format: chunkId_nodeId, so extract chunkId
+                val chunkId = spaceId.substringBeforeLast("_node_")
+                val chunk = game.worldState.getChunk(chunkId)
+
+                if (chunk != null) {
+                    // Generate content for this space
+                    runBlocking {
+                        val result = game.worldGenerator.fillSpaceContent(currentSpace, currentNode, chunk)
+                        result.onSuccess { filledSpace ->
+                            game.worldState = game.worldState.updateSpace(spaceId, filledSpace)
+                        }.onFailure { error ->
+                            // Lazy-fill failed, but continue with empty description
+                            println("(Content generation unavailable)")
+                        }
+                    }
+                }
+            }
+        }
+
+        // V3: Frontier traversal
+        // TODO: Implement chunk cascade generation when entering frontier nodes
 
         // Track room/space exploration for quests
         val room = game.worldState.getCurrentRoom()

@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Chunk 5 Movement Handlers Complete (Console + Client V3 support done, lazy-fill pending)
+Last updated: 2025-11-05 - V3 Chunk 5 Lazy-Fill Complete (Chunk storage + lazy-fill integrated, frontier traversal pending)
 
 ## Current Status
 
@@ -60,8 +60,8 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
   - WorldState refactored to use ECS components directly
   - Room abstraction deprecated (will be removed after handler migration)
 
-  **Remaining Integration Work** (Est. 11-14h):
-  - ❌ **Movement Handlers** (~3-3.5h) - **READY FOR IMPLEMENTATION**:
+  **Remaining Integration Work** (Est. 8-11h):
+  - ✅ **Movement Handlers** (~3-3.5h) - **COMPLETED**:
     **✅ V3 Dependencies Added** (MudGameEngine.kt lines 126-142):
     - ✅ LoreInheritanceEngine(llmClient) - for WorldGenerator
     - ✅ GraphGenerator(rng, difficultyLevel) - for V3 graph topology
@@ -71,7 +71,7 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
     **✅ Console MovementHandlers.kt** (app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt) - **COMPLETED**:
     - ✅ Updated `handleMove()` (line 15):
       - ✅ V3 path: checks `getCurrentGraphNode()`, uses `movePlayerV3(direction)`
-      - ⏸️ Lazy-fill: Deferred - needs chunk storage in WorldState (TODO added)
+      - ✅ Lazy-fill: Checks for empty description, calls `worldGenerator.fillSpaceContent()`, updates space
       - ⏸️ Frontier traversal: Deferred - needs chunk cascade logic (TODO added)
       - ✅ Falls back to V2 `movePlayer()` if V3 not available
     - ✅ Updated `handleLook()` (line 69): checks `getCurrentSpace()` before `getCurrentRoom()`
@@ -81,12 +81,19 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
     **✅ Client ClientMovementHandlers.kt** (client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientMovementHandlers.kt) - **COMPLETED**:
     - ✅ Updated `handleMove()` (line 14):
       - ✅ V3 path: checks `getCurrentGraphNode()`, uses `movePlayerV3(direction)`
-      - ⏸️ Lazy-fill: Deferred - needs chunk storage in WorldState (TODO added)
+      - ✅ Lazy-fill: Checks for empty description, calls `worldGenerator.fillSpaceContent()`, updates space
       - ⏸️ Frontier traversal: Deferred - needs chunk cascade logic (TODO added)
       - ✅ Falls back to V2 space-based navigation (handleSpaceMovement)
       - ✅ Falls back to V2 room-based navigation if no spaces
     - ✅ Compiles successfully, maintains V2 compatibility
     - Note: handleSpaceMovement() doesn't need V3 updates (V2-specific)
+
+    **✅ Chunk Storage** (core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt) - **COMPLETED**:
+    - ✅ Added `chunks: Map<String, WorldChunkComponent>` field to WorldState (line 18)
+    - ✅ Added `getChunk(chunkId)` method (line 257)
+    - ✅ Added `updateChunk(chunkId, chunk)` method (line 262)
+    - ✅ Added `addChunk(chunkId, chunk)` method (line 268)
+    - ✅ Lazy-fill integration complete in both console and client handlers
 
     **Implementation Order**:
     1. Add V3 dependencies to MudGame (LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator)
@@ -128,8 +135,8 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 3. ✅ **COMPLETED**: Add V3 dependencies to MudGame - LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator added (MudGameEngine.kt:126-142, compiles successfully)
 4. ✅ **COMPLETED**: Update console MovementHandlers.kt with V3 support - handleMove() uses movePlayerV3() when graph nodes available, handleLook/handleSearch check getCurrentSpace(), compiles successfully (MovementHandlers.kt:15-158)
 5. ✅ **COMPLETED**: Update client ClientMovementHandlers.kt with V3 support - handleMove() checks getCurrentGraphNode() first, uses movePlayerV3(), falls back to V2 space/room navigation, compiles successfully (ClientMovementHandlers.kt:14-67)
-6. ❌ **NEXT**: Add chunk storage to WorldState and integrate lazy-fill (~2-3h) - Required for fillSpaceContent()
-7. ❌ **TEST**: Movement integration tests (~30min)
+6. ✅ **COMPLETED**: Add chunk storage to WorldState and integrate lazy-fill - chunks map added (WorldState.kt:18), getChunk/updateChunk/addChunk methods added (lines 257-269), lazy-fill integrated in both handlers (MovementHandlers.kt:37-63, ClientMovementHandlers.kt:29-55)
+7. ❌ **NEXT**: Movement integration tests (~30min)
 8. ❌ **Update remaining handlers** for V3 compatibility (~4-5h)
 9. ❌ **Update game loop and clients** for V3 (~4-6h)
 10. ❌ **Remove deprecated V2 code** and add integration tests (~3h)
