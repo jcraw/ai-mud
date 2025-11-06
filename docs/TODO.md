@@ -1,6 +1,8 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-05 - V3 Handler Migration Complete (All console handlers updated for V3 compatibility with V2 fallback)
+Last updated: 2025-11-05 - V3 Handler Migration Complete, Game Loop Integration Blocked
+
+**Status**: Console handlers fully V3-compatible with V2 fallback. Game loop integration requires frontier traversal implementation.
 
 ## Current Status
 
@@ -156,22 +158,30 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 7. ⏸️ **DEFERRED**: Movement integration tests - Deferred until WorldState/PlayerState refactoring complete (players map vs single player field causes test compilation errors)
 8. ✅ **COMPLETED**: V3 entity storage implemented - Added entities map to WorldState (line 19), 7 new entity CRUD methods (lines 272-332), deprecated old V3 methods, build successful
 9. ✅ **COMPLETED**: Console handlers updated for V3 compatibility - All 4 handler files migrated with V3/V2 fallback pattern, build successful (ItemHandlers.kt, CombatHandlers.kt, SocialHandlers.kt, SkillQuestHandlers.kt)
-10. ❌ **NEXT**: Update game loop and clients for V3 (~4-6h)
-11. ❌ **Integration tests** after WorldState/PlayerState refactoring (~2-3h)
-12. ❌ **Remove deprecated V2 code** (~1h)
+10. ❌ **BLOCKED**: Update game loop and clients for V3 (~4-6h)
+    **BLOCKER**: V3 world generation incomplete - WorldGenerator.generateChunk() only creates single chunks. Multi-chunk generation (chunk cascade/frontier traversal) not implemented. Game loop integration requires:
+    - Frontier detection when player moves to frontier node
+    - Automatic adjacent chunk generation (chunk cascade logic)
+    - Multi-chunk world initialization for new games
+    **WORKAROUND**: Could create single-chunk V3 worlds for testing, but not practical for full gameplay
+11. ❌ **Integration tests** after game loop integration (~2-3h)
+12. ❌ **Remove deprecated V2 code** after V3 fully operational (~1h)
 
-**Note**: Console handlers migration complete. All handlers use V3 entity storage with V2 fallback. Build successful with no errors.
+**Note**: Console handlers migration complete. All handlers use V3 entity storage with V2 fallback. Build successful with no errors. **V3 integration paused pending frontier traversal implementation**.
 
-**Remaining Chunks** (see feature plan for details):
-- Chunk 3: Graph Generation Algorithms
-- Chunk 4: Graph Validation System
-- Chunk 5: Integrate Graph Generation with World System
-- Chunk 6: Hidden Exit Revelation via Perception
-- Chunk 7: Dynamic Edge Modification (Player Agency)
-- Chunk 8: Breakout Edges to New Biomes
-- Chunk 9: Update Exit Resolution for Graph Structure
-- Chunk 10: Comprehensive Testing
-- Chunk 11: Documentation Updates
+**Remaining V3 Chunks** (see feature plan for details):
+- ✅ Chunk 1-2: GraphNodeComponent ECS component, database schema, repository (COMPLETE)
+- ✅ Chunk 3: Graph generation algorithms - layouts, MST, edge generation (COMPLETE)
+- ✅ Chunk 4: Graph validation - reachability, loops, degree, frontiers (COMPLETE)
+- ⏸️ Chunk 5: Integrate graph generation (PARTIAL - single chunk only, missing multi-chunk cascade)
+- ❌ Chunk 6: Hidden exit revelation via perception
+- ❌ Chunk 7: Dynamic edge modification (player agency)
+- ❌ Chunk 8: Breakout edges to new biomes
+- ❌ Chunk 9: Update exit resolution for graph structure
+- ❌ Chunk 10: Comprehensive testing
+- ❌ Chunk 11: Documentation updates
+
+**Priority**: Implement frontier traversal and chunk cascade generation to unblock game loop integration.
 
 ## Completed Systems Summary
 
