@@ -1,6 +1,6 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-06 - All Game Modes V3-Compatible
+Last updated: 2025-11-06 - V2 Removal Plan Documented
 
 **Status**: Console handlers, MultiUserGame, and EngineGameClient (GUI client) fully V3-compatible with V2 fallback. Frontier traversal logic implemented. Build successful. All game modes ready for V3 testing.
 
@@ -206,13 +206,12 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - Play through all game modes (console, multi-user, GUI client) with V3 support
 
 **Next Steps**:
-1. **CRITICAL: Remove V2 fallback code** - Current implementation violates project guidelines ("no backward compatibility needed"). Estimated 8-12h work:
-   - Console handlers have V3 with V2 fallback (~49 occurrences) - should be V3-only
-   - GUI client is pure V2 (~18 occurrences) - needs migration to V3-only
-   - GameServer/MultiUserGame have V2 code (~8 occurrences) - needs V3-only migration
-   - WorldState has deprecated Room methods and `rooms` field - needs removal
+1. **CRITICAL: Remove V2 fallback code** - Current implementation violates project guidelines ("no backward compatibility needed").
+   - **See `docs/V2_REMOVAL_PLAN.md` for complete 7-phase migration plan**
+   - Estimated 8-12h work total
    - Total: ~177 V2 references across 42 files need cleanup
-   - See "V2 Removal Requirements" section below for details
+   - Breaking change: Intentionally breaks V2 compatibility to enforce V3-only architecture
+   - See "V2 Removal Requirements" section below for summary
 
 2. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
 

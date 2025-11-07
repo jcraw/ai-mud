@@ -175,7 +175,7 @@ Memory (store for RAG)
 
 - **✅ Production Ready** - All planned features complete, application builds and runs successfully
 - **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
-- **⚠️ V2 CODE ISSUE** - Current implementation has V3 with V2 fallbacks, violating project guideline "no backward compatibility needed". ~177 V2 references across 42 files need removal (est. 8-12h work). See `docs/TODO.md` "V2 Removal Requirements" section.
+- **⚠️ V2 CODE ISSUE** - Current implementation has V3 with V2 fallbacks, violating project guideline "no backward compatibility needed". ~177 V2 references across 42 files need removal (est. 8-12h work). See `docs/V2_REMOVAL_PLAN.md` for complete 7-phase migration plan.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -200,6 +200,7 @@ Memory (store for RAG)
 
 ### Development Status
 - **[V3 Status](docs/V3_STATUS.md)** - World System V3 progress, blockers, next steps
+- **[V2 Removal Plan](docs/V2_REMOVAL_PLAN.md)** - 7-phase migration plan to remove V2 fallback code (8-12h)
 
 ## Current Status
 
