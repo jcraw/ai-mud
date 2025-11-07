@@ -35,11 +35,8 @@ data class NavigationState(
         newSpaceId: String,
         repo: WorldChunkRepository
     ): Result<NavigationState> = runCatching {
-        // Query the chunk for this space to get its parent
-        val spaceChunk = repo.findById(newSpaceId).getOrThrow()
-            ?: error("Space chunk not found: $newSpaceId")
-
-        val newSubzoneId = spaceChunk.parentId
+        // Extract the parent SUBZONE ID from the space ID using ChunkIdGenerator
+        val newSubzoneId = ChunkIdGenerator.extractParentId(newSpaceId)
             ?: error("Space has no parent subzone: $newSpaceId")
 
         // Walk up the hierarchy
@@ -94,11 +91,8 @@ data class NavigationState(
             startingSpaceId: String,
             repo: WorldChunkRepository
         ): Result<NavigationState> = runCatching {
-            // Query the chunk for this space to get its parent
-            val spaceChunk = repo.findById(startingSpaceId).getOrThrow()
-                ?: error("Space chunk not found: $startingSpaceId")
-
-            val subzoneId = spaceChunk.parentId
+            // Extract the parent SUBZONE ID from the space ID using ChunkIdGenerator
+            val subzoneId = ChunkIdGenerator.extractParentId(startingSpaceId)
                 ?: error("Space has no parent subzone: $startingSpaceId")
 
             // Walk up the hierarchy

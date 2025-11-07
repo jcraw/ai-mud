@@ -1,4 +1,4 @@
-package com.jcraw.mud.reasoning.world
+package com.jcraw.mud.core.world
 
 import com.jcraw.mud.core.world.ChunkLevel
 import java.util.UUID
