@@ -1,10 +1,9 @@
 package com.jcraw.mud.reasoning.procedural
 
-import com.jcraw.mud.core.PlayerId
-import com.jcraw.mud.core.PlayerState
-import com.jcraw.mud.core.Room
-import com.jcraw.mud.core.Stats
-import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.*
+import com.jcraw.mud.core.world.EdgeData
+import com.jcraw.mud.core.world.NodeType
+import com.jcraw.mud.core.world.TerrainType
 import kotlin.random.Random
 
 /**
@@ -76,8 +75,50 @@ class ProceduralDungeonBuilder(
 
         println("✅ Dungeon generated! Starting room: $entranceId")
 
+        // Convert rooms to V3 spaces and entities
+        val graphNodesMap = mutableMapOf<SpaceId, GraphNodeComponent>()
+        val spacesMap = mutableMapOf<SpaceId, SpacePropertiesComponent>()
+        val entitiesMap = mutableMapOf<String, Entity>()
+
+        rooms.forEach { (roomId, room) ->
+            // Create graph node from room exits
+            val edges = room.exits.entries.map { (direction, targetId) ->
+                EdgeData(targetId, direction.displayName, false)
+            }
+            graphNodesMap[roomId] = GraphNodeComponent(
+                id = roomId,
+                position = null, // Procedural dungeons don't use grid positions
+                type = NodeType.Hub, // Default to Hub for procedural rooms
+                neighbors = edges,
+                chunkId = "procedural_chunk_0" // All in one chunk
+            )
+
+            // Create space from room
+            // Room has traits, not description - generate simple description from traits
+            val description = if (room.traits.isEmpty()) {
+                "A ${room.name.lowercase()}."
+            } else {
+                room.traits.joinToString(". ", postfix = ".")
+            }
+
+            spacesMap[roomId] = SpacePropertiesComponent(
+                name = room.name,
+                description = description,
+                terrainType = TerrainType.NORMAL, // Procedural rooms don't specify terrain
+                brightness = 50, // Default brightness
+                entities = room.entities.map { it.id }
+            )
+
+            // Add entities to global storage
+            room.entities.forEach { entity ->
+                entitiesMap[entity.id] = entity
+            }
+        }
+
         return WorldState(
-            rooms = rooms,
+            graphNodes = graphNodesMap,
+            spaces = spacesMap,
+            entities = entitiesMap,
             players = mapOf(playerId to player)
         )
     }

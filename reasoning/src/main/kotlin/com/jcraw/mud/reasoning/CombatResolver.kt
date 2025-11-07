@@ -15,7 +15,7 @@ class CombatResolver {
      */
     fun initiateCombat(worldState: WorldState, player: PlayerState, targetNpcId: String): CombatResult? {
         val space = worldState.getCurrentSpace(player.id) ?: return null
-        val npc = worldState.getEntitiesInSpace(space.id).filterIsInstance<Entity.NPC>()
+        val npc = worldState.getEntitiesInSpace(player.currentRoomId).filterIsInstance<Entity.NPC>()
             .find { it.id == targetNpcId }
             ?: return null
 
@@ -103,7 +103,7 @@ class CombatResolver {
      */
     private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int {
         val space = worldState.getCurrentSpace(player.id) ?: return 0
-        val npc = worldState.getEntitiesInSpace(space.id).filterIsInstance<Entity.NPC>()
+        val npc = worldState.getEntitiesInSpace(player.currentRoomId).filterIsInstance<Entity.NPC>()
             .find { it.id == npcId }
             ?: return 0
 

@@ -1,9 +1,6 @@
 package com.jcraw.mud.reasoning.combat
 
-import com.jcraw.mud.core.Entity
-import com.jcraw.mud.core.ItemInstance
-import com.jcraw.mud.core.Room
-import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.*
 import kotlin.random.Random
 
 /**

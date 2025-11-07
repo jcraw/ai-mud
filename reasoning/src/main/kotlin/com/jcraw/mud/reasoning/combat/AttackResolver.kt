@@ -279,8 +279,8 @@ private fun WorldState.findEntity(entityId: String): Entity? {
         )
     }
 
-    // Search all rooms for the entity
-    return rooms.values.flatMap { it.entities }.find { it.id == entityId }
+    // Search global entity storage (V3)
+    return entities[entityId]
 }
 
 /**

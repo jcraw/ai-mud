@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Phase 1-2 Complete (Core WorldState cleanup + Console Handlers)
-**Estimated Effort**: 8-12 hours (4-6h spent)
+**Status**: Phase 1-2a Complete (Core WorldState + Console Handlers + Reasoning Module)
+**Estimated Effort**: 8-12 hours (7-10h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -130,31 +130,28 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Note**: Build broken - reasoning module has extensive V2 dependencies (see Phase 2a below)
 
-### Phase 2a: Reasoning Module V2 Cleanup (NEW - Est. 3-4h) - IN PROGRESS
+### Phase 2a: Reasoning Module V2 Cleanup (Est. 3-4h) ✅ COMPLETE
 
 **Objective**: Remove V2 dependencies from reasoning module
 
-**Status**: 10/14 files migrated to V3. Minor compilation errors remaining.
+**Status**: All 14 files successfully migrated to V3. Reasoning module compiles successfully.
 
-**Completed Files** (10 files):
-- ✅ `CombatNarrator.kt` - Updated to use `getCurrentSpace()` (2 occurrences)
-- ✅ `CombatResolver.kt` - Updated to use `getCurrentSpace()` + `getEntitiesInSpace()` (2 occurrences)
+**Completed Files** (14 files):
+- ✅ `CombatNarrator.kt` - Updated to use `getCurrentSpace()`, fixed `terrain` → `terrainType` (2 occurrences)
+- ✅ `CombatResolver.kt` - Updated to use `getCurrentSpace()` + `getEntitiesInSpace()`, fixed space.id → player.currentRoomId (2 occurrences)
 - ✅ `CombatInitiator.kt` - Updated to use `getEntitiesInSpace()` (1 occurrence)
 - ✅ `CombatBehavior.kt` - Updated to use V3 entity storage (4 occurrences)
-- ✅ `QuestTracker.kt` - Updated to use global entity storage (2 occurrences)
+- ✅ `QuestTracker.kt` - Updated to use global entity storage, fixed smart cast issue (2 occurrences)
 - ✅ `DeathHandler.kt` - Updated to use V3 spaces + entities (3 occurrences)
-- ✅ `CorpseDecayManager.kt` - Updated to use V3 spaces + entities (3 occurrences)
+- ✅ `CorpseDecayManager.kt` - Updated to use V3 spaces + entities, added missing imports (3 occurrences)
 - ✅ `MonsterAIHandler.kt` - Updated to use global entity storage (2 occurrences)
 - ✅ `TurnQueueManager.kt` - Updated to use global entity storage (1 occurrence)
 - ✅ `QuestGenerator.kt` - Updated to use V3 spaces + entities (7 occurrences)
+- ✅ `AttackResolver.kt` - Changed `rooms.values.flatMap { it.entities }` → `entities.values` (1 occurrence)
+- ✅ `StatusEffectApplicator.kt` - Updated entity lookup and updateEntityCombat to use global entity storage (2 occurrences)
+- ✅ `ProceduralDungeonBuilder.kt` - Converted Room → V3 (GraphNodeComponent + SpacePropertiesComponent + entities map), added imports
 
-**Remaining Issues** (4 files):
-- `AttackResolver.kt` - Still uses `world.rooms`
-- `StatusEffectApplicator.kt` - Still uses `world.rooms`
-- `ProceduralDungeonBuilder.kt` - Still uses `world.rooms`
-- Minor fixes needed: SpacePropertiesComponent field names (`terrainType` not `terrain`), missing imports
-
-**Priority**: BLOCKING - Must complete before Phase 3 (GUI Client)
+**Result**: Reasoning module is now V3-only. All files compile successfully with only 2 deprecation warnings (expected for legacy V1 combat methods).
 
 ### Phase 3: GUI Client (Est. 2-3h)
 

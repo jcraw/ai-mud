@@ -2,7 +2,7 @@
 
 Last updated: 2025-11-06 - V2 Removal Phase 1 Complete
 
-**Status**: Phase 1 of V2 removal complete - WorldState is now V3-only (all V2 methods removed). Build intentionally broken to force migration. See docs/V2_REMOVAL_PLAN.md for remaining phases.
+**Status**: Phase 1-2a of V2 removal complete - WorldState, Console Handlers, and Reasoning Module are now V3-only. Main code compiles successfully. Tests broken (Phase 5). See docs/V2_REMOVAL_PLAN.md for remaining phases.
 
 ## Current Status
 
@@ -214,13 +214,19 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
    - 64 V2 references removed total
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2 completion report
 
-3. **NEXT: Phase 2a - Reasoning Module V2 Cleanup** (NEW - Est. 3-4h) - **BLOCKING**
-   - Console handlers migrated successfully, but build broken due to reasoning module V2 dependencies
-   - ~20+ files in reasoning module use removed V2 methods (getCurrentRoom, getRoom, updateRoom, rooms property)
-   - Must be completed before continuing to Phase 3
-   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2a plan
+3. ✅ **Phase 2a COMPLETE: Reasoning Module V2 Cleanup** (3-4h)
+   - All 14 reasoning module files migrated to V3
+   - Fixed field name issues (terrain → terrainType), smart cast issues, missing imports
+   - Converted ProceduralDungeonBuilder to generate V3 structures (GraphNodeComponent + SpacePropertiesComponent)
+   - Reasoning module compiles successfully
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2a completion report
 
-4. **Phase 3-7** - GUI Client, Infrastructure, Tests, Dependencies, Documentation (Est. 5-8h)
+4. **NEXT: Phase 3 - GUI Client** (Est. 2-3h) - **BLOCKING**
+   - GUI client needs V3-only migration (currently uses V2 with fallback)
+   - 7 client handler files need updating
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 3 plan
+
+5. **Phase 4-7** - Infrastructure, Tests, Dependencies, Documentation (Est. 3-5h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
 
 5. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring

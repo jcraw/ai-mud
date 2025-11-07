@@ -218,8 +218,8 @@ private fun WorldState.findEntity(entityId: String): Entity? {
         return null
     }
 
-    // Search all rooms for the entity
-    return rooms.values.flatMap { it.entities }.find { it.id == entityId }
+    // Search global entity storage (V3)
+    return entities[entityId]
 }
 
 /**
@@ -242,24 +242,16 @@ private fun WorldState.updateEntityCombat(
     entityId: String,
     updatedCombat: CombatComponent
 ): WorldState {
-    // Find which room contains the entity
-    val roomWithEntity = rooms.values.find { room ->
-        room.entities.any { it.id == entityId }
-    } ?: return this // Entity not found, return unchanged
+    // Get entity from global storage (V3)
+    val entity = entities[entityId] ?: return this
 
-    // Update the entity in the room
-    val updatedEntities = roomWithEntity.entities.map { entity ->
-        if (entity.id == entityId && entity is Entity.NPC) {
-            // Replace combat component using ComponentHost interface
-            entity.withComponent(updatedCombat)
-        } else {
-            entity
-        }
+    // Update the entity's combat component
+    val updatedEntity = if (entity is Entity.NPC) {
+        entity.withComponent(updatedCombat)
+    } else {
+        return this // Entity is not an NPC, can't update combat
     }
 
-    // Update room with updated entities
-    val updatedRoom = roomWithEntity.copy(entities = updatedEntities)
-
-    // Update world state with updated room
-    return copy(rooms = rooms + (updatedRoom.id to updatedRoom))
+    // Update entity in global storage (V3)
+    return updateEntity(updatedEntity)
 }

@@ -198,7 +198,7 @@ class CombatNarrator(
         val userContext = buildString {
             appendLine("Combat Round:")
             appendLine("Location: ${space.name}")
-            appendLine("Room atmosphere: ${space.terrain}")
+            appendLine("Room atmosphere: ${space.terrainType}")
             appendLine()
             appendLine("Combatants:")
             appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")
@@ -270,7 +270,7 @@ class CombatNarrator(
         val userContext = buildString {
             appendLine("Combat Starting:")
             appendLine("Location: ${space.name}")
-            appendLine("Atmosphere: ${space.terrain}")
+            appendLine("Atmosphere: ${space.terrainType}")
             appendLine("Player weapon: $weapon")
             appendLine("Enemy: ${npc.name} - ${npc.description}")
             appendLine("Enemy disposition: ${if (npc.isHostile) "Hostile" else "Provoked"}")

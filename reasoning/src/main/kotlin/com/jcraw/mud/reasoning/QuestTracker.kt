@@ -50,7 +50,8 @@ class QuestTracker(
         }
 
         // Find the quest giver NPC (V3: entities are stored globally)
-        val questGiver = worldState.getEntity(quest.giver) as? Entity.NPC ?: return worldState
+        val giverId = quest.giver ?: return worldState // Already checked null above, but compiler needs this
+        val questGiver = worldState.getEntity(giverId) as? Entity.NPC ?: return worldState
 
         // Apply quest completed event (+15 disposition)
         val event = SocialEvent.QuestCompleted(quest.title)
