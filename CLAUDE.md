@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: ✅ PRODUCTION READY** - This is a fully functional AI-powered MUD (Multi-User Dungeon) engine with modular architecture, procedural world generation, dynamic quest system, persistent save/load, multi-user game server, Compose Multiplatform GUI client, and console-based game loop with turn-based combat, equipment system, consumables, D&D-style skill checks, social interactions, and RAG-enhanced memory system.
+**Current State: ⚠️ BUILD BROKEN** - V2 Removal Phase 1 in progress. WorldState is now V3-only (all V2 methods removed). Build intentionally broken to force V2→V3 migration. See `docs/V2_REMOVAL_PLAN.md` for status.
 
-**Quick Start**:
-- Console: `gradle installDist && app/build/install/app/bin/app`
-- GUI Client: `gradle :client:run`
+**Previous State**: Fully functional AI-powered MUD engine with all features complete. Temporarily broken during V2 code removal to enforce V3-only architecture per project guidelines ("no backward compatibility needed").
+
+**Quick Start**: Currently unavailable (build broken during migration)
 
 For complete documentation, see:
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Setup, commands, gameplay features
@@ -173,9 +173,9 @@ Memory (store for RAG)
 
 ## Important Notes
 
-- **✅ Production Ready** - All planned features complete, application builds and runs successfully
+- **⚠️ BUILD BROKEN** - V2 Removal Phase 1 complete (WorldState V3-only). Build intentionally broken to force migration.
+- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1 complete (Core WorldState). Phase 2-7 remaining (est. 6-10h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
 - **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
-- **⚠️ V2 CODE ISSUE** - Current implementation has V3 with V2 fallbacks, violating project guideline "no backward compatibility needed". ~177 V2 references across 42 files need removal (est. 8-12h work). See `docs/V2_REMOVAL_PLAN.md` for complete 7-phase migration plan.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -204,8 +204,9 @@ Memory (store for RAG)
 
 ## Current Status
 
-**✅ PRODUCTION READY - ALL SYSTEMS COMPLETE**
-**⚠️ V3 NEEDS CLEANUP** - Graph-Based Navigation functional but has V2 fallback code that violates "no backward compatibility" guideline (see V2 Removal Requirements in TODO.md)
+**⚠️ BUILD BROKEN - V2 REMOVAL IN PROGRESS**
+**Phase 1 COMPLETE** - WorldState is now V3-only (all V2 methods removed)
+**Phase 2-7 REMAINING** - Console handlers, GUI client, infrastructure, tests need V2 code removed (est. 6-10h)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones

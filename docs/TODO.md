@@ -1,8 +1,8 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-06 - V2 Removal Plan Documented
+Last updated: 2025-11-06 - V2 Removal Phase 1 Complete
 
-**Status**: Console handlers, MultiUserGame, and EngineGameClient (GUI client) fully V3-compatible with V2 fallback. Frontier traversal logic implemented. Build successful. All game modes ready for V3 testing.
+**Status**: Phase 1 of V2 removal complete - WorldState is now V3-only (all V2 methods removed). Build intentionally broken to force migration. See docs/V2_REMOVAL_PLAN.md for remaining phases.
 
 ## Current Status
 
@@ -206,18 +206,21 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - Play through all game modes (console, multi-user, GUI client) with V3 support
 
 **Next Steps**:
-1. **CRITICAL: Remove V2 fallback code** - Current implementation violates project guidelines ("no backward compatibility needed").
-   - **See `docs/V2_REMOVAL_PLAN.md` for complete 7-phase migration plan**
-   - Estimated 8-12h work total
-   - Total: ~177 V2 references across 42 files need cleanup
-   - Breaking change: Intentionally breaks V2 compatibility to enforce V3-only architecture
-   - See "V2 Removal Requirements" section below for summary
+1. ✅ **Phase 1 COMPLETE: Core WorldState V3-only** - Removed all V2 methods and `rooms` field from WorldState
+   - Build intentionally broken - forces V2 to V3 migration in remaining code
 
-2. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+2. **NEXT: Phase 2 - Console Handlers** (Est. 3-4h) - Remove V2 fallback code from console handlers
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2 plan
+   - Remove V2 fallback patterns from MovementHandlers, ItemHandlers, CombatHandlers, SocialHandlers, SkillQuestHandlers, TradeHandlers, PickpocketHandlers
 
-3. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+3. **Phase 3-7** - GUI Client, Infrastructure, Tests, Dependencies, Documentation (Est. 5-8h)
+   - See `docs/V2_REMOVAL_PLAN.md` for complete plan
 
-4. **Implement remaining chunks (7-11)** - Optional enhancements for player agency and polish
+4. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+
+5. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+
+6. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
 
 ## V2 Removal Requirements
 

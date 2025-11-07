@@ -18,10 +18,6 @@ data class WorldState(
     val chunks: Map<String, WorldChunkComponent> = emptyMap(), // V3: Chunk hierarchy storage
     val entities: Map<String, Entity> = emptyMap(), // V3: Entity storage (SpacePropertiesComponent refs by ID)
 
-    // V2 compatibility: Deprecated, will be removed after migration
-    @Deprecated("Use graphNodes + spaces instead")
-    val rooms: Map<RoomId, Room> = emptyMap(),
-
     val players: Map<PlayerId, PlayerState>,
     val turnCount: Int = 0,
     val gameTime: Long = 0L,
@@ -32,18 +28,7 @@ data class WorldState(
     val player: PlayerState
         get() = players.values.firstOrNull() ?: throw IllegalStateException("No players in world")
 
-    fun getCurrentRoom(): Room? = rooms[player.currentRoomId]
-
-    fun getCurrentRoom(playerId: PlayerId): Room? {
-        val playerState = players[playerId] ?: return null
-        return rooms[playerState.currentRoomId]
-    }
-
     fun getPlayer(playerId: PlayerId): PlayerState? = players[playerId]
-
-    fun getRoom(roomId: RoomId): Room? = rooms[roomId]
-
-    fun updateRoom(room: Room): WorldState = copy(rooms = rooms + (room.id to room))
 
     fun updatePlayer(newPlayerState: PlayerState): WorldState =
         copy(players = players + (newPlayerState.id to newPlayerState))
@@ -61,55 +46,6 @@ data class WorldState(
      * Used for asynchronous turn-based combat timing.
      */
     fun advanceTime(ticks: Long): WorldState = copy(gameTime = gameTime + ticks)
-
-    fun movePlayer(playerId: PlayerId, direction: Direction): WorldState? {
-        val playerState = players[playerId] ?: return null
-        val currentRoom = rooms[playerState.currentRoomId] ?: return null
-        val targetRoomId = currentRoom.getExit(direction) ?: return null
-
-        return if (rooms.containsKey(targetRoomId)) {
-            updatePlayer(playerState.moveToRoom(targetRoomId))
-        } else {
-            null
-        }
-    }
-
-    fun movePlayer(direction: Direction): WorldState? {
-        val currentRoom = getCurrentRoom() ?: return null
-        val targetRoomId = currentRoom.getExit(direction) ?: return null
-
-        return if (rooms.containsKey(targetRoomId)) {
-            updatePlayer(player.moveToRoom(targetRoomId))
-        } else {
-            null
-        }
-    }
-
-    fun addEntityToRoom(roomId: RoomId, entity: Entity): WorldState? {
-        val room = getRoom(roomId) ?: return null
-        val updatedRoom = room.addEntity(entity)
-        return updateRoom(updatedRoom)
-    }
-
-    fun removeEntityFromRoom(roomId: RoomId, entityId: String): WorldState? {
-        val room = getRoom(roomId) ?: return null
-        val updatedRoom = room.removeEntity(entityId)
-        return updateRoom(updatedRoom)
-    }
-
-    fun replaceEntity(roomId: RoomId, entityId: String, newEntity: Entity): WorldState? {
-        val room = getRoom(roomId) ?: return null
-        val updatedRoom = room.removeEntity(entityId).addEntity(newEntity)
-        return updateRoom(updatedRoom)
-    }
-
-    fun getAvailableExits(): List<Direction> = getCurrentRoom()?.getAvailableDirections() ?: emptyList()
-
-    fun getAvailableExits(playerId: PlayerId): List<Direction> =
-        getCurrentRoom(playerId)?.getAvailableDirections() ?: emptyList()
-
-    fun getPlayersInRoom(roomId: RoomId): List<PlayerState> =
-        players.values.filter { it.currentRoomId == roomId }
 
     fun addAvailableQuest(quest: Quest): WorldState =
         copy(availableQuests = availableQuests + quest)
@@ -228,28 +164,6 @@ data class WorldState(
      * Get available exits for main player (V3)
      */
     fun getAvailableExitsV3(): List<Direction> = getAvailableExitsV3(player.id)
-
-    /**
-     * Add entity to space (V3) - DEPRECATED
-     * Use addEntityToSpace() instead, which manages both entity storage and space linking
-     */
-    @Deprecated("Use addEntityToSpace(spaceId, entity) to manage entity storage", ReplaceWith("addEntityToSpace(spaceId, entity)"))
-    fun addEntityToSpaceV3(spaceId: SpaceId, entityId: String): WorldState? {
-        val space = getSpace(spaceId) ?: return null
-        val updatedSpace = space.addEntity(entityId)
-        return updateSpace(spaceId, updatedSpace)
-    }
-
-    /**
-     * Remove entity from space (V3) - DEPRECATED
-     * Use removeEntityFromSpace() instead, which manages both entity storage and space unlinking
-     */
-    @Deprecated("Use removeEntityFromSpace(spaceId, entityId) to manage entity storage", ReplaceWith("removeEntityFromSpace(spaceId, entityId)"))
-    fun removeEntityFromSpaceV3(spaceId: SpaceId, entityId: String): WorldState? {
-        val space = getSpace(spaceId) ?: return null
-        val updatedSpace = space.removeEntity(entityId)
-        return updateSpace(spaceId, updatedSpace)
-    }
 
     // ========================================
     // V3: Chunk management methods

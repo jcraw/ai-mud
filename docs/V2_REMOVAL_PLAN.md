@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Not Started
-**Estimated Effort**: 8-12 hours
+**Status**: Phase 1 Complete (Core WorldState cleanup)
+**Estimated Effort**: 8-12 hours (1-2h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -58,27 +58,29 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 ## Migration Strategy
 
-### Phase 1: Core WorldState (Est. 1-2h)
+### Phase 1: Core WorldState (Est. 1-2h) ✅ COMPLETE
 
 **Objective**: Make WorldState V3-only
 
-**Steps**:
-1. Remove deprecated V2 methods from WorldState.kt:
-   - Remove `getCurrentRoom()` (lines 35-40)
-   - Remove `getRoom()` (line 44)
-   - Remove `updateRoom()` (line 46)
-   - Remove `movePlayer()` V2 variants (lines 65-86)
-   - Remove `addEntityToRoom()` (lines 88-92)
-   - Remove `removeEntityFromRoom()` (lines 94-98)
-   - Remove `replaceEntity()` (lines 100-104)
-   - Remove `getAvailableExits()` V2 variants (lines 106-109)
-   - Remove `getPlayersInRoom()` (lines 111-112)
+**Completed Steps**:
+1. ✅ Removed all deprecated V2 methods from WorldState.kt:
+   - ✅ Removed `getCurrentRoom()` (both variants)
+   - ✅ Removed `getRoom()`
+   - ✅ Removed `updateRoom()`
+   - ✅ Removed `movePlayer()` V2 variants (both overloads)
+   - ✅ Removed `addEntityToRoom()`
+   - ✅ Removed `removeEntityFromRoom()`
+   - ✅ Removed `replaceEntity()`
+   - ✅ Removed `getAvailableExits()` V2 variants (both overloads)
+   - ✅ Removed `getPlayersInRoom()`
 
-2. Remove the `rooms` field (line 23)
+2. ✅ Removed the `rooms` field from data class
 
-3. Update V3 methods to be the primary API (remove "V3" suffix if desired)
+3. ✅ Removed deprecated V3 helper methods (`addEntityToSpaceV3`, `removeEntityFromSpaceV3`) that had better V3 replacements
 
-**Expected Breakage**: This will break compilation in ~40 files. This is intentional - it forces migration.
+**Result**: WorldState is now V3-only. File reduced from 336 lines to 272 lines.
+
+**Expected Breakage**: Build fails at core module (SampleDungeon.kt) - intentional. Forces migration in subsequent phases.
 
 ### Phase 2: Console Handlers (Est. 3-4h)
 
