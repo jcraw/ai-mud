@@ -209,18 +209,25 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 1. ✅ **Phase 1 COMPLETE: Core WorldState V3-only** - Removed all V2 methods and `rooms` field from WorldState
    - Build intentionally broken - forces V2 to V3 migration in remaining code
 
-2. **NEXT: Phase 2 - Console Handlers** (Est. 3-4h) - Remove V2 fallback code from console handlers
-   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2 plan
-   - Remove V2 fallback patterns from MovementHandlers, ItemHandlers, CombatHandlers, SocialHandlers, SkillQuestHandlers, TradeHandlers, PickpocketHandlers
+2. ✅ **Phase 2 COMPLETE: Console Handlers** (3-4h) - Removed V2 fallback code from all console handlers
+   - All 7 handler files migrated: MovementHandlers, ItemHandlers, CombatHandlers, SocialHandlers, SkillQuestHandlers, TradeHandlers, PickpocketHandlers
+   - 64 V2 references removed total
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2 completion report
 
-3. **Phase 3-7** - GUI Client, Infrastructure, Tests, Dependencies, Documentation (Est. 5-8h)
+3. **NEXT: Phase 2a - Reasoning Module V2 Cleanup** (NEW - Est. 3-4h) - **BLOCKING**
+   - Console handlers migrated successfully, but build broken due to reasoning module V2 dependencies
+   - ~20+ files in reasoning module use removed V2 methods (getCurrentRoom, getRoom, updateRoom, rooms property)
+   - Must be completed before continuing to Phase 3
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2a plan
+
+4. **Phase 3-7** - GUI Client, Infrastructure, Tests, Dependencies, Documentation (Est. 5-8h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
 
-4. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+5. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
 
-5. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+6. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
 
-6. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
+7. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
 
 ## V2 Removal Requirements
 

@@ -287,8 +287,10 @@ object SampleDungeon {
             )
         )
 
+        // V3: WorldState no longer accepts rooms parameter (V2 code removed)
+        // SampleDungeon is deprecated - use WorldGenerator for V3 worlds
+        // This creates an empty V3 world for backward compatibility
         return WorldState(
-            rooms = rooms,
             players = mapOf(playerId to initialPlayer)
         )
     }

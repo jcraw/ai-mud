@@ -44,24 +44,13 @@ object CombatHandlers {
             return
         }
 
-        // Find the target NPC
-        val npc = if (space != null) {
-            // V3 path: use entity storage
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        } else {
-            // V2 fallback
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        }
+        // Find the target NPC (V3)
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
 
         if (npc == null) {
             println("You don't see anyone by that name to attack.")
@@ -93,16 +82,8 @@ object CombatHandlers {
                 // Apply damage from AttackResolver - damage already applied to component
                 val updatedNpc = npc.withComponent(attackResult.updatedDefenderCombat) as Entity.NPC
 
-                // Update space/room with damaged NPC
-                if (space != null) {
-                    // V3 path
-                    game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-                } else {
-                    // V2 fallback
-                    val room = game.worldState.getCurrentRoom() ?: return
-                    val updatedRoom = room.removeEntity(npc.id).addEntity(updatedNpc)
-                    game.worldState = game.worldState.updateRoom(updatedRoom)
-                }
+                // Update space with damaged NPC (V3)
+                game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
 
                 // Generate and display attack narrative
                 val weapon = game.worldState.player.equippedWeapon?.name ?: "bare fists"
@@ -128,14 +109,8 @@ object CombatHandlers {
                 if (attackResult.wasKilled) {
                     println("\nVictory! ${npc.name} has been defeated!")
 
-                    if (space != null) {
-                        // V3 path
-                        game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
-                    } else {
-                        // V2 fallback
-                        val room = game.worldState.getCurrentRoom() ?: return
-                        game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
-                    }
+                    // V3: Remove NPC from space
+                    game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
 
                     // Mark entity death for respawn system
                     game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
@@ -215,8 +190,10 @@ object CombatHandlers {
 
         // Display combat narrative
         val combatNarrative = if (game.combatNarrator != null && !attackResult.playerDied && !attackResult.npcDied) {
-            val room = game.worldState.getCurrentRoom()
-            val combatNpc = room?.entities?.filterIsInstance<Entity.NPC>()?.find { it.id == npc.id }
+            val spaceId = game.worldState.player.currentRoomId
+            val combatNpc = game.worldState.getEntitiesInSpace(spaceId)
+                .filterIsInstance<Entity.NPC>()
+                .find { it.id == npc.id }
 
             if (combatNpc != null) {
                 runBlocking {
@@ -239,14 +216,9 @@ object CombatHandlers {
             attackResult.npcDied -> {
                 println("\nVictory! The enemy has been defeated!")
 
-                // Remove NPC using V3 or V2 method
+                // Remove NPC using V3
                 val spaceId = game.worldState.player.currentRoomId
-                val space = game.worldState.getCurrentSpace()
-                if (space != null) {
-                    game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
-                } else {
-                    game.worldState = game.worldState.removeEntityFromRoom(game.worldState.getCurrentRoom()!!.id, npc.id) ?: game.worldState
-                }
+                game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
 
                 // Mark entity death for respawn system
                 game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)

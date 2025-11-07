@@ -16,15 +16,8 @@ object MovementHandlers {
         // V2 combat is emergent - no modal combat state, so movement is always allowed
         // Hostile NPCs in turn queue will get their attacks when their timer expires
 
-        // Try V3 graph-based navigation first
-        val currentGraphNode = game.worldState.getCurrentGraphNode()
-        val newState = if (currentGraphNode != null) {
-            // V3: Graph-based movement
-            game.worldState.movePlayerV3(direction)
-        } else {
-            // V2: Room-based movement fallback
-            game.worldState.movePlayer(direction)
-        }
+        // V3: Graph-based navigation
+        val newState = game.worldState.movePlayerV3(direction)
 
         if (newState == null) {
             println("You can't go that way.")
@@ -139,11 +132,9 @@ object MovementHandlers {
             }
         }
 
-        // Track room/space exploration for quests
-        val room = game.worldState.getCurrentRoom()
-        if (room != null) {
-            game.trackQuests(QuestAction.VisitedRoom(room.id))
-        }
+        // Track space exploration for quests
+        val currentSpaceId = game.worldState.player.currentRoomId
+        game.trackQuests(QuestAction.VisitedRoom(currentSpaceId))
 
         game.describeCurrentRoom()
     }
@@ -153,13 +144,10 @@ object MovementHandlers {
             // Look at room - describeCurrentRoom already shows all entities including items
             game.describeCurrentRoom()
         } else {
-            // V3: Check if using space-based world
-            val space = game.worldState.getCurrentSpace()
-
-            // For now, still use V2 room-based entity access during migration
-            // TODO: Update when entity system is migrated to V3
-            val room = game.worldState.getCurrentRoom() ?: return
-            val entity = room.entities.find { e ->
+            // V3: Use space-based entity system
+            val spaceId = game.worldState.player.currentRoomId
+            val entities = game.worldState.getEntitiesInSpace(spaceId)
+            val entity = entities.find { e ->
                 e.name.lowercase().contains(target.lowercase()) ||
                 e.id.lowercase().contains(target.lowercase())
             }
@@ -168,13 +156,18 @@ object MovementHandlers {
                 println(entity.description)
             } else {
                 // Try to describe scenery (non-entity objects like walls, floor, etc.)
-                val roomDescription = game.generateRoomDescription(room)
-                val sceneryDescription = runBlocking {
-                    game.sceneryGenerator.describeScenery(target, room, roomDescription)
-                }
+                val space = game.worldState.getCurrentSpace()
+                if (space != null) {
+                    val roomDescription = game.generateRoomDescription(space)
+                    val sceneryDescription = runBlocking {
+                        game.sceneryGenerator.describeScenery(target, space, roomDescription)
+                    }
 
-                if (sceneryDescription != null) {
-                    println(sceneryDescription)
+                    if (sceneryDescription != null) {
+                        println(sceneryDescription)
+                    } else {
+                        println("You don't see that here.")
+                    }
                 } else {
                     println("You don't see that here.")
                 }
@@ -230,26 +223,25 @@ object MovementHandlers {
                 }
             }
 
-            // V2: Check for hidden items (backward compatibility)
-            val room = game.worldState.getCurrentRoom()
-            if (room != null) {
-                val hiddenItems = room.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-                val pickupableItems = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+            // V3: Check for hidden items
+            val spaceId = game.worldState.player.currentRoomId
+            val entities = game.worldState.getEntitiesInSpace(spaceId)
+            val hiddenItems = entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+            val pickupableItems = entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
-                if (pickupableItems.isNotEmpty()) {
-                    println("\nYou find the following items:")
-                    pickupableItems.forEach { item ->
-                        println("  - ${item.name}: ${item.description}")
-                    }
-                    foundSomething = true
+            if (pickupableItems.isNotEmpty()) {
+                println("\nYou find the following items:")
+                pickupableItems.forEach { item ->
+                    println("  - ${item.name}: ${item.description}")
                 }
-                if (hiddenItems.isNotEmpty()) {
-                    println("\nYou also notice some interesting features:")
-                    hiddenItems.forEach { item ->
-                        println("  - ${item.name}: ${item.description}")
-                    }
-                    foundSomething = true
+                foundSomething = true
+            }
+            if (hiddenItems.isNotEmpty()) {
+                println("\nYou also notice some interesting features:")
+                hiddenItems.forEach { item ->
+                    println("  - ${item.name}: ${item.description}")
                 }
+                foundSomething = true
             }
 
             if (!foundSomething) {

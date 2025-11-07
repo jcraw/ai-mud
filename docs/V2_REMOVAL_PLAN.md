@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Phase 1 Complete (Core WorldState cleanup)
-**Estimated Effort**: 8-12 hours (1-2h spent)
+**Status**: Phase 1-2 Complete (Core WorldState cleanup + Console Handlers)
+**Estimated Effort**: 8-12 hours (4-6h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -82,52 +82,77 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Expected Breakage**: Build fails at core module (SampleDungeon.kt) - intentional. Forces migration in subsequent phases.
 
-### Phase 2: Console Handlers (Est. 3-4h)
+### Phase 2: Console Handlers (Est. 3-4h) ✅ COMPLETE
 
 **Objective**: Remove V2 fallback code from console handlers
 
-For each handler file, remove V2 fallback patterns:
+**Completed Steps**:
+1. ✅ MovementHandlers.kt - 4 V2 references removed:
+   - Removed V3/V2 fallback in `handleMove()` - now uses `movePlayerV3()` only
+   - Updated quest tracking to use space IDs
+   - Updated `handleLook()` to use V3 entity system
+   - Updated `handleSearch()` to use V3 entity storage
 
-**Pattern to Remove**:
-```kotlin
-// BEFORE (V3 with V2 fallback)
-val currentGraphNode = game.worldState.getCurrentGraphNode()
-val newState = if (currentGraphNode != null) {
-    game.worldState.movePlayerV3(direction)
-} else {
-    game.worldState.movePlayer(direction)  // REMOVE THIS
-}
+2. ✅ ItemHandlers.kt - 35 V2 references removed:
+   - `handleTake()` - V3-only entity storage
+   - `handleTakeAll()` - V3-only entity storage
+   - `handleDrop()` - V3-only entity storage
+   - `handleGive()` - V3-only entity storage
+   - `handleLoot()` - V3-only entity storage
+   - `handleLootAll()` - V3-only entity storage
 
-// AFTER (V3-only)
-val newState = game.worldState.movePlayerV3(direction)
-```
+3. ✅ CombatHandlers.kt - 5 V2 references removed:
+   - Removed V2 room-based entity access
+   - All combat now uses V3 space + entity methods
 
-**Files to Update**:
-1. MovementHandlers.kt
-   - Line 20-27: Remove V2 fallback in `handleMove()`
-   - Line 143-146: Update quest tracking to use V3 spaces
-   - Line 159-165: Update `handleLook()` to use V3 entity system
-   - Line 233-253: Update `handleSearch()` to use V3 only
+4. ✅ SocialHandlers.kt - 11 V2 references removed:
+   - `handleTalk()` - V3-only NPC lookup
+   - `handleEmote()` - V3-only entity storage
+   - `handleAskQuestion()` - V3-only entity storage
+   - `handlePersuade()` - V3-only entity storage
+   - `handleIntimidate()` - V3-only entity storage
+   - `resolveNpcTarget()` - V3-only helper
+   - `buildQuestionContext()` - V3-only (spaces don't have traits)
 
-2. ItemHandlers.kt
-   - Remove all `getCurrentRoom()` calls
-   - Replace with `getCurrentSpace()` + `getEntitiesInSpace()`
+5. ✅ SkillQuestHandlers.kt - 6 V2 references removed:
+   - `handleInteract()` - V3-only entity storage
+   - `handleCheck()` - V3-only entity storage
+   - `handleTrainSkill()` - V3-only entity storage
 
-3. CombatHandlers.kt
-   - Remove V2 room-based entity access
-   - Use V3 space + entity methods
+6. ✅ TradeHandlers.kt - 2 V2 references removed:
+   - `handleTrade()` - Updated to V3 comments (stub function)
+   - `handleListStock()` - Updated to V3 comments (stub function)
 
-4. SocialHandlers.kt
-   - Remove V2 room references
-   - Use V3 space for NPC lookups
+7. ✅ PickpocketHandlers.kt - 1 V2 reference removed:
+   - `handlePickpocket()` - Now uses `getEntitiesInSpace()`
 
-5. SkillQuestHandlers.kt
-   - Update quest tracking to use space IDs instead of room IDs
-   - Use V3 entity methods
+**Result**: Console handlers are now V3-only. All 7 handler files successfully migrated (64 V2 references removed).
 
-6. TradeHandlers.kt, PickpocketHandlers.kt
-   - Remove V2 fallbacks
-   - Use V3-only APIs
+**Note**: Build broken - reasoning module has extensive V2 dependencies (see Phase 2a below)
+
+### Phase 2a: Reasoning Module V2 Cleanup (NEW - Est. 3-4h)
+
+**Objective**: Remove V2 dependencies from reasoning module
+
+**Problem**: Console handlers migrated successfully, but build now broken because reasoning module has extensive V2 method usage:
+
+**Files Needing Updates** (~20+ files):
+- `CombatNarrator.kt` - Uses `getCurrentRoom()`
+- `CombatResolver.kt` - Uses `getCurrentRoom()`
+- `QuestTracker.kt` - Uses `world.rooms` and `updateRoom()`
+- `AttackResolver.kt` - Uses `world.rooms`
+- `CombatBehavior.kt` - Uses `getRoom()` and `updateRoom()`
+- `CombatInitiator.kt` - Uses `getRoom()`
+- `QuestGenerator.kt` - Uses `getRoom()`
+- Additional files in reasoning module need analysis
+
+**Recommended Approach**:
+1. Audit all reasoning module files for V2 method usage
+2. Create V3 adapter methods where needed (e.g., Room → SpacePropertiesComponent)
+3. Update service constructors to accept V3 dependencies
+4. Test reasoning module in isolation
+
+**Priority**: BLOCKING - Must complete before Phase 3 (GUI Client)
 
 ### Phase 3: GUI Client (Est. 2-3h)
 

@@ -22,11 +22,12 @@ fun handlePickpocket(
     pickpocketHandler: PickpocketHandler,
     itemRepository: ItemRepository
 ): Pair<WorldState, String> {
-    val currentRoom = world.rooms[player.currentRoomId]
-        ?: return world to "You are nowhere!"
+    // V3: Use entity storage
+    val spaceId = player.currentRoomId
 
-    // Find target NPC in room
-    val targetNpc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+    // Find target NPC in space
+    val targetNpc = world.getEntitiesInSpace(spaceId)
+        .filterIsInstance<Entity.NPC>()
         .find { it.name.equals(intent.npcTarget, ignoreCase = true) }
         ?: return world to "You don't see ${intent.npcTarget} here."
 

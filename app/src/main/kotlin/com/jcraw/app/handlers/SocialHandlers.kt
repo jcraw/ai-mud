@@ -14,28 +14,16 @@ object SocialHandlers {
      * Handle talking to an NPC - initiates conversation and generates dialogue
      */
     fun handleTalk(game: MudGame, target: String) {
-        // Try V3 first
-        val space = game.worldState.getCurrentSpace()
+        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
 
         // Find the NPC
-        val npc = if (space != null) {
-            // V3 path: use entity storage
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        } else {
-            // V2 fallback
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        }
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
 
         if (npc == null) {
             println("There's no one here by that name.")
@@ -133,22 +121,13 @@ object SocialHandlers {
             return
         }
 
-        // Try V3 first
-        val space = game.worldState.getCurrentSpace()
+        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
 
         // Find target NPC
-        val npc = if (space != null) {
-            // V3 path
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
-        } else {
-            // V2 fallback
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
-        }
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (npc == null) {
             println("\nNo one by that name here.")
@@ -166,12 +145,7 @@ object SocialHandlers {
         val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
 
         // Update world state with updated NPC
-        if (space != null) {
-            game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-        }
+        game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
 
         println("\n$narrative")
     }
@@ -180,26 +154,16 @@ object SocialHandlers {
      * Handle asking NPCs questions - queries NPC knowledge base
      */
     suspend fun handleAskQuestion(game: MudGame, npcTarget: String, topic: String) {
-        // Try V3 first
-        val space = game.worldState.getCurrentSpace()
+        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
 
         // Find the NPC
-        val npc = if (space != null) {
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(npcTarget.lowercase()) ||
-                    entity.id.lowercase().contains(npcTarget.lowercase())
-                }
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(npcTarget.lowercase()) ||
-                    entity.id.lowercase().contains(npcTarget.lowercase())
-                }
-        }
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(npcTarget.lowercase()) ||
+                entity.id.lowercase().contains(npcTarget.lowercase())
+            }
 
         if (npc == null) {
             println("\nThere's no one here by that name.")
@@ -223,12 +187,7 @@ object SocialHandlers {
         updatedNpc = game.dispositionManager.applyEvent(updatedNpc, questionEvent)
 
         // Update world state with updated NPC (may have new knowledge or disposition)
-        if (space != null) {
-            game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-        }
+        game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
 
         println("\n${npc.name} says: \"${knowledgeResult.answer}\"")
         game.trackQuests(QuestAction.TalkedToNPC(npc.id))
@@ -242,20 +201,9 @@ object SocialHandlers {
         val player = game.worldState.player
         val social = npc.getComponent<com.jcraw.mud.core.SocialComponent>(com.jcraw.mud.core.ComponentType.SOCIAL)
 
-        // Get location info from V3 or V2
-        val space = game.worldState.getCurrentSpace()
-        val locationName: String
-        val locationTraits: List<String>
-
-        if (space != null) {
-            // V3: SpacePropertiesComponent doesn't have name/traits, use description
-            locationName = "Current Location"
-            locationTraits = emptyList() // V3 doesn't have traits on spaces yet
-        } else {
-            val room = game.worldState.getCurrentRoom()
-            locationName = room?.name ?: "Unknown"
-            locationTraits = room?.traits ?: emptyList()
-        }
+        // V3: SpacePropertiesComponent doesn't have name/traits yet
+        val locationName = "Current Location"
+        val locationTraits = emptyList<String>()
 
         return buildString {
             appendLine("Location: $locationName")
@@ -281,26 +229,16 @@ object SocialHandlers {
      * Handle persuasion attempts - CHA-based skill check to change NPC behavior
      */
     fun handlePersuade(game: MudGame, target: String) {
-        // Try V3 first
-        val space = game.worldState.getCurrentSpace()
+        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
 
         // Find the NPC
-        val npc = if (space != null) {
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        }
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
 
         if (npc == null) {
             println("There's no one here by that name.")
@@ -344,12 +282,7 @@ object SocialHandlers {
 
             // Mark NPC as persuaded
             val updatedNpc = npc.copy(hasBeenPersuaded = true)
-            if (space != null) {
-                game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-            } else {
-                val room = game.worldState.getCurrentRoom() ?: return
-                game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-            }
+            game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
         } else {
             println("\n❌ Failure!")
             println(challenge.failureDescription)
@@ -360,26 +293,16 @@ object SocialHandlers {
      * Handle intimidation attempts - CHA-based skill check to frighten NPCs
      */
     fun handleIntimidate(game: MudGame, target: String) {
-        // Try V3 first
-        val space = game.worldState.getCurrentSpace()
+        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
 
         // Find the NPC
-        val npc = if (space != null) {
-            game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return
-            room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-        }
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
+            .find { entity ->
+                entity.name.lowercase().contains(target.lowercase()) ||
+                entity.id.lowercase().contains(target.lowercase())
+            }
 
         if (npc == null) {
             println("There's no one here by that name.")
@@ -423,12 +346,7 @@ object SocialHandlers {
 
             // Mark NPC as intimidated
             val updatedNpc = npc.copy(hasBeenIntimidated = true)
-            if (space != null) {
-                game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-            } else {
-                val room = game.worldState.getCurrentRoom() ?: return
-                game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-            }
+            game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
         } else {
             println("\n❌ Failure!")
             println(challenge.failureDescription)
@@ -442,15 +360,9 @@ object SocialHandlers {
      */
     private fun resolveNpcTarget(game: MudGame, npcTarget: String?): Entity.NPC? {
         val spaceId = game.worldState.player.currentRoomId
-        val space = game.worldState.getCurrentSpace()
 
-        // Get NPCs using V3 or V2
-        val npcs = if (space != null) {
-            game.worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
-        } else {
-            val room = game.worldState.getCurrentRoom() ?: return null
-            room.entities.filterIsInstance<Entity.NPC>()
-        }
+        // Get NPCs using V3
+        val npcs = game.worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
 
         if (npcTarget != null) {
             val lower = npcTarget.lowercase()

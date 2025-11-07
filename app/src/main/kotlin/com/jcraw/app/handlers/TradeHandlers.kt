@@ -28,10 +28,11 @@ object TradeHandlers {
         quantity: Int,
         merchantTarget: String?
     ) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // V3: Use entity storage
+        val spaceId = game.worldState.player.currentRoomId
 
         // TODO: Get TradeHandler instance from game
-        // TODO: Find merchant in room with TradingComponent
+        // TODO: Find merchant in space with TradingComponent
         // TODO: Get player InventoryComponent
         // TODO: Find item by name in player inventory or merchant stock
         // TODO: Get NPC disposition from SocialComponent
@@ -48,7 +49,8 @@ object TradeHandlers {
      * @param merchantTarget Optional merchant name
      */
     fun handleListStock(game: MudGame, merchantTarget: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // V3: Use entity storage
+        val spaceId = game.worldState.player.currentRoomId
 
         // TODO: Implement when TradingComponent is fully integrated with ECS
         println("Listing stock not yet fully integrated. Coming soon!")
