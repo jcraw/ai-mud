@@ -191,40 +191,14 @@ object ClientTradeHandlers {
     }
 
     private fun updateMerchant(game: EngineGameClient, context: MerchantContext, updatedNpc: Entity.NPC) {
-        when (context) {
-            is MerchantContext.RoomContext -> {
-                val updatedState = game.worldState.replaceEntity(context.roomId, updatedNpc.id, updatedNpc)
-                if (updatedState != null) {
-                    game.worldState = updatedState
-                } else {
-                    game.emitEvent(
-                        GameEvent.System("Failed to update ${updatedNpc.name} in the room.", GameEvent.MessageLevel.ERROR)
-                    )
-                }
-            }
-            is MerchantContext.SpaceContext -> {
-                game.spaceEntityRepository.save(updatedNpc).onFailure {
-                    game.emitEvent(
-                        GameEvent.System("Failed to update merchant: ${it.message}", GameEvent.MessageLevel.ERROR)
-                    )
-                }
-            }
+        game.spaceEntityRepository.save(updatedNpc).onFailure {
+            game.emitEvent(
+                GameEvent.System("Failed to update merchant: ${it.message}", GameEvent.MessageLevel.ERROR)
+            )
         }
     }
 
     private fun findMerchant(game: EngineGameClient, merchantTarget: String?): MerchantContext? {
-        val room = game.worldState.getCurrentRoom()
-        if (room != null) {
-            val merchants = room.entities.filterIsInstance<Entity.NPC>()
-                .filter { it.getComponent<TradingComponent>(ComponentType.TRADING) != null }
-            if (merchants.isNotEmpty()) {
-                val match = resolveMerchantCandidate(merchants, merchantTarget, game.lastConversationNpcId)
-                if (match != null) {
-                    return MerchantContext.RoomContext(room.id, match)
-                }
-            }
-        }
-
         val space = game.currentSpace()
         if (space != null) {
             val merchants = space.entities.mapNotNull { entityId ->
@@ -240,7 +214,7 @@ object ClientTradeHandlers {
                 val match = resolveMerchantCandidate(merchants.map { it.second }, merchantTarget, game.lastConversationNpcId)
                 if (match != null) {
                     val entityId = merchants.first { it.second.id == match.id }.first
-                    return MerchantContext.SpaceContext(entityId = entityId, npc = match)
+                    return MerchantContext(entityId = entityId, npc = match)
                 }
             }
         }
@@ -307,8 +281,8 @@ object ClientTradeHandlers {
         )
     }
 
-    private sealed class MerchantContext(open val npc: Entity.NPC) {
-        data class RoomContext(val roomId: RoomId, override val npc: Entity.NPC) : MerchantContext(npc)
-        data class SpaceContext(val entityId: String, override val npc: Entity.NPC) : MerchantContext(npc)
-    }
+    private data class MerchantContext(
+        val entityId: String,
+        val npc: Entity.NPC
+    )
 }

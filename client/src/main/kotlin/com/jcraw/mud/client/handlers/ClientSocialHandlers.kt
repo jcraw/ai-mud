@@ -12,40 +12,6 @@ import kotlinx.coroutines.runBlocking
 object ClientSocialHandlers {
 
     fun handleTalk(game: EngineGameClient, target: String) {
-        val room = game.worldState.getCurrentRoom()
-
-        if (room != null) {
-            val npc = room.entities.filterIsInstance<Entity.NPC>()
-                .find { entity ->
-                    entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-                }
-
-            if (npc == null) {
-                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
-                return
-            }
-
-            game.lastConversationNpcId = npc.id
-
-            if (game.npcInteractionGenerator != null) {
-                game.emitEvent(GameEvent.Narrative("\nYou speak to ${npc.name}..."))
-                val dialogue = runBlocking {
-                    game.npcInteractionGenerator.generateDialogue(npc, game.worldState.player)
-                }
-                game.emitEvent(GameEvent.Narrative("\n${npc.name} says: \"$dialogue\""))
-            } else {
-                if (npc.isHostile) {
-                    game.emitEvent(GameEvent.Narrative("\n${npc.name} glares at you menacingly and says nothing."))
-                } else {
-                    game.emitEvent(GameEvent.Narrative("\n${npc.name} nods at you in acknowledgment."))
-                }
-            }
-
-            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
-            return
-        }
-
         val space = game.currentSpace()
         if (space == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
@@ -85,62 +51,13 @@ object ClientSocialHandlers {
             return
         }
 
-        val room = game.worldState.getCurrentRoom()
-        val space = if (room == null) game.currentSpace() else null
-
-        if (room == null && space == null) {
+        val space = game.currentSpace()
+        if (space == null) {
             game.emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
             return
         }
 
-        if (room != null) {
-            val npc = resolveNpcTarget(game, room, npcTarget)
-            if (npcTarget != null && npc == null) {
-                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
-                return
-            }
-
-            if (npc == null) {
-                game.emitEvent(GameEvent.Narrative("You say: \"$utterance\""))
-                game.lastConversationNpcId = null
-                return
-            }
-
-            game.emitEvent(GameEvent.Narrative("You say to ${npc.name}: \"$utterance\""))
-            game.lastConversationNpcId = npc.id
-
-            if (isQuestion(utterance)) {
-                val topic = utterance.trimEnd('?', ' ').ifBlank { utterance }
-                handleAskQuestion(game, npc.name, topic)
-                game.trackQuests(QuestAction.TalkedToNPC(npc.id))
-                return
-            }
-
-            if (game.npcInteractionGenerator != null) {
-                val reply = runCatching {
-                    game.npcInteractionGenerator?.generateDialogue(npc, game.worldState.player)
-                }.getOrElse {
-                    println("Warning: NPC dialogue generation failed: ${it.message}")
-                    null
-                }
-
-                if (reply != null) {
-                    game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
-                }
-            } else {
-                val fallbackResponse = if (npc.isHostile) {
-                    "${npc.name} scowls and refuses to answer."
-                } else {
-                    "${npc.name} listens quietly."
-                }
-                game.emitEvent(GameEvent.Narrative(fallbackResponse))
-            }
-
-            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
-            return
-        }
-
-        val resolved = resolveSpaceNpc(game, space!!, npcTarget)
+        val resolved = resolveSpaceNpc(game, space, npcTarget)
         if (npcTarget != null && resolved == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
@@ -187,10 +104,8 @@ object ClientSocialHandlers {
         game.trackQuests(QuestAction.TalkedToNPC(entityId))
     }
     fun handleEmote(game: EngineGameClient, emoteType: String, target: String?) {
-        val room = game.worldState.getCurrentRoom()
-        val space = if (room == null) game.currentSpace() else null
-
-        if (room == null && space == null) {
+        val space = game.currentSpace()
+        if (space == null) {
             return
         }
 
@@ -199,28 +114,7 @@ object ClientSocialHandlers {
             return
         }
 
-        if (room != null) {
-            val npc = room.entities.filterIsInstance<Entity.NPC>()
-                .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
-
-            if (npc == null) {
-                game.emitEvent(GameEvent.System("No one by that name here.", GameEvent.MessageLevel.WARNING))
-                return
-            }
-
-            val emoteTypeEnum = game.emoteHandler.parseEmoteKeyword(emoteType)
-            if (emoteTypeEnum == null) {
-                game.emitEvent(GameEvent.System("Unknown emote: $emoteType", GameEvent.MessageLevel.WARNING))
-                return
-            }
-
-            val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-            game.emitEvent(GameEvent.Narrative(narrative))
-            return
-        }
-
-        val resolved = resolveSpaceNpc(game, space!!, target)
+        val resolved = resolveSpaceNpc(game, space, target)
         if (resolved == null) {
             game.emitEvent(GameEvent.System("No one by that name here.", GameEvent.MessageLevel.WARNING))
             return
@@ -235,7 +129,6 @@ object ClientSocialHandlers {
         }
 
         val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-        // Persist updated state if NPC exists in repository
         game.spaceEntityRepository.save(updatedNpc).onFailure {
             println("Warning: failed to persist NPC state: ${it.message}")
         }
@@ -244,53 +137,13 @@ object ClientSocialHandlers {
     }
 
     suspend fun handleAskQuestion(game: EngineGameClient, npcTarget: String, topic: String) {
-        val room = game.worldState.getCurrentRoom()
-        val space = if (room == null) game.currentSpace() else null
-
-        if (room == null && space == null) {
+        val space = game.currentSpace()
+        if (space == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        if (room != null) {
-            val npc = room.entities.filterIsInstance<Entity.NPC>()
-                .find {
-                    it.name.lowercase().contains(npcTarget.lowercase()) ||
-                    it.id.lowercase().contains(npcTarget.lowercase())
-                }
-
-            if (npc == null) {
-                game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
-                return
-            }
-
-            game.lastConversationNpcId = npc.id
-
-            merchantResponse(game, npc, topic)?.let { reply ->
-                game.emitEvent(GameEvent.Narrative("${npc.name} says: \"$reply\""))
-                game.trackQuests(QuestAction.TalkedToNPC(npc.id))
-                return
-            }
-
-            val worldContext = buildRoomQuestionContext(game, room, npc, topic)
-            val knowledgeResult = game.npcKnowledgeManager.queryKnowledge(npc, topic, worldContext)
-            var updatedNpc = knowledgeResult.npc
-
-            val questionEvent = SocialEvent.QuestionAsked(
-                topic = knowledgeResult.normalizedTopic,
-                questionText = knowledgeResult.question,
-                answerText = knowledgeResult.answer,
-                description = "${game.worldState.player.name} asked ${npc.name} about \"${knowledgeResult.question}\""
-            )
-            updatedNpc = game.dispositionManager.applyEvent(updatedNpc, questionEvent)
-
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: game.worldState
-            game.emitEvent(GameEvent.Narrative("${updatedNpc.name} says: \"${knowledgeResult.answer}\""))
-            game.trackQuests(QuestAction.TalkedToNPC(npc.id))
-            return
-        }
-
-        val resolved = resolveSpaceNpc(game, space!!, npcTarget)
+        val resolved = resolveSpaceNpc(game, space, npcTarget)
         if (resolved == null) {
             game.emitEvent(GameEvent.System("There's no one here by that name.", GameEvent.MessageLevel.WARNING))
             return
@@ -339,52 +192,6 @@ object ClientSocialHandlers {
     }
 
     // Helper functions
-
-    fun resolveNpcTarget(game: EngineGameClient, room: Room, npcTarget: String?): Entity.NPC? {
-        val candidates = room.entities.filterIsInstance<Entity.NPC>()
-        if (npcTarget != null) {
-            val lower = npcTarget.lowercase()
-            val explicit = candidates.find {
-                it.name.lowercase().contains(lower) || it.id.lowercase().contains(lower)
-            }
-            if (explicit != null) {
-                return explicit
-            }
-        }
-
-        val recentId = game.lastConversationNpcId
-        if (recentId != null) {
-            return candidates.find { it.id == recentId }
-        }
-
-        return null
-    }
-
-    private fun buildRoomQuestionContext(
-        game: EngineGameClient,
-        room: Room,
-        npc: Entity.NPC,
-        topic: String
-    ): String {
-        val social = npc.getComponent<SocialComponent>(ComponentType.SOCIAL)
-        return buildString {
-            appendLine("Location: ${room.name}")
-            if (room.traits.isNotEmpty()) {
-                appendLine("Location traits: ${room.traits.joinToString()}")
-            }
-            appendLine("NPC name: ${npc.name}")
-            appendLine("NPC description: ${npc.description}")
-            if (social != null) {
-                appendLine("NPC personality: ${social.personality}")
-                if (social.traits.isNotEmpty()) {
-                    appendLine("NPC traits: ${social.traits.joinToString()}")
-                }
-                appendLine("NPC disposition score: ${social.disposition}")
-            }
-            appendLine("Player name: ${game.worldState.player.name}")
-            appendLine("Topic requested: $topic")
-        }
-    }
 
     private fun buildSpaceQuestionContext(
         game: EngineGameClient,

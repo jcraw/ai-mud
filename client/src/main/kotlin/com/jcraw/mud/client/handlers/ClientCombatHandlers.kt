@@ -13,16 +13,17 @@ import kotlin.random.Random
 object ClientCombatHandlers {
 
     fun handleAttack(game: EngineGameClient, target: String?) {
-        val room = game.worldState.getCurrentRoom() ?: return
-
         // Validate target
         if (target.isNullOrBlank()) {
             game.emitEvent(GameEvent.System("Attack whom?", GameEvent.MessageLevel.WARNING))
             return
         }
 
+        // Get entities in current space
+        val entities = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
+
         // Find the target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { entity ->
                 entity.name.lowercase().contains(target.lowercase()) ||
                 entity.id.lowercase().contains(target.lowercase())
@@ -73,7 +74,7 @@ object ClientCombatHandlers {
         // Check if NPC died
         if (npcDied) {
             game.emitEvent(GameEvent.Combat("\nVictory! ${npc.name} has been defeated!"))
-            game.worldState = game.worldState.removeEntityFromRoom(room.id, npc.id) ?: game.worldState
+            game.worldState = game.worldState.removeEntityFromSpace(game.worldState.player.currentRoomId, npc.id) ?: game.worldState
 
             // Track NPC kill for quests
             game.trackQuests(QuestAction.KilledNPC(npc.id))

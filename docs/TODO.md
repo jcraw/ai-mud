@@ -221,19 +221,25 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
    - Reasoning module compiles successfully
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 2a completion report
 
-4. **NEXT: Phase 3 - GUI Client** (Est. 2-3h) - **BLOCKING**
-   - GUI client needs V3-only migration (currently uses V2 with fallback)
-   - 7 client handler files need updating
-   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 3 plan
+4. ✅ **Phase 3 COMPLETE: GUI Client** (2-3h)
+   - All 7 client handler files migrated to V3-only
+   - EngineGameClient.kt migrated to V3-only
+   - Client module builds successfully
+   - 45+ V2 references removed, 448+ lines removed
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 3 completion report
 
-5. **Phase 4-7** - Infrastructure, Tests, Dependencies, Documentation (Est. 3-5h)
+5. **NEXT: Phase 4 - Infrastructure** (Est. 1h) - **BLOCKING**
+   - GameServer.kt and MultiUserGame.kt need V3-only migration
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 4 plan
+
+6. **Phase 5-7** - Tests, Dependencies, Documentation (Est. 3-4h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
 
-5. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+7. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
 
-6. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+8. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
 
-7. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
+9. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
 
 ## V2 Removal Requirements
 

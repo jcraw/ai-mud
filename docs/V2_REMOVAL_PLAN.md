@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Phase 1-2a Complete (Core WorldState + Console Handlers + Reasoning Module)
-**Estimated Effort**: 8-12 hours (7-10h spent)
+**Status**: Phase 1-3 Complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client)
+**Estimated Effort**: 8-12 hours (10-12h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -153,20 +153,53 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Result**: Reasoning module is now V3-only. All files compile successfully with only 2 deprecation warnings (expected for legacy V1 combat methods).
 
-### Phase 3: GUI Client (Est. 2-3h)
+### Phase 3: GUI Client (Est. 2-3h) ✅ COMPLETE
 
 **Objective**: Migrate GUI client to V3-only
 
-The GUI client is currently pure V2. Need to fully migrate to V3 graph-based navigation.
+**Status**: All 7 client handler files successfully migrated to V3. Client module compiles successfully.
 
-**Files**:
-1. EngineGameClient.kt - Update core game client logic
-2. ClientMovementHandlers.kt - Use movePlayerV3 exclusively
-3. ClientItemHandlers.kt - Use V3 entity system
-4. ClientCombatHandlers.kt - Use V3 space references
-5. ClientSocialHandlers.kt - Use V3 for NPC interactions
-6. ClientSkillQuestHandlers.kt - Use V3 quest tracking
-7. ClientTradeHandlers.kt - Use V3 entity lookups
+**Completed Steps**:
+1. ✅ **ClientMovementHandlers.kt** - V3-only movement (7 V2 references removed):
+   - Removed V2 room-based fallback in `handleMove()`
+   - Updated `handleLook()` to use `getEntitiesInSpace()` exclusively
+   - Updated `handleSearch()` to use V3 entity storage
+   - Removed `handleSpaceMovement()` V2 helper function (229 lines removed)
+   - Added TODOs for lazy-fill and frontier traversal (to be implemented after V2 removal complete)
+
+2. ✅ **ClientItemHandlers.kt** - V3-only entity management (7 V2 references removed):
+   - `handleTake()` - Uses `getEntitiesInSpace()` and `removeEntityFromSpace()`
+   - `handleTakeAll()` - Migrated to V3 with proper error handling
+   - `handleDrop()` - Uses `addEntityToSpace()`
+   - `handleGive()` - Uses V3 entity lookup
+
+3. ✅ **ClientCombatHandlers.kt** - V3-only combat (3 V2 references removed):
+   - Removed `getCurrentRoom()` call
+   - Uses `getEntitiesInSpace()` for NPC lookup
+   - Uses `removeEntityFromSpace()` for NPC death
+
+4. ✅ **ClientSocialHandlers.kt** - V3-only social interactions (194 lines removed, 39.7% reduction):
+   - Removed all V2 room-based branches from `handleTalk()`, `handleSay()`, `handleEmote()`, `handleAskQuestion()`
+   - Deleted V2 helper functions: `resolveNpcTarget()`, `buildRoomQuestionContext()`
+   - All functions now use `getCurrentSpace()` and `spaceEntityRepository.save()`
+
+5. ✅ **ClientSkillQuestHandlers.kt** - V3-only skill training (3 V2 references removed):
+   - `handleTrainSkill()` uses `getEntitiesInSpace()` for NPC lookup
+   - Uses `replaceEntityInSpace()` for entity updates
+
+6. ✅ **ClientTradeHandlers.kt** - V3-only trading (25 lines removed):
+   - Removed `MerchantContext.RoomContext` sealed class variant
+   - `updateMerchant()` uses `spaceEntityRepository.save()` only
+   - `findMerchant()` searches space entities only
+
+7. ✅ **EngineGameClient.kt** - V3-only core client (4 V2 references removed):
+   - Removed SampleDungeon V2 fallback - API key now required
+   - Removed `buildExitsWithNames()` function (V2 Room-based)
+   - Updated `sendInput()` to use space-based context
+   - Updated `describeCurrentRoom()` to V3-only
+   - Fixed WorldState initialization (removed `rooms` parameter)
+
+**Result**: GUI client is now V3-only. File reduced from 639 lines to 610 lines. Client module builds successfully with no V2 dependencies.
 
 ### Phase 4: Infrastructure (Est. 1h)
 

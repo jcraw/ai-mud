@@ -46,18 +46,18 @@ object ClientItemHandlers {
     }
 
     fun handleTake(game: EngineGameClient, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val spaceId = game.worldState.player.currentRoomId
+        val entities = game.worldState.getEntitiesInSpace(spaceId)
 
-        val item = room.entities.filterIsInstance<Entity.Item>()
+        val item = entities.filterIsInstance<Entity.Item>()
             .find { entity ->
                 entity.name.lowercase().contains(target.lowercase()) ||
                 entity.id.lowercase().contains(target.lowercase())
             }
 
         if (item == null) {
-            // Not an item - check if it's scenery (room trait or entity)
-            val isScenery = room.traits.any { it.lowercase().contains(target.lowercase()) } ||
-                           room.entities.any { it.name.lowercase().contains(target.lowercase()) }
+            // Not an item - check if it's scenery (entity)
+            val isScenery = entities.any { it.name.lowercase().contains(target.lowercase()) }
             if (isScenery) {
                 game.emitEvent(GameEvent.System("That's part of the environment and can't be taken.", GameEvent.MessageLevel.WARNING))
             } else {
@@ -72,7 +72,7 @@ object ClientItemHandlers {
         }
 
         val newState = game.worldState
-            .removeEntityFromRoom(room.id, item.id)
+            .removeEntityFromSpace(spaceId, item.id)
             ?.updatePlayer(game.worldState.player.addToInventory(item))
 
         if (newState != null) {
@@ -87,10 +87,11 @@ object ClientItemHandlers {
     }
 
     fun handleTakeAll(game: EngineGameClient) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val spaceId = game.worldState.player.currentRoomId
+        val entities = game.worldState.getEntitiesInSpace(spaceId)
 
-        // Find all pickupable items in the room
-        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+        // Find all pickupable items in the space
+        val items = entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
         if (items.isEmpty()) {
             game.emitEvent(GameEvent.System("There are no items to take here.", GameEvent.MessageLevel.INFO))
@@ -102,7 +103,7 @@ object ClientItemHandlers {
 
         items.forEach { item ->
             val newState = currentState
-                .removeEntityFromRoom(room.id, item.id)
+                .removeEntityFromSpace(spaceId, item.id)
                 ?.updatePlayer(currentState.player.addToInventory(item))
 
             if (newState != null) {
@@ -125,7 +126,7 @@ object ClientItemHandlers {
     }
 
     fun handleDrop(game: EngineGameClient, target: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val spaceId = game.worldState.player.currentRoomId
 
         val item = game.worldState.player.inventory.find { invItem ->
             invItem.name.lowercase().contains(target.lowercase()) ||
@@ -139,7 +140,7 @@ object ClientItemHandlers {
 
         val newState = game.worldState
             .updatePlayer(game.worldState.player.removeFromInventory(item.id))
-            .addEntityToRoom(room.id, item)
+            .addEntityToSpace(spaceId, item)
 
         if (newState != null) {
             game.worldState = newState
@@ -150,7 +151,8 @@ object ClientItemHandlers {
     }
 
     fun handleGive(game: EngineGameClient, itemTarget: String, npcTarget: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        val spaceId = game.worldState.player.currentRoomId
+        val entities = game.worldState.getEntitiesInSpace(spaceId)
 
         // Find the item in inventory
         val item = game.worldState.player.inventory.find { invItem ->
@@ -163,8 +165,8 @@ object ClientItemHandlers {
             return
         }
 
-        // Find the NPC in the room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        // Find the NPC in the space
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { entity ->
                 entity.name.lowercase().contains(npcTarget.lowercase()) ||
                 entity.id.lowercase().contains(npcTarget.lowercase())

@@ -269,33 +269,13 @@ class EngineGameClient(
             )
 
             worldState = WorldState(
-                rooms = emptyMap(),
                 players = mapOf(playerState.id to playerState)
             )
         } else {
+            // V3 requires API key for world generation
             exitLinker = null
             exitResolver = null
-            // Fallback to Sample Dungeon if no API key
-            emitEvent(GameEvent.System("No API key provided - using Sample Dungeon fallback", GameEvent.MessageLevel.WARNING))
-            val baseWorldState = SampleDungeon.createInitialWorldState()
-
-            val playerState = PlayerState(
-                id = "player_ui",
-                name = "Adventurer",
-                currentRoomId = baseWorldState.rooms.values.first().id,
-                health = 40,
-                maxHealth = 40,
-                stats = Stats(
-                    strength = 10,
-                    dexterity = 8,
-                    constitution = 10,
-                    intelligence = 9,
-                    wisdom = 8,
-                    charisma = 9
-                )
-            )
-
-            worldState = baseWorldState.addPlayer(playerState)
+            throw IllegalArgumentException("API key required for GUI client - V3 world generation requires LLM")
         }
 
         // Generate and add quests
@@ -314,12 +294,11 @@ class EngineGameClient(
     override suspend fun sendInput(text: String) {
         if (!running || text.isBlank()) return
 
-        // Parse intent
-        val room = worldState.getCurrentRoom()
-        val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-        val exitsWithNames = room?.let { buildExitsWithNames(it) }
+        // Parse intent - V3 uses space-based context
+        val space = worldState.getCurrentSpace()
+        val spaceContext = space?.description
         val intent = runBlocking {
-            intentRecognizer.parseIntent(text, roomContext, exitsWithNames)
+            intentRecognizer.parseIntent(text, spaceContext, null)
         }
 
         // Process intent
@@ -420,20 +399,6 @@ class EngineGameClient(
         return fallback
     }
 
-    /**
-     * Build a map of exits with their destination room names for navigation parsing.
-     */
-    private fun buildExitsWithNames(room: Room): Map<Direction, String> {
-        return room.exits.mapNotNull { (direction, roomId) ->
-            val destRoom = worldState.rooms[roomId]
-            if (destRoom != null) {
-                direction to destRoom.name
-            } else {
-                null
-            }
-        }.toMap()
-    }
-
     internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
         spacePropertiesRepository.findByChunkId(spaceId)
     }.getOrNull()
@@ -446,58 +411,16 @@ class EngineGameClient(
         loadSpace(worldState.player.currentRoomId)
 
     internal fun describeCurrentRoom() {
+        // V3-only: Use space-based description
         val currentRoomId = worldState.player.currentRoomId
+        val space = worldState.getCurrentSpace()
 
-        // Check if player is in a World V2 space
-        val space = runBlocking {
-            spacePropertiesRepository.findByChunkId(currentRoomId).getOrNull()
+        if (space == null) {
+            emitEvent(GameEvent.System("Error: No current space", GameEvent.MessageLevel.ERROR))
+            return
         }
 
-        if (space != null) {
-            // World V2 space - use procedurally generated description
-            describeWorldV2Space(space, currentRoomId)
-        } else {
-            // Legacy room - use traditional Room-based description
-            val room = worldState.getCurrentRoom() ?: return
-
-            // Generate room description
-            val description = if (descriptionGenerator != null) {
-                runBlocking { descriptionGenerator.generateDescription(room) }
-            } else {
-                room.traits.joinToString(". ") + "."
-            }
-
-            val roomNpcs = room.entities.filterIsInstance<Entity.NPC>()
-            if (lastConversationNpcId != null && roomNpcs.none { it.id == lastConversationNpcId }) {
-                lastConversationNpcId = null
-            }
-
-            val narrativeText = buildString {
-                appendLine("\n${room.name}")
-                appendLine("-".repeat(room.name.length))
-                appendLine(description)
-
-                if (room.exits.isNotEmpty()) {
-                    appendLine("\nExits: ${room.exits.keys.joinToString(", ") { it.displayName }}")
-                }
-
-                if (room.entities.isNotEmpty()) {
-                    appendLine("\nYou see:")
-                    room.entities.forEach { entity ->
-                        appendLine("  - ${entity.name}")
-                    }
-                }
-            }
-
-            emitEvent(GameEvent.Narrative(narrativeText))
-
-            // Update status
-            emitEvent(GameEvent.StatusUpdate(
-                hp = worldState.player.health,
-                maxHp = worldState.player.maxHealth,
-                location = room.name
-            ))
-        }
+        describeWorldV2Space(space, currentRoomId)
     }
 
     /**

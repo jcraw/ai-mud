@@ -106,7 +106,8 @@ object ClientSkillQuestHandlers {
     }
 
     fun handleTrainSkill(game: EngineGameClient, skill: String, method: String) {
-        val room = game.worldState.getCurrentRoom() ?: return
+        // Get entities in current space
+        val entitiesInSpace = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
 
         // Parse NPC name from method string (e.g., "with the knight" → "knight")
         val npcName = method.lowercase()
@@ -121,8 +122,8 @@ object ClientSkillQuestHandlers {
             return
         }
 
-        // Find NPC in room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        // Find NPC in space
+        val npc = entitiesInSpace.filterIsInstance<Entity.NPC>()
             .find {
                 it.name.lowercase().contains(npcName) ||
                 it.id.lowercase().contains(npcName)
@@ -143,8 +144,8 @@ object ClientSkillQuestHandlers {
         trainingResult.onSuccess { message ->
             game.emitEvent(GameEvent.Narrative(message))
 
-            // Update world state with any NPC changes (disposition)
-            game.worldState = game.worldState.replaceEntity(room.id, npc.id, npc) ?: game.worldState
+            // Update world state with any NPC changes (disposition) using space-based update
+            game.worldState = game.worldState.replaceEntityInSpace(game.worldState.player.currentRoomId, npc.id, npc) ?: game.worldState
         }.onFailure { error ->
             game.emitEvent(GameEvent.System(error.message ?: "Training failed", GameEvent.MessageLevel.ERROR))
         }
