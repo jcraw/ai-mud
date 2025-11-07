@@ -58,9 +58,14 @@ For complete documentation, see:
 - **Full gameplay**: All game systems work through GUI
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
 
-### Testing ✅
-- **793 tests passing** across all modules (0 failures, 100% pass rate)
-  - Includes 20 V3 integration tests for graph-based navigation
+### Testing ⚠️
+- **Main code compiles successfully** - Application and client build and run
+- **Test issues**: Reasoning module has compilation errors in 4 test files (RespawnManagerTest, SpacePopulatorTest, StateChangeHandlerTest, TurnQueueManagerTest) due to API signature changes from V3 refactoring
+  - Repository interfaces now require `suspend` functions with updated return types
+  - Entity.NPC constructor signature changed
+  - Tests need updating to match new API contracts
+- **Core tests passing**: Core, perception, action, memory modules tests pass
+- **V3 integration tests**: 20 tests in WorldSystemV3IntegrationTest.kt verify graph navigation
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
@@ -168,7 +173,8 @@ Memory (store for RAG)
 
 ## Important Notes
 
-- **✅ Production Ready** - All planned features complete, 793 tests passing (100% pass rate)
+- **✅ Production Ready** - All planned features complete, application builds and runs successfully
+- **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -229,8 +235,8 @@ All V2 systems fully integrated and tested:
   - ❌ Chunks 7-11: Dynamic edges, breakouts, exit resolution, testing, docs
 
   **Note**: V3 initialization complete. Players can select "World Generation V3" at startup to generate a graph-based world. All game modes (console, multi-user, GUI client) support V3 with V2 fallback. Single-chunk worlds fully playable, multi-chunk frontier traversal implemented and ready for testing. Hidden exit revelation via `search` command now functional.
-- ✅ 793 tests passing (0 failures, 100% pass rate)
-  - Includes 20 new V3 integration tests (WorldSystemV3IntegrationTest.kt)
+- ⚠️ Testing status: Main code compiles, core tests pass, reasoning module has 4 broken test files needing API updates
+  - V3 integration tests working (20 tests in WorldSystemV3IntegrationTest.kt)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
 
 See detailed implementation plans in `docs/requirements/V2/` and [TODO.md](docs/TODO.md) for optional future enhancements.
