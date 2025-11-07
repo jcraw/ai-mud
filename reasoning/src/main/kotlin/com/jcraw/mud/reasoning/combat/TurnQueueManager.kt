@@ -115,7 +115,7 @@ class TurnQueueManager {
     /**
      * Rebuilds the queue from WorldState after loading from database.
      *
-     * This scans all entities in all rooms for CombatComponents and
+     * This scans all entities for CombatComponents and
      * re-enqueues those with valid actionTimerEnd values.
      *
      * @param worldState The loaded world state
@@ -123,14 +123,13 @@ class TurnQueueManager {
     fun rebuild(worldState: WorldState) {
         clear()
 
-        worldState.rooms.values.forEach { room ->
-            room.entities.forEach { entity ->
-                // Only NPCs can have CombatComponents
-                if (entity is Entity.NPC) {
-                    val combatComponent: CombatComponent? = entity.getComponent(ComponentType.COMBAT)
-                    if (combatComponent != null && combatComponent.actionTimerEnd > 0) {
-                        enqueue(entity.id, combatComponent.actionTimerEnd)
-                    }
+        // V3: Iterate global entity storage
+        worldState.entities.values.forEach { entity ->
+            // Only NPCs can have CombatComponents
+            if (entity is Entity.NPC) {
+                val combatComponent: CombatComponent? = entity.getComponent(ComponentType.COMBAT)
+                if (combatComponent != null && combatComponent.actionTimerEnd > 0) {
+                    enqueue(entity.id, combatComponent.actionTimerEnd)
                 }
             }
         }

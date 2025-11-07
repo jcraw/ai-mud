@@ -21,19 +21,18 @@ object CombatBehavior {
      * 3. Adds NPC to turn queue if not already present
      *
      * @param npcId The ID of the NPC that was attacked
-     * @param roomId The room where the NPC is located
+     * @param spaceId The space where the NPC is located
      * @param worldState Current world state
      * @param turnQueue Turn queue manager (modified in-place)
      * @return Updated WorldState with hostile NPC
      */
     fun triggerCounterAttack(
         npcId: String,
-        roomId: RoomId,
+        spaceId: SpaceId,
         worldState: WorldState,
         turnQueue: TurnQueueManager
     ): WorldState {
-        val room = worldState.getRoom(roomId) ?: return worldState
-        val npc = room.entities.find { it.id == npcId } as? Entity.NPC ?: return worldState
+        val npc = worldState.getEntity(npcId) as? Entity.NPC ?: return worldState
 
         // 1. Set disposition to hostile (-100)
         val socialComponent = npc.getSocialComponent() ?: SocialComponent(
@@ -49,29 +48,28 @@ object CombatBehavior {
         // 3. Add to turn queue if not already present
         addToTurnQueueIfNeeded(npcWithCombat, worldState, turnQueue)
 
-        // Update entity in room and return new world state
-        val updatedRoom = room.removeEntity(npcId).addEntity(npcWithCombat)
-        return worldState.updateRoom(updatedRoom)
+        // Update entity in global storage
+        return worldState.updateEntity(npcWithCombat)
     }
 
     /**
      * Make multiple NPCs hostile (e.g., guards alerted by combat)
      *
      * @param npcIds List of NPC IDs to make hostile
-     * @param roomId The room where the NPCs are located
+     * @param spaceId The space where the NPCs are located
      * @param worldState Current world state
      * @param turnQueue Turn queue manager (modified in-place)
      * @return Updated WorldState with all NPCs now hostile
      */
     fun triggerGroupHostility(
         npcIds: List<String>,
-        roomId: RoomId,
+        spaceId: SpaceId,
         worldState: WorldState,
         turnQueue: TurnQueueManager
     ): WorldState {
         var updatedState = worldState
         npcIds.forEach { npcId ->
-            updatedState = triggerCounterAttack(npcId, roomId, updatedState, turnQueue)
+            updatedState = triggerCounterAttack(npcId, spaceId, updatedState, turnQueue)
         }
         return updatedState
     }
@@ -146,7 +144,7 @@ object CombatBehavior {
      * Used for persuasion/intimidation success during combat
      *
      * @param npcId The NPC ID
-     * @param roomId The room where the NPC is located
+     * @param spaceId The space where the NPC is located
      * @param newDisposition New disposition value (should be >= -75 to end hostility)
      * @param worldState Current world state
      * @param turnQueue Turn queue manager (modified in-place to remove NPC if no longer hostile)
@@ -154,13 +152,12 @@ object CombatBehavior {
      */
     fun deEscalateCombat(
         npcId: String,
-        roomId: RoomId,
+        spaceId: SpaceId,
         newDisposition: Int,
         worldState: WorldState,
         turnQueue: TurnQueueManager
     ): WorldState {
-        val room = worldState.getRoom(roomId) ?: return worldState
-        val npc = room.entities.find { it.id == npcId } as? Entity.NPC ?: return worldState
+        val npc = worldState.getEntity(npcId) as? Entity.NPC ?: return worldState
 
         // Update disposition
         val socialComponent = npc.getSocialComponent() ?: SocialComponent(
@@ -175,8 +172,7 @@ object CombatBehavior {
             turnQueue.remove(npcId)
         }
 
-        // Update room and return
-        val updatedRoom = room.removeEntity(npcId).addEntity(updatedNpc)
-        return worldState.updateRoom(updatedRoom)
+        // Update entity in global storage
+        return worldState.updateEntity(updatedNpc)
     }
 }

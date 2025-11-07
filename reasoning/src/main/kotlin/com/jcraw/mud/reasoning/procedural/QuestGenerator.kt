@@ -50,7 +50,7 @@ class QuestGenerator(private val seed: Long? = null) {
         worldState: WorldState,
         theme: DungeonTheme
     ): Quest {
-        if (worldState.rooms.isEmpty()) {
+        if (worldState.spaces.isEmpty()) {
             return generateFallbackQuest(worldState, theme)
         }
 
@@ -70,8 +70,9 @@ class QuestGenerator(private val seed: Long? = null) {
      * Generate a quest to kill an enemy
      */
     private fun generateKillQuest(worldState: WorldState, theme: DungeonTheme): Quest {
-        val hostileNpcs = worldState.rooms.values
-            .flatMap { room -> room.entities.filterIsInstance<Entity.NPC>() }
+        // V3: Get all NPCs from global entity storage
+        val hostileNpcs = worldState.entities.values
+            .filterIsInstance<Entity.NPC>()
             .filter { it.isHostile }
 
         val targetNpc = hostileNpcs.randomOrNull(random) ?: run {
@@ -111,8 +112,9 @@ class QuestGenerator(private val seed: Long? = null) {
      * Generate a quest to collect items
      */
     private fun generateCollectQuest(worldState: WorldState, theme: DungeonTheme): Quest {
-        val items = worldState.rooms.values
-            .flatMap { room -> room.entities.filterIsInstance<Entity.Item>() }
+        // V3: Get all items from global entity storage
+        val items = worldState.entities.values
+            .filterIsInstance<Entity.Item>()
             .filter { it.isPickupable && it.itemType != ItemType.CONSUMABLE }
 
         val targetItem = items.randomOrNull(random) ?: run {
@@ -151,24 +153,27 @@ class QuestGenerator(private val seed: Long? = null) {
     }
 
     /**
-     * Generate a quest to explore a room
+     * Generate a quest to explore a space
      */
     private fun generateExploreQuest(worldState: WorldState, theme: DungeonTheme): Quest {
-        val rooms = worldState.rooms.values.toList()
-        val targetRoom = rooms.randomOrNull(random) ?: rooms.first()
+        // V3: Use spaces instead of rooms
+        val spaces = worldState.spaces.toList()
+        val targetSpace = spaces.randomOrNull(random) ?: return generateFallbackQuest(worldState, theme)
+        val spaceId = targetSpace.first
+        val space = targetSpace.second
 
         val title = questTitles[theme]?.randomOrNull(random) ?: "Explore the Unknown"
         val objective = QuestObjective.ExploreRoom(
-            id = "obj_explore_${targetRoom.id}",
-            description = "Explore the ${targetRoom.name}",
-            targetRoomId = targetRoom.id,
-            targetRoomName = targetRoom.name
+            id = "obj_explore_$spaceId",
+            description = "Explore the ${space.name}",
+            targetRoomId = spaceId,
+            targetRoomName = space.name
         )
 
         return Quest(
             id = "quest_${System.currentTimeMillis()}_${random.nextInt(1000)}",
             title = title,
-            description = "Venture into the ${targetRoom.name} and discover what lies within.",
+            description = "Venture into the ${space.name} and discover what lies within.",
             giver = null,
             objectives = listOf(objective),
             reward = QuestReward(
@@ -189,8 +194,9 @@ class QuestGenerator(private val seed: Long? = null) {
      * Generate a quest to talk to an NPC
      */
     private fun generateTalkQuest(worldState: WorldState, theme: DungeonTheme): Quest {
-        val friendlyNpcs = worldState.rooms.values
-            .flatMap { room -> room.entities.filterIsInstance<Entity.NPC>() }
+        // V3: Get all NPCs from global entity storage
+        val friendlyNpcs = worldState.entities.values
+            .filterIsInstance<Entity.NPC>()
             .filter { !it.isHostile }
 
         val targetNpc = friendlyNpcs.randomOrNull(random) ?: run {
@@ -225,8 +231,9 @@ class QuestGenerator(private val seed: Long? = null) {
      * Generate a quest to use a skill on a feature
      */
     private fun generateSkillQuest(worldState: WorldState, theme: DungeonTheme): Quest {
-        val features = worldState.rooms.values
-            .flatMap { room -> room.entities.filterIsInstance<Entity.Feature>() }
+        // V3: Get all features from global entity storage
+        val features = worldState.entities.values
+            .filterIsInstance<Entity.Feature>()
             .filter { it.skillChallenge != null && !it.isCompleted }
 
         val targetFeature = features.randomOrNull(random) ?: run {
@@ -275,23 +282,23 @@ class QuestGenerator(private val seed: Long? = null) {
     }
 
     /**
-     * Generate a safe fallback quest when the world lacks populated rooms (e.g., new repository-backed worlds)
+     * Generate a safe fallback quest when the world lacks populated spaces (e.g., new repository-backed worlds)
      */
     private fun generateFallbackQuest(
         worldState: WorldState,
         theme: DungeonTheme
     ): Quest {
         val player = worldState.players.values.firstOrNull()
-        val currentRoomId = player?.currentRoomId ?: "unknown_space"
-        val roomName = worldState.getRoom(currentRoomId)?.name ?: "Unknown Space"
+        val currentSpaceId = player?.currentRoomId ?: "unknown_space"
+        val spaceName = worldState.getSpace(currentSpaceId)?.name ?: "Unknown Space"
 
         val title = questTitles[theme]?.randomOrNull(random) ?: "Scout the Abyss"
 
         val objective = QuestObjective.ExploreRoom(
-            id = "obj_explore_$currentRoomId",
+            id = "obj_explore_$currentSpaceId",
             description = "Scout your immediate surroundings.",
-            targetRoomId = currentRoomId,
-            targetRoomName = roomName
+            targetRoomId = currentSpaceId,
+            targetRoomName = spaceName
         )
 
         return Quest(

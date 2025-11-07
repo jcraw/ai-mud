@@ -130,27 +130,29 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Note**: Build broken - reasoning module has extensive V2 dependencies (see Phase 2a below)
 
-### Phase 2a: Reasoning Module V2 Cleanup (NEW - Est. 3-4h)
+### Phase 2a: Reasoning Module V2 Cleanup (NEW - Est. 3-4h) - IN PROGRESS
 
 **Objective**: Remove V2 dependencies from reasoning module
 
-**Problem**: Console handlers migrated successfully, but build now broken because reasoning module has extensive V2 method usage:
+**Status**: 10/14 files migrated to V3. Minor compilation errors remaining.
 
-**Files Needing Updates** (~20+ files):
-- `CombatNarrator.kt` - Uses `getCurrentRoom()`
-- `CombatResolver.kt` - Uses `getCurrentRoom()`
-- `QuestTracker.kt` - Uses `world.rooms` and `updateRoom()`
-- `AttackResolver.kt` - Uses `world.rooms`
-- `CombatBehavior.kt` - Uses `getRoom()` and `updateRoom()`
-- `CombatInitiator.kt` - Uses `getRoom()`
-- `QuestGenerator.kt` - Uses `getRoom()`
-- Additional files in reasoning module need analysis
+**Completed Files** (10 files):
+- ✅ `CombatNarrator.kt` - Updated to use `getCurrentSpace()` (2 occurrences)
+- ✅ `CombatResolver.kt` - Updated to use `getCurrentSpace()` + `getEntitiesInSpace()` (2 occurrences)
+- ✅ `CombatInitiator.kt` - Updated to use `getEntitiesInSpace()` (1 occurrence)
+- ✅ `CombatBehavior.kt` - Updated to use V3 entity storage (4 occurrences)
+- ✅ `QuestTracker.kt` - Updated to use global entity storage (2 occurrences)
+- ✅ `DeathHandler.kt` - Updated to use V3 spaces + entities (3 occurrences)
+- ✅ `CorpseDecayManager.kt` - Updated to use V3 spaces + entities (3 occurrences)
+- ✅ `MonsterAIHandler.kt` - Updated to use global entity storage (2 occurrences)
+- ✅ `TurnQueueManager.kt` - Updated to use global entity storage (1 occurrence)
+- ✅ `QuestGenerator.kt` - Updated to use V3 spaces + entities (7 occurrences)
 
-**Recommended Approach**:
-1. Audit all reasoning module files for V2 method usage
-2. Create V3 adapter methods where needed (e.g., Room → SpacePropertiesComponent)
-3. Update service constructors to accept V3 dependencies
-4. Test reasoning module in isolation
+**Remaining Issues** (4 files):
+- `AttackResolver.kt` - Still uses `world.rooms`
+- `StatusEffectApplicator.kt` - Still uses `world.rooms`
+- `ProceduralDungeonBuilder.kt` - Still uses `world.rooms`
+- Minor fixes needed: SpacePropertiesComponent field names (`terrainType` not `terrain`), missing imports
 
 **Priority**: BLOCKING - Must complete before Phase 3 (GUI Client)
 

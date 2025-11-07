@@ -42,20 +42,20 @@ class CorpseDecayManager(
         val destroyedGold = mutableMapOf<String, Int>()
         var updatedWorld = worldState
 
-        // Process each room
-        worldState.rooms.values.forEach { room ->
-            val result = processRoomCorpses(room)
+        // Process each space (V3)
+        worldState.spaces.forEach { (spaceId, space) ->
+            val result = processSpaceCorpses(spaceId, space, worldState)
 
-            if (result.updatedRoom != room) {
-                updatedWorld = updatedWorld.updateRoom(result.updatedRoom)
+            if (result.updatedWorld != worldState) {
+                updatedWorld = result.updatedWorld
             }
 
             decayedCorpses.addAll(result.decayedCorpses)
             if (result.destroyedItems.isNotEmpty()) {
-                destroyedItems[room.id] = result.destroyedItems.toMutableList()
+                destroyedItems[spaceId] = result.destroyedItems.toMutableList()
             }
             if (result.destroyedGold > 0) {
-                destroyedGold[room.id] = result.destroyedGold
+                destroyedGold[spaceId] = result.destroyedGold
             }
         }
 
@@ -68,28 +68,28 @@ class CorpseDecayManager(
     }
 
     /**
-     * Result of processing corpses in a single room
+     * Result of processing corpses in a single space
      */
-    private data class RoomDecayResult(
-        val updatedRoom: Room,
+    private data class SpaceDecayResult(
+        val updatedWorld: WorldState,
         val decayedCorpses: List<Entity.Corpse>,
         val destroyedItems: List<ItemInstance>,
         val destroyedGold: Int
     )
 
     /**
-     * Process all corpses in a single room
+     * Process all corpses in a single space (V3)
      */
-    private fun processRoomCorpses(room: Room): RoomDecayResult {
-        val corpses = room.entities.filterIsInstance<Entity.Corpse>()
+    private fun processSpaceCorpses(spaceId: SpaceId, space: SpacePropertiesComponent, worldState: WorldState): SpaceDecayResult {
+        val corpses = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Corpse>()
         if (corpses.isEmpty()) {
-            return RoomDecayResult(room, emptyList(), emptyList(), 0)
+            return SpaceDecayResult(worldState, emptyList(), emptyList(), 0)
         }
 
         val decayedCorpses = mutableListOf<Entity.Corpse>()
         val destroyedItems = mutableListOf<ItemInstance>()
         var destroyedGold = 0
-        var updatedRoom = room
+        var updatedWorld = worldState
 
         corpses.forEach { corpse ->
             // Tick the corpse
@@ -101,30 +101,28 @@ class CorpseDecayManager(
                 destroyedItems.addAll(corpse.contents)
                 destroyedGold += corpse.goldAmount
 
-                // Remove corpse from room (items and gold destroyed)
-                updatedRoom = updatedRoom.removeEntity(corpse.id)
+                // Remove corpse from space (items and gold destroyed) (V3)
+                updatedWorld = updatedWorld.removeEntityFromSpace(spaceId, corpse.id) ?: updatedWorld
             } else {
-                // Update corpse with decremented timer
-                updatedRoom = updatedRoom.removeEntity(corpse.id).addEntity(tickedCorpse)
+                // Update corpse with decremented timer (V3)
+                updatedWorld = updatedWorld.updateEntity(tickedCorpse)
             }
         }
 
-        return RoomDecayResult(updatedRoom, decayedCorpses, destroyedItems, destroyedGold)
+        return SpaceDecayResult(updatedWorld, decayedCorpses, destroyedItems, destroyedGold)
     }
 
     /**
-     * Get all corpses in a specific room
+     * Get all corpses in a specific space (V3)
      */
-    fun getCorpsesInRoom(room: Room): List<Entity.Corpse> {
-        return room.entities.filterIsInstance<Entity.Corpse>()
+    fun getCorpsesInSpace(spaceId: SpaceId, worldState: WorldState): List<Entity.Corpse> {
+        return worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Corpse>()
     }
 
     /**
-     * Get total number of corpses in the world
+     * Get total number of corpses in the world (V3)
      */
     fun getTotalCorpses(worldState: WorldState): Int {
-        return worldState.rooms.values.sumOf { room ->
-            room.entities.count { it is Entity.Corpse }
-        }
+        return worldState.entities.values.count { it is Entity.Corpse }
     }
 }

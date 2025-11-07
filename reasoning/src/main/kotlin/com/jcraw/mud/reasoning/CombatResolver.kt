@@ -14,8 +14,8 @@ class CombatResolver {
      * Returns null if combat cannot be started (NPC not found, etc.)
      */
     fun initiateCombat(worldState: WorldState, player: PlayerState, targetNpcId: String): CombatResult? {
-        val room = worldState.getCurrentRoom(player.id) ?: return null
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val space = worldState.getCurrentSpace(player.id) ?: return null
+        val npc = worldState.getEntitiesInSpace(space.id).filterIsInstance<Entity.NPC>()
             .find { it.id == targetNpcId }
             ?: return null
 
@@ -102,8 +102,8 @@ class CombatResolver {
      * Base damage + STR modifier - player armor defense.
      */
     private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int {
-        val room = worldState.getCurrentRoom(player.id) ?: return 0
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val space = worldState.getCurrentSpace(player.id) ?: return 0
+        val npc = worldState.getEntitiesInSpace(space.id).filterIsInstance<Entity.NPC>()
             .find { it.id == npcId }
             ?: return 0
 

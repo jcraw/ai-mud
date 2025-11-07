@@ -133,9 +133,11 @@ class MonsterAIHandler(
         intelligenceLevel: Int,
         worldState: WorldState
     ): AIPrompt {
-        val room = worldState.rooms.values.find { room ->
-            room.entities.any { it.id == npc.id }
+        // Find space containing the NPC (V3)
+        val spaceEntry = worldState.spaces.entries.find { (_, space) ->
+            space.entities.contains(npc.id)
         }
+        val spaceName = spaceEntry?.value?.name ?: "unknown location"
 
         val player = worldState.player
         val hpPercentage = (combatComponent.currentHp.toDouble() / combatComponent.maxHp * 100).toInt()
@@ -154,7 +156,7 @@ class MonsterAIHandler(
             Your HP: ${combatComponent.currentHp}/${combatComponent.maxHp} ($hpPercentage%)
 
             Combat situation:
-            - You are in: ${room?.name ?: "unknown location"}
+            - You are in: $spaceName
             - Enemy: ${player.name}
 
             Available actions:
@@ -287,13 +289,10 @@ class MonsterAIHandler(
     }
 
     /**
-     * Find NPC entity by ID across all rooms
+     * Find NPC entity by ID (V3: use global entity storage)
      */
     private fun findNPC(npcId: String, worldState: WorldState): Entity.NPC? {
-        return worldState.rooms.values
-            .flatMap { it.entities }
-            .filterIsInstance<Entity.NPC>()
-            .find { it.id == npcId }
+        return worldState.getEntity(npcId) as? Entity.NPC
     }
 }
 

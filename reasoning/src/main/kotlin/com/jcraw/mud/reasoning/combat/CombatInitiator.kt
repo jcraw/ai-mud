@@ -17,21 +17,19 @@ object CombatInitiator {
     const val HOSTILE_THRESHOLD = -75
 
     /**
-     * Find all hostile entities in the specified room
+     * Find all hostile entities in the specified space
      *
-     * @param roomId The room to check for hostile entities
+     * @param spaceId The space to check for hostile entities
      * @param worldState Current world state
      * @param playerId The player to check hostility toward (defaults to main player)
      * @return List of entity IDs that are hostile toward the player
      */
     fun checkForHostileEntities(
-        roomId: RoomId,
+        spaceId: SpaceId,
         worldState: WorldState,
         playerId: PlayerId = worldState.player.id
     ): List<String> {
-        val room = worldState.getRoom(roomId) ?: return emptyList()
-
-        return room.entities
+        return worldState.getEntitiesInSpace(spaceId)
             .filterIsInstance<Entity.NPC>()
             .filter { npc -> isHostile(npc, playerId) }
             .map { it.id }

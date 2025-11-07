@@ -51,16 +51,17 @@ class DeathHandler(
      * @return DeathResult containing corpse and updated world, or null if entity not found
      */
     fun handleDeath(entityId: String, worldState: WorldState): DeathResult? {
-        // Find which room the entity is in
-        val roomWithEntity = worldState.rooms.values.firstOrNull { room ->
-            room.entities.any { it.id == entityId }
+        // Get entity from global storage (V3)
+        val entity = worldState.getEntity(entityId) ?: return null
+
+        // Find which space the entity is in
+        val spaceWithEntity = worldState.spaces.entries.firstOrNull { (_, space) ->
+            space.entities.contains(entityId)
         } ?: return null
 
-        val entity = roomWithEntity.getEntity(entityId) ?: return null
-
         return when (entity) {
-            is Entity.NPC -> handleNPCDeath(entity, roomWithEntity, worldState)
-            is Entity.Player -> handlePlayerDeath(entity, roomWithEntity, worldState)
+            is Entity.NPC -> handleNPCDeath(entity, spaceWithEntity.key, spaceWithEntity.value, worldState)
+            is Entity.Player -> handlePlayerDeath(entity, spaceWithEntity.key, spaceWithEntity.value, worldState)
             else -> null // Items, features, corpses don't die
         }
     }
@@ -70,7 +71,8 @@ class DeathHandler(
      */
     private fun handleNPCDeath(
         npc: Entity.NPC,
-        room: Room,
+        spaceId: SpaceId,
+        space: SpacePropertiesComponent,
         worldState: WorldState
     ): DeathResult.NPCDeath {
         // Generate loot from loot table if NPC has one
@@ -106,12 +108,9 @@ class DeathHandler(
             decayTimer = 100
         )
 
-        // Remove NPC, add corpse
-        val updatedRoom = room
-            .removeEntity(npc.id)
-            .addEntity(corpse)
-
-        val updatedWorld = worldState.updateRoom(updatedRoom)
+        // Remove NPC from space, add corpse (V3)
+        val updatedWorld = worldState
+            .replaceEntityInSpace(spaceId, npc.id, corpse) ?: worldState
 
         return DeathResult.NPCDeath(corpse, updatedWorld)
     }
@@ -135,7 +134,8 @@ class DeathHandler(
      */
     private fun handlePlayerDeath(
         player: Entity.Player,
-        room: Room,
+        spaceId: SpaceId,
+        space: SpacePropertiesComponent,
         worldState: WorldState
     ): DeathResult.PlayerDeath {
         // Create corpse (inventory will be added when InventoryComponent migration completes)
@@ -148,17 +148,14 @@ class DeathHandler(
             decayTimer = 200  // Player corpses last longer
         )
 
-        // Remove player entity from room (will respawn elsewhere)
-        val updatedRoom = room
-            .removeEntity(player.id)
-            .addEntity(corpse)
-
-        val updatedWorld = worldState.updateRoom(updatedRoom)
+        // Remove player entity from space, add corpse (V3)
+        val updatedWorld = worldState
+            .replaceEntityInSpace(spaceId, player.id, corpse) ?: worldState
 
         return DeathResult.PlayerDeath(
             corpse = corpse,
             playerId = player.playerId,
-            deathRoomId = room.id,
+            deathRoomId = spaceId,
             updatedWorld = updatedWorld
         )
     }

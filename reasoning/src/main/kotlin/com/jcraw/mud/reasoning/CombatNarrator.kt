@@ -180,7 +180,7 @@ class CombatNarrator(
         npcDied: Boolean,
         playerDied: Boolean
     ): String {
-        val room = worldState.getCurrentRoom() ?: return "You fight in darkness..."
+        val space = worldState.getCurrentSpace() ?: return "You fight in darkness..."
 
         // Retrieve past combat encounters for context
         val memories = memoryManager?.recall("combat with ${npc.name}", k = 2) ?: emptyList()
@@ -197,8 +197,8 @@ class CombatNarrator(
 
         val userContext = buildString {
             appendLine("Combat Round:")
-            appendLine("Location: ${room.name}")
-            appendLine("Room atmosphere: ${room.traits.joinToString(", ")}")
+            appendLine("Location: ${space.name}")
+            appendLine("Room atmosphere: ${space.terrain}")
             appendLine()
             appendLine("Combatants:")
             appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")
@@ -257,7 +257,7 @@ class CombatNarrator(
      * Narrates the initiation of combat.
      */
     suspend fun narrateCombatStart(worldState: WorldState, npc: Entity.NPC): String {
-        val room = worldState.getCurrentRoom() ?: return "Combat begins..."
+        val space = worldState.getCurrentSpace() ?: return "Combat begins..."
         val player = worldState.player
         val weapon = player.equippedWeapon?.name ?: "bare fists"
 
@@ -269,8 +269,8 @@ class CombatNarrator(
 
         val userContext = buildString {
             appendLine("Combat Starting:")
-            appendLine("Location: ${room.name}")
-            appendLine("Atmosphere: ${room.traits.joinToString(", ")}")
+            appendLine("Location: ${space.name}")
+            appendLine("Atmosphere: ${space.terrain}")
             appendLine("Player weapon: $weapon")
             appendLine("Enemy: ${npc.name} - ${npc.description}")
             appendLine("Enemy disposition: ${if (npc.isHostile) "Hostile" else "Provoked"}")
