@@ -48,7 +48,7 @@ class GameServer(
     /**
      * Add a player session to the server
      */
-    suspend fun addPlayerSession(session: PlayerSession, startingRoomId: RoomId) = stateMutex.withLock {
+    suspend fun addPlayerSession(session: PlayerSession, startingRoomId: SpaceId) = stateMutex.withLock {
         // Create player state
         val playerState = PlayerState(
             id = session.playerId,
@@ -128,16 +128,16 @@ class GameServer(
     }
 
     /**
-     * Broadcast a game event to all players in the relevant room
+     * Broadcast a game event to all players in the relevant space (V3)
      */
     private suspend fun broadcastEvent(event: GameEvent) {
-        val roomId = event.roomId ?: return
+        val spaceId = event.roomId ?: return
 
-        // Find all players in the room
-        val playersInRoom = worldState.getPlayersInRoom(roomId)
+        // V3: Find all players in the space
+        val playersInSpace = worldState.players.values.filter { it.currentRoomId == spaceId }
 
         // Send event to each player's session (except excluded player)
-        playersInRoom.forEach { player ->
+        playersInSpace.forEach { player ->
             if (player.id != event.excludePlayer) {
                 sessions[player.id]?.notifyEvent(event)
             }
@@ -183,25 +183,27 @@ class GameServer(
     }
 
     /**
-     * Handle a specific intent and return response, new state, and optional event
+     * Handle a specific intent and return response, new state, and optional event (V3)
      */
     private suspend fun handleIntent(
         playerId: PlayerId,
         playerState: PlayerState,
         intent: Intent
     ): Triple<String, WorldState, GameEvent?> {
-        val currentRoom = worldState.getCurrentRoom(playerId) ?: return Triple(
-            "Error: Current room not found",
-            worldState,
-            null
-        )
+        // V3: Get current space instead of room
+        val currentSpace = worldState.getCurrentSpace(playerId)
+        val currentSpaceId = playerState.currentRoomId
+
+        if (currentSpace == null) {
+            return Triple("Error: Current location not found", worldState, null)
+        }
 
         return when (intent) {
             is Intent.Move -> handleMove(playerId, playerState, intent.direction)
             is Intent.Scout -> Triple("Scout not yet integrated with world generation system", worldState, null)
             is Intent.Travel -> Triple("Travel not yet integrated with world generation system", worldState, null)
             is Intent.Look -> handleLook(playerId, playerState, intent.target)
-            is Intent.Search -> handleSearch(playerId, playerState, intent.target, currentRoom)
+            is Intent.Search -> handleSearch(playerId, playerState, intent.target)
             is Intent.Rest -> Triple("Rest not yet supported in multi-user mode", worldState, null)
             is Intent.LootCorpse -> Triple("Corpse looting not yet supported in multi-user mode", worldState, null)
             is Intent.Craft -> Triple("Crafting not yet supported in multi-user mode", worldState, null)
@@ -210,15 +212,15 @@ class GameServer(
             is Intent.UseItem -> Triple("Advanced item use not yet supported in multi-user mode", worldState, null)
             is Intent.Attack -> handleAttack(playerId, playerState, intent.target)
             is Intent.Talk -> handleTalk(playerId, playerState, intent.target)
-            is Intent.Take -> handleTake(playerId, playerState, intent.target, currentRoom)
-            is Intent.TakeAll -> handleTakeAll(playerId, playerState, currentRoom)
-            is Intent.Drop -> handleDrop(playerId, playerState, intent.target, currentRoom)
-            is Intent.Give -> handleGive(playerId, playerState, intent.itemTarget, intent.npcTarget, currentRoom)
+            is Intent.Take -> handleTake(playerId, playerState, intent.target)
+            is Intent.TakeAll -> handleTakeAll(playerId, playerState)
+            is Intent.Drop -> handleDrop(playerId, playerState, intent.target)
+            is Intent.Give -> handleGive(playerId, playerState, intent.itemTarget, intent.npcTarget)
             is Intent.Equip -> handleEquip(playerId, playerState, intent.target)
             is Intent.Use -> handleUse(playerId, playerState, intent.target)
-            is Intent.Check -> handleCheck(playerId, playerState, intent.target, currentRoom)
-            is Intent.Persuade -> handlePersuade(playerId, playerState, intent.target, currentRoom)
-            is Intent.Intimidate -> handleIntimidate(playerId, playerState, intent.target, currentRoom)
+            is Intent.Check -> handleCheck(playerId, playerState, intent.target)
+            is Intent.Persuade -> handlePersuade(playerId, playerState, intent.target)
+            is Intent.Intimidate -> handleIntimidate(playerId, playerState, intent.target)
             is Intent.Emote -> Triple("Emote system not yet fully supported in multi-user mode", worldState, null)
             is Intent.Say -> Triple("Say is not yet supported in multi-user mode", worldState, null)
             is Intent.AskQuestion -> Triple("Ask system not yet fully supported in multi-user mode", worldState, null)
@@ -249,37 +251,41 @@ class GameServer(
         playerState: PlayerState,
         direction: Direction
     ): Triple<String, WorldState, GameEvent?> {
-        // V2: No modal combat, movement always allowed
-        val oldRoomId = playerState.currentRoomId
-        val newWorldState = worldState.movePlayer(playerId, direction)
+        // V3: No modal combat, movement always allowed
+        val oldSpaceId = playerState.currentRoomId
+        val newWorldState = worldState.movePlayerV3(playerId, direction)
 
         return if (newWorldState != null) {
             val newPlayerState = newWorldState.getPlayer(playerId)!!
-            val newRoomId = newPlayerState.currentRoomId
-            val newRoom = newWorldState.getRoom(newRoomId)!!
+            val newSpaceId = newPlayerState.currentRoomId
+            val newSpace = newWorldState.getSpace(newSpaceId)!!
 
-            // Generate room description
-            val description = roomDescriptionGenerator.generateDescription(newRoom)
+            // Generate space description (V3: use description field directly)
+            val description = if (newSpace.description.isNotBlank()) {
+                newSpace.description
+            } else {
+                "You arrive at a new location. The area awaits exploration."
+            }
 
-            // Track room exploration for quests
-            val questResult = trackQuests(newPlayerState, QuestAction.VisitedRoom(newRoomId))
+            // Track space exploration for quests
+            val questResult = trackQuests(newPlayerState, QuestAction.VisitedRoom(newSpaceId))
             val finalWorldState = questResult.updatedWorld
 
             // Create movement events
             val leaveEvent = GameEvent.PlayerMoved(
                 playerId = playerId,
                 playerName = playerState.name,
-                fromRoomId = oldRoomId,
-                toRoomId = newRoomId,
+                fromRoomId = oldSpaceId,
+                toRoomId = newSpaceId,
                 direction = direction.name.lowercase(),
-                roomId = oldRoomId,
+                roomId = oldSpaceId,
                 excludePlayer = playerId
             )
 
             val enterEvent = GameEvent.PlayerJoined(
                 playerId = playerId,
                 playerName = playerState.name,
-                roomId = newRoomId,
+                roomId = newSpaceId,
                 excludePlayer = playerId
             )
 
@@ -298,24 +304,28 @@ class GameServer(
         playerState: PlayerState,
         target: String?
     ): Triple<String, WorldState, GameEvent?> {
-        val currentRoom = worldState.getCurrentRoom(playerId)!!
+        // V3: Use getCurrentSpace
+        val currentSpace = worldState.getCurrentSpace(playerId)!!
+        val spaceId = playerState.currentRoomId
 
         return if (target == null) {
-            // Room description generator should handle all room contents
-            val description = roomDescriptionGenerator.generateDescription(currentRoom)
+            // V3: Use space description directly
+            val description = if (currentSpace.description.isNotBlank()) {
+                currentSpace.description
+            } else {
+                "You see an unexplored area."
+            }
             Triple(description, worldState, null)
         } else {
-            // Look at specific entity
-            val entity = currentRoom.entities.find { it.name.equals(target, ignoreCase = true) }
+            // Look at specific entity (V3: use getEntitiesInSpace)
+            val entities = worldState.getEntitiesInSpace(spaceId)
+            val entity = entities.find { it.name.equals(target, ignoreCase = true) }
 
             if (entity != null) {
                 Triple(entity.description, worldState, null)
             } else {
-                // Try scenery
-                val roomDescription = roomDescriptionGenerator.generateDescription(currentRoom)
-                val sceneryDescription = sceneryGenerator.describeScenery(target, currentRoom, roomDescription)
-                val response = sceneryDescription ?: "You don't see that here."
-                Triple(response, worldState, null)
+                // V3: Scenery not yet supported in multi-user V3 mode
+                Triple("You don't see that here.", worldState, null)
             }
         }
     }
@@ -323,8 +333,7 @@ class GameServer(
     private fun handleSearch(
         playerId: PlayerId,
         playerState: PlayerState,
-        target: String?,
-        currentRoom: Room
+        target: String?
     ): Triple<String, WorldState, GameEvent?> {
         val searchMessage = "You search the area carefully${if (target != null) ", focusing on the $target" else ""}..."
 
@@ -334,6 +343,10 @@ class GameServer(
             StatType.WISDOM,
             Difficulty.MEDIUM  // DC 15 for finding hidden items
         )
+
+        // V3: Get entities from space
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
 
         val description = buildString {
             append("$searchMessage\n\n")
@@ -349,9 +362,9 @@ class GameServer(
             if (result.success) {
                 append("\n✅ Success!\n")
 
-                // Find items in the room
-                val hiddenItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-                val pickupableItems = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+                // Find items in the space
+                val hiddenItems = entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
+                val pickupableItems = entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
                 if (hiddenItems.isNotEmpty() || pickupableItems.isNotEmpty()) {
                     if (pickupableItems.isNotEmpty()) {
@@ -392,8 +405,10 @@ class GameServer(
         playerState: PlayerState,
         targetId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val currentRoom = worldState.getCurrentRoom(playerId)!!
-        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+        // V3: Get entities from space
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { it.name.equals(targetId, ignoreCase = true) }
 
         return if (npc != null) {
@@ -411,16 +426,17 @@ class GameServer(
     private fun handleTake(
         playerId: PlayerId,
         playerState: PlayerState,
-        itemId: String,
-        currentRoom: Room
+        itemId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val item = currentRoom.entities.filterIsInstance<Entity.Item>()
+        // V3: Get entities from space
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+        val item = entities.filterIsInstance<Entity.Item>()
             .find { it.name.equals(itemId, ignoreCase = true) }
 
         return if (item != null && item.isPickupable) {
             val updatedPlayer = playerState.addToInventory(item)
-            val updatedRoom = currentRoom.removeEntity(item.id)
-            val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
+            val newWorldState = worldState.updatePlayer(updatedPlayer).removeEntityFromSpace(spaceId, item.id)
 
             // Track item collection for quests
             val questResult = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
@@ -429,7 +445,7 @@ class GameServer(
                 playerId = playerId,
                 playerName = playerState.name,
                 actionDescription = "picks up ${item.name}",
-                roomId = currentRoom.id,
+                roomId = spaceId,
                 excludePlayer = playerId
             )
 
@@ -437,9 +453,8 @@ class GameServer(
         } else if (item != null && !item.isPickupable) {
             Triple("That's part of the environment and can't be taken.", worldState, null)
         } else {
-            // Not an item - check if it's scenery (room trait or entity)
-            val isScenery = currentRoom.traits.any { it.lowercase().contains(itemId.lowercase()) } ||
-                           currentRoom.entities.any { it.name.lowercase().contains(itemId.lowercase()) }
+            // V3: Check if it's an entity (no traits in V3 spaces)
+            val isScenery = entities.any { it.name.lowercase().contains(itemId.lowercase()) }
             if (isScenery) {
                 Triple("That's part of the environment and can't be taken.", worldState, null)
             } else {
@@ -450,23 +465,24 @@ class GameServer(
 
     private fun handleTakeAll(
         playerId: PlayerId,
-        playerState: PlayerState,
-        currentRoom: Room
+        playerState: PlayerState
     ): Triple<String, WorldState, GameEvent?> {
-        val items = currentRoom.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+        // V3: Get entities from space
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+        val items = entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
         return if (items.isEmpty()) {
             Triple("There are no items to take here.", worldState, null)
         } else {
             var currentPlayer = playerState
             var currentWorld = worldState
-            var currentRoom = currentRoom
             val takenItems = mutableListOf<String>()
             var allQuestNotifications = ""
 
             items.forEach { item ->
                 currentPlayer = currentPlayer.addToInventory(item)
-                currentRoom = currentRoom.removeEntity(item.id)
+                currentWorld = currentWorld.removeEntityFromSpace(spaceId, item.id)
                 takenItems.add(item.name)
 
                 // Track item collection for quests
@@ -476,7 +492,7 @@ class GameServer(
                 allQuestNotifications += questResult.notifications
             }
 
-            val newWorldState = currentWorld.updatePlayer(currentPlayer).updateRoom(currentRoom)
+            val newWorldState = currentWorld.updatePlayer(currentPlayer)
 
             val message = buildString {
                 takenItems.forEach { append("You take the $it.\n") }
@@ -488,7 +504,7 @@ class GameServer(
                 playerId = playerId,
                 playerName = playerState.name,
                 actionDescription = "picks up all items",
-                roomId = currentRoom.id,
+                roomId = spaceId,
                 excludePlayer = playerId
             )
 
@@ -499,9 +515,11 @@ class GameServer(
     private fun handleDrop(
         playerId: PlayerId,
         playerState: PlayerState,
-        itemId: String,
-        currentRoom: Room
+        itemId: String
     ): Triple<String, WorldState, GameEvent?> {
+        // V3: Get current space ID
+        val spaceId = playerState.currentRoomId
+
         // First check inventory
         var item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
         var isEquippedWeapon = false
@@ -527,14 +545,13 @@ class GameServer(
                 isEquippedArmor -> playerState.copy(equippedArmor = null)
                 else -> playerState.removeFromInventory(item.id)
             }
-            val updatedRoom = currentRoom.addEntity(item)
-            val newWorldState = worldState.updatePlayer(updatedPlayer).updateRoom(updatedRoom)
+            val newWorldState = worldState.updatePlayer(updatedPlayer).addEntityToSpace(spaceId, item)
 
             val event = GameEvent.GenericAction(
                 playerId = playerId,
                 playerName = playerState.name,
                 actionDescription = "drops ${item.name}",
-                roomId = currentRoom.id,
+                roomId = spaceId,
                 excludePlayer = playerId
             )
 
@@ -548,9 +565,12 @@ class GameServer(
         playerId: PlayerId,
         playerState: PlayerState,
         itemTarget: String,
-        npcTarget: String,
-        currentRoom: Room
+        npcTarget: String
     ): Triple<String, WorldState, GameEvent?> {
+        // V3: Get current space ID and entities
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+
         // Find the item in inventory
         val item = playerState.inventory.find { invItem ->
             invItem.name.lowercase().contains(itemTarget.lowercase()) ||
@@ -561,8 +581,8 @@ class GameServer(
             return Triple("You don't have that item.", worldState, null)
         }
 
-        // Find the NPC in the room
-        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+        // Find the NPC in the space
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { entity ->
                 entity.name.lowercase().contains(npcTarget.lowercase()) ||
                 entity.id.lowercase().contains(npcTarget.lowercase())
@@ -582,7 +602,7 @@ class GameServer(
             playerId = playerId,
             playerName = playerState.name,
             actionDescription = "gives ${item.name} to ${npc.name}",
-            roomId = currentRoom.id,
+            roomId = spaceId,
             excludePlayer = playerId
         )
 
@@ -663,14 +683,17 @@ class GameServer(
     private fun handleCheck(
         playerId: PlayerId,
         playerState: PlayerState,
-        targetId: String,
-        currentRoom: Room
+        targetId: String
     ): Triple<String, WorldState, GameEvent?> {
+        // V3: Get current space ID and entities
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+
         // Normalize target for matching (replace underscores with spaces)
         val normalizedTarget = targetId.lowercase().replace("_", " ")
 
-        // Find the feature in the room with flexible matching
-        val feature = currentRoom.entities.filterIsInstance<Entity.Feature>()
+        // Find the feature in the space with flexible matching
+        val feature = entities.filterIsInstance<Entity.Feature>()
             .find { entity ->
                 val normalizedName = entity.name.lowercase()
                 val normalizedId = entity.id.lowercase().replace("_", " ")
@@ -706,8 +729,7 @@ class GameServer(
         }
 
         val updatedFeature = if (result.success) feature.copy(isCompleted = true) else feature
-        val updatedRoom = currentRoom.removeEntity(feature.id).addEntity(updatedFeature)
-        val newWorldState = worldState.updateRoom(updatedRoom)
+        val newWorldState = worldState.removeEntityFromSpace(spaceId, feature.id).addEntityToSpace(spaceId, updatedFeature)
 
         // Track skill check for quests
         val questResult = if (result.success) {
@@ -722,10 +744,13 @@ class GameServer(
     private fun handlePersuade(
         playerId: PlayerId,
         playerState: PlayerState,
-        targetId: String,
-        currentRoom: Room
+        targetId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+        // V3: Get current space ID and entities
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { it.name.equals(targetId, ignoreCase = true) }
 
         if (npc == null || npc.persuasionChallenge == null) {
@@ -747,18 +772,20 @@ class GameServer(
         }
 
         val updatedNpc = if (result.success) npc.copy(hasBeenPersuaded = true) else npc
-        val updatedRoom = currentRoom.removeEntity(npc.id).addEntity(updatedNpc)
-        val newWorldState = worldState.updateRoom(updatedRoom)
+        val newWorldState = worldState.removeEntityFromSpace(spaceId, npc.id).addEntityToSpace(spaceId, updatedNpc)
         return Triple(description, newWorldState, null)
     }
 
     private fun handleIntimidate(
         playerId: PlayerId,
         playerState: PlayerState,
-        targetId: String,
-        currentRoom: Room
+        targetId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val npc = currentRoom.entities.filterIsInstance<Entity.NPC>()
+        // V3: Get current space ID and entities
+        val spaceId = playerState.currentRoomId
+        val entities = worldState.getEntitiesInSpace(spaceId)
+
+        val npc = entities.filterIsInstance<Entity.NPC>()
             .find { it.name.equals(targetId, ignoreCase = true) }
 
         if (npc == null || npc.intimidationChallenge == null) {
@@ -780,8 +807,7 @@ class GameServer(
         }
 
         val updatedNpc = if (result.success) npc.copy(hasBeenIntimidated = true) else npc
-        val updatedRoom = currentRoom.removeEntity(npc.id).addEntity(updatedNpc)
-        val newWorldState = worldState.updateRoom(updatedRoom)
+        val newWorldState = worldState.removeEntityFromSpace(spaceId, npc.id).addEntityToSpace(spaceId, updatedNpc)
         return Triple(description, newWorldState, null)
     }
 

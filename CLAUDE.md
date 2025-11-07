@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: ⚠️ BUILD BROKEN** - V2 Removal Phase 1 in progress. WorldState is now V3-only (all V2 methods removed). Build intentionally broken to force V2→V3 migration. See `docs/V2_REMOVAL_PLAN.md` for status.
+**Current State: ⚠️ TESTS BROKEN** - V2 Removal Phase 4 complete. WorldState, Console Handlers, Reasoning Module, GUI Client, and Infrastructure are now V3-only. Main code compiles successfully. Tests need V3 migration (Phase 5). See `docs/V2_REMOVAL_PLAN.md` for status.
 
 **Previous State**: Fully functional AI-powered MUD engine with all features complete. Temporarily broken during V2 code removal to enforce V3-only architecture per project guidelines ("no backward compatibility needed").
 
-**Quick Start**: Currently unavailable (build broken during migration)
+**Quick Start**: Main app compiles - tests need V3 migration (Phase 5)
 
 For complete documentation, see:
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Setup, commands, gameplay features
@@ -173,8 +173,8 @@ Memory (store for RAG)
 
 ## Important Notes
 
-- **⚠️ BUILD BROKEN** - V2 Removal Phase 1 complete (WorldState V3-only). Build intentionally broken to force migration.
-- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1 complete (Core WorldState). Phase 2-7 remaining (est. 6-10h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
+- **⚠️ TESTS BROKEN** - V2 Removal Phase 4 complete. Main code compiles, but tests need V3 migration (Phase 5).
+- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-4 complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure). Phase 5-7 remaining (est. 3.5-4.5h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
 - **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
@@ -204,9 +204,9 @@ Memory (store for RAG)
 
 ## Current Status
 
-**⚠️ BUILD BROKEN - V2 REMOVAL IN PROGRESS**
-**Phase 1 COMPLETE** - WorldState is now V3-only (all V2 methods removed)
-**Phase 2-7 REMAINING** - Console handlers, GUI client, infrastructure, tests need V2 code removed (est. 6-10h)
+**⚠️ TESTS BROKEN - V2 REMOVAL IN PROGRESS**
+**Phase 1-4 COMPLETE** - WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure are now V3-only
+**Phase 5-7 REMAINING** - Tests, Dependencies, Documentation need V2 code removed (est. 3.5-4.5h)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones

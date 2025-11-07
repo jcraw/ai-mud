@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Phase 1-3 Complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client)
-**Estimated Effort**: 8-12 hours (10-12h spent)
+**Status**: Phase 1-4 Complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure)
+**Estimated Effort**: 8-12 hours (11-13h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -201,13 +201,41 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Result**: GUI client is now V3-only. File reduced from 639 lines to 610 lines. Client module builds successfully with no V2 dependencies.
 
-### Phase 4: Infrastructure (Est. 1h)
+### Phase 4: Infrastructure (Est. 1h) ✅ COMPLETE
 
 **Objective**: Update GameServer and MultiUserGame to V3-only
 
-**Files**:
-1. GameServer.kt - Remove 5 V2 references
-2. MultiUserGame.kt - Remove 3 V2 references
+**Status**: Both files successfully migrated to V3. Multi-user mode now uses V3-only architecture.
+
+**Completed Steps**:
+1. ✅ **GameServer.kt** - Migrated to V3-only (all Room-based methods removed):
+   - Updated `addPlayerSession()` signature to accept `SpaceId` instead of `RoomId`
+   - Updated `broadcastEvent()` to find players in space using V3 methods
+   - Updated `handleIntent()` to use `getCurrentSpace()` instead of `getCurrentRoom()`
+   - Migrated all handler functions to V3:
+     - `handleMove()` - Uses `movePlayerV3()` and `getSpace()`
+     - `handleLook()` - Uses `getCurrentSpace()` and `getEntitiesInSpace()`
+     - `handleSearch()` - Uses `getEntitiesInSpace()`
+     - `handleTalk()` - Uses `getEntitiesInSpace()` for NPC lookup
+     - `handleTake()` - Uses `getEntitiesInSpace()` and `removeEntityFromSpace()`
+     - `handleTakeAll()` - Uses V3 entity storage
+     - `handleDrop()` - Uses `addEntityToSpace()`
+     - `handleGive()` - Uses `getEntitiesInSpace()`
+     - `handleCheck()` - Uses V3 entity storage
+     - `handlePersuade()` - Uses V3 entity storage
+     - `handleIntimidate()` - Uses V3 entity storage
+   - Removed all Room type parameters from function signatures
+   - File reduced from 823 lines to 838 lines (added V3 comments)
+
+2. ✅ **MultiUserGame.kt** - Migrated to V3-only (all V2 fallbacks removed):
+   - Removed V2 room fallback in starting location detection (line 74-75)
+   - Removed V2 getCurrentRoom() fallback in initial location display (lines 105-114)
+   - Removed V2 room-based context in intent parsing (lines 130-140)
+   - Removed `buildExitsWithNames()` V2 function entirely
+   - Only `buildExitsWithNamesV3()` remains
+   - File reduced from 306 lines to 283 lines
+
+**Result**: Infrastructure is now V3-only. Multi-user mode fully migrated with no V2 dependencies.
 
 ### Phase 5: Tests (Est. 2-3h)
 

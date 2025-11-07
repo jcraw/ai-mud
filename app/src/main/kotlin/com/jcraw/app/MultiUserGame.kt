@@ -71,14 +71,8 @@ class MultiUserGame(
         println("\n🌟 Starting game for $playerName...")
         println("=" * 60)
 
-        // Get starting location (V3: first space, V2: first room)
-        val startingLocationId = if (initialWorldState.graphNodes.isNotEmpty()) {
-            // V3: Use first space from graphNodes
-            initialWorldState.graphNodes.keys.first()
-        } else {
-            // V2: Use first room
-            initialWorldState.rooms.values.first().id
-        }
+        // V3: Get starting location from first space
+        val startingLocationId = initialWorldState.graphNodes.keys.first()
 
         // Create player session
         val playerId = "player_main"
@@ -108,29 +102,16 @@ class MultiUserGame(
         session.sendMessage("  Welcome, ${session.playerName}!")
         session.sendMessage("=" * 60)
 
-        // Show initial location (V3: space, V2: room)
+        // V3: Show initial location
         val worldState = gameServer.getWorldState()
-        val initialSpace = worldState.getCurrentSpace(session.playerId)
-        if (initialSpace != null) {
-            // V3: Display space (extract name from first line of description)
-            val description = initialSpace.description.ifBlank {
-                "An unexplored area awaits."
-            }
-            val locationName = description.lines().firstOrNull()?.take(50) ?: "Current Location"
-            session.sendMessage("\n$locationName")
-            session.sendMessage("-" * locationName.length)
-            session.sendMessage(description)
-        } else {
-            // V2: Display room
-            val initialRoom = worldState.getCurrentRoom(session.playerId)
-            if (initialRoom != null) {
-                val description = descriptionGenerator?.generateDescription(initialRoom)
-                    ?: initialRoom.traits.joinToString(". ") + "."
-                session.sendMessage("\n${initialRoom.name}")
-                session.sendMessage("-" * initialRoom.name.length)
-                session.sendMessage(description)
-            }
+        val initialSpace = worldState.getCurrentSpace(session.playerId)!!
+        val description = initialSpace.description.ifBlank {
+            "An unexplored area awaits."
         }
+        val locationName = description.lines().firstOrNull()?.take(50) ?: "Current Location"
+        session.sendMessage("\n$locationName")
+        session.sendMessage("-" * locationName.length)
+        session.sendMessage(description)
 
         session.sendMessage("\nType 'help' for commands.\n")
 
@@ -146,26 +127,15 @@ class MultiUserGame(
             val input = session.readLine() ?: break
             if (input.trim().isBlank()) continue
 
-            // Parse intent using LLM (V3: space + graph node, V2: room)
+            // V3: Parse intent using LLM with space + graph node
             val currentWorldState = gameServer.getWorldState()
-            val space = currentWorldState.getCurrentSpace(session.playerId)
-            val graphNode = currentWorldState.getCurrentGraphNode(session.playerId)
+            val space = currentWorldState.getCurrentSpace(session.playerId)!!
+            val graphNode = currentWorldState.getCurrentGraphNode(session.playerId)!!
 
-            val locationContext: String?
-            val exitsWithNames: Map<Direction, String>?
-
-            if (space != null && graphNode != null) {
-                // V3: Use space and graph node
-                val locationName = space.description.lines().firstOrNull()?.take(50) ?: "Current Location"
-                val brightness = if (space.brightness > 30) "lit" else "dark"
-                locationContext = "$locationName: ${space.terrainType}, $brightness"
-                exitsWithNames = buildExitsWithNamesV3(graphNode, currentWorldState)
-            } else {
-                // V2: Use room
-                val room = currentWorldState.getCurrentRoom(session.playerId)
-                locationContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-                exitsWithNames = room?.let { buildExitsWithNames(it, currentWorldState) }
-            }
+            val locationName = space.description.lines().firstOrNull()?.take(50) ?: "Current Location"
+            val brightness = if (space.brightness > 30) "lit" else "dark"
+            val locationContext = "$locationName: ${space.terrainType}, $brightness"
+            val exitsWithNames = buildExitsWithNamesV3(graphNode, currentWorldState)
 
             val intent = intentRecognizer.parseIntent(input.trim(), locationContext, exitsWithNames)
 
@@ -181,20 +151,6 @@ class MultiUserGame(
             val response = gameServer.processIntent(session.playerId, intent)
             session.sendMessage(response)
         }
-    }
-
-    /**
-     * Build a map of exits with their destination room names for navigation parsing (V2).
-     */
-    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room, worldState: WorldState): Map<Direction, String> {
-        return room.exits.mapNotNull { (direction, roomId) ->
-            val destRoom = worldState.rooms[roomId]
-            if (destRoom != null) {
-                direction to destRoom.name
-            } else {
-                null
-            }
-        }.toMap()
     }
 
     /**

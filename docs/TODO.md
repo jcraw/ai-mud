@@ -1,8 +1,8 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-06 - V2 Removal Phase 1 Complete
+Last updated: 2025-11-07 - V2 Removal Phase 4 Complete
 
-**Status**: Phase 1-2a of V2 removal complete - WorldState, Console Handlers, and Reasoning Module are now V3-only. Main code compiles successfully. Tests broken (Phase 5). See docs/V2_REMOVAL_PLAN.md for remaining phases.
+**Status**: Phase 1-4 of V2 removal complete - WorldState, Console Handlers, Reasoning Module, GUI Client, and Infrastructure are now V3-only. Main code compiles successfully. Tests broken (Phase 5). See docs/V2_REMOVAL_PLAN.md for remaining phases.
 
 ## Current Status
 
@@ -228,18 +228,27 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
    - 45+ V2 references removed, 448+ lines removed
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 3 completion report
 
-5. **NEXT: Phase 4 - Infrastructure** (Est. 1h) - **BLOCKING**
-   - GameServer.kt and MultiUserGame.kt need V3-only migration
-   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 4 plan
+5. ✅ **Phase 4 COMPLETE: Infrastructure** (1h)
+   - GameServer.kt and MultiUserGame.kt migrated to V3-only
+   - Multi-user mode now uses V3-only architecture
+   - All Room-based methods removed from infrastructure
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 4 completion report
 
-6. **Phase 5-7** - Tests, Dependencies, Documentation (Est. 3-4h)
+6. **NEXT: Phase 5 - Tests** (Est. 2-3h) - **BLOCKING**
+   - Fix ~64 test occurrences to use V3 API
+   - Fix WorldStateTest.kt
+   - Update integration tests
+   - Verify all tests pass
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 5 plan
+
+7. **Phase 6-7** - Dependencies, Documentation (Est. 1.5h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
 
-7. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+8. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
 
-8. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+9. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
 
-9. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
+10. **Implement remaining V3 chunks (7-11)** - Optional enhancements for player agency and polish
 
 ## V2 Removal Requirements
 
