@@ -205,11 +205,70 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
 - Experience frontier traversal (automatic chunk generation)
 - Play through all game modes (console, multi-user, GUI client) with V3 support
 
-**Next Steps** (all optional):
-1. **Fix reasoning module tests** - Update 4 test files (RespawnManagerTest, SpacePopulatorTest, StateChangeHandlerTest, TurnQueueManagerTest) to match new API signatures after V3 refactoring
-2. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
-3. **Remove deprecated V2 code** - Clean up Room-based methods after V3 validation
+**Next Steps**:
+1. **CRITICAL: Remove V2 fallback code** - Current implementation violates project guidelines ("no backward compatibility needed"). Estimated 8-12h work:
+   - Console handlers have V3 with V2 fallback (~49 occurrences) - should be V3-only
+   - GUI client is pure V2 (~18 occurrences) - needs migration to V3-only
+   - GameServer/MultiUserGame have V2 code (~8 occurrences) - needs V3-only migration
+   - WorldState has deprecated Room methods and `rooms` field - needs removal
+   - Total: ~177 V2 references across 42 files need cleanup
+   - See "V2 Removal Requirements" section below for details
+
+2. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
+
+3. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
+
 4. **Implement remaining chunks (7-11)** - Optional enhancements for player agency and polish
+
+## V2 Removal Requirements
+
+**Problem**: Code currently has V3 with V2 fallbacks, violating project guideline: "no backward compatibility needed - can wipe and restart data between versions"
+
+**Affected Areas** (177 occurrences across 42 files):
+
+**Console Handlers** (~49 occurrences) - Currently have V3/V2 fallback, need V3-only:
+- `MovementHandlers.kt` - 4 occurrences of `getCurrentRoom()`, `movePlayer()`, V2 fallback logic
+- `ItemHandlers.kt` - 6 V2 references
+- `CombatHandlers.kt` - 5 V2 references
+- `SocialHandlers.kt` - 11 V2 references
+- `SkillQuestHandlers.kt` - 6 V2 references
+- `TradeHandlers.kt`, `PickpocketHandlers.kt` - additional V2 references
+
+**GUI Client** (~18 occurrences) - Currently pure V2, needs V3-only migration:
+- `ClientMovementHandlers.kt` - 4 V2 references
+- `ClientItemHandlers.kt` - 4 V2 references
+- `ClientCombatHandlers.kt` - 1 V2 reference
+- `ClientSocialHandlers.kt` - 4 V2 references
+- `ClientSkillQuestHandlers.kt` - 1 V2 reference
+- `ClientTradeHandlers.kt` - 1 V2 reference
+- `EngineGameClient.kt` - 3 V2 references
+
+**Infrastructure** (~8 occurrences):
+- `GameServer.kt` - 5 V2 references
+- `MultiUserGame.kt` - 3 V2 references
+
+**Core** (WorldState):
+- Remove deprecated methods: `getCurrentRoom()`, `movePlayer()`, `addEntityToRoom()`, `removeEntityFromRoom()`, etc.
+- Remove `rooms` field entirely
+- Update all V2 method references to V3
+
+**Dependencies**:
+- `SceneryDescriptionGenerator` needs V3 version (currently takes Room, needs SpacePropertiesComponent version)
+- Various other services may need V3 adaptations
+
+**Tests** (~64 occurrences):
+- Update test code to use V3 methods only
+
+**Recommended Approach**:
+1. Start with WorldState - add V3-only requirement (throw exception if used incorrectly)
+2. Migrate console handlers to V3-only (remove all V2 fallbacks)
+3. Migrate GUI client to V3-only
+4. Update GameServer/MultiUserGame to V3-only
+5. Remove deprecated Room methods from WorldState
+6. Remove `rooms` field from WorldState
+7. Update all dependent code
+8. Fix broken tests
+9. Update documentation
 
 ## Completed Systems Summary
 

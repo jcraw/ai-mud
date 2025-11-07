@@ -175,11 +175,12 @@ Memory (store for RAG)
 
 - **✅ Production Ready** - All planned features complete, application builds and runs successfully
 - **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
+- **⚠️ V2 CODE ISSUE** - Current implementation has V3 with V2 fallbacks, violating project guideline "no backward compatibility needed". ~177 V2 references across 42 files need removal (est. 8-12h work). See `docs/TODO.md` "V2 Removal Requirements" section.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
 - **Project guidelines**: See `CLAUDE_GUIDELINES.md`
-- **Development status**: See `docs/TODO.md` for optional future enhancements
+- **Development status**: See `docs/TODO.md` for detailed status and requirements
 
 ## Documentation
 
@@ -203,7 +204,7 @@ Memory (store for RAG)
 ## Current Status
 
 **✅ PRODUCTION READY - ALL SYSTEMS COMPLETE**
-**🚧 V3 IN PROGRESS** - Graph-Based Navigation (Initialization complete, handlers V3-ready, playable with single-chunk worlds)
+**⚠️ V3 NEEDS CLEANUP** - Graph-Based Navigation functional but has V2 fallback code that violates "no backward compatibility" guideline (see V2 Removal Requirements in TODO.md)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones
