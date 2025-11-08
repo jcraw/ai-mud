@@ -49,7 +49,7 @@ class DungeonInitializerSimpleTest {
         val bossGenerator = BossGenerator(worldGenerator, spaceRepo)
         val hiddenExitPlacer = HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
 
-        initializer = DungeonInitializer(worldGenerator, seedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer)
+        initializer = DungeonInitializer(worldGenerator, seedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepo)
     }
 
     @AfterAll

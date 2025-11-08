@@ -82,7 +82,7 @@ fun main() {
             val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spaceRepo)
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer
+                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepo
             )
 
             // Generate world (this is async)

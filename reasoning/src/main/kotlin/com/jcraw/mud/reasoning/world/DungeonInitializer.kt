@@ -31,7 +31,8 @@ class DungeonInitializer(
     private val spaceRepo: SpacePropertiesRepository,
     private val townGenerator: TownGenerator,
     private val bossGenerator: BossGenerator,
-    private val hiddenExitPlacer: HiddenExitPlacer
+    private val hiddenExitPlacer: HiddenExitPlacer,
+    private val graphNodeRepo: com.jcraw.mud.core.repository.GraphNodeRepository
 ) {
     /**
      * Initializes a new deep dungeon world.
@@ -412,6 +413,38 @@ class DungeonInitializer(
 
         spaceRepo.save(updatedTownSpace, townSpaceId).getOrElse { return Result.failure(it) }
         spaceRepo.save(updatedCombatSpace, combatSpaceId).getOrElse { return Result.failure(it) }
+
+        // V3: Create graph nodes with edges for navigation
+        val townEdge = com.jcraw.mud.core.world.EdgeData(
+            targetId = combatSpaceId,
+            direction = "down",
+            hidden = false
+        )
+
+        val combatEdge = com.jcraw.mud.core.world.EdgeData(
+            targetId = townSpaceId,
+            direction = "up",
+            hidden = false
+        )
+
+        val townNode = com.jcraw.mud.core.GraphNodeComponent(
+            id = townSpaceId,
+            position = null,
+            type = com.jcraw.mud.core.world.NodeType.Hub,
+            neighbors = listOf(townEdge),
+            chunkId = townSpaceId
+        )
+
+        val combatNode = com.jcraw.mud.core.GraphNodeComponent(
+            id = combatSpaceId,
+            position = null,
+            type = com.jcraw.mud.core.world.NodeType.Linear,
+            neighbors = listOf(combatEdge),
+            chunkId = combatSpaceId
+        )
+
+        graphNodeRepo.save(townNode).getOrElse { return Result.failure(it) }
+        graphNodeRepo.save(combatNode).getOrElse { return Result.failure(it) }
 
         return Result.success(Unit)
     }

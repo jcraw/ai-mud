@@ -57,7 +57,7 @@ class RespawnManagerTest {
         }
     }
 
-    private val mockDungeonInit = object : DungeonInitializer(mockk(), mockk(), mockk(), mockk(), mockk(), mockk()) {
+    private val mockDungeonInit = object : DungeonInitializer(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()) {
         override suspend fun initializeDeepDungeon(seed: String): Result<String> {
             return Result.success("space_start")
         }

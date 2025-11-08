@@ -170,7 +170,7 @@ class EngineGameClient(
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator!!, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
                 worldGenerator!!, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
-                townGenerator, bossGenerator, hiddenExitPlacer
+                townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepository
             )
 
             val existingSeedInfo = runBlocking {
