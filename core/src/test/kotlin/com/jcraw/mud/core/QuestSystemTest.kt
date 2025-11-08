@@ -192,7 +192,6 @@ class QuestSystemTest {
     @Test
     fun `world state should manage available quests`() {
         val worldState = WorldState(
-            rooms = mapOf("room1" to Room(id = "room1", name = "Test Room", traits = listOf("test trait"))),
             players = mapOf()
         )
 

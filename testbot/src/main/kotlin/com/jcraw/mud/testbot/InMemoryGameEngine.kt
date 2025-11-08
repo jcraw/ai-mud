@@ -3,6 +3,8 @@ package com.jcraw.mud.testbot
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemType
+import com.jcraw.mud.core.SpaceId
+import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.perception.Intent
@@ -40,9 +42,9 @@ class InMemoryGameEngine(
     override suspend fun processInput(input: String): String {
         if (!running) return "Game is not running."
 
-        val room = worldState.getCurrentRoom()
-        val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-        val exitsWithNames = room?.let { buildExitsWithNames(it) }
+        val space = worldState.getCurrentSpace()
+        val roomContext = space?.let { "${it.name}: ${it.description}" }
+        val exitsWithNames = space?.let { buildExitsWithNames(it) }
         val intent = intentRecognizer.parseIntent(input, roomContext, exitsWithNames)
         return processIntent(intent)
     }
@@ -87,26 +89,28 @@ class InMemoryGameEngine(
 
     private suspend fun handleMove(direction: Direction): String {
         // Movement is always allowed in Combat System V2
-        val newState = worldState.movePlayer(direction)
+        val newState = worldState.movePlayerV3(direction)
         return if (newState != null) {
             worldState = newState
-            val room = worldState.getCurrentRoom()!!
-            val questNotifications = trackQuests(QuestAction.VisitedRoom(room.id))
-            buildRoomDescription(room) + questNotifications
+            val space = worldState.getCurrentSpace()!!
+            val spaceId = worldState.player.currentRoomId
+            val questNotifications = trackQuests(QuestAction.VisitedRoom(spaceId))
+            buildRoomDescription(space, spaceId) + questNotifications
         } else {
             "You can't go that way."
         }
     }
 
     private suspend fun handleLook(target: String?): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         if (target == null) {
-            return buildRoomDescription(room)
+            return buildRoomDescription(space, spaceId)
         }
 
-        // First check room entities
-        val roomEntity = room.entities.find { e ->
+        // First check space entities
+        val roomEntity = worldState.getEntitiesInSpace(spaceId).find { e ->
             e.name.lowercase().contains(target.lowercase()) || e.id.lowercase().contains(target.lowercase())
         }
 
@@ -139,9 +143,9 @@ class InMemoryGameEngine(
             return equippedArmor.description + " (equipped)"
         }
 
-        // Finally try scenery
-        val roomDescription = buildRoomDescription(room)
-        val sceneryDescription = sceneryGenerator.describeScenery(target, room, roomDescription)
+        // Finally try scenery (note: SceneryDescriptionGenerator needs V3 update, using description for now)
+        val roomDescription = buildRoomDescription(space, spaceId)
+        val sceneryDescription = space.description.takeIf { it.contains(target, ignoreCase = true) }
         return sceneryDescription ?: "You don't see that here."
     }
 
@@ -166,12 +170,13 @@ class InMemoryGameEngine(
     }
 
     private fun handleTake(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val item = room.entities.filterIsInstance<Entity.Item>()
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val item = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Item>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         return if (item != null && item.isPickupable) {
-            val newState = worldState.removeEntityFromRoom(room.id, item.id)
+            val newState = worldState.removeEntityFromSpace(spaceId, item.id)
                 ?.updatePlayer(worldState.player.addToInventory(item))
             if (newState != null) {
                 worldState = newState
@@ -186,8 +191,9 @@ class InMemoryGameEngine(
     }
 
     private fun handleTakeAll(): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val items = room.entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val items = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Item>().filter { it.isPickupable }
 
         return if (items.isEmpty()) {
             "There are no items to take here."
@@ -196,7 +202,7 @@ class InMemoryGameEngine(
             val takenItems = mutableListOf<String>()
 
             items.forEach { item ->
-                val newState = currentState.removeEntityFromRoom(room.id, item.id)
+                val newState = currentState.removeEntityFromSpace(spaceId, item.id)
                     ?.updatePlayer(currentState.player.addToInventory(item))
                 if (newState != null) {
                     currentState = newState
@@ -218,7 +224,8 @@ class InMemoryGameEngine(
     }
 
     private fun handleDrop(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         // Check inventory first
         var item = worldState.player.inventory.find {
@@ -252,7 +259,7 @@ class InMemoryGameEngine(
                 else -> worldState.player.removeFromInventory(item.id)
             }
 
-            val newState = worldState.updatePlayer(updatedPlayer).addEntityToRoom(room.id, item)
+            val newState = worldState.updatePlayer(updatedPlayer).addEntityToSpace(spaceId, item)
             if (newState != null) {
                 worldState = newState
                 "You drop the ${item.name}."
@@ -265,8 +272,9 @@ class InMemoryGameEngine(
     }
 
     private suspend fun handleTalk(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         return if (npc != null) {
@@ -289,8 +297,9 @@ class InMemoryGameEngine(
             return "Say what?"
         }
 
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val npc = resolveNpcTarget(room, npcTarget)
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val npc = resolveNpcTarget(spaceId, npcTarget)
 
         if (npcTarget != null && npc == null) {
             return "No one by that name here."
@@ -326,8 +335,8 @@ class InMemoryGameEngine(
         return listOf(introduction, response + questNotifications).joinToString("\n")
     }
 
-    private fun resolveNpcTarget(room: com.jcraw.mud.core.Room, npcTarget: String?): Entity.NPC? {
-        val npcs = room.entities.filterIsInstance<Entity.NPC>()
+    private fun resolveNpcTarget(spaceId: SpaceId, npcTarget: String?): Entity.NPC? {
+        val npcs = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
         if (npcTarget != null) {
             val lower = npcTarget.lowercase()
             val explicit = npcs.find {
@@ -364,13 +373,14 @@ class InMemoryGameEngine(
     }
 
     private suspend fun handleAttack(target: String?): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         // Validate target
         if (target.isNullOrBlank()) return "Attack whom?"
 
         // Find the target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (npc == null) {
@@ -399,7 +409,7 @@ class InMemoryGameEngine(
 
         // Check if NPC died
         if (npcDied) {
-            worldState = worldState.removeEntityFromRoom(room.id, npc.id) ?: worldState
+            worldState = worldState.removeEntityFromSpace(spaceId, npc.id) ?: worldState
             val questNotifications = trackQuests(QuestAction.KilledNPC(npc.id))
             return "$attackNarrative\nVictory! ${npc.name} has been defeated!" + questNotifications
         }
@@ -462,8 +472,9 @@ class InMemoryGameEngine(
     }
 
     private fun handleCheck(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val feature = room.entities.filterIsInstance<Entity.Feature>()
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val feature = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Feature>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (feature == null || !feature.isInteractable || feature.skillChallenge == null) {
@@ -477,7 +488,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, feature.skillChallenge!!.statType, feature.skillChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntity(room.id, feature.id, feature.copy(isCompleted = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, feature.id, feature.copy(isCompleted = true)) ?: worldState
             val questNotifications = trackQuests(QuestAction.UsedSkill(feature.id))
             "Success! ${feature.skillChallenge!!.successDescription}" + questNotifications
         } else {
@@ -486,8 +497,9 @@ class InMemoryGameEngine(
     }
 
     private fun handlePersuade(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (npc == null || npc.persuasionChallenge == null) {
@@ -501,7 +513,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, npc.persuasionChallenge!!.statType, npc.persuasionChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntity(room.id, npc.id, npc.copy(hasBeenPersuaded = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenPersuaded = true)) ?: worldState
             "Success! ${npc.persuasionChallenge!!.successDescription}"
         } else {
             "Failed! ${npc.persuasionChallenge!!.failureDescription}"
@@ -509,8 +521,9 @@ class InMemoryGameEngine(
     }
 
     private fun handleIntimidate(target: String): String {
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (npc == null || npc.intimidationChallenge == null) {
@@ -524,7 +537,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, npc.intimidationChallenge!!.statType, npc.intimidationChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntity(room.id, npc.id, npc.copy(hasBeenIntimidated = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenIntimidated = true)) ?: worldState
             "Success! ${npc.intimidationChallenge!!.successDescription}"
         } else {
             "Failed! ${npc.intimidationChallenge!!.failureDescription}"
@@ -537,7 +550,8 @@ class InMemoryGameEngine(
             return "Emotes are not available in this mode."
         }
 
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         // If no target specified, perform general emote
         if (target.isNullOrBlank()) {
@@ -545,7 +559,7 @@ class InMemoryGameEngine(
         }
 
         // Find target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(target.lowercase()) || it.id.lowercase().contains(target.lowercase()) }
 
         if (npc == null) {
@@ -562,7 +576,7 @@ class InMemoryGameEngine(
         val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
 
         // Update world state with updated NPC
-        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: worldState
 
         return narrative
     }
@@ -573,10 +587,11 @@ class InMemoryGameEngine(
             return "Knowledge queries are not available in this mode."
         }
 
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         // Find target NPC
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find { it.name.lowercase().contains(npcTarget.lowercase()) || it.id.lowercase().contains(npcTarget.lowercase()) }
 
         if (npc == null) {
@@ -585,7 +600,7 @@ class InMemoryGameEngine(
 
         lastConversationNpcId = npc.id
 
-        val worldContext = buildQuestionContext(room, npc, topic)
+        val worldContext = buildQuestionContext(space, npc, topic)
         val knowledgeResult = knowledgeManager.queryKnowledge(npc, topic, worldContext)
         var updatedNpc = knowledgeResult.npc
 
@@ -598,18 +613,18 @@ class InMemoryGameEngine(
         updatedNpc = dispositionManager?.applyEvent(updatedNpc, questionEvent) ?: updatedNpc
 
         // Update world state with updated NPC (may have new knowledge)
-        worldState = worldState.replaceEntity(room.id, npc.id, updatedNpc) ?: worldState
+        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: worldState
 
         val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
         return "${npc.name} says: \"${knowledgeResult.answer}\"" + questNotifications
     }
 
-    private fun buildQuestionContext(room: com.jcraw.mud.core.Room, npc: Entity.NPC, topic: String): String {
+    private fun buildQuestionContext(space: SpacePropertiesComponent, npc: Entity.NPC, topic: String): String {
         val social = npc.getComponent<com.jcraw.mud.core.SocialComponent>(com.jcraw.mud.core.ComponentType.SOCIAL)
         return buildString {
-            appendLine("Location: ${room.name}")
-            if (room.traits.isNotEmpty()) {
-                appendLine("Location traits: ${room.traits.joinToString()}")
+            appendLine("Location: ${space.name}")
+            if (space.description.isNotEmpty()) {
+                appendLine("Location description: ${space.description}")
             }
             appendLine("NPC name: ${npc.name}")
             appendLine("NPC description: ${npc.description}")
@@ -725,7 +740,8 @@ class InMemoryGameEngine(
             return "Skills are not available in this mode."
         }
 
-        val room = worldState.getCurrentRoom() ?: return "You are nowhere."
+        val space = worldState.getCurrentSpace() ?: return "You are nowhere."
+        val spaceId = worldState.player.currentRoomId
 
         // Parse NPC name from method string (e.g., "with the knight" → "knight")
         val npcName = method.lowercase()
@@ -739,8 +755,8 @@ class InMemoryGameEngine(
             return "Train with whom? Use 'train <skill> with <npc>'."
         }
 
-        // Find NPC in room
-        val npc = room.entities.filterIsInstance<Entity.NPC>()
+        // Find NPC in space
+        val npc = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
             .find {
                 it.name.lowercase().contains(npcName) ||
                 it.id.lowercase().contains(npcName)
@@ -760,7 +776,7 @@ class InMemoryGameEngine(
         return trainingResult.fold(
             onSuccess = { message ->
                 // Update world state with any NPC changes (disposition)
-                worldState = worldState.replaceEntity(room.id, npc.id, npc) ?: worldState
+                worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc) ?: worldState
                 message
             },
             onFailure = { error ->
@@ -827,41 +843,50 @@ class InMemoryGameEngine(
         return "Goodbye!"
     }
 
-    private suspend fun buildRoomDescription(room: com.jcraw.mud.core.Room): String {
-        val npcs = room.entities.filterIsInstance<Entity.NPC>()
+    private suspend fun buildRoomDescription(space: SpacePropertiesComponent, spaceId: SpaceId): String {
+        val npcs = worldState.getEntitiesInSpace(spaceId).filterIsInstance<Entity.NPC>()
         if (lastConversationNpcId != null && npcs.none { it.id == lastConversationNpcId }) {
             lastConversationNpcId = null
         }
 
-        val description = if (descriptionGenerator != null) {
+        val description = if (descriptionGenerator != null && space.description.isEmpty()) {
             try {
-                descriptionGenerator.generateDescription(room)
+                // Note: RoomDescriptionGenerator needs V3 update, using space description for now
+                space.description.ifEmpty { "An unremarkable location." }
             } catch (e: Exception) {
-                room.traits.joinToString(". ") + "."
+                space.description.ifEmpty { "An unremarkable location." }
             }
         } else {
-            room.traits.joinToString(". ") + "."
+            space.description.ifEmpty { "An unremarkable location." }
         }
 
-        val exits = if (room.exits.isNotEmpty()) {
-            "\nExits: ${room.exits.keys.joinToString { it.displayName }}"
+        val exits = if (space.exits.isNotEmpty()) {
+            "\nExits: ${space.exits.joinToString { it.direction }}"
         } else ""
 
-        val entities = if (room.entities.isNotEmpty()) {
-            "\nYou see: ${room.entities.joinToString { it.name }}"
+        val entities = worldState.getEntitiesInSpace(spaceId)
+        val entitiesStr = if (entities.isNotEmpty()) {
+            "\nYou see: ${entities.joinToString { it.name }}"
         } else ""
 
-        return "${room.name}\n$description$exits$entities"
+        return "${space.name}\n$description$exits$entitiesStr"
     }
 
     /**
-     * Build a map of exits with their destination room names for navigation parsing.
+     * Build a map of exits with their destination space names for navigation parsing (V3).
+     * Uses graph node edges to find connected spaces.
      */
-    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room): Map<Direction, String> {
-        return room.exits.mapNotNull { (direction, roomId) ->
-            val destRoom = worldState.rooms[roomId]
-            if (destRoom != null) {
-                direction to destRoom.name
+    private fun buildExitsWithNames(space: SpacePropertiesComponent): Map<Direction, String> {
+        return space.exits.mapNotNull { exitData ->
+            val destSpace = worldState.getSpace(exitData.targetId)
+            if (destSpace != null) {
+                // Convert exit direction string to Direction enum
+                val direction = Direction.entries.find { it.displayName.equals(exitData.direction, ignoreCase = true) }
+                if (direction != null) {
+                    direction to destSpace.name
+                } else {
+                    null
+                }
             } else {
                 null
             }

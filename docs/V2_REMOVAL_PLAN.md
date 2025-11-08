@@ -1,7 +1,7 @@
 # V2 Removal Plan
 
-**Status**: Phase 1-4 Complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure)
-**Estimated Effort**: 8-12 hours (11-13h spent)
+**Status**: Phase 1-5 Partial Complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests)
+**Estimated Effort**: 8-12 hours (12-14h spent)
 **Priority**: CRITICAL - Violates project guideline "no backward compatibility needed"
 
 ## Problem Statement
@@ -237,15 +237,38 @@ Current codebase has V3 (graph-based navigation) with V2 (room-based) fallback c
 
 **Result**: Infrastructure is now V3-only. Multi-user mode fully migrated with no V2 dependencies.
 
-### Phase 5: Tests (Est. 2-3h)
+### Phase 5: Tests (Est. 2-3h) ✅ PARTIAL COMPLETION
 
 **Objective**: Fix all broken tests
 
-**Files**:
-- Update ~64 test occurrences to use V3 API
-- Fix WorldStateTest.kt
-- Update integration tests
-- Verify all tests pass
+**Status**: Core and testbot tests fixed. Reasoning module tests remain (4 files with known API update needs).
+
+**Completed Steps**:
+1. ✅ **QuestSystemTest.kt** - Removed `rooms` parameter from WorldState constructor
+2. ✅ **WorldStateTest.kt** - Complete rewrite to focus on core WorldState functionality (player management, game state, quests, immutability)
+   - Removed all V2 Room-specific tests (navigation, entity management, exits)
+   - V3 graph-based navigation already tested in WorldSystemV3IntegrationTest.kt
+   - File reduced from 470 lines to 298 lines
+   - New tests cover: player management, game state, quest management, V3 component storage, immutability, game properties
+3. ✅ **InMemoryGameEngine.kt** - Migrated to V3 API (50 V2 method calls converted)
+   - `getCurrentRoom()` → `getCurrentSpace()` (10 occurrences)
+   - `movePlayer()` → `movePlayerV3()` (1 occurrence)
+   - `room.entities` → `getEntitiesInSpace()` (15 occurrences)
+   - `addEntityToRoom()` → `addEntityToSpace()` (1 occurrence)
+   - `removeEntityFromRoom()` → `removeEntityFromSpace()` (4 occurrences)
+   - `replaceEntity()` → `replaceEntityInSpace()` (8 occurrences)
+   - Parameter `Room` → `SpacePropertiesComponent` (3 functions)
+   - `room.traits` → `space.description` (adapted)
+   - `room.exits` → `space.exits` (ExitData list)
+   - `buildExitsWithNames()` rewritten for V3 graph navigation
+
+**Remaining Failures** (reasoning module tests - already documented in CLAUDE.md):
+- SpacePopulatorTest.kt - Needs repository interface updates + suspend function wrapping
+- StateChangeHandlerTest.kt - Needs constructor signature updates + exit format changes
+- RespawnManagerTest.kt - (previously identified, needs API updates)
+- TurnQueueManagerTest.kt - (previously identified, needs API updates)
+
+**Note**: Reasoning module test failures are pre-existing and documented. Main application code compiles and runs successfully.
 
 ### Phase 6: Dependencies (Est. 1h)
 

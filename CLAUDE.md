@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: ⚠️ TESTS BROKEN** - V2 Removal Phase 4 complete. WorldState, Console Handlers, Reasoning Module, GUI Client, and Infrastructure are now V3-only. Main code compiles successfully. Tests need V3 migration (Phase 5). See `docs/V2_REMOVAL_PLAN.md` for status.
+**Current State: ⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, and Core/Testbot Tests are now V3-only. Main code compiles successfully. 4 reasoning module test files need API updates. See `docs/V2_REMOVAL_PLAN.md` for status.
 
 **Previous State**: Fully functional AI-powered MUD engine with all features complete. Temporarily broken during V2 code removal to enforce V3-only architecture per project guidelines ("no backward compatibility needed").
 
@@ -173,9 +173,9 @@ Memory (store for RAG)
 
 ## Important Notes
 
-- **⚠️ TESTS BROKEN** - V2 Removal Phase 4 complete. Main code compiles, but tests need V3 migration (Phase 5).
-- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-4 complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure). Phase 5-7 remaining (est. 3.5-4.5h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
-- **⚠️ Test status** - Reasoning module tests need API updates after V3 refactoring (4 test files)
+- **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.
+- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-5 (partial) complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests). Phase 5 (reasoning tests) + Phase 6-7 remaining (est. 2-3h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
+- **⚠️ Test status** - 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -204,9 +204,9 @@ Memory (store for RAG)
 
 ## Current Status
 
-**⚠️ TESTS BROKEN - V2 REMOVAL IN PROGRESS**
-**Phase 1-4 COMPLETE** - WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure are now V3-only
-**Phase 5-7 REMAINING** - Tests, Dependencies, Documentation need V2 code removed (est. 3.5-4.5h)
+**⚠️ TESTS PARTIALLY FIXED - V2 REMOVAL IN PROGRESS**
+**Phase 1-5 (partial) COMPLETE** - WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, Core/Testbot Tests are now V3-only
+**Phase 5 (reasoning tests) + Phase 6-7 REMAINING** - 4 reasoning test files, Dependencies, Documentation need work (est. 2-3h)
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones

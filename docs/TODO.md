@@ -234,12 +234,12 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
    - All Room-based methods removed from infrastructure
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 4 completion report
 
-6. **NEXT: Phase 5 - Tests** (Est. 2-3h) - **BLOCKING**
-   - Fix ~64 test occurrences to use V3 API
-   - Fix WorldStateTest.kt
-   - Update integration tests
-   - Verify all tests pass
-   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 5 plan
+6. **Phase 5 - Tests** (Est. 2-3h) - ✅ **PARTIAL COMPLETION**
+   - ✅ Fixed QuestSystemTest.kt V2 reference
+   - ✅ Fixed WorldStateTest.kt (complete rewrite, 470→298 lines, V3-focused)
+   - ✅ Fixed InMemoryGameEngine.kt (50 V2 method calls converted to V3)
+   - ⚠️ Remaining: 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
+   - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 5 completion report
 
 7. **Phase 6-7** - Dependencies, Documentation (Est. 1.5h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
