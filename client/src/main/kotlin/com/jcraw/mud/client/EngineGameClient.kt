@@ -547,13 +547,14 @@ class EngineGameClient(
         val narrativeText = buildString {
             appendLine("\n${space.description}")
 
-            // Show visible exits
-            if (space.exits.isNotEmpty()) {
-                val visibleExits = space.exits.filter { !it.isHidden }
-                if (visibleExits.isNotEmpty()) {
+            // V3: Show exits from graph, not from space.exits (LLM-generated exits are unreliable)
+            val graphNode = worldState.getGraphNode(spaceId)
+            if (graphNode != null) {
+                val visibleEdges = graphNode.getVisibleEdges(worldState.player.revealedExits)
+                if (visibleEdges.isNotEmpty()) {
                     appendLine("\nExits:")
-                    visibleExits.forEach { exit ->
-                        appendLine("  - ${exit.direction}: ${exit.description}")
+                    visibleEdges.forEach { edge ->
+                        appendLine("  - ${edge.direction}")
                     }
                 }
             }
