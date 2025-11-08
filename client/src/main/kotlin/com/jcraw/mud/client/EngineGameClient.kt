@@ -271,6 +271,8 @@ class EngineGameClient(
             worldState = WorldState(
                 players = mapOf(playerState.id to playerState)
             )
+
+            seedWorldStateFromPersistence(playerState.currentRoomId)
         } else {
             // V3 requires API key for world generation
             exitLinker = null
@@ -397,6 +399,121 @@ class EngineGameClient(
         )
         itemTemplateCache[templateId] = fallback
         return fallback
+    }
+
+    private fun seedWorldStateFromPersistence(startingSpaceId: String) {
+        val loadedChunks = worldChunkRepository.getAll().getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to load world chunks: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            emptyMap()
+        }
+
+        val loadedNodes = graphNodeRepository.getAll().getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to load graph nodes: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            emptyMap()
+        }.ifEmpty {
+            val fallbackNode = graphNodeRepository.findById(startingSpaceId).getOrElse { error ->
+                emitEvent(
+                    GameEvent.System(
+                        "Failed to load starting node $startingSpaceId: ${error.message}",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+                null
+            }
+            fallbackNode?.let { mapOf(startingSpaceId to it) } ?: emptyMap()
+        }
+
+        val loadedSpaces = mutableMapOf<String, com.jcraw.mud.core.SpacePropertiesComponent>()
+        loadedNodes.forEach { (nodeId, node) ->
+            loadOrCreateSpace(nodeId, node, loadedChunks[node.chunkId])?.let { space ->
+                loadedSpaces[nodeId] = space
+            }
+        }
+
+        if (!loadedSpaces.containsKey(startingSpaceId)) {
+            val fallbackSpace = loadSpace(startingSpaceId)
+            if (fallbackSpace != null) {
+                loadedSpaces[startingSpaceId] = fallbackSpace
+            } else {
+                emitEvent(
+                    GameEvent.System(
+                        "No space data found for starting room $startingSpaceId",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
+            }
+        }
+
+        worldState = worldState.copy(
+            graphNodes = loadedNodes,
+            spaces = loadedSpaces,
+            chunks = loadedChunks
+        )
+    }
+
+    private fun loadOrCreateSpace(
+        spaceId: String,
+        node: GraphNodeComponent,
+        parentChunk: com.jcraw.mud.core.WorldChunkComponent?
+    ): com.jcraw.mud.core.SpacePropertiesComponent? {
+        val existingSpace = spacePropertiesRepository.findByChunkId(spaceId).getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to read space $spaceId: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            null
+        }
+
+        if (existingSpace != null) {
+            return existingSpace
+        }
+
+        val chunk = parentChunk ?: worldChunkRepository.findById(node.chunkId).getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to load parent chunk ${node.chunkId} for space $spaceId: ${error.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+            null
+        }
+
+        if (chunk == null || worldGenerator == null) {
+            return null
+        }
+
+        val stub = worldGenerator.generateSpaceStub(node, chunk).getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to generate fallback space $spaceId: ${error.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+            return null
+        }
+
+        spacePropertiesRepository.save(stub, spaceId).onFailure { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to persist generated space $spaceId: ${error.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+        }
+
+        return stub
     }
 
     internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
