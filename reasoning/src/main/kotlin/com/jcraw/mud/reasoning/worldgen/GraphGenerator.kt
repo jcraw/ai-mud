@@ -479,12 +479,35 @@ class GraphGenerator(
             }
         }
 
-        // 3. Identify boundary nodes for Frontiers (at least 2)
-        val boundaryNodes = findBoundaryNodes(mutableNodes).shuffled(rng).take(2.coerceAtLeast(mutableNodes.size / 10))
-        for (boundaryId in boundaryNodes) {
+        // 3. Identify boundary nodes for Frontiers (guarantee at least 2)
+        val minFrontiers = 2
+        val targetFrontiers = minFrontiers.coerceAtLeast(mutableNodes.size / 10)
+        var frontiersAssigned = 0
+
+        // First try boundary nodes (degree <= 2)
+        val boundaryCandidates = findBoundaryNodes(mutableNodes).shuffled(rng)
+        for (boundaryId in boundaryCandidates) {
+            if (frontiersAssigned >= targetFrontiers) break
             val index = mutableNodes.indexOfFirst { it.id == boundaryId }
             if (index >= 0 && mutableNodes[index].type != NodeType.Hub && mutableNodes[index].type != NodeType.Boss) {
                 mutableNodes[index] = mutableNodes[index].copy(type = NodeType.Frontier)
+                frontiersAssigned++
+            }
+        }
+
+        // If we don't have enough, expand to any unassigned node
+        if (frontiersAssigned < minFrontiers) {
+            val remainingCandidates = mutableNodes.filter {
+                it.type == NodeType.Linear  // Still unassigned
+            }.shuffled(rng)
+
+            for (node in remainingCandidates) {
+                if (frontiersAssigned >= minFrontiers) break
+                val index = mutableNodes.indexOfFirst { it.id == node.id }
+                if (index >= 0) {
+                    mutableNodes[index] = mutableNodes[index].copy(type = NodeType.Frontier)
+                    frontiersAssigned++
+                }
             }
         }
 
