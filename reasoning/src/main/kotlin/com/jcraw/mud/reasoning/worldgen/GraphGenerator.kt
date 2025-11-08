@@ -298,7 +298,7 @@ class GraphGenerator(
     // ==================== LOOP EDGES ====================
 
     /**
-     * Add 50-75% extra edges for loops
+     * Add extra edges for loops to guarantee avg degree >= 3.0
      * Creates alternative paths and exploration choices
      * Promotes average degree of 3.0-3.5 for engaging navigation
      * Returns additional edges beyond MST
@@ -307,15 +307,26 @@ class GraphGenerator(
         nodes: List<GraphNodeComponent>,
         mstEdges: List<Pair<String, String>>
     ): List<Pair<String, String>> {
-        val extraEdgePercent = 0.50 + rng.nextDouble() * 0.25 // 50-75%
-        val targetCount = (mstEdges.size * extraEdgePercent).toInt().coerceAtLeast(1)
+        val n = nodes.size
+
+        // Calculate minimum edges needed for avg degree >= 3.0
+        // Total degree needed: 3.0 * N
+        // MST provides: 2 * (N-1) total degree
+        // Need additional: 3.0*N - 2*(N-1) = N + 2 total degree
+        // Each edge adds 2 to total degree, so need (N+2)/2 edges minimum
+        val minExtraEdges = ((n + 2) / 2.0).toInt().coerceAtLeast(1)
+
+        // Add 10-20% buffer for variety (avg degree 3.1-3.4)
+        val buffer = (minExtraEdges * (0.10 + rng.nextDouble() * 0.10)).toInt().coerceAtLeast(1)
+        val targetCount = minExtraEdges + buffer
+
         val loopEdges = mutableListOf<Pair<String, String>>()
         val existingEdges = mstEdges.toSet()
 
         // Build adjacency for distance check
         val adjacency = buildAdjacencyMap(mstEdges)
 
-        // Try to add edges that create loops
+        // Collect candidates - prefer edges between non-adjacent nodes (creates longer loops)
         val candidates = mutableListOf<Pair<String, String>>()
         for (i in nodes.indices) {
             for (j in i + 1 until nodes.size) {
@@ -325,7 +336,6 @@ class GraphGenerator(
                 // Skip if edge already exists
                 if (edge in existingEdges || reverseEdge in existingEdges) continue
 
-                // Prefer edges between non-adjacent nodes (creates longer loops)
                 val distance = shortestPath(nodes[i].id, nodes[j].id, adjacency)
                 if (distance > 2) {
                     candidates.add(edge)
@@ -333,8 +343,24 @@ class GraphGenerator(
             }
         }
 
-        // Add random loop edges
-        loopEdges.addAll(candidates.shuffled(rng).take(targetCount))
+        // Add random loop edges from candidates
+        loopEdges.addAll(candidates.shuffled(rng).take(targetCount.coerceAtMost(candidates.size)))
+
+        // If we don't have enough candidates (rare with small graphs), add any remaining edges
+        if (loopEdges.size < minExtraEdges) {
+            val allPossibleEdges = mutableListOf<Pair<String, String>>()
+            for (i in nodes.indices) {
+                for (j in i + 1 until nodes.size) {
+                    val edge = nodes[i].id to nodes[j].id
+                    val reverseEdge = nodes[j].id to nodes[i].id
+                    if (edge !in existingEdges && reverseEdge !in existingEdges && edge !in loopEdges) {
+                        allPossibleEdges.add(edge)
+                    }
+                }
+            }
+            val needed = minExtraEdges - loopEdges.size
+            loopEdges.addAll(allPossibleEdges.shuffled(rng).take(needed.coerceAtMost(allPossibleEdges.size)))
+        }
 
         return loopEdges
     }
