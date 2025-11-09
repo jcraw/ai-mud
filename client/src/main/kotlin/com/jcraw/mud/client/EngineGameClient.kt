@@ -527,9 +527,45 @@ class EngineGameClient(
     internal fun currentSpace(): SpacePropertiesComponent? =
         loadSpace(worldState.player.currentRoomId)
 
+    internal fun ensureSpaceContent(spaceId: String) {
+        val generator = worldGenerator ?: return
+        val currentSpace = worldState.getSpace(spaceId) ?: return
+        if (currentSpace.description.isNotEmpty()) return
+        val node = worldState.graphNodes[spaceId] ?: return
+
+        val chunk = worldState.chunks[node.chunkId] ?: runBlocking {
+            worldChunkRepository.findById(node.chunkId).getOrNull()
+        }?.also { loaded ->
+            worldState = worldState.addChunk(node.chunkId, loaded)
+        } ?: return
+
+        val filledSpace = runBlocking {
+            generator.fillSpaceContent(currentSpace, node, chunk)
+        }.getOrElse {
+            emitEvent(
+                GameEvent.System(
+                    "Failed to describe $spaceId: ${it.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+            return
+        }
+
+        worldState = worldState.updateSpace(spaceId, filledSpace)
+        spacePropertiesRepository.save(filledSpace, spaceId).onFailure {
+            emitEvent(
+                GameEvent.System(
+                    "Failed to persist description for $spaceId: ${it.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+        }
+    }
+
     internal fun describeCurrentRoom() {
         // V3-only: Use space-based description
         val currentRoomId = worldState.player.currentRoomId
+        ensureSpaceContent(currentRoomId)
         val space = worldState.getCurrentSpace()
 
         if (space == null) {

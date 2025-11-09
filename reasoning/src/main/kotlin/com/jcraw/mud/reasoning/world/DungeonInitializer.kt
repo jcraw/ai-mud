@@ -16,6 +16,11 @@ data class AncientAbyssData(
     val regions: Map<String, String> // region name -> region ID
 )
 
+data class CombatSubzoneResult(
+    val entranceSpaceId: String,
+    val subzoneId: String
+)
+
 /**
  * Initializes the V2 MVP deep dungeon structure.
  *
@@ -310,7 +315,7 @@ class DungeonInitializer(
         ).getOrElse { return Result.failure(it) }
 
         // Generate first combat subzone
-        val combatSpaceId = generateFirstCombatSubzone(
+        val combatResult = generateFirstCombatSubzone(
             seed,
             globalLore,
             zoneChunk,
@@ -318,11 +323,16 @@ class DungeonInitializer(
         ).getOrElse { return Result.failure(it) }
 
         // Wire bidirectional exits between town and combat subzone
-        linkTownToDungeon(townSpaceId, combatSpaceId)
+        linkTownToDungeon(
+            townSpaceId = townSpaceId,
+            townSubzoneId = townSubzoneId,
+            combatEntranceId = combatResult.entranceSpaceId,
+            combatSubzoneId = combatResult.subzoneId
+        )
             .getOrElse { return Result.failure(it) }
 
         // Update zone with both subzones
-        val updatedZone = zoneChunk.copy(children = listOf(townSubzoneId))
+        val updatedZone = zoneChunk.copy(children = listOf(townSubzoneId, combatResult.subzoneId))
         chunkRepo.save(updatedZone, zoneId).getOrElse { return Result.failure(it) }
 
         return Result.success(townSpaceId)
@@ -343,7 +353,7 @@ class DungeonInitializer(
         globalLore: String,
         zoneChunk: WorldChunkComponent,
         zoneId: String
-    ): Result<String> {
+    ): Result<CombatSubzoneResult> {
         // Generate combat SUBZONE
         val subzoneContext = GenerationContext(
             seed = seed,
@@ -353,20 +363,48 @@ class DungeonInitializer(
             level = ChunkLevel.SUBZONE,
             direction = "dungeon entrance"
         )
-        val (subzoneChunk, subzoneId) = worldGenerator.generateChunk(subzoneContext)
+        val chunkResult = worldGenerator.generateChunk(subzoneContext)
             .getOrElse { return Result.failure(it) }
+        val subzoneChunk = chunkResult.chunk
+        val subzoneId = chunkResult.chunkId
         chunkRepo.save(subzoneChunk, subzoneId).getOrElse { return Result.failure(it) }
 
-        // Generate first combat SPACE
-        val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk, subzoneId)
-            .getOrElse { return Result.failure(it) }
-        spaceRepo.save(space, spaceId).getOrElse { return Result.failure(it) }
+        val graphNodes = chunkResult.graphNodes
+        if (graphNodes.isEmpty()) {
+            // Fallback to legacy single-space generation
+            val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk, subzoneId)
+                .getOrElse { return Result.failure(it) }
+            spaceRepo.save(space, spaceId).getOrElse { return Result.failure(it) }
 
-        // Update subzone with first child
-        val updatedSubzone = subzoneChunk.copy(children = listOf(spaceId))
+            val fallbackNode = com.jcraw.mud.core.GraphNodeComponent(
+                id = spaceId,
+                type = com.jcraw.mud.core.world.NodeType.Linear,
+                neighbors = emptyList(),
+                chunkId = subzoneId
+            )
+            graphNodeRepo.save(fallbackNode).getOrElse { return Result.failure(it) }
+
+            val updatedSubzone = subzoneChunk.copy(children = listOf(spaceId))
+            chunkRepo.save(updatedSubzone, subzoneId).getOrElse { return Result.failure(it) }
+            return Result.success(CombatSubzoneResult(spaceId, subzoneId))
+        }
+
+        val spaceIds = mutableListOf<String>()
+        graphNodes.forEach { node ->
+            graphNodeRepo.save(node).getOrElse { return Result.failure(it) }
+            val stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
+                .getOrElse { return Result.failure(it) }
+            spaceRepo.save(stub, node.id).getOrElse { return Result.failure(it) }
+            spaceIds += node.id
+        }
+
+        val updatedSubzone = subzoneChunk.copy(children = spaceIds)
         chunkRepo.save(updatedSubzone, subzoneId).getOrElse { return Result.failure(it) }
 
-        return Result.success(spaceId)
+        val entranceNode = graphNodes.firstOrNull { it.type is com.jcraw.mud.core.world.NodeType.Hub }
+            ?: graphNodes.first()
+
+        return Result.success(CombatSubzoneResult(entranceNode.id, subzoneId))
     }
 
     /**
@@ -379,19 +417,21 @@ class DungeonInitializer(
      */
     private fun linkTownToDungeon(
         townSpaceId: String,
-        combatSpaceId: String
+        townSubzoneId: String,
+        combatEntranceId: String,
+        combatSubzoneId: String
     ): Result<Unit> {
         // Load town space
         val townSpace = spaceRepo.findByChunkId(townSpaceId).getOrElse { return Result.failure(it) }
             ?: return Result.failure(Exception("Town space not found: $townSpaceId"))
 
         // Load combat space
-        val combatSpace = spaceRepo.findByChunkId(combatSpaceId).getOrElse { return Result.failure(it) }
-            ?: return Result.failure(Exception("Combat space not found: $combatSpaceId"))
+        val combatSpace = spaceRepo.findByChunkId(combatEntranceId).getOrElse { return Result.failure(it) }
+            ?: return Result.failure(Exception("Combat space not found: $combatEntranceId"))
 
         // Create exit from town to dungeon
         val townExit = com.jcraw.mud.core.world.ExitData(
-            targetId = combatSpaceId,
+            targetId = combatEntranceId,
             direction = "down",
             description = "A dark stairway descends into the dungeon depths. The air grows colder as you look down.",
             conditions = emptyList(),
@@ -407,16 +447,22 @@ class DungeonInitializer(
             isHidden = false
         )
 
-        // Update both spaces with exits
-        val updatedTownSpace = townSpace.addExit(townExit)
-        val updatedCombatSpace = combatSpace.addExit(dungeonExit)
+        val updatedTownSpace = if (townSpace.exits.any { it.targetId == combatEntranceId }) {
+            townSpace
+        } else {
+            townSpace.addExit(townExit)
+        }
+        val updatedCombatSpace = if (combatSpace.exits.any { it.targetId == townSpaceId }) {
+            combatSpace
+        } else {
+            combatSpace.addExit(dungeonExit)
+        }
 
         spaceRepo.save(updatedTownSpace, townSpaceId).getOrElse { return Result.failure(it) }
-        spaceRepo.save(updatedCombatSpace, combatSpaceId).getOrElse { return Result.failure(it) }
+        spaceRepo.save(updatedCombatSpace, combatEntranceId).getOrElse { return Result.failure(it) }
 
-        // V3: Create graph nodes with edges for navigation
         val townEdge = com.jcraw.mud.core.world.EdgeData(
-            targetId = combatSpaceId,
+            targetId = combatEntranceId,
             direction = "down",
             hidden = false
         )
@@ -427,24 +473,35 @@ class DungeonInitializer(
             hidden = false
         )
 
-        val townNode = com.jcraw.mud.core.GraphNodeComponent(
+        val existingTownNode = graphNodeRepo.findById(townSpaceId).getOrElse { return Result.failure(it) }
+        val townNode = existingTownNode ?: com.jcraw.mud.core.GraphNodeComponent(
             id = townSpaceId,
             position = null,
             type = com.jcraw.mud.core.world.NodeType.Hub,
-            neighbors = listOf(townEdge),
-            chunkId = townSpaceId
+            neighbors = emptyList(),
+            chunkId = townSubzoneId
         )
+        val updatedTownNode = if (townNode.neighbors.any { it.targetId == combatEntranceId }) {
+            townNode
+        } else {
+            townNode.addEdge(townEdge)
+        }
+        if (existingTownNode == null) {
+            graphNodeRepo.save(updatedTownNode).getOrElse { return Result.failure(it) }
+        } else if (updatedTownNode != townNode) {
+            graphNodeRepo.update(updatedTownNode).getOrElse { return Result.failure(it) }
+        }
 
-        val combatNode = com.jcraw.mud.core.GraphNodeComponent(
-            id = combatSpaceId,
-            position = null,
-            type = com.jcraw.mud.core.world.NodeType.Linear,
-            neighbors = listOf(combatEdge),
-            chunkId = combatSpaceId
-        )
-
-        graphNodeRepo.save(townNode).getOrElse { return Result.failure(it) }
-        graphNodeRepo.save(combatNode).getOrElse { return Result.failure(it) }
+        val combatNode = graphNodeRepo.findById(combatEntranceId).getOrElse { return Result.failure(it) }
+            ?: return Result.failure(Exception("Combat graph node not found: $combatEntranceId"))
+        val updatedCombatNode = if (combatNode.neighbors.any { it.targetId == townSpaceId }) {
+            combatNode
+        } else {
+            combatNode.addEdge(combatEdge)
+        }
+        if (updatedCombatNode != combatNode) {
+            graphNodeRepo.update(updatedCombatNode).getOrElse { return Result.failure(it) }
+        }
 
         return Result.success(Unit)
     }

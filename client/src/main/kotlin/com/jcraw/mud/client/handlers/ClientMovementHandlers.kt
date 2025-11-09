@@ -23,7 +23,8 @@ object ClientMovementHandlers {
         game.worldState = newState
         game.emitEvent(GameEvent.Narrative("You move ${direction.displayName}."))
 
-        // TODO: Lazy-fill content generation (needs WorldGenerator integration)
+        game.ensureSpaceContent(game.worldState.player.currentRoomId)
+
         // TODO: Frontier traversal (needs chunk cascade implementation)
 
         // Track quest and describe the new location
