@@ -5,6 +5,7 @@ import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.repository.WorldSeedRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.world.ChunkLevel
+import com.jcraw.mud.core.world.ChunkIdGenerator
 import com.jcraw.mud.core.world.GenerationContext
 
 /**
@@ -389,8 +390,24 @@ class DungeonInitializer(
             return Result.success(CombatSubzoneResult(spaceId, subzoneId))
         }
 
+        val nodeIdMapping = graphNodes.associate { node ->
+            node.id to ChunkIdGenerator.generate(ChunkLevel.SPACE, subzoneId)
+        }
+
+        val remappedNodes = graphNodes.map { node ->
+            val newId = nodeIdMapping.getValue(node.id)
+            val remappedEdges = node.neighbors.map { edge ->
+                edge.copy(targetId = nodeIdMapping[edge.targetId] ?: edge.targetId)
+            }
+            node.copy(
+                id = newId,
+                chunkId = subzoneId,
+                neighbors = remappedEdges
+            )
+        }
+
         val spaceIds = mutableListOf<String>()
-        graphNodes.forEach { node ->
+        remappedNodes.forEach { node ->
             graphNodeRepo.save(node).getOrElse { return Result.failure(it) }
             val stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
                 .getOrElse { return Result.failure(it) }
@@ -401,8 +418,8 @@ class DungeonInitializer(
         val updatedSubzone = subzoneChunk.copy(children = spaceIds)
         chunkRepo.save(updatedSubzone, subzoneId).getOrElse { return Result.failure(it) }
 
-        val entranceNode = graphNodes.firstOrNull { it.type is com.jcraw.mud.core.world.NodeType.Hub }
-            ?: graphNodes.first()
+        val entranceNode = remappedNodes.firstOrNull { it.type is com.jcraw.mud.core.world.NodeType.Hub }
+            ?: remappedNodes.first()
 
         return Result.success(CombatSubzoneResult(entranceNode.id, subzoneId))
     }
