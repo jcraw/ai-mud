@@ -196,7 +196,7 @@ class CombatIntegrationTest {
         val engine = InMemoryGameEngine(world)
 
         // Confirm NPC exists
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertTrue(room.getEntity("victim") != null)
 
         // Attack until NPC is defeated (should be quick with 1 HP)
@@ -212,7 +212,7 @@ class CombatIntegrationTest {
         assertTrue(defeated, "NPC with 1 HP should be defeated quickly")
 
         // NPC should be removed from room
-        val updatedRoom = engine.getWorldState().getCurrentRoom()!!
+        val updatedRoom = engine.getWorldState().getCurrentRoomView()!!
         assertTrue(updatedRoom.getEntity("victim") == null, "Defeated NPC should be removed from room")
         assertFalse(engine.getWorldState().player.isInCombat())
     }
@@ -310,9 +310,14 @@ class CombatIntegrationTest {
             entities = entities
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf("test_room" to room),
-            players = mapOf(player.id to player)
+            player = player,
+            config = LegacyWorldConfig(
+                chunkId = "combat_chunk",
+                lore = "Combat test chunk",
+                biomeTheme = "test"
+            )
         )
     }
 
@@ -341,9 +346,14 @@ class CombatIntegrationTest {
             exits = mapOf(Direction.SOUTH to "test_room")
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf("test_room" to room1, "north_room" to room2),
-            players = mapOf(player.id to player)
+            player = player,
+            config = LegacyWorldConfig(
+                chunkId = "combat_exits_chunk",
+                lore = "Combat exits chunk",
+                biomeTheme = "test"
+            )
         )
     }
 }

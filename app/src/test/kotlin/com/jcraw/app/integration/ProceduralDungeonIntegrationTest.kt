@@ -175,7 +175,7 @@ class ProceduralDungeonIntegrationTest {
             assertTrue(initialResponse.isNotBlank(), "Should describe current room")
 
             // Try to move in a valid direction
-            val currentRoom = world.getCurrentRoom()
+            val currentRoom = world.getCurrentRoomView()
             assertNotNull(currentRoom)
 
             if (currentRoom.exits.isNotEmpty()) {
@@ -239,7 +239,7 @@ class ProceduralDungeonIntegrationTest {
                 // Move player to the room with hostile NPC
                 var currentWorld = engine.getWorldState()
                 while (currentWorld.player.currentRoomId != roomWithHostile.id) {
-                    val currentRoom = currentWorld.getCurrentRoom()!!
+                    val currentRoom = currentWorld.getCurrentRoomView()!!
                     if (currentRoom.exits.isEmpty()) break
 
                     val (direction, _) = currentRoom.exits.entries.first()
@@ -284,7 +284,7 @@ class ProceduralDungeonIntegrationTest {
                 // Move player to the room with friendly NPC
                 var currentWorld = engine.getWorldState()
                 while (currentWorld.player.currentRoomId != roomWithFriendly.id) {
-                    val currentRoom = currentWorld.getCurrentRoom()!!
+                    val currentRoom = currentWorld.getCurrentRoomView()!!
                     if (currentRoom.exits.isEmpty()) break
 
                     val (direction, _) = currentRoom.exits.entries.first()
@@ -399,7 +399,7 @@ class ProceduralDungeonIntegrationTest {
                 // Move player to that room
                 var currentWorld = engine.getWorldState()
                 while (currentWorld.player.currentRoomId != roomWithItem.id) {
-                    val currentRoom = currentWorld.getCurrentRoom()!!
+                    val currentRoom = currentWorld.getCurrentRoomView()!!
                     if (currentRoom.exits.isEmpty()) break
 
                     val (direction, _) = currentRoom.exits.entries.first()

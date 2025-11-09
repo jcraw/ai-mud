@@ -1,7 +1,7 @@
 package com.jcraw.mud.core
 
 /**
- * Sample dungeon for MVP testing - simple interconnected room layout with traits for LLM generation
+ * Sample dungeon for MVP testing - V3-compatible space/graph layout derived from legacy rooms.
  */
 object SampleDungeon {
 
@@ -264,7 +264,8 @@ object SampleDungeon {
     )
 
     /**
-     * Creates initial world state with player at entrance
+     * Creates initial world state with player at entrance.
+     * Generates V3 graph nodes and spaces so the sample dungeon works without V2 rooms.
      */
     fun createInitialWorldState(
         playerId: PlayerId = "player1",
@@ -287,11 +288,16 @@ object SampleDungeon {
             )
         )
 
-        // V3: WorldState no longer accepts rooms parameter (V2 code removed)
-        // SampleDungeon is deprecated - use WorldGenerator for V3 worlds
-        // This creates an empty V3 world for backward compatibility
-        return WorldState(
-            players = mapOf(playerId to initialPlayer)
+        return buildWorldStateFromRooms(
+            rooms = rooms,
+            player = initialPlayer,
+            config = LegacyWorldConfig(
+                chunkId = "sample_subzone",
+                lore = "A compact crypt carved below forgotten ruins. The deepest chamber seals away an ancient secret.",
+                biomeTheme = "crypt",
+                mobDensity = 0.25,
+                difficultyLevel = 1
+            )
         )
     }
 
@@ -301,4 +307,5 @@ object SampleDungeon {
     const val CORRIDOR_ROOM_ID = "corridor"
     const val THRONE_ROOM_ID = "throne_room"
     const val SECRET_CHAMBER_ROOM_ID = "secret_chamber"
+
 }

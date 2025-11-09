@@ -573,9 +573,14 @@ class QuestIntegrationTest {
             entities = entities
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf("test_room" to room),
-            players = mapOf(player.id to player)
+            player = player,
+            config = LegacyWorldConfig(
+                chunkId = "quest_chunk",
+                lore = "Quest test chunk",
+                biomeTheme = "test"
+            )
         )
     }
 
@@ -600,9 +605,14 @@ class QuestIntegrationTest {
             exits = mapOf(Direction.SOUTH to "test_room")
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf("test_room" to room1, "north_room" to room2),
-            players = mapOf(player.id to player)
+            player = player,
+            config = LegacyWorldConfig(
+                chunkId = "quest_exits_chunk",
+                lore = "Quest exits chunk",
+                biomeTheme = "test"
+            )
         )
     }
 }

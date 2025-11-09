@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning
 
-import com.jcraw.mud.core.Room
+import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.mud.core.world.TerrainType
 import com.jcraw.sophia.llm.LLMClient
 import com.jcraw.sophia.llm.OpenAIChoice
 import com.jcraw.sophia.llm.OpenAIMessage
@@ -21,13 +22,13 @@ class RoomDescriptionGeneratorTest {
         val mockLLM = MockLLMClient()
         val generator = RoomDescriptionGenerator(mockLLM)
 
-        val room = Room(
-            id = "test",
+        val space = SpacePropertiesComponent(
             name = "Test Room",
-            traits = listOf("dark", "damp", "cold")
+            description = "",
+            terrainType = TerrainType.NORMAL
         )
 
-        val description = generator.generateDescription(room)
+        val description = generator.generateDescription(space, hintTraits = listOf("dark", "damp", "cold"))
 
         assertTrue(description.isNotBlank(), "Description should not be blank")
         assertEquals("You stand in a Test Room. The traits are: dark, damp, cold.", description)
@@ -38,15 +39,14 @@ class RoomDescriptionGeneratorTest {
         val failingLLM = FailingMockLLMClient()
         val generator = RoomDescriptionGenerator(failingLLM)
 
-        val room = Room(
-            id = "test",
+        val space = SpacePropertiesComponent(
             name = "Test Room",
-            traits = listOf("dark", "damp", "cold")
+            description = "",
+            terrainType = TerrainType.NORMAL
         )
 
-        val description = generator.generateDescription(room)
+        val description = generator.generateDescription(space, hintTraits = listOf("dark", "damp", "cold"))
 
-        // Should use fallback
         assertEquals("dark. damp. cold.", description)
     }
 
@@ -55,13 +55,13 @@ class RoomDescriptionGeneratorTest {
         val mockLLM = MockLLMClient()
         val generator = RoomDescriptionGenerator(mockLLM)
 
-        val room = Room(
-            id = "test",
+        val space = SpacePropertiesComponent(
             name = "Empty Room",
-            traits = emptyList()
+            description = "",
+            terrainType = TerrainType.NORMAL
         )
 
-        val description = generator.generateDescription(room)
+        val description = generator.generateDescription(space)
 
         assertTrue(description.isNotBlank(), "Description should not be blank even with empty traits")
     }
@@ -78,7 +78,7 @@ class RoomDescriptionGeneratorTest {
             temperature: Double
         ): OpenAIResponse {
             // Extract room name and traits from user context
-            val roomNameMatch = Regex("Room: (.+)").find(userContext)
+            val roomNameMatch = Regex("Space: (.+)").find(userContext)
             val roomName = roomNameMatch?.groupValues?.get(1) ?: "Unknown"
 
             val traitsMatch = Regex("Traits: (.+)").find(userContext)

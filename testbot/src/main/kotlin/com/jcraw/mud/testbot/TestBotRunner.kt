@@ -167,7 +167,7 @@ class TestBotRunner(
      */
     private fun buildContext(state: TestState): String {
         val worldState = gameEngine.getWorldState()
-        val currentRoom = worldState.getCurrentRoom()
+        val currentSpace = worldState.getCurrentSpace()
         val player = worldState.player
 
         val questInfo = if (scenario is TestScenario.QuestTesting) {
@@ -188,7 +188,7 @@ class TestBotRunner(
         }
 
         return """
-            Current room: ${currentRoom?.name ?: "Unknown"}
+            Current space: ${currentSpace?.name ?: "Unknown"}
             Player health: ${player.health}/${player.maxHealth}
             Inventory: ${player.inventory.joinToString { it.name }}
             Steps completed: ${state.currentStep}/${state.scenario.maxSteps}$questInfo
@@ -306,9 +306,9 @@ class TestBotRunner(
             is TestScenario.SmartPlaythrough -> {
                 // Complete when player reaches secret chamber OR defeats boss
                 // Check if player is actually IN the secret chamber (by checking current room name)
-                val currentRoom = worldState.getCurrentRoom()
-                val reachedSecretChamber = currentRoom?.name?.contains("Secret", ignoreCase = true) == true ||
-                    currentRoom?.name?.contains("Hidden", ignoreCase = true) == true ||
+                val currentSpace = worldState.getCurrentSpace()
+                val reachedSecretChamber = currentSpace?.name?.contains("Secret", ignoreCase = true) == true ||
+                    currentSpace?.name?.contains("Hidden", ignoreCase = true) == true ||
                     // Also check if room description starts with "Secret Chamber" or "Hidden Chamber" (room name header)
                     state.steps.any {
                         it.gmResponse.startsWith("Secret Chamber", ignoreCase = true) ||

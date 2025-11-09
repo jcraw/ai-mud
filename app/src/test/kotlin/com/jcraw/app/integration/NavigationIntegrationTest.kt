@@ -350,7 +350,7 @@ class NavigationIntegrationTest {
             val startingRoom = engine.getWorldState().player.currentRoomId
 
             // Try to navigate using available exits
-            val currentRoom = world.getCurrentRoom()
+            val currentRoom = world.getCurrentRoomView()
             assertNotNull(currentRoom)
 
             if (currentRoom.exits.isNotEmpty()) {

@@ -143,6 +143,20 @@ data class WorldState(
     fun movePlayerV3(direction: Direction): WorldState? = movePlayerV3(player.id, direction)
 
     /**
+     * Move player using an arbitrary exit label (supports natural language directions).
+     * Attempts to resolve an edge whose direction matches the given label.
+     */
+    fun movePlayerByExit(playerId: PlayerId, exitLabel: String): WorldState? {
+        val playerState = players[playerId] ?: return null
+        val currentNode = graphNodes[playerState.currentRoomId] ?: return null
+        val edge = currentNode.getEdge(exitLabel) ?: return null
+        if (!spaces.containsKey(edge.targetId)) return null
+        return updatePlayer(playerState.moveToRoom(edge.targetId))
+    }
+
+    fun movePlayerByExit(exitLabel: String): WorldState? = movePlayerByExit(player.id, exitLabel)
+
+    /**
      * Get available exits from current location (V3)
      * Only returns visible edges (filters hidden exits player can't see)
      */
@@ -217,6 +231,12 @@ data class WorldState(
     }
 
     /**
+     * Find the space ID that currently contains the given entity, if any.
+     */
+    fun findSpaceContainingEntity(entityId: String): SpaceId? =
+        spaces.entries.firstOrNull { (_, space) -> space.entities.contains(entityId) }?.key
+
+    /**
      * Add entity to space (V3)
      * Adds entity to global storage and links it to the space
      */
@@ -246,5 +266,82 @@ data class WorldState(
         return removeEntity(oldEntityId)
             .updateEntity(newEntity)
             .updateSpace(spaceId, updatedSpace)
+    }
+
+    // Legacy V2 compatibility constructor - converts Room map to V3 components
+    constructor(
+        rooms: Map<RoomId, Room>,
+        players: Map<PlayerId, PlayerState>,
+        turnCount: Int = 0,
+        gameTime: Long = 0L,
+        gameProperties: Map<String, String> = emptyMap(),
+        availableQuests: List<Quest> = emptyList()
+    ) : this(
+        LegacyState.fromRooms(
+            rooms = rooms,
+            players = players,
+            turnCount = turnCount,
+            gameTime = gameTime,
+            extraProperties = gameProperties,
+            availableQuests = availableQuests
+        )
+    )
+
+    private constructor(legacy: LegacyState) : this(
+        graphNodes = legacy.graphNodes,
+        spaces = legacy.spaces,
+        chunks = legacy.chunks,
+        entities = legacy.entities,
+        players = legacy.players,
+        turnCount = legacy.turnCount,
+        gameTime = legacy.gameTime,
+        gameProperties = legacy.gameProperties,
+        availableQuests = legacy.availableQuests
+    )
+
+    private data class LegacyState(
+        val graphNodes: Map<SpaceId, GraphNodeComponent>,
+        val spaces: Map<SpaceId, SpacePropertiesComponent>,
+        val chunks: Map<String, WorldChunkComponent>,
+        val entities: Map<String, Entity>,
+        val players: Map<PlayerId, PlayerState>,
+        val turnCount: Int,
+        val gameTime: Long,
+        val gameProperties: Map<String, String>,
+        val availableQuests: List<Quest>
+    ) {
+        companion object {
+            fun fromRooms(
+                rooms: Map<RoomId, Room>,
+                players: Map<PlayerId, PlayerState>,
+                turnCount: Int,
+                gameTime: Long,
+                extraProperties: Map<String, String>,
+                availableQuests: List<Quest>
+            ): LegacyState {
+                require(players.isNotEmpty()) { "WorldState requires at least one player" }
+                val config = LegacyWorldConfig(
+                    chunkId = "legacy_chunk_${rooms.hashCode()}",
+                    lore = "Legacy room import",
+                    biomeTheme = "legacy"
+                )
+                val base = buildWorldStateFromRooms(
+                    rooms = rooms,
+                    players = players,
+                    config = config
+                )
+                return LegacyState(
+                    graphNodes = base.graphNodes,
+                    spaces = base.spaces,
+                    chunks = base.chunks,
+                    entities = base.entities,
+                    players = players,
+                    turnCount = turnCount,
+                    gameTime = gameTime,
+                    gameProperties = base.gameProperties + extraProperties,
+                    availableQuests = availableQuests
+                )
+            }
+        }
     }
 }

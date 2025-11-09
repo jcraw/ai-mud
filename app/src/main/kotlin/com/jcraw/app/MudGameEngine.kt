@@ -4,6 +4,8 @@ import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.QuestStatus
+import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
@@ -158,11 +160,14 @@ class MudGame(
 
             if (input.isBlank()) continue
 
-            val room = worldState.getCurrentRoom()
-            val roomContext = room?.let { "${it.name}: ${it.traits.joinToString(", ")}" }
-            val exitsWithNames = room?.let { buildExitsWithNames(it) }
+            val space = worldState.getCurrentSpace()
+            val spaceContext = space?.let {
+                val desc = if (it.description.isNotBlank()) it.description else "Unexplored area"
+                "${it.name}: $desc"
+            }
+            val exitsWithNames = worldState.getCurrentGraphNode()?.let { buildExitsWithNames(it) }
             val intent = runBlocking {
-                intentRecognizer.parseIntent(input, roomContext, exitsWithNames)
+                intentRecognizer.parseIntent(input, spaceContext, exitsWithNames)
             }
             processIntent(intent)
 
@@ -187,7 +192,8 @@ class MudGame(
      */
     internal fun printWelcome() {
         println("\nWelcome, ${worldState.player.name}!")
-        println("You have entered a dungeon with ${worldState.rooms.size} rooms to explore.")
+        val spaceCount = worldState.graphNodes.size.takeIf { it > 0 } ?: worldState.spaces.size
+        println("You have entered a dungeon with $spaceCount spaces to explore.")
         println("Type 'help' for available commands.\n")
     }
 
@@ -195,101 +201,80 @@ class MudGame(
      * Describe the current room, including combat status, exits, and entities.
      */
     internal fun describeCurrentRoom() {
-        // Try V3 space-based description first
         val currentSpace = worldState.getCurrentSpace()
         val currentNode = worldState.getCurrentGraphNode()
         val player = worldState.player
 
-        if (currentSpace != null && currentNode != null) {
-            // V3: Graph-based world
-            println("\n${currentSpace.name}")
-            println("-" * currentSpace.name.length)
-            println(currentSpace.description.ifEmpty { "An unexplored area..." })
+        if (currentSpace == null || currentNode == null) {
+            println("\n[No space data loaded - unable to describe surroundings]")
+            return
+        }
 
-            // Display filtered exits (hidden exits only visible if revealed)
-            val visibleExits = currentNode.neighbors.filter { edge ->
-                !edge.hidden || player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
+        println("\n${currentSpace.name}")
+        println("-" * currentSpace.name.length)
+        val description = generateRoomDescription(currentSpace, player.currentRoomId)
+        println(description.ifBlank { "An unexplored area..." })
+
+        val visibleExits = currentNode.neighbors.filter { edge ->
+            !edge.hidden || player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
+        }
+
+        if (visibleExits.isNotEmpty()) {
+            val exitText = visibleExits.joinToString(", ") { edge ->
+                val targetName = worldState.getSpace(edge.targetId)?.name ?: edge.targetId
+                "${edge.direction} (${targetName})"
             }
+            println("\nExits: $exitText")
+        }
 
-            if (visibleExits.isNotEmpty()) {
-                println("\nExits: ${visibleExits.joinToString(", ") { edge -> edge.direction }}")
-            }
-
-            // Display entities (V3)
-            val entities = worldState.getEntitiesInSpace(player.currentRoomId)
-            if (entities.isNotEmpty()) {
-                println("\nYou see:")
-                entities.forEach { entity ->
-                    when (entity) {
-                        is Entity.NPC -> {
-                            val disposition = entity.getDisposition()
-                            val statusText = when {
-                                disposition < -75 -> " ⚔️  (hostile - glares at you!)"
-                                disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
-                                disposition < -25 -> " (neutral)"
-                                disposition < 25 -> " (neutral)"
-                                disposition < 75 -> " ✓ (friendly)"
-                                else -> " ★ (allied)"
-                            }
-                            println("  - ${entity.name}$statusText")
+        val entities = worldState.getEntitiesInSpace(player.currentRoomId)
+        if (lastConversationNpcId != null && entities.none { it.id == lastConversationNpcId }) {
+            lastConversationNpcId = null
+        }
+        if (entities.isNotEmpty()) {
+            println("\nYou see:")
+            entities.forEach { entity ->
+                when (entity) {
+                    is Entity.NPC -> {
+                        val disposition = entity.getDisposition()
+                        val statusText = when {
+                            disposition < -75 -> " ⚔️  (hostile - glares at you!)"
+                            disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
+                            disposition < -25 -> " (neutral)"
+                            disposition < 25 -> " (neutral)"
+                            disposition < 75 -> " ✓ (friendly)"
+                            else -> " ★ (allied)"
                         }
-                        else -> println("  - ${entity.name}")
+                        println("  - ${entity.name}$statusText")
                     }
-                }
-            }
-        } else {
-            // V2 fallback: Room-based world
-            val room = worldState.getCurrentRoom() ?: return
-
-            val npcs = room.entities.filterIsInstance<Entity.NPC>()
-            if (lastConversationNpcId != null && npcs.none { it.id == lastConversationNpcId }) {
-                lastConversationNpcId = null
-            }
-
-            println("\n${room.name}")
-            println("-" * room.name.length)
-            println(generateRoomDescription(room))
-
-            if (room.exits.isNotEmpty()) {
-                println("\nExits: ${room.exits.keys.joinToString(", ") { direction -> direction.displayName }}")
-            }
-
-            if (room.entities.isNotEmpty()) {
-                println("\nYou see:")
-                room.entities.forEach { entity ->
-                    when (entity) {
-                        is Entity.NPC -> {
-                            val disposition = entity.getDisposition()
-                            val statusText = when {
-                                disposition < -75 -> " ⚔️  (hostile - glares at you!)"
-                                disposition < -50 -> " ⚠️  (unfriendly - watches you warily)"
-                                disposition < -25 -> " (neutral)"
-                                disposition < 25 -> " (neutral)"
-                                disposition < 75 -> " ✓ (friendly)"
-                                else -> " ★ (allied)"
-                            }
-                            println("  - ${entity.name}$statusText")
-                        }
-                        else -> println("  - ${entity.name}")
-                    }
+                    else -> println("  - ${entity.name}")
                 }
             }
         }
     }
 
     /**
-     * Generate a room description using LLM or fallback to simple traits.
+     * Generate a space description using LLM or fallback heuristics.
      */
-    internal fun generateRoomDescription(room: com.jcraw.mud.core.Room): String {
-        return if (descriptionGenerator != null) {
-            // Use LLM-powered description generation
-            runBlocking {
-                descriptionGenerator.generateDescription(room)
-            }
-        } else {
-            // Fallback to simple trait concatenation
-            room.traits.joinToString(". ") + "."
+    internal fun generateRoomDescription(
+        space: SpacePropertiesComponent,
+        spaceId: String? = null
+    ): String {
+        if (space.description.isNotBlank() && !space.descriptionStale) {
+            return space.description
         }
+
+        if (descriptionGenerator != null) {
+            val generated = runBlocking {
+                descriptionGenerator.generateDescription(space)
+            }
+            if (spaceId != null) {
+                worldState = worldState.updateSpace(spaceId, space.withDescription(generated))
+            }
+            return generated
+        }
+
+        return "You are in ${space.name}. The ${space.terrainType.name.lowercase()} terrain reveals little else."
     }
 
     /**
@@ -298,8 +283,8 @@ class MudGame(
     private fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> com.jcraw.app.handlers.MovementHandlers.handleMove(this, intent.direction)
-            is Intent.Scout -> com.jcraw.app.handlers.WorldHandlers.handleScout(this, intent.direction)
-            is Intent.Travel -> com.jcraw.app.handlers.WorldHandlers.handleTravel(this, intent.direction)
+            is Intent.Scout -> com.jcraw.app.handlers.MovementHandlers.handleScout(this, intent.direction)
+            is Intent.Travel -> com.jcraw.app.handlers.MovementHandlers.handleTravel(this, intent.direction)
             is Intent.Look -> com.jcraw.app.handlers.MovementHandlers.handleLook(this, intent.target)
             is Intent.Search -> com.jcraw.app.handlers.MovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> com.jcraw.app.handlers.SkillQuestHandlers.handleInteract(this, intent.target)
@@ -411,20 +396,16 @@ class MudGame(
             // Dequeue the entity
             val entityId = queue.dequeue(currentTime) ?: break
 
-            // Find the NPC
-            val room = worldState.rooms.values.find { r ->
-                r.entities.any { it.id == entityId }
-            }
-            val npc = room?.entities?.filterIsInstance<Entity.NPC>()?.find { it.id == entityId }
+            val spaceId = worldState.findSpaceContainingEntity(entityId)
+            val npc = worldState.getEntity(entityId) as? Entity.NPC
 
-            if (npc == null) {
+            if (npc == null || spaceId == null) {
                 // NPC not found (died or fled), skip
                 continue
             }
 
-            // Only process if NPC is in player's room
-            val playerRoom = worldState.getCurrentRoom()
-            if (room?.id != playerRoom?.id) {
+            val playerSpaceId = worldState.player.currentRoomId
+            if (spaceId != playerSpaceId) {
                 // NPC not in player's room, re-enqueue for later
                 val skillComponent = npc.components[ComponentType.SKILL] as? SkillComponent
                 val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
@@ -439,7 +420,7 @@ class MudGame(
             }
 
             // Execute the decision
-            executeNPCDecision(npc, decision, room)
+            executeNPCDecision(npc, decision)
 
             // Re-enqueue the NPC for next turn (if not dead)
             val combatComponent = npc.components[ComponentType.COMBAT] as? CombatComponent
@@ -455,12 +436,12 @@ class MudGame(
     /**
      * Execute an NPC's AI decision
      */
-    private fun executeNPCDecision(npc: Entity.NPC, decision: AIDecision, room: com.jcraw.mud.core.Room) {
+    private fun executeNPCDecision(npc: Entity.NPC, decision: AIDecision) {
         when (decision) {
             is AIDecision.Attack -> {
                 // NPC attacks player
                 println("\n${npc.name} attacks you!")
-                executeNPCAttack(npc, room)
+                executeNPCAttack(npc)
             }
             is AIDecision.Defend -> {
                 println("\n${npc.name} takes a defensive stance.")
@@ -486,7 +467,7 @@ class MudGame(
     /**
      * Execute NPC attack on player
      */
-    private fun executeNPCAttack(npc: Entity.NPC, room: com.jcraw.mud.core.Room) {
+    private fun executeNPCAttack(npc: Entity.NPC) {
         val resolver = attackResolver
         if (resolver != null) {
             // Use new attack resolver
@@ -582,19 +563,15 @@ class MudGame(
                     println("=".repeat(60))
 
                     // Add minions to the current room
-                    val currentRoom = worldState.getCurrentRoom()
-                    if (currentRoom != null) {
-                        val updatedEntities = currentRoom.entities + minions
-                        val updatedRoom = currentRoom.copy(entities = updatedEntities)
-                        val updatedRooms = worldState.rooms + (currentRoom.id to updatedRoom)
-                        worldState = worldState.copy(rooms = updatedRooms)
+                    val currentSpaceId = worldState.player.currentRoomId
+                    minions.forEach { minion ->
+                        worldState = worldState.addEntityToSpace(currentSpaceId, minion) ?: worldState
+                    }
 
-                        // Enqueue minions into turn queue if combat V2 is active
-                        if (turnQueue != null) {
-                            minions.forEach { minion ->
-                                val cost = SpeedCalculator.calculateActionCost("melee_attack", 0)
-                                turnQueue.enqueue(minion.id, worldState.gameTime + cost)
-                            }
+                    if (turnQueue != null) {
+                        minions.forEach { minion ->
+                            val cost = SpeedCalculator.calculateActionCost("melee_attack", 0)
+                            turnQueue.enqueue(minion.id, worldState.gameTime + cost)
                         }
                     }
                 }
@@ -624,28 +601,28 @@ class MudGame(
         println("  YOU HAVE DIED")
         println("=".repeat(60))
 
-        // Find player entity in current room
-        val currentRoom = worldState.getCurrentRoom()
-        val playerEntity = currentRoom?.entities?.filterIsInstance<Entity.Player>()
-            ?.find { it.playerId == worldState.player.id }
+        val currentSpaceId = worldState.player.currentRoomId
+        val playerEntity = Entity.Player(
+            id = "player_entity_${worldState.player.id}",
+            name = worldState.player.name,
+            description = "A manifestation of ${worldState.player.name}'s presence.",
+            playerId = worldState.player.id,
+            health = worldState.player.health,
+            maxHealth = worldState.player.maxHealth,
+            equippedWeapon = worldState.player.equippedWeapon?.id,
+            equippedArmor = worldState.player.equippedArmor?.id
+        )
 
-        if (playerEntity != null && currentRoom != null) {
-            // Use death handler to create corpse
-            val deathResult = deathHandler.handleDeath(playerEntity.id, worldState)
+        val worldWithEntity = worldState.addEntityToSpace(currentSpaceId, playerEntity) ?: worldState
+        val deathResult = deathHandler.handleDeath(playerEntity.id, worldWithEntity)
 
-            when (deathResult) {
-                is DeathHandler.DeathResult.PlayerDeath -> {
-                    // Update world with corpse
-                    worldState = deathResult.updatedWorld
-
-                    println("\nYour belongings have been scattered at your death location.")
-                    println("You can return to recover them from your corpse...")
-                }
-                else -> {
-                    // Shouldn't happen, but handle gracefully
-                    println("\nYour items have been lost.")
-                }
-            }
+        if (deathResult is DeathHandler.DeathResult.PlayerDeath) {
+            worldState = deathResult.updatedWorld
+            println("\nYour belongings have been scattered at your death location.")
+            println("You can return to recover them from your corpse...")
+        } else {
+            println("\nYour items have been lost.")
+            worldState = worldWithEntity.removeEntityFromSpace(currentSpaceId, playerEntity.id) ?: worldWithEntity
         }
 
         // Respawn player
@@ -660,12 +637,13 @@ class MudGame(
             equippedArmor = null
         )
 
-        // Find starting room (first room in the world)
-        val spawnRoomId = worldState.rooms.values.firstOrNull()?.id
-        if (spawnRoomId != null) {
-            worldState = worldState.updatePlayer(respawnedPlayer.copy(currentRoomId = spawnRoomId))
+        val spawnSpaceId = worldState.gameProperties["starting_space"]
+            ?: worldState.graphNodes.keys.firstOrNull()
+            ?: worldState.spaces.keys.firstOrNull()
+        worldState = if (spawnSpaceId != null) {
+            worldState.updatePlayer(respawnedPlayer.copy(currentRoomId = spawnSpaceId))
         } else {
-            worldState = worldState.updatePlayer(respawnedPlayer)
+            worldState.updatePlayer(respawnedPlayer)
         }
 
         println("\n" + "=".repeat(60))
@@ -675,16 +653,13 @@ class MudGame(
     }
 
     /**
-     * Build a map of exits with their destination room names for navigation parsing.
+     * Build a map of exits with their destination names for navigation parsing.
      */
-    private fun buildExitsWithNames(room: com.jcraw.mud.core.Room): Map<Direction, String> {
-        return room.exits.mapNotNull { (direction, roomId) ->
-            val destRoom = worldState.rooms[roomId]
-            if (destRoom != null) {
-                direction to destRoom.name
-            } else {
-                null
-            }
+    private fun buildExitsWithNames(node: GraphNodeComponent): Map<Direction, String> {
+        return node.neighbors.mapNotNull { edge ->
+            val direction = Direction.fromString(edge.direction) ?: return@mapNotNull null
+            val targetName = worldState.getSpace(edge.targetId)?.name ?: edge.targetId
+            direction to targetName
         }.toMap()
     }
 }

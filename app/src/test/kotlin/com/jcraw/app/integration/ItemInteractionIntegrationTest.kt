@@ -44,7 +44,7 @@ class ItemInteractionIntegrationTest {
         assertTrue(inventory.any { it.id == "sword" }, "Sword should be in player inventory")
 
         // Item should be removed from room
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertNull(room.getEntity("sword"), "Sword should be removed from room")
     }
 
@@ -90,7 +90,7 @@ class ItemInteractionIntegrationTest {
         assertTrue(inventory.any { it.id == "coin" })
 
         // Room should be empty of items
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertTrue(room.entities.filterIsInstance<Entity.Item>().isEmpty(), "Room should have no items left")
     }
 
@@ -126,7 +126,7 @@ class ItemInteractionIntegrationTest {
         assertTrue(inventory.none { it.id == "rock" }, "Rock should be removed from inventory")
 
         // Item should be in the room
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertNotNull(room.getEntity("rock"), "Rock should be in the room")
     }
 
@@ -165,7 +165,7 @@ class ItemInteractionIntegrationTest {
         assertTrue(updatedPlayer.inventory.none { it.id == "axe" }, "Axe should be removed from inventory")
 
         // Weapon should be in room
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertNotNull(room.getEntity("axe"), "Axe should be in the room")
     }
 
@@ -428,7 +428,7 @@ class ItemInteractionIntegrationTest {
         val response = engine.processInput("take altar")
 
         // Item should still be in room
-        val room = engine.getWorldState().getCurrentRoom()!!
+        val room = engine.getWorldState().getCurrentRoomView()!!
         assertNotNull(room.getEntity("altar"), "Non-pickupable item should remain in room")
 
         // Item should not be in inventory
@@ -494,9 +494,14 @@ class ItemInteractionIntegrationTest {
             entities = entities
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf("test_room" to room),
-            players = mapOf(player.id to player)
+            player = player,
+            config = LegacyWorldConfig(
+                chunkId = "test_chunk",
+                lore = "Test room chunk",
+                biomeTheme = "test"
+            )
         )
     }
 }

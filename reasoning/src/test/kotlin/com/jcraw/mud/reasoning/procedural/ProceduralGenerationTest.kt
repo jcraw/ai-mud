@@ -191,19 +191,19 @@ class ProceduralGenerationTest {
         val worldState = builder.generateDungeon()
 
         // Should have 5 rooms
-        assertEquals(5, worldState.rooms.size, "Should have requested number of rooms")
+        assertEquals(5, worldState.getRoomViews().size, "Should have requested number of rooms")
 
         // Player should exist and be in a valid room
         assertNotNull(worldState.player, "Player should exist")
-        assertTrue(worldState.rooms.containsKey(worldState.player.currentRoomId),
+        assertTrue(worldState.getRoomViews().containsKey(worldState.player.currentRoomId),
             "Player should be in a valid room")
 
         // Entrance room should exist
-        val entranceRoom = worldState.rooms[worldState.player.currentRoomId]
+        val entranceRoom = worldState.getRoomViews()[worldState.player.currentRoomId]
         assertNotNull(entranceRoom, "Entrance room should exist")
 
         // Boss room should exist
-        val bossRoom = worldState.rooms.values.find { room ->
+        val bossRoom = worldState.getRoomViews().values.find { room ->
             room.entities.any { entity ->
                 entity is com.jcraw.mud.core.Entity.NPC &&
                         entity.isHostile &&
@@ -251,7 +251,7 @@ class ProceduralGenerationTest {
         val worldState = builder.generateDungeon()
 
         // Count total items in dungeon
-        val totalItems = worldState.rooms.values.sumOf { room ->
+        val totalItems = worldState.getRoomViews().values.sumOf { room ->
             room.entities.count { it is com.jcraw.mud.core.Entity.Item }
         }
 
@@ -259,7 +259,7 @@ class ProceduralGenerationTest {
         assertTrue(totalItems >= 3, "Dungeon should have multiple items")
 
         // Should have at least one weapon
-        val hasWeapon = worldState.rooms.values.any { room ->
+        val hasWeapon = worldState.getRoomViews().values.any { room ->
             room.entities.any { entity ->
                 entity is com.jcraw.mud.core.Entity.Item &&
                         entity.itemType == ItemType.WEAPON

@@ -196,7 +196,7 @@ class FullGameplayIntegrationTest {
 
             // Fight and defeat Skeleton King
             var state = engine.getWorldState()
-            val skeletonKing = state.getCurrentRoom()?.entities?.find { it.id == "skeleton_king" }
+            val skeletonKing = state.getCurrentRoomView()?.entities?.find { it.id == "skeleton_king" }
             assertNotNull(skeletonKing, "Skeleton King should be in room")
 
             // Attack until defeated (with good equipment, should win)
@@ -640,7 +640,7 @@ class FullGameplayIntegrationTest {
             for (i in 1..5) {
                 engine.processInput("look")
 
-                val currentRoom = engine.getWorldState().getCurrentRoom()
+                val currentRoom = engine.getWorldState().getCurrentRoomView()
                 assertNotNull(currentRoom)
 
                 // If there are items, try to take one

@@ -2,7 +2,6 @@ package com.jcraw.app
 
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.WorldState
-import com.jcraw.mud.core.Room
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
@@ -42,71 +41,20 @@ fun main() {
 
     // Ask user for dungeon type
     println("Select dungeon type:")
-    println("  1. Sample Dungeon (handcrafted, 6 rooms)")
-    println("  2. World Generation V2 (procedural deep dungeon)")
-    println("  3. World Generation V3 (graph-based navigation)")
-    print("\nEnter choice (1-3) [default: 1]: ")
+    println("  1. Sample Dungeon (handcrafted, offline)")
+    println("  2. World Generation V3 (graph-based, requires API key)")
+    print("\nEnter choice (1-2) [default: 1]: ")
 
     val dungeonChoice = readLine()?.trim() ?: "1"
-    val useWorldGenV2 = dungeonChoice == "2"
-    val useWorldGenV3 = dungeonChoice == "3"
+    val useWorldGenV3 = dungeonChoice == "2"
 
     println()
 
-    var worldState: WorldState = SampleDungeon.createInitialWorldState() // Default fallback
+    var worldState: WorldState = SampleDungeon.createInitialWorldState()
     var dungeonTheme: DungeonTheme = DungeonTheme.CRYPT
-    var startingSpaceId: String? = null // For World V2
+    var startingSpaceId: String? = SampleDungeon.STARTING_ROOM_ID
 
-    if (useWorldGenV2) {
-        println("Initializing procedural deep dungeon...")
-        println("(This may take a moment as we generate the world...)")
-
-        // World generation requires LLM
-        if (apiKey.isNullOrBlank()) {
-            println("⚠️  World Generation V2 requires OpenAI API key")
-            println("   Falling back to Sample Dungeon")
-            worldState = SampleDungeon.createInitialWorldState()
-            dungeonTheme = DungeonTheme.CRYPT
-        } else {
-            // Initialize world generation components
-            val llmClient = OpenAIClient(apiKey)
-            val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
-            val worldSeedRepo = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
-            val chunkRepo = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
-            val spaceRepo = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
-            val entityRepo = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
-
-            val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
-            val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(llmClient, loreEngine)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, chunkRepo, spaceRepo, entityRepo)
-            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spaceRepo)
-            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
-            val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-                worldGenerator, worldSeedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepo
-            )
-
-            // Generate world (this is async)
-            val seed = "seed_${System.currentTimeMillis()}"
-            startingSpaceId = kotlinx.coroutines.runBlocking {
-                dungeonInitializer.initializeDeepDungeon(seed).getOrThrow()
-            }
-
-            println("✓ World generated! Starting space ID: $startingSpaceId")
-
-            // Create minimal world state (world V2 uses different navigation)
-            // For now, create empty world state - navigation will use world V2 system
-            val player = com.jcraw.mud.core.PlayerState(
-                id = "player_1",
-                name = "Adventurer",
-                currentRoomId = "world_v2_start" // Placeholder
-            )
-            worldState = WorldState(
-                rooms = emptyMap<String, Room>(), // World V2 uses SpacePropertiesRepository instead
-                players = mapOf(player.id to player)
-            )
-            dungeonTheme = DungeonTheme.CRYPT // Default theme
-        }
-    } else if (useWorldGenV3) {
+    if (useWorldGenV3) {
         println("Initializing World V3 with graph-based navigation...")
         println("(This may take a moment as we generate the world...)")
 
@@ -218,11 +166,10 @@ fun main() {
                 )
 
                 worldState = WorldState(
-                    rooms = emptyMap(),
-                    players = mapOf(player.id to player),
                     graphNodes = graphNodesMap,
                     spaces = spacesMap,
-                    chunks = mapOf(chunkResult.chunkId to chunkResult.chunk)
+                    chunks = mapOf(chunkResult.chunkId to chunkResult.chunk),
+                    players = mapOf(player.id to player)
                 )
                 dungeonTheme = DungeonTheme.CRYPT
 
@@ -232,7 +179,14 @@ fun main() {
     } else {
         println("Loading Sample Dungeon (handcrafted, 6 rooms)...")
         worldState = SampleDungeon.createInitialWorldState()
+        startingSpaceId = SampleDungeon.STARTING_ROOM_ID
         dungeonTheme = DungeonTheme.CRYPT // Sample uses crypt theme
+    }
+
+    startingSpaceId?.let { spawnId ->
+        worldState = worldState.copy(
+            gameProperties = worldState.gameProperties + ("starting_space" to spawnId)
+        )
     }
 
     // Generate initial quests
@@ -302,8 +256,8 @@ fun main() {
             )
         }
 
-        // Initialize navigation state for World V2
-        if (startingSpaceId != null) {
+        // Initialize navigation state for V3 runs (requires persisted chunk data)
+        if (startingSpaceId != null && useWorldGenV3) {
             game.navigationState = kotlinx.coroutines.runBlocking {
                 com.jcraw.mud.core.world.NavigationState.fromSpaceId(
                     startingSpaceId,

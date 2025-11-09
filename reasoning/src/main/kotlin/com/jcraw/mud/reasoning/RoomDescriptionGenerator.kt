@@ -1,11 +1,11 @@
 package com.jcraw.mud.reasoning
 
-import com.jcraw.mud.core.Room
+import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.sophia.llm.LLMClient
 
 /**
- * Generates vivid room descriptions from traits using LLM with RAG context
+ * Generates vivid location descriptions for V3 spaces using LLM with RAG context.
  */
 class RoomDescriptionGenerator(
     private val llmClient: LLMClient,
@@ -13,14 +13,19 @@ class RoomDescriptionGenerator(
 ) {
 
     /**
-     * Generate a narrative description of a room from its traits with historical context
+     * Generate a narrative description of a space from its metadata with historical context.
+     *
+     * @param space The space whose description needs to be generated/refreshed.
+     * @param hintTraits Optional environmental hints (e.g., legacy Room traits) to seed the prompt.
      */
-    suspend fun generateDescription(room: Room): String {
-        // Retrieve relevant memories for context
-        val memories = memoryManager?.recall("room ${room.name}", k = 3) ?: emptyList()
+    suspend fun generateDescription(
+        space: SpacePropertiesComponent,
+        hintTraits: List<String> = emptyList()
+    ): String {
+        val memories = memoryManager?.recall("space ${space.name}", k = 3) ?: emptyList()
 
         val systemPrompt = buildSystemPrompt()
-        val userContext = buildUserContext(room, memories)
+        val userContext = buildUserContext(space, hintTraits, memories)
 
         return try {
             val response = llmClient.chatCompletion(
@@ -32,18 +37,17 @@ class RoomDescriptionGenerator(
             )
 
             val description = response.choices.firstOrNull()?.message?.content?.trim()
-                ?: fallbackDescription(room)
+                ?: fallbackDescription(space, hintTraits)
 
-            // Store this room visit in memory
             memoryManager?.remember(
-                "Player entered ${room.name}: $description",
-                mapOf("type" to "room_entry", "room" to room.id)
+                "Player entered ${space.name}: $description",
+                mapOf("type" to "space_entry", "space" to space.name)
             )
 
             description
         } catch (e: Exception) {
             println("⚠️ LLM description generation failed: ${e.message}")
-            fallbackDescription(room)
+            fallbackDescription(space, hintTraits)
         }
     }
 
@@ -66,25 +70,50 @@ class RoomDescriptionGenerator(
         Example output: "You stand in a chamber with crumbling stone walls that speak of centuries past. Flickering torchlight casts dancing shadows across the ancient masonry. The air hangs heavy with the musty scent of age and decay."
     """.trimIndent()
 
-    private fun buildUserContext(room: Room, memories: List<String>): String {
+    private fun buildUserContext(
+        space: SpacePropertiesComponent,
+        traits: List<String>,
+        memories: List<String>
+    ): String {
         val historySection = if (memories.isNotEmpty()) {
             "\n\nRecent history:\n${memories.joinToString("\n") { "- $it" }}"
         } else {
             ""
         }
 
-        return """
-            Room: ${room.name}
-            Traits: ${room.traits.joinToString(", ")}$historySection
+        val traitSection = if (traits.isNotEmpty()) {
+            traits.joinToString(", ")
+        } else {
+            "none specified"
+        }
 
-            Generate an atmospheric description for this room.
+        val baseDescription = if (space.description.isNotBlank()) {
+            space.description
+        } else {
+            "No prior description exists. Use the traits and terrain to establish atmosphere."
+        }
+
+        return """
+            Space: ${space.name}
+            Terrain: ${space.terrainType}
+            Traits: $traitSection
+            Existing description (if any): $baseDescription$historySection
+
+            Generate an atmospheric description for this space.
         """.trimIndent()
     }
 
     /**
-     * Fallback to simple trait concatenation if LLM fails
+     * Fallback to using existing description or traits if LLM fails.
      */
-    private fun fallbackDescription(room: Room): String {
-        return room.traits.joinToString(". ") + "."
+    private fun fallbackDescription(
+        space: SpacePropertiesComponent,
+        traits: List<String>
+    ): String {
+        return when {
+            space.description.isNotBlank() -> space.description
+            traits.isNotEmpty() -> traits.joinToString(". ") + "."
+            else -> "You are in ${space.name}. The surroundings feel unremarkable for now."
+        }
     }
 }

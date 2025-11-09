@@ -379,47 +379,6 @@ class WorldSystemV3IntegrationTest {
         assertEquals(15, updatedGoblin.health, "Entity should have updated health")
     }
 
-    // ==================== V2 FALLBACK COMPATIBILITY ====================
-
-    @Test
-    fun `V3 methods gracefully handle V2-only worlds`() {
-        // Create V2 world (rooms only, no graph nodes)
-        val v2World = SampleDungeon.createInitialWorldState()
-
-        // V3 methods should return null when graph nodes not available
-        assertNull(v2World.getCurrentGraphNode(), "V2 world should have no graph node")
-        assertNull(v2World.getCurrentSpace(), "V2 world should have no space component")
-
-        // V3 navigation should fail gracefully
-        val newWorld = v2World.movePlayerV3(Direction.NORTH)
-        assertNull(newWorld, "V3 navigation should fail on V2 world")
-    }
-
-    @Test
-    fun `V2 methods still work on V3 worlds with rooms`() {
-        // If V3 world also has rooms (backwards compatibility), V2 methods should work
-        val v3World = createV3WorldState()
-
-        // Add a sample room for V2 compatibility
-        val room = Room(
-            id = "compat_room",
-            name = "Compatibility Room",
-            traits = listOf("A room for testing V2/V3 compatibility"),
-            exits = emptyMap(),
-            entities = emptyList()
-        )
-
-        val worldWithRoom = v3World.copy(
-            rooms = mapOf(room.id to room),
-            players = mapOf(v3World.player.id to v3World.player.copy(currentRoomId = room.id))
-        )
-
-        // V2 getCurrentRoom should work
-        val currentRoom = worldWithRoom.getCurrentRoom()
-        assertNotNull(currentRoom, "V2 methods should work if rooms present")
-        assertEquals("compat_room", currentRoom.id)
-    }
-
     // ==================== EDGE CASES ====================
 
     @Test

@@ -36,7 +36,7 @@ class CorpseDecayManagerTest {
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.rooms["room1"]
+        val updatedRoom = result.worldState.getRoomViews()["room1"]
         assertNotNull(updatedRoom)
 
         val updatedCorpse = updatedRoom.entities.filterIsInstance<Entity.Corpse>().firstOrNull()
@@ -70,7 +70,7 @@ class CorpseDecayManagerTest {
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.rooms["room1"]
+        val updatedRoom = result.worldState.getRoomViews()["room1"]
         assertNotNull(updatedRoom)
 
         val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
@@ -135,7 +135,7 @@ class CorpseDecayManagerTest {
         // Gold should be tracked by room
         assertEquals(50, result.destroyedGold["room1"])
 
-        val updatedRoom = result.worldState.rooms["room1"]
+        val updatedRoom = result.worldState.getRoomViews()["room1"]
         assertNotNull(updatedRoom)
 
         // Corpse and items should not be in room
@@ -175,7 +175,7 @@ class CorpseDecayManagerTest {
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.rooms["room1"]
+        val updatedRoom = result.worldState.getRoomViews()["room1"]
         assertNotNull(updatedRoom)
 
         val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
@@ -229,8 +229,8 @@ class CorpseDecayManagerTest {
         assertEquals(2, result.decayedCorpses.size)
 
         // Both rooms should have no corpses
-        val updatedRoom1 = result.worldState.rooms["room1"]
-        val updatedRoom2 = result.worldState.rooms["room2"]
+        val updatedRoom1 = result.worldState.getRoomViews()["room1"]
+        val updatedRoom2 = result.worldState.getRoomViews()["room2"]
         assertNotNull(updatedRoom1)
         assertNotNull(updatedRoom2)
 

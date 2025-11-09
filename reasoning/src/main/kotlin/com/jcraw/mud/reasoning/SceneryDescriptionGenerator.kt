@@ -1,37 +1,41 @@
 package com.jcraw.mud.reasoning
 
-import com.jcraw.mud.core.Room
+import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.sophia.llm.LLMClient
 
 /**
  * Generates descriptions for scenery objects that aren't physical entities
- * but are mentioned in room descriptions (walls, floor, ceiling, throne, etc.)
+ * but are mentioned in space descriptions (walls, floor, ceiling, throne, etc.)
  */
 class SceneryDescriptionGenerator(
     private val llmClient: LLMClient?
 ) {
 
     /**
-     * Generate a description for a scenery object based on room context.
-     * Returns null if the scenery doesn't seem to exist in this room.
+     * Generate a description for a scenery object based on space context.
+     * Returns null if the scenery doesn't seem to exist in this space.
      */
-    suspend fun describeScenery(sceneryTarget: String, room: Room, roomDescription: String): String? {
+    suspend fun describeScenery(
+        sceneryTarget: String,
+        space: SpacePropertiesComponent,
+        spaceDescription: String,
+        hintTraits: List<String> = emptyList()
+    ): String? {
         if (llmClient == null) {
-            return fallbackSceneryDescription(sceneryTarget, room)
+            return fallbackSceneryDescription(sceneryTarget, space, hintTraits, spaceDescription)
         }
 
         return try {
             val response = llmClient.chatCompletion(
                 modelId = "gpt-4o-mini",
                 systemPrompt = buildSystemPrompt(),
-                userContext = buildUserContext(sceneryTarget, room, roomDescription),
+                userContext = buildUserContext(sceneryTarget, space, spaceDescription, hintTraits),
                 maxTokens = 150,
                 temperature = 0.7
             )
 
             val result = response.choices.firstOrNull()?.message?.content?.trim()
 
-            // Check if the LLM indicates the scenery doesn't exist
             if (result != null && (result.contains("does not exist", ignoreCase = true) ||
                                    result.contains("don't see", ignoreCase = true) ||
                                    result.contains("no such", ignoreCase = true))) {
@@ -41,7 +45,7 @@ class SceneryDescriptionGenerator(
             result
         } catch (e: Exception) {
             println("⚠️ Scenery description generation failed: ${e.message}")
-            fallbackSceneryDescription(sceneryTarget, room)
+            fallbackSceneryDescription(sceneryTarget, space, hintTraits, spaceDescription)
         }
     }
 
@@ -69,37 +73,54 @@ class SceneryDescriptionGenerator(
         - If player examines "ocean" in a forest, say "You don't see that here."
     """.trimIndent()
 
-    private fun buildUserContext(sceneryTarget: String, room: Room, roomDescription: String): String = """
-        Room: ${room.name}
-        Room traits: ${room.traits.joinToString(", ")}
-        Room description: $roomDescription
+    private fun buildUserContext(
+        sceneryTarget: String,
+        space: SpacePropertiesComponent,
+        spaceDescription: String,
+        hintTraits: List<String>
+    ): String = """
+        Space: ${space.name}
+        Terrain: ${space.terrainType}
+        Traits: ${if (hintTraits.isNotEmpty()) hintTraits.joinToString(", ") else "none"}
+        Space description: $spaceDescription
 
         Player is examining: "$sceneryTarget"
 
-        Provide a description of this scenery feature, or say "You don't see that here." if it doesn't exist in this room.
+        Provide a description of this scenery feature, or say "You don't see that here." if it doesn't exist in this space.
     """.trimIndent()
 
     /**
-     * Fallback logic when LLM is not available
+     * Fallback logic when LLM is not available.
      */
-    private fun fallbackSceneryDescription(sceneryTarget: String, room: Room): String? {
+    private fun fallbackSceneryDescription(
+        sceneryTarget: String,
+        space: SpacePropertiesComponent,
+        hintTraits: List<String>,
+        spaceDescription: String
+    ): String? {
         val targetLower = sceneryTarget.lowercase()
 
-        // Check if any room traits mention this scenery
-        val matchingTrait = room.traits.find { trait ->
+        val matchingHint = hintTraits.find { trait ->
             trait.lowercase().contains(targetLower)
         }
 
-        return if (matchingTrait != null) {
-            "You examine the $sceneryTarget. $matchingTrait"
+        val matchingDescription = if (matchingHint == null) {
+            spaceDescription.split(".").find { sentence ->
+                sentence.contains(targetLower)
+            }?.trim()
+        } else null
+
+        val base = matchingHint ?: matchingDescription
+
+        return if (base != null) {
+            "You examine the $sceneryTarget. ${base.trim()}."
         } else {
-            // Check for common scenery that would exist in any room
             when {
-                targetLower in listOf("wall", "walls") -> "The walls are typical of this area."
-                targetLower in listOf("floor", "ground") -> "The floor beneath your feet is solid."
-                targetLower in listOf("ceiling") -> "You glance upward at the ceiling above."
-                targetLower in listOf("air", "atmosphere") -> "The air here has a distinct quality to it."
-                else -> null // Doesn't exist
+                targetLower in listOf("wall", "walls") -> "The walls echo the mood of ${space.name}."
+                targetLower in listOf("floor", "ground") -> "The floor beneath your feet mirrors the terrain here."
+                targetLower in listOf("ceiling") -> "You glance upward at the ceiling and take in its details."
+                targetLower in listOf("air", "atmosphere") -> "The air here carries a distinct quality."
+                else -> null
             }
         }
     }

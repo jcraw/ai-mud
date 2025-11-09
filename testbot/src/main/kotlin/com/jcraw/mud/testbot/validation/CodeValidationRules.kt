@@ -2,6 +2,7 @@ package com.jcraw.mud.testbot.validation
 
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.RoomView
 import com.jcraw.mud.testbot.TestStep
 import com.jcraw.mud.testbot.ValidationResult
 
@@ -27,7 +28,7 @@ object CodeValidationRules {
 
         // Get current room ID after this action
         val currentRoomId = worldState.player.currentRoomId
-        val currentRoom = worldState.getCurrentRoom()
+        val currentRoom = worldState.getCurrentRoomView()
 
         // Track inventory state from history
         val inventoryTracker = trackInventoryFromHistory(recentHistory)
@@ -46,7 +47,7 @@ object CodeValidationRules {
         playerInput: String,
         gmResponse: String,
         inventoryTracker: Set<String>,
-        currentRoom: com.jcraw.mud.core.Room?,
+        currentRoom: RoomView?,
         worldState: WorldState
     ): ValidationResult? {
         // Parse "take/get/pickup" commands
@@ -229,7 +230,7 @@ object CodeValidationRules {
         playerInput: String,
         gmResponse: String,
         recentHistory: List<TestStep>,
-        currentRoom: com.jcraw.mud.core.Room?,
+        currentRoom: RoomView?,
         worldState: WorldState
     ): ValidationResult? {
         val currentRoomId = worldState.player.currentRoomId
@@ -322,7 +323,7 @@ object CodeValidationRules {
     private fun validateCombat(
         playerInput: String,
         gmResponse: String,
-        currentRoom: com.jcraw.mud.core.Room?,
+        currentRoom: RoomView?,
         worldState: WorldState
     ): ValidationResult? {
         // Parse "attack" commands (including "continue attacking" variants)
@@ -446,7 +447,7 @@ object CodeValidationRules {
     private fun validateSocialInteraction(
         playerInput: String,
         gmResponse: String,
-        currentRoom: com.jcraw.mud.core.Room?,
+        currentRoom: RoomView?,
         worldState: WorldState
     ): ValidationResult? {
         // Parse "talk/speak" commands (conversation, NOT a skill check)

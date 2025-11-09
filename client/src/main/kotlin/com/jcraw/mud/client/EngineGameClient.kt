@@ -299,8 +299,9 @@ class EngineGameClient(
         // Parse intent - V3 uses space-based context
         val space = worldState.getCurrentSpace()
         val spaceContext = space?.description
+        val exitsWithNames = worldState.getCurrentGraphNode()?.let { buildExitsWithNames(it) }
         val intent = runBlocking {
-            intentRecognizer.parseIntent(text, spaceContext, null)
+            intentRecognizer.parseIntent(text, spaceContext, exitsWithNames)
         }
 
         // Process intent
@@ -518,7 +519,9 @@ class EngineGameClient(
 
     internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
         spacePropertiesRepository.findByChunkId(spaceId)
-    }.getOrNull()
+    }.getOrNull()?.also { loaded ->
+        worldState = worldState.updateSpace(spaceId, loaded)
+    }
 
     internal fun loadEntity(entityId: String): Entity? = runBlocking {
         spaceEntityRepository.findById(entityId)
@@ -530,10 +533,10 @@ class EngineGameClient(
     internal fun ensureSpaceContent(spaceId: String) {
         val generator = worldGenerator ?: return
         val currentSpace = worldState.getSpace(spaceId) ?: return
-        if (currentSpace.description.isNotEmpty()) return
-        val node = worldState.graphNodes[spaceId] ?: return
+        if (currentSpace.description.isNotEmpty() && !currentSpace.descriptionStale) return
+        val node = ensureGraphNodeLoaded(spaceId) ?: return
 
-        val chunk = worldState.chunks[node.chunkId] ?: runBlocking {
+        val chunk = worldState.getChunk(node.chunkId) ?: runBlocking {
             worldChunkRepository.findById(node.chunkId).getOrNull()
         }?.also { loaded ->
             worldState = worldState.addChunk(node.chunkId, loaded)
@@ -551,7 +554,7 @@ class EngineGameClient(
             return
         }
 
-        worldState = worldState.updateSpace(spaceId, filledSpace)
+        worldState = worldState.updateSpace(spaceId, filledSpace.withDescription(filledSpace.description))
         spacePropertiesRepository.save(filledSpace, spaceId).onFailure {
             emitEvent(
                 GameEvent.System(
@@ -635,6 +638,102 @@ class EngineGameClient(
             location = spaceId // Use space ID as location
         ))
     }
+
+    internal fun handlePlayerMovement(movementLabel: String) {
+        emitEvent(GameEvent.Narrative("You move $movementLabel."))
+        val currentSpaceId = worldState.player.currentRoomId
+        ensureSpaceContent(currentSpaceId)
+        worldState.getCurrentGraphNode()?.let { maybeExpandFrontier(it) }
+        trackQuests(QuestAction.VisitedRoom(currentSpaceId))
+        describeCurrentRoom()
+    }
+
+    internal fun ensureGraphNodeLoaded(spaceId: String): GraphNodeComponent? {
+        worldState.getGraphNode(spaceId)?.let { return it }
+        val node = runBlocking { graphNodeRepository.findById(spaceId).getOrNull() } ?: return null
+        worldState = worldState.updateGraphNode(spaceId, node)
+        return node
+    }
+
+    private fun maybeExpandFrontier(currentNode: GraphNodeComponent) {
+        if (currentNode.type !is com.jcraw.mud.core.world.NodeType.Frontier) return
+        val chunkId = currentNode.chunkId
+        val chunk = worldState.getChunk(chunkId) ?: runBlocking {
+            worldChunkRepository.findById(chunkId).getOrNull()
+        }?.also { worldState = worldState.addChunk(chunkId, it) } ?: return
+
+        val hasGeneratedExit = currentNode.neighbors.any { edge ->
+            worldState.getGraphNode(edge.targetId) != null
+        }
+        if (hasGeneratedExit) return
+
+        val generator = worldGenerator ?: return
+        runBlocking {
+            val context = com.jcraw.mud.core.world.GenerationContext(
+                seed = (chunkId.hashCode().toLong() + System.currentTimeMillis()).toString(),
+                globalLore = chunk.lore,
+                parentChunk = chunk,
+                parentChunkId = chunk.parentId,
+                level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
+                direction = "frontier_expansion"
+            )
+
+            val result = generator.generateChunk(context)
+            result.onSuccess { genResult ->
+                worldChunkRepository.save(genResult.chunk, genResult.chunkId)
+                worldState = worldState.addChunk(genResult.chunkId, genResult.chunk)
+
+                genResult.graphNodes.forEach { node ->
+                    graphNodeRepository.save(node)
+                    worldState = worldState.updateGraphNode(node.id, node)
+
+                    val spaceStub = generator.generateSpaceStub(node, genResult.chunk)
+                    spaceStub.onSuccess { space ->
+                        spacePropertiesRepository.save(space, node.id)
+                        worldState = worldState.updateSpace(node.id, space)
+                    }.onFailure {
+                        emitEvent(
+                            GameEvent.System(
+                                "Failed to seed space ${node.id}: ${it.message}",
+                                GameEvent.MessageLevel.WARNING
+                            )
+                        )
+                    }
+                }
+
+                val hubNode = genResult.graphNodes.find { it.type is com.jcraw.mud.core.world.NodeType.Hub }
+                if (hubNode != null) {
+                    val edgeDirection = "frontier passage"
+                    val newEdge = com.jcraw.mud.core.world.EdgeData(
+                        targetId = hubNode.id,
+                        direction = edgeDirection,
+                        hidden = false
+                    )
+
+                    val updatedFrontier = currentNode.copy(neighbors = currentNode.neighbors + newEdge)
+                    graphNodeRepository.update(updatedFrontier)
+                    worldState = worldState.updateGraphNode(updatedFrontier.id, updatedFrontier)
+                    emitEvent(GameEvent.System("A new horizon opens beyond the frontier.", GameEvent.MessageLevel.INFO))
+                }
+            }.onFailure { error ->
+                emitEvent(
+                    GameEvent.System(
+                        "Frontier generation failed: ${error.message}",
+                        GameEvent.MessageLevel.WARNING
+                    )
+                )
+            }
+        }
+    }
+
+    private fun buildExitsWithNames(node: GraphNodeComponent): Map<Direction, String> =
+        node.neighbors.mapNotNull { edge ->
+            val direction = Direction.fromString(edge.direction) ?: return@mapNotNull null
+            val targetName = worldState.getSpace(edge.targetId)?.name
+                ?: loadSpace(edge.targetId)?.name
+                ?: edge.targetId
+            direction to targetName
+        }.toMap()
 
     private suspend fun processIntent(intent: Intent) {
         when (intent) {

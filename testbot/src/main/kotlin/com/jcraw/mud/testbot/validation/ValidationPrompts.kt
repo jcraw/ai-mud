@@ -82,7 +82,7 @@ object ValidationPrompts {
 
         // Add game state context for better validation
         val gameStateContext = if (worldState != null) {
-            val currentRoom = worldState.getCurrentRoom()
+            val currentRoom = worldState.getCurrentRoomView()
             val player = worldState.player
             val roomTransitionInfo = buildString {
                 if (previousRoomName != null && currentRoomName != null) {

@@ -175,7 +175,7 @@ class SaveLoadIntegrationTest {
             damageBonus = 3
         )
 
-        val roomWithSword = world.getCurrentRoom()!!.copy(entities = listOf(sword))
+        val roomWithSword = world.getCurrentRoomView()!!.copy(entities = listOf(sword))
         val worldWithSword = world.updateRoom(roomWithSword)
         val engineWithSword = InMemoryGameEngine(worldWithSword)
 

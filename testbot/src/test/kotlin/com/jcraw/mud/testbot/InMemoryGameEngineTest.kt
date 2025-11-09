@@ -77,12 +77,12 @@ class InMemoryGameEngineTest {
         val worldState = SampleDungeon.createInitialWorldState()
         val engine = InMemoryGameEngine(worldState)
 
-        val initialRoom = engine.getWorldState().getCurrentRoom()?.id
+        val initialRoom = engine.getWorldState().getCurrentRoomView()?.id
 
         // Move if possible
         engine.processInput("east")
 
-        val newRoom = engine.getWorldState().getCurrentRoom()?.id
+        val newRoom = engine.getWorldState().getCurrentRoomView()?.id
 
         // Room might change or stay same depending on dungeon layout
         assertNotNull(newRoom)
@@ -93,7 +93,7 @@ class InMemoryGameEngineTest {
         val worldState = SampleDungeon.createInitialWorldState()
         val engine = InMemoryGameEngine(worldState)
 
-        val initialRoomId = engine.getWorldState().getCurrentRoom()?.id
+        val initialRoomId = engine.getWorldState().getCurrentRoomView()?.id
 
         // Make some changes
         engine.processInput("east")
@@ -101,7 +101,7 @@ class InMemoryGameEngineTest {
         // Reset
         engine.reset()
 
-        val resetRoomId = engine.getWorldState().getCurrentRoom()?.id
+        val resetRoomId = engine.getWorldState().getCurrentRoomView()?.id
 
         assertEquals(initialRoomId, resetRoomId)
     }

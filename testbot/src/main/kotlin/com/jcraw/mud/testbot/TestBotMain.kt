@@ -111,7 +111,8 @@ fun main() = runBlocking {
         println("✅ Combat test setup: Player starts with weapon (+${sword.damageBonus}) and armor (+${armor.defenseBonus}) equipped")
     }
 
-    println("\n✅ Dungeon loaded: ${worldState.rooms.size} rooms")
+    val spaceCount = worldState.graphNodes.size.takeIf { it > 0 } ?: worldState.spaces.size
+    println("\n✅ Dungeon loaded: $spaceCount spaces")
     println("✅ Starting room: ${worldState.player.currentRoomId}")
     println("✅ Scenario selected: ${scenario.name}")
     println("   ${scenario.description}")

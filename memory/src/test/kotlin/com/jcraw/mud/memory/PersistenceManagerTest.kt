@@ -124,9 +124,9 @@ class PersistenceManagerTest {
             inventory = listOf(item)
         )
 
-        val worldState = WorldState(
+        val worldState = buildWorldStateFromRooms(
             rooms = mapOf("room1" to Room("room1", "Test Room", emptyList())),
-            players = mapOf("player1" to player)
+            player = player
         )
 
         manager.saveGame(worldState, "inventory_test")
@@ -154,9 +154,9 @@ class PersistenceManagerTest {
             health = 100
         )
 
-        return WorldState(
+        return buildWorldStateFromRooms(
             rooms = mapOf(room.id to room),
-            players = mapOf("player1" to player)
+            player = player
         )
     }
 }
