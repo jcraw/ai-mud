@@ -30,6 +30,7 @@ class WorldGenerator(
         private const val MODEL = "gpt-4o-mini"
         private const val TEMPERATURE = 0.7
         private const val MAX_TOKENS = 600
+        private const val ROOT_BIOME = "abyssal_dungeon"
 
         private const val TRAP_PROBABILITY = 0.15 // 15% chance per space
         private const val RESOURCE_PROBABILITY = 0.05 // 5% chance per space
@@ -65,12 +66,14 @@ class WorldGenerator(
         // Generate chunk details via LLM
         val chunkData = generateChunkData(context, lore).getOrElse { return Result.failure(it) }
 
-        val chunk = WorldChunkComponent(
+        val resolvedBiomeTheme = resolveBiomeTheme(context, chunkData.biomeTheme)
+
+        var chunk = WorldChunkComponent(
             level = context.level,
             parentId = context.parentChunkId,
             children = emptyList(),
             lore = lore,
-            biomeTheme = chunkData.biomeTheme,
+            biomeTheme = resolvedBiomeTheme,
             sizeEstimate = chunkData.sizeEstimate,
             mobDensity = chunkData.mobDensity.coerceIn(0.0, 1.0),
             difficultyLevel = chunkData.difficultyLevel.coerceIn(1, 20)
@@ -81,6 +84,12 @@ class WorldGenerator(
             generateGraphTopology(chunkId, chunk).getOrElse { return Result.failure(it) }
         } else {
             emptyList()
+        }
+
+        chunk = enforceRootBiome(chunkId, chunk, context)
+
+        context.parentChunk?.let { parent ->
+            logPromptCascade(chunkId, chunk, parent)
         }
 
         cacheChunkLoreEntry(chunkId, chunk)
@@ -395,6 +404,60 @@ class WorldGenerator(
             is com.jcraw.mud.core.world.NodeType.Frontier -> 20 to TerrainType.DIFFICULT // Unexplored, rough
             is com.jcraw.mud.core.world.NodeType.Questable -> 55 to TerrainType.NORMAL // Interesting, accessible
         }
+    }
+
+    /**
+     * Determine final biome theme for the child chunk.
+     * Defaults to parent's biome unless a surface breakout flag is present.
+     */
+    private fun resolveBiomeTheme(
+        context: GenerationContext,
+        requestedTheme: String
+    ): String {
+        val parent = context.parentChunk ?: return requestedTheme.ifBlank { ROOT_BIOME }
+        val parentTheme = parent.biomeTheme.ifBlank { ROOT_BIOME }
+        val breakout = hasSurfaceShift(context)
+
+        val newTheme = when {
+            breakout -> "surface_wilderness"
+            parentTheme.isNotBlank() -> parentTheme
+            requestedTheme.isNotBlank() -> requestedTheme
+            else -> ROOT_BIOME
+        }
+
+        val parentId = context.parentChunkId ?: "UNKNOWN_PARENT"
+        println("[INHERIT] Child ${context.level.name} from parent $parentId (biome='${parentTheme}'): Setting to '$newTheme'")
+
+        return newTheme
+    }
+
+    private fun hasSurfaceShift(context: GenerationContext): Boolean {
+        val hint = context.direction?.lowercase() ?: return false
+        return hint.contains("surface_shift")
+    }
+
+    private fun enforceRootBiome(
+        chunkId: String,
+        chunk: WorldChunkComponent,
+        context: GenerationContext
+    ): WorldChunkComponent {
+        if (chunk.level != ChunkLevel.WORLD || context.parentChunk != null) {
+            return chunk
+        }
+
+        val adjusted = chunk.copy(biomeTheme = ROOT_BIOME)
+        val overrideNote = if (chunk.biomeTheme != ROOT_BIOME) " (overrode '${chunk.biomeTheme}')" else ""
+        println("[GEN] Root WORLD chunk ID=$chunkId: biomeTheme='${adjusted.biomeTheme}', parent=null$overrideNote")
+        return adjusted
+    }
+
+    private fun logPromptCascade(
+        chunkId: String,
+        chunk: WorldChunkComponent,
+        parentChunk: WorldChunkComponent
+    ) {
+        val parentTheme = parentChunk.biomeTheme.ifBlank { ROOT_BIOME }
+        println("[PROMPT] For chunk $chunkId (${chunk.level}): biome='${chunk.biomeTheme}', inheriting from '$parentTheme'")
     }
 
     /**
