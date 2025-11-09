@@ -4,6 +4,8 @@ import com.jcraw.app.MudGame
 import com.jcraw.app.times
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.GraphNodeComponent
+import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
 
@@ -239,87 +241,83 @@ object MovementHandlers {
 
         val currentSpace = game.worldState.getCurrentSpace()
         val currentNode = game.worldState.getCurrentGraphNode()
-        if (currentSpace != null && currentNode != null && currentSpace.description.isEmpty()) {
-            val playerId = game.worldState.player.id
-            val spaceId = game.worldState.players[playerId]?.currentRoomId
-            if (spaceId != null) {
-                val chunkId = spaceId.substringBeforeLast("_node_")
-                val chunk = game.worldState.getChunk(chunkId)
+        val spaceId = game.worldState.player.currentRoomId
 
-                if (chunk != null && game.worldGenerator != null) {
-                    runBlocking {
-                        val result = game.worldGenerator?.fillSpaceContent(currentSpace, currentNode, chunk)
-                        result?.onSuccess { filledSpace ->
-                            game.worldState = game.worldState.updateSpace(spaceId, filledSpace)
-                        }?.onFailure {
-                            println("(Content generation unavailable)")
-                        }
+        if (currentSpace != null && currentNode != null && currentSpace.description.isEmpty()) {
+            val chunk = game.worldState.getChunk(currentNode.chunkId)
+
+            if (chunk != null && game.worldGenerator != null) {
+                runBlocking {
+                    val result = game.worldGenerator?.fillSpaceContent(currentSpace, currentNode, chunk)
+                    result?.onSuccess { filledSpace ->
+                        game.worldState = game.worldState.updateSpace(spaceId, filledSpace)
+                    }?.onFailure {
+                        println("(Content generation unavailable)")
                     }
                 }
             }
         }
 
+        if (currentSpace != null && currentNode != null) {
+            populateSpaceIfNeeded(game, spaceId, currentSpace, currentNode)
+        }
+
         val frontierNode = game.worldState.getCurrentGraphNode()
         if (frontierNode != null && frontierNode.type is com.jcraw.mud.core.world.NodeType.Frontier) {
-            val playerId = game.worldState.player.id
-            val spaceId = game.worldState.players[playerId]?.currentRoomId
-            if (spaceId != null) {
-                val chunkId = spaceId.substringBeforeLast("_node_")
-                val chunk = game.worldState.getChunk(chunkId)
+            val chunk = game.worldState.getChunk(frontierNode.chunkId)
 
-                if (chunk != null && game.worldGenerator != null && game.graphNodeRepository != null) {
-                    val hasGeneratedExit = frontierNode.neighbors.any { edge ->
-                        game.worldState.getGraphNode(edge.targetId) != null
-                    }
+            if (chunk != null && game.worldGenerator != null && game.graphNodeRepository != null) {
+                val hasGeneratedExit = frontierNode.neighbors.any { edge ->
+                    game.worldState.getGraphNode(edge.targetId) != null
+                }
 
-                    if (!hasGeneratedExit) {
-                        runBlocking {
-                            val context = com.jcraw.mud.core.world.GenerationContext(
-                                seed = (chunkId.hashCode().toLong() + System.currentTimeMillis()).toString(),
-                                globalLore = chunk.lore,
-                                parentChunk = chunk,
-                                parentChunkId = chunk.parentId,
-                                level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
-                                direction = "frontier_expansion"
-                            )
+                if (!hasGeneratedExit) {
+                    runBlocking {
+                        val context = com.jcraw.mud.core.world.GenerationContext(
+                            seed = (frontierNode.chunkId.hashCode().toLong() + System.currentTimeMillis()).toString(),
+                            globalLore = chunk.lore,
+                            parentChunk = chunk,
+                            parentChunkId = chunk.parentId,
+                            level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
+                            direction = "frontier_expansion"
+                        )
 
-                            val result = game.worldGenerator?.generateChunk(context)
-                            result?.onSuccess { genResult ->
-                                game.worldChunkRepository.save(genResult.chunk, genResult.chunkId)
-                                game.worldState = game.worldState.addChunk(genResult.chunkId, genResult.chunk)
+                        val result = game.worldGenerator?.generateChunk(context)
+                        result?.onSuccess { genResult ->
+                            game.worldChunkRepository.save(genResult.chunk, genResult.chunkId)
+                            game.worldState = game.worldState.addChunk(genResult.chunkId, genResult.chunk)
 
-                                genResult.graphNodes.forEach { node ->
-                                    game.graphNodeRepository.save(node)
-                                    game.worldState = game.worldState.updateGraphNode(node.id, node)
+                            genResult.graphNodes.forEach { node ->
+                                game.graphNodeRepository.save(node)
+                                game.worldState = game.worldState.updateGraphNode(node.id, node)
 
-                                    val spaceStub = game.worldGenerator?.generateSpaceStub(node, genResult.chunk)
-                                    spaceStub?.onSuccess { space ->
-                                        val nodeSpaceId = "${genResult.chunkId}_node_${node.id}"
-                                        game.spacePropertiesRepository.save(space, nodeSpaceId)
-                                        game.worldState = game.worldState.updateSpace(nodeSpaceId, space)
-                                    }
+                                val spaceStub = game.worldGenerator?.generateSpaceStub(node, genResult.chunk)
+                                spaceStub?.onSuccess { space ->
+                                    val nodeSpaceId = "${genResult.chunkId}_node_${node.id}"
+                                    game.spacePropertiesRepository.save(space, nodeSpaceId)
+                                    game.worldState = game.worldState.updateSpace(nodeSpaceId, space)
                                 }
-
-                                val hubNode = genResult.graphNodes.find { it.type is com.jcraw.mud.core.world.NodeType.Hub }
-                                if (hubNode != null) {
-                                    val edgeDirection = "frontier passage"
-                                    val newEdge = com.jcraw.mud.core.world.EdgeData(
-                                        targetId = hubNode.id,
-                                        direction = edgeDirection,
-                                        hidden = false
-                                    )
-
-                                    val updatedFrontier = frontierNode.copy(
-                                        neighbors = frontierNode.neighbors + newEdge
-                                    )
-                                    game.graphNodeRepository.update(updatedFrontier)
-                                    game.worldState = game.worldState.updateGraphNode(updatedFrontier.id, updatedFrontier)
-
-                                    println("\n🗺️  You've discovered a new frontier! A passage opens before you...")
-                                }
-                            }?.onFailure { error ->
-                                println("(Frontier generation failed: ${error.message})")
                             }
+
+                            val hubNode = genResult.graphNodes.find { it.type is com.jcraw.mud.core.world.NodeType.Hub }
+                            if (hubNode != null) {
+                                val edgeDirection = "frontier passage"
+                                val newEdge = com.jcraw.mud.core.world.EdgeData(
+                                    targetId = hubNode.id,
+                                    direction = edgeDirection,
+                                    hidden = false
+                                )
+
+                                val updatedFrontier = frontierNode.copy(
+                                    neighbors = frontierNode.neighbors + newEdge
+                                )
+                                game.graphNodeRepository.update(updatedFrontier)
+                                game.worldState = game.worldState.updateGraphNode(updatedFrontier.id, updatedFrontier)
+
+                                println("\n🗺️  You've discovered a new frontier! A passage opens before you...")
+                            }
+                        }?.onFailure { error ->
+                            println("(Frontier generation failed: ${error.message})")
                         }
                     }
                 }
@@ -330,5 +328,57 @@ object MovementHandlers {
         game.trackQuests(QuestAction.VisitedRoom(currentSpaceId))
 
         game.describeCurrentRoom()
+    }
+
+    private fun populateSpaceIfNeeded(
+        game: MudGame,
+        spaceId: String,
+        space: SpacePropertiesComponent,
+        node: GraphNodeComponent
+    ) {
+        val populator = game.spacePopulator ?: return
+        if (space.stateFlags["populated"] == true) return
+        if (space.entities.isNotEmpty()) return
+        if (space.isSafeZone) return
+
+        val chunk = game.worldState.getChunk(node.chunkId) ?: return
+
+        runBlocking {
+            val populationResult = if (game.respawnChecker != null) {
+                populator.populateWithRespawn(
+                    space = space,
+                    spaceId = spaceId,
+                    theme = chunk.biomeTheme,
+                    difficulty = chunk.difficultyLevel,
+                    mobDensity = chunk.mobDensity,
+                    respawnChecker = game.respawnChecker
+                )
+            } else {
+                Result.success(
+                    populator.populateWithEntities(
+                        space = space,
+                        theme = chunk.biomeTheme,
+                        difficulty = chunk.difficultyLevel,
+                        mobDensity = chunk.mobDensity
+                    )
+                )
+            }
+
+            populationResult.onSuccess { (populatedSpace, spawnedEntities) ->
+                val flaggedSpace = populatedSpace.copy(
+                    stateFlags = populatedSpace.stateFlags + ("populated" to true)
+                )
+
+                var updatedWorld = game.worldState.updateSpace(spaceId, flaggedSpace)
+                spawnedEntities.forEach { entity ->
+                    updatedWorld = updatedWorld.updateEntity(entity)
+                }
+                game.spacePropertiesRepository.save(flaggedSpace, spaceId)
+                    .onFailure { println("Warning: Failed to persist space $spaceId: ${it.message}") }
+                game.worldState = updatedWorld
+            }.onFailure { error ->
+                println("(Population failed: ${error.message})")
+            }
+        }
     }
 }

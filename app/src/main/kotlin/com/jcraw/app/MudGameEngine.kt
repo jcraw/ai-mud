@@ -111,10 +111,13 @@ class MudGame(
         spacePropertiesRepository
     )
 
-    // Respawn System components
+    // Respawn & population components
     internal val respawnRepository = com.jcraw.mud.memory.world.SQLiteRespawnRepository(worldDatabase)
-    internal val mobSpawner = if (llmClient != null) com.jcraw.mud.reasoning.world.MobSpawner(llmClient) else null
-    internal val respawnChecker = if (mobSpawner != null) com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner) else null
+    internal val mobSpawner = com.jcraw.mud.reasoning.world.MobSpawner(llmClient)
+    private val trapGenerator = com.jcraw.mud.reasoning.world.TrapGenerator(llmClient)
+    private val resourceGenerator = com.jcraw.mud.reasoning.world.ResourceGenerator(itemRepository, llmClient)
+    internal val spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)
+    internal val respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
 
     // Death & Corpse System components (Chunk 6)
     internal val corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
