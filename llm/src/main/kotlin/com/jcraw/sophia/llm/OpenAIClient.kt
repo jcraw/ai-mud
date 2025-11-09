@@ -39,17 +39,10 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
         println("   Model: $modelId")
         println("   Max tokens: $maxTokens")
         println("   Temperature: $actualTemperature${if (actualTemperature != temperature) " (forced to 1.0 for GPT-5)" else ""}")
-        println("   System prompt: ${systemPrompt.take(100)}...")
-
-        // Show both start and end of user context to see the player command
-        if (userContext.length <= 200) {
-            println("   User context: $userContext")
-        } else {
-            val contextStart = userContext.take(100)
-            val contextEnd = userContext.takeLast(100)
-            println("   User context (start): $contextStart...")
-            println("   User context (end): ...$contextEnd")
-        }
+        println("   System prompt (full):")
+        println(systemPrompt.prependIndent("      "))
+        println("   User context (full):")
+        println(userContext.prependIndent("      "))
 
         val messages = listOf(
             OpenAIMessage("system", systemPrompt),

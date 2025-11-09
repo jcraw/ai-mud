@@ -201,7 +201,7 @@ class WorldGenerator(
             description = spaceData.description,
             exits = exits,
             brightness = spaceData.brightness.coerceIn(0, 100),
-            terrainType = TerrainType.valueOf(spaceData.terrainType),
+            terrainType = parseTerrainType(spaceData.terrainType),
             traps = traps,
             resources = resources,
             entities = emptyList(), // Populated later via MobSpawner
@@ -404,6 +404,15 @@ class WorldGenerator(
             is com.jcraw.mud.core.world.NodeType.Frontier -> 20 to TerrainType.DIFFICULT // Unexplored, rough
             is com.jcraw.mud.core.world.NodeType.Questable -> 55 to TerrainType.NORMAL // Interesting, accessible
         }
+    }
+
+    private fun parseTerrainType(raw: String): TerrainType {
+        val normalized = raw.trim().uppercase()
+        return runCatching { TerrainType.valueOf(normalized) }
+            .getOrElse {
+                println("[WARN] Unknown terrain type '$raw', defaulting to NORMAL")
+                TerrainType.NORMAL
+            }
     }
 
     /**
