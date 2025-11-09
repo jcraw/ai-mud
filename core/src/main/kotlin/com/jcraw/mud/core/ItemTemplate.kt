@@ -1,8 +1,9 @@
 package com.jcraw.mud.core
 
+import kotlinx.serialization.Serializable
+
 const val GOLD_TEMPLATE_ID: String = "gold_coin"
 
-import kotlinx.serialization.Serializable
 
 /**
  * Template definition for items loaded from database
