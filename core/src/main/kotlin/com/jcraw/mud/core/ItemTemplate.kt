@@ -1,5 +1,7 @@
 package com.jcraw.mud.core
 
+const val GOLD_TEMPLATE_ID: String = "gold_coin"
+
 import kotlinx.serialization.Serializable
 
 /**

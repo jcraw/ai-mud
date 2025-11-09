@@ -286,6 +286,65 @@ data class WorldState(
             .updateSpace(spaceId, updatedSpace)
     }
 
+    /**
+     * Remove a dropped item instance from a space, optionally removing any linked entities.
+     */
+    fun removeDroppedItem(
+        spaceId: SpaceId,
+        instanceId: String,
+        removeEntity: Boolean = false,
+        updateCorpses: Boolean = true
+    ): WorldState {
+        var updated = this
+        val space = updated.getSpace(spaceId)
+        var removedInstance: ItemInstance? = null
+
+        if (space != null) {
+            val instance = space.itemsDropped.find { it.id == instanceId }
+            if (instance != null) {
+                removedInstance = instance
+                val updatedSpace = space.copy(
+                    itemsDropped = space.itemsDropped.filterNot { it.id == instanceId }
+                )
+                updated = updated.updateSpace(spaceId, updatedSpace)
+            }
+        }
+
+        if (removeEntity) {
+            val dropEntities = updated.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Item>()
+            dropEntities.filter { it.properties["instanceId"] == instanceId }.forEach { drop ->
+                updated = updated.removeEntityFromSpace(spaceId, drop.id) ?: updated
+            }
+        }
+
+        if (updateCorpses && removedInstance != null) {
+            val corpses = updated.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Corpse>()
+            corpses.forEach { corpse ->
+                var newCorpse = corpse
+                var modified = false
+
+                if (corpse.contents.any { it.id == instanceId }) {
+                    newCorpse = newCorpse.removeItem(instanceId)
+                    modified = true
+                }
+
+                if (removedInstance.templateId == GOLD_TEMPLATE_ID && corpse.goldAmount > 0) {
+                    val newGold = (newCorpse.goldAmount - removedInstance.quantity).coerceAtLeast(0)
+                    if (newGold != newCorpse.goldAmount) {
+                        newCorpse = newCorpse.copy(goldAmount = newGold)
+                        modified = true
+                    }
+                }
+
+                if (modified) {
+                    updated = updated.replaceEntityInSpace(spaceId, corpse.id, newCorpse) ?: updated
+                }
+            }
+        }
+
+        return updated
+    }
+
     // Legacy V2 compatibility constructor - converts Room map to V3 components
     constructor(
         rooms: Map<RoomId, Room>,

@@ -5,6 +5,7 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.combat.AttackResolver
 import com.jcraw.mud.reasoning.combat.AttackResult
 import com.jcraw.mud.reasoning.combat.CombatBehavior
+import com.jcraw.mud.reasoning.combat.DeathHandler
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.town.SafeZoneValidator
 import kotlinx.coroutines.runBlocking
@@ -109,8 +110,12 @@ object CombatHandlers {
                 if (attackResult.wasKilled) {
                     println("\nVictory! ${npc.name} has been defeated!")
 
-                    // V3: Remove NPC from space
-                    game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                    // V3: Handle corpse + loot creation
+                    val deathResult = game.deathHandler.handleDeath(npc.id, game.worldState)
+                    game.worldState = when (deathResult) {
+                        is DeathHandler.DeathResult.NPCDeath -> deathResult.updatedWorld
+                        else -> game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                    }
 
                     // Mark entity death for respawn system
                     game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
@@ -216,9 +221,12 @@ object CombatHandlers {
             attackResult.npcDied -> {
                 println("\nVictory! The enemy has been defeated!")
 
-                // Remove NPC using V3
                 val spaceId = game.worldState.player.currentRoomId
-                game.worldState = game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                val deathResult = game.deathHandler.handleDeath(npc.id, game.worldState)
+                game.worldState = when (deathResult) {
+                    is DeathHandler.DeathResult.NPCDeath -> deathResult.updatedWorld
+                    else -> game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                }
 
                 // Mark entity death for respawn system
                 game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)

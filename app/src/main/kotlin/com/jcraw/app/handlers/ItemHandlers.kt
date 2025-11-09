@@ -6,6 +6,7 @@ import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.ItemTemplate
+import com.jcraw.mud.core.GOLD_TEMPLATE_ID
 import com.jcraw.mud.reasoning.QuestAction
 
 /**
@@ -178,6 +179,9 @@ object ItemHandlers {
 
         if (newState != null) {
             game.worldState = newState
+            item.properties["instanceId"]?.let { instanceId ->
+                game.worldState = game.worldState.removeDroppedItem(spaceId, instanceId)
+            }
             println("You take the ${item.name}.")
 
             // Track item collection for quests
@@ -447,7 +451,11 @@ object ItemHandlers {
         if (itemTarget.lowercase() == "gold" || itemTarget.lowercase() == "coins") {
             if (corpse.goldAmount > 0) {
                 val goldAmount = corpse.goldAmount
-                val updatedCorpse = corpse.removeGold(goldAmount)
+                val goldInstance = corpse.contents.find { it.templateId == GOLD_TEMPLATE_ID }
+                var updatedCorpse = corpse.removeGold(goldAmount)
+                if (goldInstance != null) {
+                    updatedCorpse = updatedCorpse.removeItem(goldInstance.id)
+                }
                 val updatedPlayer = game.worldState.player.addGoldV2(goldAmount)
 
                 val newState = game.worldState
@@ -455,7 +463,16 @@ object ItemHandlers {
                     .replaceEntityInSpace(spaceId, corpse.id, updatedCorpse)
 
                 if (newState != null) {
-                    game.worldState = newState
+                    var stateWithLoot = newState
+                    if (goldInstance != null) {
+                        stateWithLoot = stateWithLoot.removeDroppedItem(
+                            spaceId = spaceId,
+                            instanceId = goldInstance.id,
+                            removeEntity = true,
+                            updateCorpses = false
+                        )
+                    }
+                    game.worldState = stateWithLoot
                     println("You take $goldAmount gold from ${corpse.name}.")
                 } else {
                     println("Something went wrong.")
@@ -507,7 +524,13 @@ object ItemHandlers {
             .replaceEntityInSpace(spaceId, corpse.id, updatedCorpse)
 
         if (newState != null) {
-            game.worldState = newState
+            var stateWithLoot = newState.removeDroppedItem(
+                spaceId = spaceId,
+                instanceId = matchingItem.id,
+                removeEntity = true,
+                updateCorpses = false
+            )
+            game.worldState = stateWithLoot
             println("You take the $templateName from ${corpse.name}.")
 
             // Track item collection for quests
@@ -541,6 +564,7 @@ object ItemHandlers {
         var failedCount = 0
         var currentCorpse: Entity.Corpse = corpse
         var currentPlayer = game.worldState.player
+        val lootedInstanceIds = mutableListOf<String>()
 
         // Collect all templates first
         val templateMap = mutableMapOf<String, ItemTemplate>()
@@ -563,6 +587,7 @@ object ItemHandlers {
                     currentCorpse = currentCorpse.removeItem(instance.id)
                     println("You take the $templateName.")
                     lootedCount++
+                    lootedInstanceIds.add(instance.id)
 
                     // Track item collection for quests
                     game.trackQuests(QuestAction.CollectedItem(instance.id))
@@ -577,9 +602,14 @@ object ItemHandlers {
 
         // Loot gold
         val goldAmount = corpse.goldAmount
+        val goldInstance = corpse.contents.find { it.templateId == GOLD_TEMPLATE_ID }
         if (goldAmount > 0) {
             println("You take $goldAmount gold.")
             currentCorpse = currentCorpse.removeGold(goldAmount)
+            if (goldInstance != null) {
+                currentCorpse = currentCorpse.removeItem(goldInstance.id)
+                lootedInstanceIds.add(goldInstance.id)
+            }
             currentPlayer = currentPlayer.addGoldV2(goldAmount)
         }
 
@@ -588,7 +618,16 @@ object ItemHandlers {
             .replaceEntityInSpace(spaceId, corpse.id, currentCorpse)
 
         if (newState != null) {
-            game.worldState = newState
+            var finalState = newState
+            lootedInstanceIds.forEach { instanceId ->
+                finalState = finalState.removeDroppedItem(
+                    spaceId = spaceId,
+                    instanceId = instanceId,
+                    removeEntity = true,
+                    updateCorpses = false
+                )
+            }
+            game.worldState = finalState
 
             val summary = buildString {
                 append("\nYou looted ")

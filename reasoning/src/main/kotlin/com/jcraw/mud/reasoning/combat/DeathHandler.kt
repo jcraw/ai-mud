@@ -98,19 +98,38 @@ class DeathHandler(
             0
         }
 
+        val goldInstance = lootGenerator.createGoldInstance(gold)
+        val combinedLoot = buildList {
+            addAll(loot)
+            if (goldInstance != null) add(goldInstance)
+        }
+
         // Create corpse with loot
         val corpse = Entity.Corpse(
             id = "corpse_${npc.id}_${UUID.randomUUID()}",
             name = "Corpse of ${npc.name}",
             description = "The lifeless body of ${npc.name}.",
-            contents = loot,
+            contents = combinedLoot,
             goldAmount = gold,
             decayTimer = 100
         )
 
         // Remove NPC from space, add corpse (V3)
-        val updatedWorld = worldState
+        var updatedWorld = worldState
             .replaceEntityInSpace(spaceId, npc.id, corpse) ?: worldState
+
+        if (combinedLoot.isNotEmpty()) {
+            val dropEntities = lootGenerator.toEntityItems(combinedLoot)
+            dropEntities.forEach { drop ->
+                updatedWorld = updatedWorld.addEntityToSpace(spaceId, drop) ?: updatedWorld
+            }
+
+            val latestSpace = updatedWorld.getSpace(spaceId)
+            if (latestSpace != null) {
+                val updatedSpace = latestSpace.copy(itemsDropped = latestSpace.itemsDropped + combinedLoot)
+                updatedWorld = updatedWorld.updateSpace(spaceId, updatedSpace)
+            }
+        }
 
         return DeathResult.NPCDeath(corpse, updatedWorld)
     }

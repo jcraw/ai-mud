@@ -1,9 +1,11 @@
 package com.jcraw.mud.reasoning.loot
 
+import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.core.LootTable
+import com.jcraw.mud.core.GOLD_TEMPLATE_ID
 import com.jcraw.mud.core.repository.ItemRepository
 import kotlin.random.Random
 
@@ -96,6 +98,62 @@ class LootGenerator(
         // Variance: 80% to 120% of base amount
         val variance = random.nextDouble(0.8, 1.2)
         return (baseAmount * multiplier * variance).toInt().coerceAtLeast(1)
+    }
+
+    /**
+     * Create an ItemInstance representing a gold drop so it can persist in spaces/corpses.
+     */
+    fun createGoldInstance(amount: Int): ItemInstance? {
+        if (amount <= 0) return null
+        return createInstance(
+            templateId = GOLD_TEMPLATE_ID,
+            quality = 5,
+            quantity = amount
+        ).getOrNull()
+    }
+
+    /**
+     * Convert generated ItemInstances into legacy Entity.Item drops for rooms/spaces.
+     */
+    fun toEntityItems(instances: List<ItemInstance>): List<Entity.Item> {
+        if (instances.isEmpty()) return emptyList()
+
+        val templateCache = mutableMapOf<String, ItemTemplate?>()
+
+        return instances.mapNotNull { instance ->
+            val template = templateCache.getOrPut(instance.templateId) {
+                itemRepository.findTemplateById(instance.templateId).getOrNull()
+            } ?: return@mapNotNull null
+
+            val multiplier = instance.getQualityMultiplier()
+            val damage = (template.getPropertyInt("damage", 0) * multiplier).toInt()
+            val defense = (template.getPropertyInt("defense", 0) * multiplier).toInt()
+            val healing = (template.getPropertyInt("healing", 0) * multiplier).toInt()
+            val quantitySuffix = if (instance.quantity > 1) " x${instance.quantity}" else ""
+
+            val extendedProperties = buildMap {
+                putAll(template.properties)
+                put("templateId", template.id)
+                put("instanceId", instance.id)
+                put("quality", instance.quality.toString())
+                put("quantity", instance.quantity.toString())
+                instance.charges?.let { put("charges", it.toString()) }
+            }
+
+            Entity.Item(
+                id = "drop_${instance.id}",
+                name = template.name + quantitySuffix,
+                description = template.description,
+                isPickupable = true,
+                isUsable = template.type == ItemType.CONSUMABLE,
+                itemType = template.type,
+                properties = extendedProperties,
+                damageBonus = damage,
+                defenseBonus = defense,
+                healAmount = healing,
+                isConsumable = template.type == ItemType.CONSUMABLE
+            )
+        }
     }
 
     /**
