@@ -2,6 +2,7 @@ package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.world.*
+import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.worldgen.GraphGenerator
 import com.jcraw.mud.reasoning.worldgen.GraphValidator
 import com.jcraw.mud.reasoning.worldgen.GraphLayout
@@ -22,7 +23,8 @@ class WorldGenerator(
     private val llmClient: LLMClient,
     private val loreEngine: LoreInheritanceEngine,
     private val graphGenerator: GraphGenerator? = null,
-    private val graphValidator: GraphValidator? = null
+    private val graphValidator: GraphValidator? = null,
+    private val memoryManager: MemoryManager? = null
 ) {
     companion object {
         private const val MODEL = "gpt-4o-mini"
@@ -80,6 +82,8 @@ class WorldGenerator(
         } else {
             emptyList()
         }
+
+        cacheChunkLoreEntry(chunkId, chunk)
 
         return Result.success(ChunkGenerationResult(chunk, chunkId, graphNodes))
     }
@@ -196,6 +200,8 @@ class WorldGenerator(
             stateFlags = emptyMap()
         )
 
+        cacheSpaceDescription(spaceId, space.name, space.description, parentSubzone)
+
         return Result.success(space to spaceId)
     }
 
@@ -283,6 +289,8 @@ class WorldGenerator(
             brightness = brightness,
             terrainType = terrain
         )
+
+        cacheSpaceDescription(graphNode.id, filled.name, filled.description, chunk)
 
         return Result.success(filled)
     }
@@ -451,13 +459,27 @@ class WorldGenerator(
             ChunkLevel.SUBZONE -> "5-100"
             ChunkLevel.SPACE -> "1"
         }
+        val parentLore = context.parentChunk?.lore ?: "None (root level)"
+        val parentTheme = context.parentChunk?.biomeTheme?.takeIf { it.isNotBlank() } ?: "None (root level)"
+        val inheritanceDirective = if (context.parentChunk != null) {
+            "Inherit from parent: $parentTheme (${parentLore.take(200)}) but vary toward deeper grit, claustrophobia, and abyssal descent."
+        } else {
+            "Inherit from parent: None (root level) — establish the primordial abyssal tone."
+        }
+        val dungeonConstraints =
+            "Strictly underground abyssal dungeon—enclosed stone/cavern motifs only; no surface elements like trees, sky, or foliage unless explicitly magical anomalies. Emphasize vertical descent, increasing darkness/peril with depth."
 
         val userContext = """
+            Seed: ${context.seed}
             Level: ${context.level.name}
-            Parent lore: ${context.parentChunk?.lore ?: "None (root level)"}
+            Parent lore: $parentLore
+            Parent theme: $parentTheme
+            $inheritanceDirective
             Generated lore: $lore
             Size range: $sizeRange spaces
             Direction: ${context.direction ?: "N/A"}
+
+            $dungeonConstraints
 
             Generate chunk details matching this lore and level.
 
@@ -555,6 +577,58 @@ class WorldGenerator(
         } catch (e: Exception) {
             Result.failure(Exception("Failed to generate space data: ${e.message}", e))
         }
+    }
+
+    /**
+     * Cache chunk-level lore into the vector store for fast recall.
+     */
+    private suspend fun cacheChunkLoreEntry(chunkId: String, chunk: WorldChunkComponent) {
+        val manager = memoryManager ?: return
+        if (chunk.lore.isBlank() && chunk.biomeTheme.isBlank()) return
+
+        val metadata = mapOf(
+            "type" to "chunk_lore",
+            "chunkId" to chunkId,
+            "chunkLevel" to chunk.level.name
+        )
+        val mobDensityFormatted = String.format("%.2f", chunk.mobDensity)
+        val content = """
+            Chunk ${chunk.level.name} [$chunkId]
+            Theme: ${chunk.biomeTheme.ifBlank { "unspecified" }}
+            Difficulty: ${chunk.difficultyLevel}
+            Mob density: $mobDensityFormatted
+            Lore: ${chunk.lore.take(600)}
+        """.trimIndent()
+
+        manager.remember(content, metadata)
+    }
+
+    /**
+     * Cache generated space descriptions for reuse on re-entry.
+     */
+    private suspend fun cacheSpaceDescription(
+        spaceId: String,
+        name: String,
+        description: String,
+        parentChunk: WorldChunkComponent
+    ) {
+        val manager = memoryManager ?: return
+        if (description.isBlank()) return
+
+        val metadata = mapOf(
+            "type" to "space_description",
+            "chunkId" to spaceId,
+            "chunkLevel" to ChunkLevel.SPACE.name,
+            "parentChunkLevel" to parentChunk.level.name,
+            "parentTheme" to parentChunk.biomeTheme
+        )
+        val content = """
+            Space [$spaceId] - ${name.ifBlank { "Unnamed space" }}
+            Parent chunk: ${parentChunk.level.name} (${parentChunk.biomeTheme.ifBlank { "unspecified theme" }})
+            Description: ${description.take(600)}
+        """.trimIndent()
+
+        manager.remember(content, metadata)
     }
 }
 

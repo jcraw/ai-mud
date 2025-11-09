@@ -157,7 +157,8 @@ class EngineGameClient(
                 llmClient = llmClient,
                 loreEngine = loreInheritanceEngine!!,
                 graphGenerator = graphGenerator,
-                graphValidator = graphValidator
+                graphValidator = graphValidator,
+                memoryManager = memoryManager
             )
         } else null
 

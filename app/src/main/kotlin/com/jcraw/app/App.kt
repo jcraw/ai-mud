@@ -78,11 +78,13 @@ fun main() {
                 difficultyLevel = 1
             )
             val graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
+            val memoryManager = MemoryManager(llmClient)
             val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(
                 llmClient = llmClient,
                 loreEngine = loreEngine,
                 graphGenerator = graphGenerator,
-                graphValidator = graphValidator
+                graphValidator = graphValidator,
+                memoryManager = memoryManager
             )
 
             // Generate a single V3 chunk with graph topology
