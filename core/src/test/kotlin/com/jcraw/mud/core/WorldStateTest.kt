@@ -1,5 +1,8 @@
 package com.jcraw.mud.core
 
+import com.jcraw.mud.core.world.Condition
+import com.jcraw.mud.core.world.EdgeData
+import com.jcraw.mud.core.world.NodeType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -294,5 +297,90 @@ class WorldStateTest {
         val world = WorldState(players = emptyMap())
 
         assertTrue(world.gameProperties.isEmpty())
+    }
+
+    // ========== Hidden Exit Navigation Tests ==========
+
+    @Test
+    fun `hidden exit cannot be used until discovered`() {
+        val world = hiddenExitWorld()
+
+        val result = world.movePlayerV3(Direction.SOUTH)
+
+        assertNull(result, "Movement should fail when exit remains hidden")
+    }
+
+    @Test
+    fun `revealed hidden exit allows traversal`() {
+        val world = hiddenExitWorld(revealed = true)
+
+        val result = world.movePlayerV3(Direction.SOUTH)
+
+        assertNotNull(result)
+        assertEquals("space2", result.player.currentRoomId)
+    }
+
+    @Test
+    fun `perception skill auto reveals hidden exit`() {
+        val world = hiddenExitWorld(perceptionSkill = 25, difficulty = 15)
+
+        val result = world.movePlayerV3(Direction.SOUTH)
+
+        assertNotNull(result)
+        assertEquals("space2", result.player.currentRoomId)
+        assertTrue(result.player.revealedExits.contains("space1->space2"))
+    }
+
+    @Test
+    fun `movePlayerByExit also respects hidden gating`() {
+        val world = hiddenExitWorld()
+
+        val result = world.movePlayerByExit("player1", "south")
+
+        assertNull(result, "movePlayerByExit should block unrevealed hidden exits")
+    }
+
+    private fun hiddenExitWorld(
+        perceptionSkill: Int = 0,
+        revealed: Boolean = false,
+        difficulty: Int = 20
+    ): WorldState {
+        val hiddenEdge = EdgeData(
+            targetId = "space2",
+            direction = "south",
+            hidden = true,
+            conditions = listOf(Condition.SkillCheck("Perception", difficulty))
+        )
+        val hiddenEdgeId = hiddenEdge.edgeId("space1")
+
+        val startNode = GraphNodeComponent(
+            id = "space1",
+            type = NodeType.Linear,
+            neighbors = listOf(hiddenEdge),
+            chunkId = "chunk"
+        )
+        val targetNode = GraphNodeComponent(
+            id = "space2",
+            type = NodeType.DeadEnd,
+            neighbors = listOf(EdgeData(targetId = "space1", direction = "north")),
+            chunkId = "chunk"
+        )
+
+        val player = PlayerState(
+            id = "player1",
+            name = "Hero",
+            currentRoomId = "space1",
+            skills = if (perceptionSkill > 0) mapOf("Perception" to perceptionSkill) else emptyMap(),
+            revealedExits = if (revealed) setOf(hiddenEdgeId) else emptySet()
+        )
+
+        return WorldState(
+            graphNodes = mapOf("space1" to startNode, "space2" to targetNode),
+            spaces = mapOf(
+                "space1" to SpacePropertiesComponent(name = "Start"),
+                "space2" to SpacePropertiesComponent(name = "Goal")
+            ),
+            players = mapOf(player.id to player)
+        )
     }
 }

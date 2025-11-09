@@ -306,7 +306,17 @@ class WorldGenerator(
             is com.jcraw.mud.core.world.NodeType.Questable -> "significant quest location"
         }
 
-        val exitDirections = node.neighbors.map { it.direction }.joinToString(", ")
+        val visibleExitDirections = node.neighbors.filterNot { it.hidden }.map { it.direction }
+        val exitDirections = if (visibleExitDirections.isEmpty()) {
+            "None (visible paths are concealed or require discovery)"
+        } else {
+            visibleExitDirections.joinToString(", ")
+        }
+        val hiddenHint = if (node.neighbors.any { it.hidden }) {
+            "\nHidden exits: ${node.neighbors.count { it.hidden }} (hint at secrets without naming directions)"
+        } else {
+            ""
+        }
 
         val systemPrompt = """
             You are a world-building assistant for a fantasy dungeon MUD.
@@ -317,11 +327,12 @@ class WorldGenerator(
             Theme: ${chunk.biomeTheme}
             Lore: ${chunk.lore}
             Node Type: $nodeTypeDescription
-            Exits: $exitDirections
+            Exits: $exitDirections$hiddenHint
 
             Generate a vivid name and description for this space.
             Name should be 2-4 words, evocative and thematic (e.g., "Treacherous Alley", "Crystal Cavern").
             Description should be 2-3 sentences reflecting the node type and available exits.
+            Keep exit mentions directional and atmospheric; do not invent specific destinations (towns, villages, etc.) unless explicitly referenced in the lore or exit list.
 
             Output JSON only:
             {

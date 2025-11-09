@@ -98,13 +98,14 @@ object MovementHandlers {
             if (hasV3Graph && currentNode != null) {
                 // Find hidden exits that haven't been revealed yet
                 val hiddenExits = currentNode.neighbors.filter { edge ->
-                    edge.hidden && !player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
+                    val edgeId = edge.edgeId(currentNode.id)
+                    edge.hidden && !player.hasRevealedExit(edgeId)
                 }
 
                 if (hiddenExits.isNotEmpty()) {
                     // Reveal the first hidden exit
                     val revealedExit = hiddenExits.first()
-                    val edgeId = "${currentNode.id}:${revealedExit.targetId}"
+                    val edgeId = revealedExit.edgeId(currentNode.id)
                     game.worldState = game.worldState.updatePlayer(player.revealExit(edgeId))
 
                     println("\n🔍 You discover a hidden exit: ${revealedExit.direction}!")

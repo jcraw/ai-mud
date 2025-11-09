@@ -157,12 +157,13 @@ object ClientMovementHandlers {
                 }
 
                 val hiddenExits = node.neighbors.filter { edge ->
-                    edge.hidden && !game.worldState.player.hasRevealedExit("${node.id}:${edge.targetId}")
+                    val edgeId = edge.edgeId(node.id)
+                    edge.hidden && !game.worldState.player.hasRevealedExit(edgeId)
                 }
                 if (hiddenExits.isNotEmpty()) {
                     foundSomething = true
                     val firstExit = hiddenExits.first()
-                    val edgeId = "${node.id}:${firstExit.targetId}"
+                    val edgeId = firstExit.edgeId(node.id)
                     val updatedPlayer = game.worldState.player.revealExit(edgeId)
                     game.worldState = game.worldState.updatePlayer(updatedPlayer)
 

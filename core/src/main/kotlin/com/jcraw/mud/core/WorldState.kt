@@ -1,5 +1,7 @@
 package com.jcraw.mud.core
 
+import com.jcraw.mud.core.world.Condition
+import com.jcraw.mud.core.world.EdgeData
 import kotlinx.serialization.Serializable
 
 typealias SpaceId = String
@@ -128,13 +130,21 @@ data class WorldState(
         // Find edge matching direction
         val edge = currentNode.getEdge(direction.displayName) ?: return null
 
+        val access = evaluateEdgeAccess(playerState, currentNode, edge)
+        if (!access.canTraverse) return null
+
         // Check if target space exists
         if (!spaces.containsKey(edge.targetId)) {
             return null // Space not yet generated
         }
 
+        var updatedPlayer = playerState
+        if (access.shouldRevealEdge) {
+            updatedPlayer = updatedPlayer.revealExit(access.edgeId)
+        }
+
         // Move player to target
-        return updatePlayer(playerState.moveToRoom(edge.targetId))
+        return updatePlayer(updatedPlayer.moveToRoom(edge.targetId))
     }
 
     /**
@@ -150,8 +160,16 @@ data class WorldState(
         val playerState = players[playerId] ?: return null
         val currentNode = graphNodes[playerState.currentRoomId] ?: return null
         val edge = currentNode.getEdge(exitLabel) ?: return null
+        val access = evaluateEdgeAccess(playerState, currentNode, edge)
+        if (!access.canTraverse) return null
         if (!spaces.containsKey(edge.targetId)) return null
-        return updatePlayer(playerState.moveToRoom(edge.targetId))
+
+        var updatedPlayer = playerState
+        if (access.shouldRevealEdge) {
+            updatedPlayer = updatedPlayer.revealExit(access.edgeId)
+        }
+
+        return updatePlayer(updatedPlayer.moveToRoom(edge.targetId))
     }
 
     fun movePlayerByExit(exitLabel: String): WorldState? = movePlayerByExit(player.id, exitLabel)
@@ -343,5 +361,42 @@ data class WorldState(
                 )
             }
         }
+    }
+}
+
+private data class EdgeAccess(
+    val canTraverse: Boolean,
+    val shouldRevealEdge: Boolean,
+    val edgeId: String
+)
+
+private fun evaluateEdgeAccess(
+    player: PlayerState,
+    node: GraphNodeComponent,
+    edge: EdgeData
+): EdgeAccess {
+    val edgeId = edge.edgeId(node.id)
+
+    val (perceptionChecks, gatingConditions) = edge.conditions.partition { condition ->
+        condition is Condition.SkillCheck && condition.skill.equals("Perception", ignoreCase = true)
+    }
+
+    if (!gatingConditions.all { it.meetsCondition(player) }) {
+        return EdgeAccess(canTraverse = false, shouldRevealEdge = false, edgeId = edgeId)
+    }
+
+    if (!edge.hidden) {
+        return EdgeAccess(canTraverse = true, shouldRevealEdge = false, edgeId = edgeId)
+    }
+
+    if (player.hasRevealedExit(edgeId)) {
+        return EdgeAccess(canTraverse = true, shouldRevealEdge = false, edgeId = edgeId)
+    }
+
+    val perceptionMet = perceptionChecks.any { it.meetsCondition(player) }
+    return if (perceptionMet) {
+        EdgeAccess(canTraverse = true, shouldRevealEdge = true, edgeId = edgeId)
+    } else {
+        EdgeAccess(canTraverse = false, shouldRevealEdge = false, edgeId = edgeId)
     }
 }
