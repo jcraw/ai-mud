@@ -738,8 +738,8 @@ class EngineGameClient(
     private suspend fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> ClientMovementHandlers.handleMove(this, intent.direction)
-            is Intent.Scout -> emitEvent(GameEvent.System("Scout not yet integrated with world generation system", GameEvent.MessageLevel.WARNING))
-            is Intent.Travel -> emitEvent(GameEvent.System("Travel not yet integrated with world generation system", GameEvent.MessageLevel.WARNING))
+            is Intent.Scout -> ClientMovementHandlers.handleScout(this, intent.direction)
+            is Intent.Travel -> ClientMovementHandlers.handleTravel(this, intent.direction)
             is Intent.Look -> ClientMovementHandlers.handleLook(this, intent.target)
             is Intent.Search -> ClientMovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> ClientMovementHandlers.handleInteract(this, intent.target)
