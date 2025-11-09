@@ -131,6 +131,7 @@ Active: Heal skills/items/rest (advances time).
 HP <=0: Create Corpse entity (DB: location, contents=inventory, decay=100 ticks).
 Player: New char at spawn, reset skills/relations; can retrieve old corpse.
 Monsters: Drop loot per existing system.
+On death, invoke LootGenerator.createCorpse(spaceId, inventory) so Entity.Corpse spawns with itemsDropped populated from loot_tables.
 
 3.9 Escape
 

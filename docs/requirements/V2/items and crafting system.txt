@@ -125,6 +125,7 @@ Gold: Auto-consolidate on loot; finite for NPCs/merchants.
 Spot: On "look", LLM includes if skill (e.g., Mining) >= threshold (low: "odd rocks", high: "mineable ore vein"); better spotting with skill growth.
 Harvest: Skill check (e.g., Mining vs. node difficulty) + tool req (tag match, e.g., "mining_tool"). Success: Add to inv, reduce quantity (deplete to 0). Fail: Damage self/low yield.
 Nodes: Finite per room; integrate with future world gen (procedural placement).
+Procedural placement happens in SpacePopulator (theme-aware: e.g., ore veins in cave subzones), and nodes should be depleted/removed once harvest succeeds.
 
 3.4 Crafting
 

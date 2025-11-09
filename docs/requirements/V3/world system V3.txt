@@ -92,6 +92,7 @@ Hidden Exits: 15-25% edges hidden (Perception diff 10-30).
 Validation: Post-gen checks for min 1 loop, avg 3.0+ exits/node (target 3.0-3.5), reachability, at least 2 frontiers.
 LLM Prompt: "Based on seed [seed] and parent lore [parentLore], generate [level] details: rich lore (politics, inhabitants, weather stubs), theme, size, mob density, difficulty (deeper=harder)."
 Spaces: Add exits (3-6 avg; cardinal + descriptive), traps (theme-based, 10-20% chance), resources (scarce; plentiful veins rare), entities (mobs/NPCs via theme/density; respawn on restart).
+Post-graph gen, invoke SpacePopulator.populate() to fill entities (MobSpawner, density-based), resources (GatheringRepository.insertNodes), and traps (roll 10-20% per space) before persisting via SpacePropertiesRepository.update().
 Hidden/Conditional: 20% exits hidden (Perception check); conditions via skills/items (e.g., "climb": Agility diff 15 or climbing kit).
 Verticality: Exits like "down shaft" (fly/climb req); support air/water if skills allow.
 3.3 Movement and Resolution
@@ -104,6 +105,7 @@ Persist graph changes in DB.
 Persist all (infinite but lazy; DB grows outward from start).
 Player Mods: Update flags (e.g., "destroy boulder" -> set flag, regen desc).
 Restart: Respawn mobs (regen entities list); persist chunks/changes/corpses/drops; new player at top with beginner setup.
+On player restart, respawn entities by re-running populate() (exclude corpses/dropped items), scaling counts by difficultyLevel (e.g., +1 mob per additional depth tier).
 INTEGRATIONS
 4.1 Skills: Checks for exits/terrain/traps/resources (e.g., Perception spots hidden; Agility traverses difficult).
 4.2 Combat: Mob spawns tie to difficulty/theme; space properties affect (e.g., brightness mods stealth).
@@ -129,7 +131,7 @@ TESTING
 7.1 Unit: Gen logic, exit resolution, state changes.
 7.2 Integration: Full traversal (gen, move, modify, persist).
 7.3 Bot: Dungeon playthrough (explore deep, die, respawn, retrieve corpse).
-7.4 Graph Tests: Validation passes, infinite extension, hidden exits revelation.
+7.4 Graph Tests: Validation passes, infinite extension, hidden exits revelation, plus content population checks (avg 1-3 entities per space post-populate) and respawn tests that ensure transient entities clear before regeneration.
 IMPLEMENTATION STRATEGY
 Phase 1: Components/Schema (4h) - Hierarchy setup.
 Phase 2: Generation Cascade (5h) - LLM prompts, inheritance.
