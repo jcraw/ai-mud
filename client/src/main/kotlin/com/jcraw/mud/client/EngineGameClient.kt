@@ -87,6 +87,14 @@ class EngineGameClient(
     internal val exitLinker: com.jcraw.mud.reasoning.world.ExitLinker?
     internal val exitResolver: com.jcraw.mud.reasoning.world.ExitResolver?
     internal var navigationState: com.jcraw.mud.core.world.NavigationState? = null
+    private val respawnRepository: com.jcraw.mud.memory.world.SQLiteRespawnRepository
+    private val trapGenerator: com.jcraw.mud.reasoning.world.TrapGenerator
+    private val resourceGenerator: com.jcraw.mud.reasoning.world.ResourceGenerator
+    private val mobSpawner: com.jcraw.mud.reasoning.world.MobSpawner
+    private val spacePopulator: com.jcraw.mud.reasoning.world.SpacePopulator
+    private val respawnChecker: com.jcraw.mud.reasoning.world.RespawnChecker
+    private val spacePopulationService: com.jcraw.mud.reasoning.world.SpacePopulationService
+    private val worldStateSeeder: com.jcraw.mud.reasoning.world.WorldStateSeeder?
 
     // World System V3 components (graph-based navigation)
     private val loreInheritanceEngine: com.jcraw.mud.reasoning.world.LoreInheritanceEngine?
@@ -142,6 +150,13 @@ class EngineGameClient(
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
         spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
         graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
+        respawnRepository = com.jcraw.mud.memory.world.SQLiteRespawnRepository(worldDatabase)
+        trapGenerator = com.jcraw.mud.reasoning.world.TrapGenerator(llmClient)
+        resourceGenerator = com.jcraw.mud.reasoning.world.ResourceGenerator(itemRepository, llmClient)
+        mobSpawner = com.jcraw.mud.reasoning.world.MobSpawner(llmClient)
+        spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)
+        respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
+        spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
 
         // Initialize World System V3 components
         loreInheritanceEngine = if (llmClient != null) {
@@ -162,101 +177,49 @@ class EngineGameClient(
             )
         } else null
 
+        worldStateSeeder = worldGenerator?.let {
+            com.jcraw.mud.reasoning.world.WorldStateSeeder(
+                worldChunkRepository,
+                graphNodeRepository,
+                spacePropertiesRepository,
+                it
+            )
+        }
+
         // Initialize Ancient Abyss dungeon if LLM is available
-        if (llmClient != null && worldGenerator != null) {
-            exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator!!, worldChunkRepository, spacePropertiesRepository)
+        if (llmClient != null && worldGenerator != null && worldStateSeeder != null) {
+            exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             exitResolver = com.jcraw.mud.reasoning.world.ExitResolver(llmClient)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator!!, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
-            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator!!, spacePropertiesRepository)
-            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator!!, worldChunkRepository, spacePropertiesRepository)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
+            val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
+            val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-                worldGenerator!!, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
+                worldGenerator, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
                 townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepository
             )
-
-            val existingSeedInfo = runBlocking {
-                worldSeedRepository.get().getOrElse { error ->
+            val abyssStarter = com.jcraw.mud.reasoning.world.AncientAbyssStarter(
+                worldSeedRepository,
+                worldChunkRepository,
+                dungeonInitializer
+            )
+            val abyssStart = runBlocking {
+                abyssStarter.ensureAncientAbyss().getOrElse {
                     emitEvent(
                         GameEvent.System(
-                            "Failed to read existing world seed: ${error.message}",
+                            "Failed to prepare Ancient Abyss: ${it.message}",
                             GameEvent.MessageLevel.ERROR
                         )
                     )
-                    null
+                    throw it
                 }
             }
 
-            val existingStartingSpaceId = existingSeedInfo?.startingSpaceId
-            val existingSpaceAvailable = if (existingStartingSpaceId != null) {
-                runBlocking {
-                    spacePropertiesRepository.findByChunkId(existingStartingSpaceId).getOrElse { error ->
-                        emitEvent(
-                            GameEvent.System(
-                                "Failed to load existing starting space: ${error.message}",
-                                GameEvent.MessageLevel.ERROR
-                            )
-                        )
-                        null
-                    }
-                }
-            } else {
-                null
-            }
-
-            var startingSpaceIdForPlayer: String? = null
-            var navState: com.jcraw.mud.core.world.NavigationState? = null
-
-            if (existingSeedInfo != null && existingStartingSpaceId != null && existingSpaceAvailable != null) {
-                val navResult = runBlocking {
-                    com.jcraw.mud.core.world.NavigationState.fromSpaceId(
-                        existingStartingSpaceId,
-                        worldChunkRepository
-                    )
-                }
-
-                navState = navResult.getOrElse { error ->
-                    emitEvent(
-                        GameEvent.System(
-                            "Existing navigation state invalid: ${error.message}. Regenerating world...",
-                            GameEvent.MessageLevel.WARNING
-                        )
-                    )
-                    null
-                }
-
-                if (navState != null) {
-                    emitEvent(GameEvent.System("Loading existing Ancient Abyss world..."))
-                    startingSpaceIdForPlayer = existingStartingSpaceId
-                }
-            }
-
-            if (startingSpaceIdForPlayer == null || navState == null) {
-                // Generate Ancient Abyss
-                emitEvent(GameEvent.System("Generating the Ancient Abyss... This may take a moment."))
-                val abyssData = runBlocking {
-                    dungeonInitializer.initializeAncientAbyss().getOrElse {
-                        emitEvent(GameEvent.System("Failed to generate dungeon: ${it.message}", GameEvent.MessageLevel.ERROR))
-                        throw it
-                    }
-                }
-                emitEvent(GameEvent.System("Ancient Abyss generated! Starting in the town..."))
-
-                val navResult = runBlocking {
-                    com.jcraw.mud.core.world.NavigationState.fromSpaceId(
-                        abyssData.townSpaceId,
-                        worldChunkRepository
-                    )
-                }
-                navState = navResult.getOrElse { throw it }
-                startingSpaceIdForPlayer = abyssData.townSpaceId
-            }
-
-            navigationState = navState
+            navigationState = abyssStart.navigationState
 
             val playerState = PlayerState(
                 id = "player_ui",
                 name = "Adventurer",
-                currentRoomId = startingSpaceIdForPlayer ?: error("Starting space missing"),
+                currentRoomId = abyssStart.startingSpaceId,
                 health = 40,
                 maxHealth = 40,
                 stats = Stats(
@@ -269,16 +232,37 @@ class EngineGameClient(
                 )
             )
 
-            worldState = WorldState(
+            var seededState = WorldState(
                 players = mapOf(playerState.id to playerState)
             )
-
-            seedWorldStateFromPersistence(playerState.currentRoomId)
+            seededState = seededState.copy(
+                gameProperties = seededState.gameProperties + ("starting_space" to abyssStart.startingSpaceId)
+            )
+            worldState = worldStateSeeder.seedWorldState(
+                seededState,
+                abyssStart.startingSpaceId,
+                onWarning = { message ->
+                    emitEvent(
+                        GameEvent.System(
+                            message,
+                            GameEvent.MessageLevel.WARNING
+                        )
+                    )
+                },
+                onError = { message ->
+                    emitEvent(
+                        GameEvent.System(
+                            message,
+                            GameEvent.MessageLevel.ERROR
+                        )
+                    )
+                }
+            )
         } else {
             // V3 requires API key for world generation
             exitLinker = null
             exitResolver = null
-            throw IllegalArgumentException("API key required for GUI client - V3 world generation requires LLM")
+            throw IllegalArgumentException("API key required for GUI client - Ancient Abyss generation needs LLM")
         }
 
         // Generate and add quests
@@ -403,121 +387,6 @@ class EngineGameClient(
         return fallback
     }
 
-    private fun seedWorldStateFromPersistence(startingSpaceId: String) {
-        val loadedChunks = worldChunkRepository.getAll().getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to load world chunks: ${error.message}",
-                    GameEvent.MessageLevel.ERROR
-                )
-            )
-            emptyMap()
-        }
-
-        val loadedNodes = graphNodeRepository.getAll().getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to load graph nodes: ${error.message}",
-                    GameEvent.MessageLevel.ERROR
-                )
-            )
-            emptyMap()
-        }.ifEmpty {
-            val fallbackNode = graphNodeRepository.findById(startingSpaceId).getOrElse { error ->
-                emitEvent(
-                    GameEvent.System(
-                        "Failed to load starting node $startingSpaceId: ${error.message}",
-                        GameEvent.MessageLevel.ERROR
-                    )
-                )
-                null
-            }
-            fallbackNode?.let { mapOf(startingSpaceId to it) } ?: emptyMap()
-        }
-
-        val loadedSpaces = mutableMapOf<String, com.jcraw.mud.core.SpacePropertiesComponent>()
-        loadedNodes.forEach { (nodeId, node) ->
-            loadOrCreateSpace(nodeId, node, loadedChunks[node.chunkId])?.let { space ->
-                loadedSpaces[nodeId] = space
-            }
-        }
-
-        if (!loadedSpaces.containsKey(startingSpaceId)) {
-            val fallbackSpace = loadSpace(startingSpaceId)
-            if (fallbackSpace != null) {
-                loadedSpaces[startingSpaceId] = fallbackSpace
-            } else {
-                emitEvent(
-                    GameEvent.System(
-                        "No space data found for starting room $startingSpaceId",
-                        GameEvent.MessageLevel.ERROR
-                    )
-                )
-            }
-        }
-
-        worldState = worldState.copy(
-            graphNodes = loadedNodes,
-            spaces = loadedSpaces,
-            chunks = loadedChunks
-        )
-    }
-
-    private fun loadOrCreateSpace(
-        spaceId: String,
-        node: GraphNodeComponent,
-        parentChunk: com.jcraw.mud.core.WorldChunkComponent?
-    ): com.jcraw.mud.core.SpacePropertiesComponent? {
-        val existingSpace = spacePropertiesRepository.findByChunkId(spaceId).getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to read space $spaceId: ${error.message}",
-                    GameEvent.MessageLevel.ERROR
-                )
-            )
-            null
-        }
-
-        if (existingSpace != null) {
-            return existingSpace
-        }
-
-        val chunk = parentChunk ?: worldChunkRepository.findById(node.chunkId).getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to load parent chunk ${node.chunkId} for space $spaceId: ${error.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-            null
-        }
-
-        if (chunk == null || worldGenerator == null) {
-            return null
-        }
-
-        val stub = worldGenerator.generateSpaceStub(node, chunk).getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to generate fallback space $spaceId: ${error.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-            return null
-        }
-
-        spacePropertiesRepository.save(stub, spaceId).onFailure { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to persist generated space $spaceId: ${error.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-        }
-
-        return stub
-    }
-
     internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
         spacePropertiesRepository.findByChunkId(spaceId)
     }.getOrNull()?.also { loaded ->
@@ -566,10 +435,70 @@ class EngineGameClient(
         }
     }
 
+    private fun populateSpaceIfNeeded(spaceId: String) {
+        val space = worldState.getSpace(spaceId) ?: return
+        if (space.stateFlags["populated"] == true) return
+        if (space.entities.isNotEmpty()) return
+        if (space.isSafeZone) return
+
+        val node = ensureGraphNodeLoaded(spaceId) ?: return
+        val chunk = worldState.getChunk(node.chunkId) ?: worldChunkRepository.findById(node.chunkId).getOrElse {
+            emitEvent(
+                GameEvent.System(
+                    "Failed to load chunk ${node.chunkId}: ${it.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+            null
+        } ?: return
+
+        val populationResult = runBlocking {
+            spacePopulationService.populateSpace(spaceId, space, chunk)
+        }
+
+        populationResult.onSuccess { (populatedSpace, spawnedEntities) ->
+            val flaggedSpace = populatedSpace.copy(
+                stateFlags = populatedSpace.stateFlags + ("populated" to true)
+            )
+
+            var updatedWorld = worldState.updateSpace(spaceId, flaggedSpace)
+            spawnedEntities.forEach { entity ->
+                spaceEntityRepository.save(entity).onFailure {
+                    emitEvent(
+                        GameEvent.System(
+                            "Failed to persist entity ${entity.id}: ${it.message}",
+                            GameEvent.MessageLevel.WARNING
+                        )
+                    )
+                }
+                updatedWorld = updatedWorld.updateEntity(entity)
+            }
+
+            spacePropertiesRepository.save(flaggedSpace, spaceId).onFailure {
+                emitEvent(
+                    GameEvent.System(
+                        "Failed to persist space $spaceId: ${it.message}",
+                        GameEvent.MessageLevel.WARNING
+                    )
+                )
+            }
+
+            worldState = updatedWorld
+        }.onFailure { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Population failed for $spaceId: ${error.message}",
+                    GameEvent.MessageLevel.WARNING
+                )
+            )
+        }
+    }
+
     internal fun describeCurrentRoom() {
         // V3-only: Use space-based description
         val currentRoomId = worldState.player.currentRoomId
         ensureSpaceContent(currentRoomId)
+        populateSpaceIfNeeded(currentRoomId)
         val space = worldState.getCurrentSpace()
 
         if (space == null) {

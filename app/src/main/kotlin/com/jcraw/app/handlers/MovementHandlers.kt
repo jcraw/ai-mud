@@ -336,7 +336,7 @@ object MovementHandlers {
         space: SpacePropertiesComponent,
         node: GraphNodeComponent
     ) {
-        val populator = game.spacePopulator ?: return
+        val populationService = game.spacePopulationService
         if (space.stateFlags["populated"] == true) return
         if (space.entities.isNotEmpty()) return
         if (space.isSafeZone) return
@@ -344,25 +344,11 @@ object MovementHandlers {
         val chunk = game.worldState.getChunk(node.chunkId) ?: return
 
         runBlocking {
-            val populationResult = if (game.respawnChecker != null) {
-                populator.populateWithRespawn(
-                    space = space,
-                    spaceId = spaceId,
-                    theme = chunk.biomeTheme,
-                    difficulty = chunk.difficultyLevel,
-                    mobDensity = chunk.mobDensity,
-                    respawnChecker = game.respawnChecker
-                )
-            } else {
-                Result.success(
-                    populator.populateWithEntities(
-                        space = space,
-                        theme = chunk.biomeTheme,
-                        difficulty = chunk.difficultyLevel,
-                        mobDensity = chunk.mobDensity
-                    )
-                )
-            }
+            val populationResult = populationService.populateSpace(
+                spaceId = spaceId,
+                space = space,
+                chunk = chunk
+            )
 
             populationResult.onSuccess { (populatedSpace, spawnedEntities) ->
                 val flaggedSpace = populatedSpace.copy(

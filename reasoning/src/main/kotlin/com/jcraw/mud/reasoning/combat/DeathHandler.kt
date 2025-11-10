@@ -116,12 +116,12 @@ class DeathHandler(
 
         // Remove NPC from space, add corpse (V3)
         var updatedWorld = worldState
-            .replaceEntityInSpace(spaceId, npc.id, corpse) ?: worldState
+            .replaceEntityInSpace(spaceId, npc.id, corpse)
 
         if (combinedLoot.isNotEmpty()) {
             val dropEntities = lootGenerator.toEntityItems(combinedLoot)
             dropEntities.forEach { drop ->
-                updatedWorld = updatedWorld.addEntityToSpace(spaceId, drop) ?: updatedWorld
+                updatedWorld = updatedWorld.addEntityToSpace(spaceId, drop)
             }
 
             val latestSpace = updatedWorld.getSpace(spaceId)
@@ -169,7 +169,7 @@ class DeathHandler(
 
         // Remove player entity from space, add corpse (V3)
         val updatedWorld = worldState
-            .replaceEntityInSpace(spaceId, player.id, corpse) ?: worldState
+            .replaceEntityInSpace(spaceId, player.id, corpse)
 
         return DeathResult.PlayerDeath(
             corpse = corpse,

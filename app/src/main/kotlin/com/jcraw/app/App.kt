@@ -1,6 +1,5 @@
 package com.jcraw.app
 
-import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
@@ -39,157 +38,97 @@ fun main() {
 
     println()
 
-    // Ask user for dungeon type
-    println("Select dungeon type:")
-    println("  1. Sample Dungeon (handcrafted, offline)")
-    println("  2. World Generation V3 (graph-based, requires API key)")
-    print("\nEnter choice (1-2) [default: 1]: ")
+    if (apiKey.isNullOrBlank()) {
+        println("⚠️  The Ancient Abyss requires an OpenAI API key.")
+        println("    Set OPENAI_API_KEY or add openai.api.key to local.properties.")
+        return
+    }
 
-    val dungeonChoice = readLine()?.trim() ?: "1"
-    val useWorldGenV3 = dungeonChoice == "2"
+    println("Initializing the Ancient Abyss (graph-based mega-dungeon)...")
+    println("(This may take a moment on first run while the world is generated.)")
+    val llmClient = OpenAIClient(apiKey)
+    val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
+    val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
+    val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
+    val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+    val graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
+    val spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
 
-    println()
+    val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
+    val graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(
+        rng = kotlin.random.Random.Default,
+        difficultyLevel = 1
+    )
+    val graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
+    val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(
+        llmClient = llmClient,
+        loreEngine = loreEngine,
+        graphGenerator = graphGenerator,
+        graphValidator = graphValidator,
+        memoryManager = MemoryManager(llmClient)
+    )
 
-    var worldState: WorldState = SampleDungeon.createInitialWorldState()
-    var dungeonTheme: DungeonTheme = DungeonTheme.CRYPT
-    var startingSpaceId: String? = SampleDungeon.STARTING_ROOM_ID
+    val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(
+        worldGenerator,
+        worldChunkRepository,
+        spacePropertiesRepository,
+        spaceEntityRepository
+    )
+    val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
+    val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(
+        worldGenerator,
+        worldChunkRepository,
+        spacePropertiesRepository
+    )
+    val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
+        worldGenerator,
+        worldSeedRepository,
+        worldChunkRepository,
+        spacePropertiesRepository,
+        townGenerator,
+        bossGenerator,
+        hiddenExitPlacer,
+        graphNodeRepository
+    )
+    val abyssStarter = com.jcraw.mud.reasoning.world.AncientAbyssStarter(
+        worldSeedRepository,
+        worldChunkRepository,
+        dungeonInitializer
+    )
+    val worldStateSeeder = com.jcraw.mud.reasoning.world.WorldStateSeeder(
+        worldChunkRepository,
+        graphNodeRepository,
+        spacePropertiesRepository,
+        worldGenerator
+    )
 
-    if (useWorldGenV3) {
-        println("Initializing World V3 with graph-based navigation...")
-        println("(This may take a moment as we generate the world...)")
-
-        // V3 requires LLM
-        if (apiKey.isNullOrBlank()) {
-            println("⚠️  World Generation V3 requires OpenAI API key")
-            println("   Falling back to Sample Dungeon")
-            worldState = SampleDungeon.createInitialWorldState()
-            dungeonTheme = DungeonTheme.CRYPT
-        } else {
-            // Initialize V3 components
-            val llmClient = OpenAIClient(apiKey)
-            val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
-            val chunkRepo = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
-            val spaceRepo = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
-            val graphNodeRepo = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
-
-            val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
-            val graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(
-                rng = kotlin.random.Random.Default,
-                difficultyLevel = 1
-            )
-            val graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
-            val memoryManager = MemoryManager(llmClient)
-            val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(
-                llmClient = llmClient,
-                loreEngine = loreEngine,
-                graphGenerator = graphGenerator,
-                graphValidator = graphValidator,
-                memoryManager = memoryManager
-            )
-
-            // Generate a single V3 chunk with graph topology
-            println("Generating graph topology...")
-            val chunkResult = kotlinx.coroutines.runBlocking {
-                worldGenerator.generateChunk(
-                    context = com.jcraw.mud.core.world.GenerationContext(
-                        seed = "world_v3_${System.currentTimeMillis()}",
-                        globalLore = "A mysterious dungeon filled with ancient secrets and dangerous creatures.",
-                        parentChunk = null,
-                        parentChunkId = null,
-                        level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
-                        direction = null
-                    )
-                ).getOrElse { error ->
-                    println("⚠️  Failed to generate V3 world: ${error.message}")
-                    println("   Falling back to Sample Dungeon")
-                    worldState = SampleDungeon.createInitialWorldState()
-                    dungeonTheme = DungeonTheme.CRYPT
-                    return@runBlocking null
-                }
-            }
-
-            if (chunkResult != null) {
-                println("✓ Graph topology generated! Chunk: ${chunkResult.chunkId}")
-                println("  Nodes: ${chunkResult.graphNodes.size}")
-
-                // Find hub node as starting position
-                val hubNode = chunkResult.graphNodes.find {
-                    it.type == com.jcraw.mud.core.world.NodeType.Hub
-                } ?: chunkResult.graphNodes.first()
-
-                startingSpaceId = hubNode.id
-                println("  Starting at: $startingSpaceId (${hubNode.type})")
-
-                // Build V3 WorldState with graphNodes and spaces
-                // Create space stubs for each graph node
-                val graphNodesMap = chunkResult.graphNodes.associateBy { it.id }
-                val spacesMap = kotlinx.coroutines.runBlocking {
-                    chunkResult.graphNodes.associate { node ->
-                        val space = spaceRepo.findByChunkId(node.id).getOrNull()
-                            ?: worldGenerator.generateSpaceStub(node, chunkResult.chunk).getOrNull()
-                            ?: com.jcraw.mud.core.SpacePropertiesComponent(
-                                description = "",
-                                exits = emptyList(),
-                                terrainType = com.jcraw.mud.core.world.TerrainType.NORMAL,
-                                brightness = 50,
-                                entities = emptyList(),
-                                resources = emptyList(),
-                                traps = emptyList(),
-                                itemsDropped = emptyList()
-                            )
-
-                        // Persist space stub to database
-                        spaceRepo.save(space, node.id)
-
-                        node.id to space
-                    }
-                }
-
-                // Persist graph nodes to database
-                chunkResult.graphNodes.forEach { node ->
-                    kotlinx.coroutines.runBlocking {
-                        graphNodeRepo.save(node).getOrElse {
-                            println("Warning: Failed to persist graph node ${node.id}: ${it.message}")
-                        }
-                    }
-                }
-
-                // Persist chunk to database
-                kotlinx.coroutines.runBlocking {
-                    chunkRepo.save(chunkResult.chunk, chunkResult.chunkId).getOrElse {
-                        println("Warning: Failed to persist chunk ${chunkResult.chunkId}: ${it.message}")
-                    }
-                }
-
-                val player = com.jcraw.mud.core.PlayerState(
-                    id = "player_1",
-                    name = "Adventurer",
-                    currentRoomId = startingSpaceId ?: hubNode.id
-                )
-
-                worldState = WorldState(
-                    graphNodes = graphNodesMap,
-                    spaces = spacesMap,
-                    chunks = mapOf(chunkResult.chunkId to chunkResult.chunk),
-                    players = mapOf(player.id to player)
-                )
-                dungeonTheme = DungeonTheme.CRYPT
-
-                println("✓ V3 WorldState initialized")
-            }
+    val abyssStart = kotlinx.coroutines.runBlocking {
+        abyssStarter.ensureAncientAbyss().getOrElse {
+            println("⚠️  Failed to prepare the Ancient Abyss: ${it.message}")
+            return@runBlocking null
         }
-    } else {
-        println("Loading Sample Dungeon (handcrafted, 6 rooms)...")
-        worldState = SampleDungeon.createInitialWorldState()
-        startingSpaceId = SampleDungeon.STARTING_ROOM_ID
-        dungeonTheme = DungeonTheme.CRYPT // Sample uses crypt theme
-    }
+    } ?: return
+    val navigationState = abyssStart.navigationState
 
-    startingSpaceId?.let { spawnId ->
-        worldState = worldState.copy(
-            gameProperties = worldState.gameProperties + ("starting_space" to spawnId)
-        )
-    }
+    val player = com.jcraw.mud.core.PlayerState(
+        id = "player_cli",
+        name = "Adventurer",
+        currentRoomId = abyssStart.startingSpaceId
+    )
+
+    var worldState: WorldState = WorldState(
+        players = mapOf(player.id to player)
+    )
+    worldState = worldState.copy(
+        gameProperties = worldState.gameProperties + ("starting_space" to abyssStart.startingSpaceId)
+    )
+    worldState = worldStateSeeder.seedWorldState(
+        worldState,
+        abyssStart.startingSpaceId,
+        onWarning = { println("⚠️  $it") },
+        onError = { println("⚠️  $it") }
+    )
+    val dungeonTheme = DungeonTheme.CRYPT
 
     // Generate initial quests
     val questGenerator = QuestGenerator()
@@ -200,16 +139,7 @@ fun main() {
     }
 
     println()
-
-    // Initialize LLM components if API key is available
-    val llmClient = if (!apiKey.isNullOrBlank()) {
-        println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
-        OpenAIClient(apiKey)
-    } else {
-        println("⚠️  OpenAI API key not found - using simple fallback mode")
-        println("   Set OPENAI_API_KEY environment variable or openai.api.key in local.properties\n")
-        null
-    }
+    println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
 
     if (isMultiUser) {
         // Multi-user mode
@@ -258,16 +188,9 @@ fun main() {
             )
         }
 
-        // Initialize navigation state for V3 runs (requires persisted chunk data)
-        if (startingSpaceId != null && useWorldGenV3) {
-            game.navigationState = kotlinx.coroutines.runBlocking {
-                com.jcraw.mud.core.world.NavigationState.fromSpaceId(
-                    startingSpaceId,
-                    game.worldChunkRepository
-                ).getOrThrow()
-            }
-            println("✓ Navigation initialized at starting space")
-        }
+        // Initialize navigation state for Ancient Abyss runs
+        game.navigationState = navigationState
+        println("✓ Navigation initialized at starting space")
 
         game.start()
     }

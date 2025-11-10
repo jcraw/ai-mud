@@ -118,6 +118,7 @@ class MudGame(
     private val resourceGenerator = com.jcraw.mud.reasoning.world.ResourceGenerator(itemRepository, llmClient)
     internal val spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)
     internal val respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
+    internal val spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
 
     // Death & Corpse System components (Chunk 6)
     internal val corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
@@ -569,7 +570,7 @@ class MudGame(
                     // Add minions to the current room
                     val currentSpaceId = worldState.player.currentRoomId
                     minions.forEach { minion ->
-                        worldState = worldState.addEntityToSpace(currentSpaceId, minion) ?: worldState
+                        worldState = worldState.addEntityToSpace(currentSpaceId, minion)
                     }
 
                     if (turnQueue != null) {
@@ -617,7 +618,7 @@ class MudGame(
             equippedArmor = worldState.player.equippedArmor?.id
         )
 
-        val worldWithEntity = worldState.addEntityToSpace(currentSpaceId, playerEntity) ?: worldState
+        val worldWithEntity = worldState.addEntityToSpace(currentSpaceId, playerEntity)
         val deathResult = deathHandler.handleDeath(playerEntity.id, worldWithEntity)
 
         if (deathResult is DeathHandler.DeathResult.PlayerDeath) {

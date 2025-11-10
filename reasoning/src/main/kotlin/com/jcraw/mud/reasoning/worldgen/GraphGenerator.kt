@@ -478,7 +478,26 @@ class GraphGenerator(
             return baseDirectionForAngle(angle)
         }
 
-        return "passage"
+        val fromPos = from.position
+        val toPos = to.position
+        if (fromPos == null || toPos == null) {
+            return "passage"
+        }
+
+        val dx = toPos.first - fromPos.first
+        val dy = toPos.second - fromPos.second
+
+        return when {
+            dx > 0 && dy == 0 -> "east"
+            dx < 0 && dy == 0 -> "west"
+            dy > 0 && dx == 0 -> "south"
+            dy < 0 && dx == 0 -> "north"
+            dx > 0 && dy > 0 -> "southeast"
+            dx < 0 && dy > 0 -> "southwest"
+            dx > 0 && dy < 0 -> "northeast"
+            dx < 0 && dy < 0 -> "northwest"
+            else -> "passage"
+        }
     }
 
     private fun calculateAngleAndDistance(
@@ -579,27 +598,7 @@ class GraphGenerator(
     )
 
     private data class DirectionBucket(val name: String, val angle: Double)
-}
-            return "passage"
-        }
-
-        val dx = toPos.first - fromPos.first
-        val dy = toPos.second - fromPos.second
-
-        // Cardinal directions
-        return when {
-            dx > 0 && dy == 0 -> "east"
-            dx < 0 && dy == 0 -> "west"
-            dy > 0 && dx == 0 -> "south"
-            dy < 0 && dx == 0 -> "north"
-            dx > 0 && dy > 0 -> "southeast"
-            dx < 0 && dy > 0 -> "southwest"
-            dx > 0 && dy < 0 -> "northeast"
-            dx < 0 && dy < 0 -> "northwest"
-            else -> "passage"
-        }
-    }
-
+    
     // ==================== NODE TYPE ASSIGNMENT ====================
 
     /**

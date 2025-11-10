@@ -258,8 +258,8 @@ data class WorldState(
      * Add entity to space (V3)
      * Adds entity to global storage and links it to the space
      */
-    fun addEntityToSpace(spaceId: SpaceId, entity: Entity): WorldState? {
-        val space = getSpace(spaceId) ?: return null
+    fun addEntityToSpace(spaceId: SpaceId, entity: Entity): WorldState {
+        val space = getSpace(spaceId) ?: return this
         val updatedSpace = space.addEntity(entity.id)
         return updateEntity(entity).updateSpace(spaceId, updatedSpace)
     }
@@ -268,8 +268,8 @@ data class WorldState(
      * Remove entity from space (V3)
      * Removes entity from space's list AND global storage
      */
-    fun removeEntityFromSpace(spaceId: SpaceId, entityId: String): WorldState? {
-        val space = getSpace(spaceId) ?: return null
+    fun removeEntityFromSpace(spaceId: SpaceId, entityId: String): WorldState {
+        val space = getSpace(spaceId) ?: return this
         val updatedSpace = space.removeEntity(entityId)
         return updateSpace(spaceId, updatedSpace).removeEntity(entityId)
     }
@@ -278,8 +278,8 @@ data class WorldState(
      * Replace entity in space (V3)
      * Useful for entity transformations (e.g., NPC → Corpse)
      */
-    fun replaceEntityInSpace(spaceId: SpaceId, oldEntityId: String, newEntity: Entity): WorldState? {
-        val space = getSpace(spaceId) ?: return null
+    fun replaceEntityInSpace(spaceId: SpaceId, oldEntityId: String, newEntity: Entity): WorldState {
+        val space = getSpace(spaceId) ?: return this
         val updatedSpace = space.removeEntity(oldEntityId).addEntity(newEntity.id)
         return removeEntity(oldEntityId)
             .updateEntity(newEntity)
@@ -313,7 +313,7 @@ data class WorldState(
         if (removeEntity) {
             val dropEntities = updated.getEntitiesInSpace(spaceId).filterIsInstance<Entity.Item>()
             dropEntities.filter { it.properties["instanceId"] == instanceId }.forEach { drop ->
-                updated = updated.removeEntityFromSpace(spaceId, drop.id) ?: updated
+                updated = updated.removeEntityFromSpace(spaceId, drop.id)
             }
         }
 

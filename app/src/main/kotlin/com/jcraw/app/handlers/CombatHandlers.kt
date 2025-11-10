@@ -130,7 +130,7 @@ object CombatHandlers {
                 if (game.turnQueue != null) {
                     game.worldState = CombatBehavior.triggerCounterAttack(
                         npcId = npc.id,
-                        roomId = spaceId,  // Use spaceId which works for both V2 and V3
+                        spaceId = spaceId,  // Use spaceId which works for both V2 and V3
                         worldState = game.worldState,
                         turnQueue = game.turnQueue
                     )
@@ -149,7 +149,7 @@ object CombatHandlers {
                 if (game.turnQueue != null) {
                     game.worldState = CombatBehavior.triggerCounterAttack(
                         npcId = npc.id,
-                        roomId = spaceId,  // Use spaceId which works for both V2 and V3
+                        spaceId = spaceId,  // Use spaceId which works for both V2 and V3
                         worldState = game.worldState,
                         turnQueue = game.turnQueue
                     )

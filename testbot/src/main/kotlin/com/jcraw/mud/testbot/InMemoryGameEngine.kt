@@ -409,7 +409,7 @@ class InMemoryGameEngine(
 
         // Check if NPC died
         if (npcDied) {
-            worldState = worldState.removeEntityFromSpace(spaceId, npc.id) ?: worldState
+            worldState = worldState.removeEntityFromSpace(spaceId, npc.id)
             val questNotifications = trackQuests(QuestAction.KilledNPC(npc.id))
             return "$attackNarrative\nVictory! ${npc.name} has been defeated!" + questNotifications
         }
@@ -488,7 +488,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, feature.skillChallenge!!.statType, feature.skillChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntityInSpace(spaceId, feature.id, feature.copy(isCompleted = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, feature.id, feature.copy(isCompleted = true))
             val questNotifications = trackQuests(QuestAction.UsedSkill(feature.id))
             "Success! ${feature.skillChallenge!!.successDescription}" + questNotifications
         } else {
@@ -513,7 +513,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, npc.persuasionChallenge!!.statType, npc.persuasionChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenPersuaded = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenPersuaded = true))
             "Success! ${npc.persuasionChallenge!!.successDescription}"
         } else {
             "Failed! ${npc.persuasionChallenge!!.failureDescription}"
@@ -537,7 +537,7 @@ class InMemoryGameEngine(
         val result = skillCheckResolver.checkPlayer(worldState.player, npc.intimidationChallenge!!.statType, npc.intimidationChallenge!!.difficulty)
 
         return if (result.success) {
-            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenIntimidated = true)) ?: worldState
+            worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc.copy(hasBeenIntimidated = true))
             "Success! ${npc.intimidationChallenge!!.successDescription}"
         } else {
             "Failed! ${npc.intimidationChallenge!!.failureDescription}"
@@ -576,7 +576,7 @@ class InMemoryGameEngine(
         val (narrative, updatedNpc) = emoteHandler.processEmote(npc, emoteTypeEnum, "You")
 
         // Update world state with updated NPC
-        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: worldState
+        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc)
 
         return narrative
     }
@@ -613,7 +613,7 @@ class InMemoryGameEngine(
         updatedNpc = dispositionManager?.applyEvent(updatedNpc, questionEvent) ?: updatedNpc
 
         // Update world state with updated NPC (may have new knowledge)
-        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: worldState
+        worldState = worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc)
 
         val questNotifications = trackQuests(QuestAction.TalkedToNPC(npc.id))
         return "${npc.name} says: \"${knowledgeResult.answer}\"" + questNotifications
@@ -776,7 +776,7 @@ class InMemoryGameEngine(
         return trainingResult.fold(
             onSuccess = { message ->
                 // Update world state with any NPC changes (disposition)
-                worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc) ?: worldState
+                worldState = worldState.replaceEntityInSpace(spaceId, npc.id, npc)
                 message
             },
             onFailure = { error ->

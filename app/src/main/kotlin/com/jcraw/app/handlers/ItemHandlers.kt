@@ -617,37 +617,33 @@ object ItemHandlers {
             .updatePlayer(currentPlayer)
             .replaceEntityInSpace(spaceId, corpse.id, currentCorpse)
 
-        if (newState != null) {
-            var finalState = newState
-            lootedInstanceIds.forEach { instanceId ->
-                finalState = finalState.removeDroppedItem(
-                    spaceId = spaceId,
-                    instanceId = instanceId,
-                    removeEntity = true,
-                    updateCorpses = false
-                )
-            }
-            game.worldState = finalState
-
-            val summary = buildString {
-                append("\nYou looted ")
-                if (lootedCount > 0) {
-                    append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
-                }
-                if (lootedCount > 0 && goldAmount > 0) {
-                    append(" and ")
-                }
-                if (goldAmount > 0) {
-                    append("$goldAmount gold")
-                }
-                append(" from ${corpse.name}.")
-                if (failedCount > 0) {
-                    append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
-                }
-            }
-            println(summary)
-        } else {
-            println("Something went wrong.")
+        var finalState = newState
+        lootedInstanceIds.forEach { instanceId ->
+            finalState = finalState.removeDroppedItem(
+                spaceId = spaceId,
+                instanceId = instanceId,
+                removeEntity = true,
+                updateCorpses = false
+            )
         }
+        game.worldState = finalState
+
+        val summary = buildString {
+            append("\nYou looted ")
+            if (lootedCount > 0) {
+                append("$lootedCount item${if (lootedCount > 1) "s" else ""}")
+            }
+            if (lootedCount > 0 && goldAmount > 0) {
+                append(" and ")
+            }
+            if (goldAmount > 0) {
+                append("$goldAmount gold")
+            }
+            append(" from ${corpse.name}.")
+            if (failedCount > 0) {
+                append(" ($failedCount item${if (failedCount > 1) "s" else ""} left due to weight)")
+            }
+        }
+        println(summary)
     }
 }
