@@ -4,8 +4,9 @@ import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.core.world.EdgeData
 import com.jcraw.mud.core.world.NodeType
 import com.jcraw.mud.core.world.Condition
-import kotlin.random.Random
 import kotlin.math.sqrt
+import kotlin.math.abs
+import kotlin.random.Random
 
 /**
  * Graph topology generator for V3 world system
@@ -17,6 +18,30 @@ class GraphGenerator(
     private val rng: Random,
     private val difficultyLevel: Int = 1
 ) {
+    companion object {
+        private val PRIMARY_DIRECTIONS = listOf(
+            DirectionBucket("east", 0.0),
+            DirectionBucket("northeast", 45.0),
+            DirectionBucket("north", 90.0),
+            DirectionBucket("northwest", 135.0),
+            DirectionBucket("west", 180.0),
+            DirectionBucket("southwest", 225.0),
+            DirectionBucket("south", 270.0),
+            DirectionBucket("southeast", 315.0)
+        )
+
+        private val FALLBACK_DIRECTIONS = listOf(
+            "up",
+            "down",
+            "inward",
+            "outward",
+            "ascent",
+            "descent",
+            "forward",
+            "back"
+        )
+    }
+
     /**
      * Generate graph topology for a chunk
      *
@@ -415,7 +440,7 @@ class GraphGenerator(
         edges: List<Pair<String, String>>
     ): List<GraphNodeComponent> {
         val nodeMap = nodes.associateBy { it.id }
-        val edgeMap = mutableMapOf<String, MutableList<EdgeData>>()
+        val edgeMap = nodes.associate { it.id to mutableListOf<EdgeData>() }.toMutableMap()
 
         for ((from, to) in edges) {
             val fromNode = nodeMap[from] ?: continue
@@ -426,17 +451,20 @@ class GraphGenerator(
             val reverseDirection = calculateDirection(toNode, fromNode)
 
             // Add bidirectional edges
-            edgeMap.getOrPut(from) { mutableListOf() }.add(
+            edgeMap.getValue(from).add(
                 EdgeData(targetId = to, direction = direction)
             )
-            edgeMap.getOrPut(to) { mutableListOf() }.add(
+            edgeMap.getValue(to).add(
                 EdgeData(targetId = from, direction = reverseDirection)
             )
         }
 
+        ensureBidirectionalConsistency(edgeMap, nodeMap)
+
         // Update nodes with edges
         return nodes.map { node ->
-            node.copy(neighbors = edgeMap[node.id] ?: emptyList())
+            val normalized = assignUniqueDirections(node, edgeMap[node.id] ?: emptyList(), nodeMap)
+            node.copy(neighbors = normalized)
         }
     }
 
@@ -445,11 +473,113 @@ class GraphGenerator(
      * Uses position if available, otherwise generic label
      */
     private fun calculateDirection(from: GraphNodeComponent, to: GraphNodeComponent): String {
+        val (angle, _) = calculateAngleAndDistance(from, to)
+        if (angle != null) {
+            return baseDirectionForAngle(angle)
+        }
+
+        return "passage"
+    }
+
+    private fun calculateAngleAndDistance(
+        from: GraphNodeComponent,
+        to: GraphNodeComponent?
+    ): Pair<Double?, Double> {
         val fromPos = from.position
-        val toPos = to.position
+        val toPos = to?.position
 
         if (fromPos == null || toPos == null) {
-            // No position - use generic direction
+            return null to Double.POSITIVE_INFINITY
+        }
+
+        val dx = (toPos.first - fromPos.first).toDouble()
+        val dy = (toPos.second - fromPos.second).toDouble()
+        if (dx == 0.0 && dy == 0.0) {
+            return null to 0.0
+        }
+
+        // Negate dy so positive angles point north (up) for readability
+        val angle = Math.toDegrees(Math.atan2(-dy, dx))
+        val normalizedAngle = (angle + 360.0) % 360.0
+        val distance = sqrt(dx * dx + dy * dy)
+        return normalizedAngle to distance
+    }
+
+    private fun baseDirectionForAngle(angle: Double): String {
+        return PRIMARY_DIRECTIONS.minByOrNull { angularDistance(angle, it.angle) }?.name ?: "passage"
+    }
+
+    private fun assignUniqueDirections(
+        node: GraphNodeComponent,
+        neighbors: List<EdgeData>,
+        nodeMap: Map<String, GraphNodeComponent>
+    ): List<EdgeData> {
+        if (neighbors.size <= 1) return neighbors
+
+        val contexts = neighbors.map { edge ->
+            val (angle, distance) = calculateAngleAndDistance(node, nodeMap[edge.targetId])
+            NeighborContext(edge, angle, distance)
+        }.sortedWith(
+            compareBy<NeighborContext> { it.angle ?: Double.MAX_VALUE }
+                .thenBy { it.distance }
+        )
+
+        val used = mutableSetOf<String>()
+        return contexts.map { context ->
+            val label = context.angle?.let { pickDirectionForAngle(it, used) }
+                ?: pickFallbackDirection(used)
+            used += label
+            context.edge.copy(direction = label)
+        }
+    }
+
+    private fun ensureBidirectionalConsistency(
+        edgeMap: MutableMap<String, MutableList<EdgeData>>,
+        nodeMap: Map<String, GraphNodeComponent>
+    ) {
+        val snapshot = edgeMap.mapValues { it.value.toList() }
+        snapshot.forEach { (fromId, edges) ->
+            edges.forEach { edge ->
+                val reverseList = edgeMap.getOrPut(edge.targetId) { mutableListOf() }
+                val reverseExists = reverseList.any { it.targetId == fromId }
+                if (!reverseExists) {
+                    val fromNode = nodeMap[fromId]
+                    val toNode = nodeMap[edge.targetId]
+                    val reverseDirection = if (fromNode != null && toNode != null) {
+                        calculateDirection(toNode, fromNode)
+                    } else {
+                        "back"
+                    }
+                    reverseList.add(edge.copy(targetId = fromId, direction = reverseDirection))
+                }
+            }
+        }
+    }
+
+    private fun pickDirectionForAngle(angle: Double, used: Set<String>): String {
+        val ordered = PRIMARY_DIRECTIONS.sortedBy { angularDistance(angle, it.angle) }
+        val candidate = ordered.firstOrNull { it.name !in used }
+        return candidate?.name ?: pickFallbackDirection(used)
+    }
+
+    private fun pickFallbackDirection(used: Set<String>): String {
+        val pool = PRIMARY_DIRECTIONS.map { it.name } + FALLBACK_DIRECTIONS
+        return pool.firstOrNull { it !in used } ?: "passage-${used.size + 1}"
+    }
+
+    private fun angularDistance(a: Double, b: Double): Double {
+        val diff = abs(a - b) % 360.0
+        return if (diff > 180) 360.0 - diff else diff
+    }
+
+    private data class NeighborContext(
+        val edge: EdgeData,
+        val angle: Double?,
+        val distance: Double
+    )
+
+    private data class DirectionBucket(val name: String, val angle: Double)
+}
             return "passage"
         }
 

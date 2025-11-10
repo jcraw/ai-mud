@@ -291,6 +291,37 @@ class GraphGeneratorTest {
         }
     }
 
+    @Test
+    fun `generate ensures edges have reverse counterparts`() {
+        val layout = GraphLayout.Grid(width = 4, height = 4)
+        val nodes = generator.generate("bidirectional_chunk", layout)
+        val nodeMap = nodes.associateBy { it.id }
+
+        nodes.forEach { node ->
+            node.neighbors.forEach { edge ->
+                val target = nodeMap[edge.targetId]
+                assertNotNull(target, "Target node ${edge.targetId} should exist")
+                val hasReverse = target.neighbors.any { it.targetId == node.id }
+                assertTrue(hasReverse, "Edge ${node.id} -> ${edge.targetId} missing reverse")
+            }
+        }
+    }
+
+    @Test
+    fun `generate enforces unique direction labels per node`() {
+        val layout = GraphLayout.Grid(width = 4, height = 4)
+        val nodes = generator.generate("direction_chunk", layout)
+
+        nodes.forEach { node ->
+            val directions = node.neighbors.map { it.direction.lowercase() }
+            assertEquals(
+                directions.size,
+                directions.toSet().size,
+                "Node ${node.id} has duplicate directions: $directions"
+            )
+        }
+    }
+
     // ==================== PROPERTY-BASED TESTS ====================
 
     @Test
