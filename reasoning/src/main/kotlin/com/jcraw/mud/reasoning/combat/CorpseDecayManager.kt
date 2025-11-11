@@ -41,11 +41,8 @@ class CorpseDecayManager(
 
         // Process each space (V3)
         worldState.spaces.forEach { (spaceId, space) ->
-            val result = processSpaceCorpses(spaceId, space, worldState)
-
-            if (result.updatedWorld != worldState) {
-                updatedWorld = result.updatedWorld
-            }
+            val result = processSpaceCorpses(spaceId, space, updatedWorld)
+            updatedWorld = result.updatedWorld
 
             decayedCorpses.addAll(result.decayedCorpses)
             if (result.destroyedItems.isNotEmpty()) {

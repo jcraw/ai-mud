@@ -1,10 +1,11 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.world.NodeType
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Tests for CombatBehavior - counter-attack triggers and combat de-escalation
@@ -25,33 +26,18 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Guard Post",
-            traits = listOf("secure"),
-            entities = listOf(neutralNpc)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            ))
-        )
+        val worldState = createWorldState(listOf(neutralNpc))
 
         val turnQueue = TurnQueueManager()
 
         val updatedState = CombatBehavior.triggerCounterAttack(
             npcId = "guard1",
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             worldState = worldState,
             turnQueue = turnQueue
         )
 
-        val updatedRoom = updatedState.getRoom("room1")
-        val updatedNpc = updatedRoom?.entities?.find { it.id == "guard1" } as? Entity.NPC
+        val updatedNpc = updatedState.getEntity("guard1") as? Entity.NPC
 
         assertNotNull(updatedNpc)
         assertEquals(-100, updatedNpc.getDisposition())
@@ -71,33 +57,18 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(npcWithoutCombat)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            ))
-        )
+        val worldState = createWorldState(listOf(npcWithoutCombat))
 
         val turnQueue = TurnQueueManager()
 
         val updatedState = CombatBehavior.triggerCounterAttack(
             npcId = "goblin1",
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             worldState = worldState,
             turnQueue = turnQueue
         )
 
-        val updatedRoom = updatedState.getRoom("room1")
-        val updatedNpc = updatedRoom?.entities?.find { it.id == "goblin1" } as? Entity.NPC
+        val updatedNpc = updatedState.getEntity("goblin1") as? Entity.NPC
 
         assertNotNull(updatedNpc)
         assertTrue(updatedNpc.hasComponent(ComponentType.COMBAT))
@@ -117,28 +88,13 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Forest",
-            traits = listOf("trees"),
-            entities = listOf(npc)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            )),
-            gameTime = 100L
-        )
+        val worldState = createWorldState(listOf(npc), gameTime = 100L)
 
         val turnQueue = TurnQueueManager()
 
         CombatBehavior.triggerCounterAttack(
             npcId = "bandit1",
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             worldState = worldState,
             turnQueue = turnQueue
         )
@@ -172,34 +128,19 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Barracks",
-            traits = listOf("fortified"),
-            entities = listOf(guard1, guard2)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            ))
-        )
+        val worldState = createWorldState(listOf(guard1, guard2))
 
         val turnQueue = TurnQueueManager()
 
         val updatedState = CombatBehavior.triggerGroupHostility(
             npcIds = listOf("guard1", "guard2"),
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             worldState = worldState,
             turnQueue = turnQueue
         )
 
-        val updatedRoom = updatedState.getRoom("room1")
-        val updatedGuard1 = updatedRoom?.entities?.find { it.id == "guard1" } as? Entity.NPC
-        val updatedGuard2 = updatedRoom?.entities?.find { it.id == "guard2" } as? Entity.NPC
+        val updatedGuard1 = updatedState.getEntity("guard1") as? Entity.NPC
+        val updatedGuard2 = updatedState.getEntity("guard2") as? Entity.NPC
 
         assertNotNull(updatedGuard1)
         assertNotNull(updatedGuard2)
@@ -224,35 +165,20 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Alley",
-            traits = listOf("dark"),
-            entities = listOf(hostileNpc)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            ))
-        )
+        val worldState = createWorldState(listOf(hostileNpc))
 
         val turnQueue = TurnQueueManager()
         turnQueue.enqueue("thief1", 100L)
 
         val updatedState = CombatBehavior.deEscalateCombat(
             npcId = "thief1",
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             newDisposition = 0,
             worldState = worldState,
             turnQueue = turnQueue
         )
 
-        val updatedRoom = updatedState.getRoom("room1")
-        val updatedNpc = updatedRoom?.entities?.find { it.id == "thief1" } as? Entity.NPC
+        val updatedNpc = updatedState.getEntity("thief1") as? Entity.NPC
 
         assertNotNull(updatedNpc)
         assertEquals(0, updatedNpc.getDisposition())
@@ -274,35 +200,20 @@ class CombatBehaviorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Stronghold",
-            traits = listOf("fortified"),
-            entities = listOf(hostileNpc)
-        )
-
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = mapOf("player1" to PlayerState(
-                id = "player1",
-                name = "Hero",
-                currentRoomId = "room1"
-            ))
-        )
+        val worldState = createWorldState(listOf(hostileNpc))
 
         val turnQueue = TurnQueueManager()
         turnQueue.enqueue("orc1", 100L)
 
         val updatedState = CombatBehavior.deEscalateCombat(
             npcId = "orc1",
-            roomId = "room1",
+            spaceId = TEST_SPACE_ID,
             newDisposition = -80, // Still hostile
             worldState = worldState,
             turnQueue = turnQueue
         )
 
-        val updatedRoom = updatedState.getRoom("room1")
-        val updatedNpc = updatedRoom?.entities?.find { it.id == "orc1" } as? Entity.NPC
+        val updatedNpc = updatedState.getEntity("orc1") as? Entity.NPC
 
         assertNotNull(updatedNpc)
         assertEquals(-80, updatedNpc.getDisposition())
@@ -342,4 +253,39 @@ class CombatBehaviorTest {
 
         assertTrue(!CombatBehavior.shouldInitiateCombat(friendlyNpc))
     }
+}
+
+private const val TEST_SPACE_ID = "space_test"
+private const val TEST_CHUNK_ID = "chunk_test"
+
+private fun createWorldState(
+    npcs: List<Entity.NPC>,
+    spaceId: SpaceId = TEST_SPACE_ID,
+    gameTime: Long = 0L
+): WorldState {
+    val player = PlayerState(
+        id = "player1",
+        name = "Hero",
+        currentRoomId = spaceId
+    )
+
+    val space = SpacePropertiesComponent(
+        name = "Test Space",
+        description = "A test arena",
+        entities = npcs.map { it.id }
+    )
+
+    val graphNode = GraphNodeComponent(
+        id = spaceId,
+        type = NodeType.Hub,
+        chunkId = TEST_CHUNK_ID
+    )
+
+    return WorldState(
+        graphNodes = mapOf(spaceId to graphNode),
+        spaces = mapOf(spaceId to space),
+        entities = npcs.associateBy { it.id },
+        players = mapOf(player.id to player),
+        gameTime = gameTime
+    )
 }

@@ -13,7 +13,7 @@ class RespawnManager(
     private val worldChunkRepository: WorldChunkRepository,
     private val spacePropertiesRepository: SpacePropertiesRepository,
     private val mobSpawner: MobSpawner,
-    private val dungeonInitializer: DungeonInitializer
+    private val dungeonInitializer: DungeonInitializerContract
 ) {
     /**
      * Respawns mobs across the world while preserving state flags, items, and resources.

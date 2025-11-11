@@ -28,10 +28,7 @@ class CorpseDecayManagerTest {
             entities = listOf(corpse)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -62,10 +59,7 @@ class CorpseDecayManagerTest {
             entities = listOf(corpse)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -113,10 +107,7 @@ class CorpseDecayManagerTest {
             entities = listOf(corpse)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -167,10 +158,7 @@ class CorpseDecayManagerTest {
             entities = listOf(corpse1, corpse2)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -217,10 +205,7 @@ class CorpseDecayManagerTest {
             entities = listOf(corpse2)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room1, "room2" to room2),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room1, room2)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -253,10 +238,7 @@ class CorpseDecayManagerTest {
             entities = listOf(npc)
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -282,7 +264,8 @@ class CorpseDecayManagerTest {
         )
 
         val manager = CorpseDecayManager()
-        val corpses = manager.getCorpsesInRoom(room)
+        val worldState = createWorld(room)
+        val corpses = manager.getCorpsesInSpace(room.id, worldState)
 
         assertEquals(2, corpses.size)
         assertTrue(corpses.any { it.id == "corpse1" })
@@ -301,7 +284,8 @@ class CorpseDecayManagerTest {
         )
 
         val manager = CorpseDecayManager()
-        val corpses = manager.getCorpsesInRoom(room)
+        val worldState = createWorld(room)
+        val corpses = manager.getCorpsesInSpace(room.id, worldState)
 
         assertTrue(corpses.isEmpty())
     }
@@ -333,10 +317,7 @@ class CorpseDecayManagerTest {
             entities = emptyList()
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room1, "room2" to room2, "room3" to room3),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room1, room2, room3)
 
         val manager = CorpseDecayManager()
         val totalCorpses = manager.getTotalCorpses(worldState)
@@ -353,10 +334,7 @@ class CorpseDecayManagerTest {
             entities = emptyList()
         )
 
-        val worldState = WorldState(
-            rooms = mapOf("room1" to room),
-            players = emptyMap()
-        )
+        val worldState = createWorld(room)
 
         val manager = CorpseDecayManager()
         val totalCorpses = manager.getTotalCorpses(worldState)
@@ -413,4 +391,19 @@ class CorpseDecayManagerTest {
         assertEquals(1, updated.contents.size)
         assertEquals("potion1", updated.contents[0].id)
     }
+}
+
+private fun createWorld(vararg rooms: Room): WorldState {
+    require(rooms.isNotEmpty())
+    val roomMap = rooms.associateBy { it.id }
+    val primaryRoom = rooms.first().id
+    val player = PlayerState(
+        id = "player_$primaryRoom",
+        name = "Tester",
+        currentRoomId = primaryRoom
+    )
+    return WorldState(
+        rooms = roomMap,
+        players = mapOf(player.id to player)
+    )
 }

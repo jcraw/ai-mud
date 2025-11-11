@@ -22,6 +22,10 @@ data class CombatSubzoneResult(
     val subzoneId: String
 )
 
+interface DungeonInitializerContract {
+    suspend fun initializeDeepDungeon(seed: String): Result<String>
+}
+
 /**
  * Initializes the V2 MVP deep dungeon structure.
  *
@@ -39,14 +43,14 @@ class DungeonInitializer(
     private val bossGenerator: BossGenerator,
     private val hiddenExitPlacer: HiddenExitPlacer,
     private val graphNodeRepo: com.jcraw.mud.core.repository.GraphNodeRepository
-) {
+): DungeonInitializerContract {
     /**
      * Initializes a new deep dungeon world.
      *
      * @param seed World seed for generation (used for lore consistency)
      * @return Result with starting space ID
      */
-    suspend fun initializeDeepDungeon(seed: String): Result<String> {
+    override suspend fun initializeDeepDungeon(seed: String): Result<String> {
         val globalLore = """
             The Ancient Abyss is a vast vertical dungeon complex, plunging deep beneath a forgotten kingdom.
             Once a grand fortress, it has been corrupted by dark magic and now hosts countless monsters and treasures.

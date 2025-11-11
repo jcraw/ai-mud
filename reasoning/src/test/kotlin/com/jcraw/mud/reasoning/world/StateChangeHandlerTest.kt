@@ -5,9 +5,9 @@ import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.world.*
 import com.jcraw.sophia.llm.LLMClient
-import com.jcraw.sophia.llm.OpenAIResponse
 import com.jcraw.sophia.llm.OpenAIChoice
 import com.jcraw.sophia.llm.OpenAIMessage
+import com.jcraw.sophia.llm.OpenAIResponse
 import com.jcraw.sophia.llm.OpenAIUsage
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
@@ -49,13 +49,17 @@ class StateChangeHandlerTest {
     }
 
     private val handler = StateChangeHandler(mockLLMClient)
-    private val testPlayer = PlayerState(name = "TestPlayer")
+    private val testPlayer = PlayerState(
+        id = "player1",
+        name = "TestPlayer",
+        currentRoomId = "space_test"
+    )
 
     private fun createTestSpace(): SpacePropertiesComponent {
         return SpacePropertiesComponent(
             name = "Test Room",
             description = "A dark room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -201,16 +205,18 @@ class StateChangeHandlerTest {
             targetId = "space_1",
             direction = "north",
             description = "Locked door",
-            conditions = listOf(ExitData.Condition.ItemRequired("key")),
+            conditions = listOf(Condition.ItemRequired("key")),
             isHidden = false,
             hiddenDifficulty = null
         )
-        val space = createTestSpace().copy(exits = mapOf("north" to exit))
+        val space = createTestSpace().copy(exits = listOf(exit))
         val action = WorldAction.UnlockExit("north", "key")
 
         val result = handler.applyChange(space, action, testPlayer).getOrThrow()
 
-        assertTrue(result.exits["north"]!!.conditions.isEmpty())
+        val updatedExit = result.findExit("north")
+        assertNotNull(updatedExit)
+        assertTrue(updatedExit.conditions.isEmpty())
     }
 
     @Test
@@ -223,23 +229,25 @@ class StateChangeHandlerTest {
             isHidden = true,
             hiddenDifficulty = 15
         )
-        val space = createTestSpace().copy(exits = mapOf("east" to exit))
+        val space = createTestSpace().copy(exits = listOf(exit))
         val action = WorldAction.UnlockExit("east")
 
         val result = handler.applyChange(space, action, testPlayer).getOrThrow()
 
-        assertFalse(result.exits["east"]!!.isHidden)
+        val updatedExit = result.findExit("east")
+        assertNotNull(updatedExit)
+        assertFalse(updatedExit.isHidden)
     }
 
     @Test
     fun `UnlockExit is case insensitive`() {
         val exit = ExitData("space_1", "NORTH", "Door", emptyList(), false, null)
-        val space = createTestSpace().copy(exits = mapOf("NORTH" to exit))
+        val space = createTestSpace().copy(exits = listOf(exit))
         val action = WorldAction.UnlockExit("north")
 
         val result = handler.applyChange(space, action, testPlayer).getOrThrow()
 
-        assertNotNull(result.exits.entries.find { it.key.equals("north", ignoreCase = true) })
+        assertNotNull(result.findExit("north"))
     }
 
     @Test
@@ -332,3 +340,6 @@ class StateChangeHandlerTest {
         assertTrue(result.isFailure)
     }
 }
+
+private fun SpacePropertiesComponent.findExit(direction: String): ExitData? =
+    exits.firstOrNull { it.direction.equals(direction, ignoreCase = true) }

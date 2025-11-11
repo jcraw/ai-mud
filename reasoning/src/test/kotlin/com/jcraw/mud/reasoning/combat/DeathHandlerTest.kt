@@ -2,6 +2,8 @@ package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.ItemRepository
+import com.jcraw.mud.core.world.ChunkLevel
+import com.jcraw.mud.core.world.NodeType
 import com.jcraw.mud.reasoning.loot.LootGenerator
 import com.jcraw.mud.reasoning.loot.LootTableRegistry
 import kotlin.test.Test

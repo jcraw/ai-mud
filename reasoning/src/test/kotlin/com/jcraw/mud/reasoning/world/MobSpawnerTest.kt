@@ -74,8 +74,8 @@ class MobSpawnerTest {
         val low = spawner.spawnEntities("dark forest", 0.2, 5, 10)
         val high = spawner.spawnEntities("dark forest", 0.8, 5, 10)
 
-        assertEquals(2, low.size)
-        assertEquals(8, high.size)
+        assertEquals(1, low.size)
+        assertEquals(3, high.size)
     }
 
     @Test
@@ -91,7 +91,7 @@ class MobSpawnerTest {
         val spawner = MobSpawner()
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
-        assertEquals(3, mobs.size)
+        assertEquals(1, mobs.size)
         mobs.forEach { mob ->
             assertTrue(mob.id.startsWith("npc_"))
             assertTrue(mob.name.isNotBlank())
@@ -119,7 +119,7 @@ class MobSpawnerTest {
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
         // Should fall back to deterministic generation
-        assertEquals(3, mobs.size)
+        assertEquals(1, mobs.size)
         mobs.forEach { mob ->
             assertTrue(mob.id.startsWith("npc_"))
             assertTrue(mob.name.contains("#"))
@@ -267,7 +267,7 @@ class MobSpawnerTest {
 
         themes.forEach { theme ->
             val mobs = spawner.spawnEntities(theme, 0.2, 10, 10)
-            assertEquals(2, mobs.size)
+            assertEquals(1, mobs.size)
             mobs.forEach { mob ->
                 assertTrue(mob.id.startsWith("npc_"))
                 assertTrue(mob.lootTableId?.contains(theme.replace(" ", "_")) ?: false)
@@ -293,7 +293,7 @@ class MobSpawnerTest {
         val mobs = spawner.spawnEntities("dark forest", 0.3, 5, 10)
 
         // Should fall back to deterministic generation
-        assertEquals(3, mobs.size)
+        assertEquals(1, mobs.size)
     }
 
     @Test

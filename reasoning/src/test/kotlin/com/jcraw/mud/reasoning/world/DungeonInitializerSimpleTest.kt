@@ -1,9 +1,10 @@
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.world.ChunkLevel
+import com.jcraw.mud.memory.world.SQLiteGraphNodeRepository
+import com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
 import com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
 import com.jcraw.mud.memory.world.SQLiteWorldSeedRepository
-import com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
 import com.jcraw.mud.memory.world.WorldDatabase
 import com.jcraw.sophia.llm.LLMClient
 import com.jcraw.sophia.llm.OpenAIChoice
@@ -25,6 +26,7 @@ class DungeonInitializerSimpleTest {
     private lateinit var seedRepo: SQLiteWorldSeedRepository
     private lateinit var chunkRepo: SQLiteWorldChunkRepository
     private lateinit var spaceRepo: SQLiteSpacePropertiesRepository
+    private lateinit var graphNodeRepo: SQLiteGraphNodeRepository
     private lateinit var worldGenerator: WorldGenerator
     private lateinit var initializer: DungeonInitializer
     private lateinit var spaceEntityRepo: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
@@ -37,6 +39,7 @@ class DungeonInitializerSimpleTest {
         seedRepo = SQLiteWorldSeedRepository(database)
         chunkRepo = SQLiteWorldChunkRepository(database)
         spaceRepo = SQLiteSpacePropertiesRepository(database)
+        graphNodeRepo = SQLiteGraphNodeRepository(database)
         spaceEntityRepo = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(database)
 
         // Create mock LLM and generator

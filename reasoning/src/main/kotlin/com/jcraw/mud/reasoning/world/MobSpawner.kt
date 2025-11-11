@@ -15,8 +15,8 @@ private data class MobData(
     val name: String,
     val description: String,
     val health: Int,
-    val lootTableId: String,
-    val goldDrop: Int,
+    val lootTableId: String = "",
+    val goldDrop: Int = 0,
     val isHostile: Boolean = true,
     val strength: Int = 10,
     val dexterity: Int = 10,
@@ -30,7 +30,7 @@ private data class MobData(
  * Spawns entities based on theme, mob density, and difficulty.
  * Uses LLM for dynamic mob variety or fallback rules when LLM unavailable.
  */
-class MobSpawner(
+open class MobSpawner(
     private val llmClient: LLMClient? = null,
     private val lootTableGenerator: LootTableGenerator? = null
 ) {
@@ -38,16 +38,16 @@ class MobSpawner(
 
     /**
      * Spawn entities for a space.
-     * Count determined by mobDensity * spaceSize.
+     * Count determined by MobSpawnTuning (avg 1-3 per standard room).
      * Uses LLM for variety or deterministic fallback.
      */
-    suspend fun spawnEntities(
+    open suspend fun spawnEntities(
         theme: String,
         mobDensity: Double,
         difficulty: Int,
         spaceSize: Int = 10
     ): List<Entity.NPC> {
-        val mobCount = (spaceSize * mobDensity).toInt().coerceAtLeast(0)
+        val mobCount = MobSpawnTuning.desiredMobCount(mobDensity, spaceSize)
         if (mobCount == 0) return emptyList()
 
         return if (llmClient != null) {
@@ -177,14 +177,16 @@ class MobSpawner(
 
             // Scale stats with difficulty
             val statBase = 8 + (difficulty / 2).coerceAtMost(6)
+            val healthBase = (difficulty * 10 + kotlin.random.Random.nextInt(-10, 20)).coerceAtLeast(1)
+            val maxHealthBase = (difficulty * 10 + kotlin.random.Random.nextInt(-10, 20)).coerceAtLeast(1)
 
             Entity.NPC(
                 id = "npc_${UUID.randomUUID()}",
                 name = "$archetype #$index",
                 description = "A $archetype from the $theme.",
                 isHostile = true,
-                health = difficulty * 10 + kotlin.random.Random.nextInt(-10, 20),
-                maxHealth = difficulty * 10 + kotlin.random.Random.nextInt(-10, 20),
+                health = healthBase,
+                maxHealth = maxHealthBase,
                 stats = Stats(
                     strength = statBase + kotlin.random.Random.nextInt(-2, 3),
                     dexterity = statBase + kotlin.random.Random.nextInt(-2, 3),

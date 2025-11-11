@@ -417,6 +417,11 @@ fun populate(
 - Resources (probabilistic, theme-based)
 - Mobs (density-based count)
 
+Mob density is now mapped via `MobSpawnTuning` so standard rooms average 1-3 hostiles:
+- densities `< 0.1` spawn none
+- `~0.3` spawns 1, `~0.5` spawns 2, `>=0.8` spawns 3
+- Very large spaces can stretch to 4-5 mobs, but caps keep encounters readable
+
 ```kotlin
 fun repopulate(
     space: SpacePropertiesComponent,

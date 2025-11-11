@@ -3,6 +3,7 @@ package com.jcraw.mud.reasoning.world
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.core.world.*
+import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
 /**
@@ -12,19 +13,18 @@ import kotlin.test.*
 class SpacePopulatorTest {
 
     private class MockItemRepository : ItemRepository {
+        override fun findTemplateById(templateId: String): Result<ItemTemplate?> = Result.success(null)
+        override fun findAllTemplates(): Result<Map<String, ItemTemplate>> = Result.success(emptyMap())
+        override fun findTemplatesByType(type: ItemType): Result<List<ItemTemplate>> = Result.success(emptyList())
+        override fun findTemplatesByRarity(rarity: Rarity): Result<List<ItemTemplate>> = Result.success(emptyList())
         override fun saveTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
         override fun saveTemplates(templates: List<ItemTemplate>): Result<Unit> = Result.success(Unit)
-        override fun getTemplate(id: String): Result<ItemTemplate?> = Result.success(null)
-        override fun getAllTemplates(): Result<List<ItemTemplate>> = Result.success(emptyList())
-        override fun getTemplatesByType(type: ItemType): Result<List<ItemTemplate>> = Result.success(emptyList())
-        override fun getTemplatesByRarity(rarity: Rarity): Result<List<ItemRarity>> = Result.success(emptyList())
-        override fun updateTemplate(template: ItemTemplate): Result<Unit> = Result.success(Unit)
-        override fun deleteTemplate(id: String): Result<Unit> = Result.success(Unit)
+        override fun deleteTemplate(templateId: String): Result<Unit> = Result.success(Unit)
+        override fun findInstanceById(instanceId: String): Result<ItemInstance?> = Result.success(null)
+        override fun findInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
         override fun saveInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun getInstance(id: String): Result<ItemInstance?> = Result.success(null)
-        override fun getInstancesByTemplate(templateId: String): Result<List<ItemInstance>> = Result.success(emptyList())
-        override fun updateInstance(instance: ItemInstance): Result<Unit> = Result.success(Unit)
-        override fun deleteInstance(id: String): Result<Unit> = Result.success(Unit)
+        override fun deleteInstance(instanceId: String): Result<Unit> = Result.success(Unit)
+        override fun findAllInstances(): Result<Map<String, ItemInstance>> = Result.success(emptyMap())
     }
 
     private fun createPopulator(): SpacePopulator {
@@ -51,18 +51,18 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate adds mobs based on density`() {
+    fun `populate adds mobs based on density`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
         val populated = populator.populate(space, "dark forest", 5, mobDensity = 0.5, spaceSize = 10)
 
-        // mobDensity 0.5 * spaceSize 10 = 5 mobs
-        assertEquals(5, populated.entities.size)
+        // mobDensity 0.5 now caps at 2 mobs for standard rooms
+        assertEquals(2, populated.entities.size)
     }
 
     @Test
-    fun `populate may add traps`() {
+    fun `populate may add traps`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -79,7 +79,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate may add resources`() {
+    fun `populate may add resources`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -96,7 +96,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate preserves existing content`() {
+    fun `populate preserves existing content`() = runBlocking {
         val populator = createPopulator()
         val existingTrap = TrapData("trap1", "bear trap", 10, false, "A trap")
         val space = createEmptySpace().copy(traps = listOf(existingTrap))
@@ -108,7 +108,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate returns same space instance with additions`() {
+    fun `populate returns same space instance with additions`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -117,11 +117,11 @@ class SpacePopulatorTest {
         // Should preserve original fields
         assertEquals(space.description, populated.description)
         assertEquals(space.brightness, populated.brightness)
-        assertEquals(space.terrain, populated.terrain)
+        assertEquals(space.terrainType, populated.terrainType)
     }
 
     @Test
-    fun `populateWithEntities returns both space and mob list`() {
+    fun `populateWithEntities returns both space and mob list`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -129,16 +129,16 @@ class SpacePopulatorTest {
             space, "dark forest", 5, mobDensity = 0.5, spaceSize = 10
         )
 
-        // Should return 5 mobs (0.5 * 10)
-        assertEquals(5, mobs.size)
-        // Space should have 5 entity IDs
-        assertEquals(5, updatedSpace.entities.size)
+        // Density 0.5 -> 2 mobs with the new tuning
+        assertEquals(2, mobs.size)
+        // Space should have 2 entity IDs
+        assertEquals(2, updatedSpace.entities.size)
         // Entity IDs should match mob IDs
         assertEquals(mobs.map { it.id }.toSet(), updatedSpace.entities.toSet())
     }
 
     @Test
-    fun `populateWithEntities mob IDs match space entity list`() {
+    fun `populateWithEntities mob IDs match space entity list`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -152,7 +152,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `repopulate clears existing entities and spawns new mobs`() {
+    fun `repopulate clears existing entities and spawns new mobs`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace().copy(entities = listOf("old_npc_1", "old_npc_2"))
 
@@ -160,8 +160,8 @@ class SpacePopulatorTest {
             space, "dark forest", 5, mobDensity = 0.5, spaceSize = 10
         )
 
-        // Should have 5 new mobs (0.5 * 10)
-        assertEquals(5, newMobs.size)
+        // Density 0.5 -> 2 mobs on respawn as well
+        assertEquals(2, newMobs.size)
         // Old entity IDs should be gone
         assertFalse(updatedSpace.entities.contains("old_npc_1"))
         assertFalse(updatedSpace.entities.contains("old_npc_2"))
@@ -170,7 +170,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `repopulate preserves traps and resources`() {
+    fun `repopulate preserves traps and resources`() = runBlocking {
         val populator = createPopulator()
         val trap = TrapData("trap1", "bear trap", 10, false, "A trap")
         val resource = ResourceNode("res1", "wood", 5, null, "Wood pile", 0)
@@ -192,10 +192,10 @@ class SpacePopulatorTest {
         val populator = createPopulator()
 
         assertEquals(0, populator.calculateMobCount(0.0, 10))
-        assertEquals(2, populator.calculateMobCount(0.2, 10))
-        assertEquals(5, populator.calculateMobCount(0.5, 10))
-        assertEquals(10, populator.calculateMobCount(1.0, 10))
-        assertEquals(20, populator.calculateMobCount(1.0, 20))
+        assertEquals(1, populator.calculateMobCount(0.2, 10))
+        assertEquals(2, populator.calculateMobCount(0.5, 10))
+        assertEquals(3, populator.calculateMobCount(1.0, 10))
+        assertEquals(5, populator.calculateMobCount(1.0, 20))
     }
 
     @Test
@@ -227,9 +227,10 @@ class SpacePopulatorTest {
     @Test
     fun `clearDynamicContent preserves state flags and items`() {
         val populator = createPopulator()
+        val droppedItem = ItemInstance("item1", "trinket", 1, null, 1)
         val space = createEmptySpace().copy(
             stateFlags = mapOf("flag1" to true),
-            itemsDropped = listOf("item1"),
+            itemsDropped = listOf(droppedItem),
             traps = listOf(TrapData("trap1", "bear trap", 10, false, "A trap"))
         )
 
@@ -237,13 +238,13 @@ class SpacePopulatorTest {
 
         // Flags and items should be preserved
         assertEquals(mapOf("flag1" to true), cleared.stateFlags)
-        assertEquals(listOf("item1"), cleared.itemsDropped)
+        assertEquals(listOf(droppedItem), cleared.itemsDropped)
         // Dynamic content should be cleared
         assertTrue(cleared.traps.isEmpty())
     }
 
     @Test
-    fun `populate works with zero mob density`() {
+    fun `populate works with zero mob density`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
@@ -253,17 +254,17 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate works with high mob density`() {
+    fun `populate works with high mob density`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
 
         val populated = populator.populate(space, "dark forest", 5, mobDensity = 2.0, spaceSize = 10)
 
-        assertEquals(20, populated.entities.size)
+        assertEquals(3, populated.entities.size)
     }
 
     @Test
-    fun `populate with different themes`() {
+    fun `populate with different themes`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
         val themes = listOf(
@@ -278,7 +279,7 @@ class SpacePopulatorTest {
     }
 
     @Test
-    fun `populate with different difficulties`() {
+    fun `populate with different difficulties`() = runBlocking {
         val populator = createPopulator()
         val space = createEmptySpace()
         val difficulties = listOf(1, 5, 10, 15, 20)
@@ -286,7 +287,7 @@ class SpacePopulatorTest {
         difficulties.forEach { difficulty ->
             val populated = populator.populate(space, "dark forest", difficulty, mobDensity = 0.2)
             // Should populate without errors
-            assertEquals(2, populated.entities.size)
+            assertEquals(1, populated.entities.size)
         }
     }
 }

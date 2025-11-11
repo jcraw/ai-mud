@@ -161,7 +161,7 @@ class SpacePopulator(
      * Helper for testing and validation.
      */
     fun calculateMobCount(mobDensity: Double, spaceSize: Int = 10): Int {
-        return (spaceSize * mobDensity).toInt().coerceAtLeast(0)
+        return MobSpawnTuning.desiredMobCount(mobDensity, spaceSize)
     }
 
     /**

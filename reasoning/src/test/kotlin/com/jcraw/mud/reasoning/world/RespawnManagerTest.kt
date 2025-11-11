@@ -7,6 +7,8 @@ import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.core.world.TerrainType
+import com.jcraw.mud.core.Stats
+import com.jcraw.mud.reasoning.world.DungeonInitializerContract
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
@@ -20,36 +22,38 @@ class RespawnManagerTest {
     private val testSpaces = mutableMapOf<String, SpacePropertiesComponent>()
 
     private val mockChunkRepo = object : WorldChunkRepository {
-        override suspend fun save(chunk: WorldChunkComponent, id: String) =
+        override fun save(chunk: WorldChunkComponent, id: String) =
             Result.success(Unit).also { testChunks[id] = chunk }
 
-        override suspend fun findById(id: String) = Result.success(testChunks[id])
-        override suspend fun findByParent(parentId: String) = Result.success(emptyList<WorldChunkComponent>())
-        override suspend fun delete(id: String) = Result.success(Unit)
-        override suspend fun getAll() = Result.success(testChunks.values.toList())
+        override fun findById(id: String) = Result.success(testChunks[id])
+        override fun findByParent(parentId: String) = Result.success(emptyList<Pair<String, WorldChunkComponent>>())
+        override fun findAdjacent(currentId: String, direction: String) = Result.success(null)
+        override fun delete(id: String) = Result.success(Unit)
+        override fun getAll() = Result.success(testChunks.toMap())
     }
 
     private val mockSpaceRepo = object : SpacePropertiesRepository {
-        override suspend fun save(properties: SpacePropertiesComponent, chunkId: String) =
+        override fun save(properties: SpacePropertiesComponent, chunkId: String) =
             Result.success(Unit).also { testSpaces[chunkId] = properties }
 
-        override suspend fun findByChunkId(chunkId: String) = Result.success(testSpaces[chunkId])
-        override suspend fun updateDescription(chunkId: String, desc: String) = Result.success(Unit)
-        override suspend fun updateFlags(chunkId: String, flags: Map<String, Boolean>) = Result.success(Unit)
-        override suspend fun addItems(chunkId: String, items: List<com.jcraw.mud.core.ItemInstance>) = Result.success(Unit)
-        override suspend fun delete(chunkId: String) = Result.success(Unit)
+        override fun findByChunkId(chunkId: String) = Result.success(testSpaces[chunkId])
+        override fun updateDescription(chunkId: String, desc: String) = Result.success(Unit)
+        override fun updateFlags(chunkId: String, flags: Map<String, Boolean>) = Result.success(Unit)
+        override fun addItems(chunkId: String, items: List<com.jcraw.mud.core.ItemInstance>) = Result.success(Unit)
+        override fun delete(chunkId: String) = Result.success(Unit)
     }
 
-    private val mockMobSpawner = object : MobSpawner(mockk(), mockk()) {
-        override fun spawnEntities(theme: String, mobDensity: Double, difficulty: Int, spaceSize: Int): List<Entity.NPC> {
+    private val mockMobSpawner = object : MobSpawner() {
+        override suspend fun spawnEntities(theme: String, mobDensity: Double, difficulty: Int, spaceSize: Int): List<Entity.NPC> {
             return listOf(
                 Entity.NPC(
                     id = "mob_new",
                     name = "Respawned Goblin",
                     description = "A newly spawned goblin",
-                    health = 20,
-                    baseStats = mapOf(),
                     isHostile = true,
+                    health = 20,
+                    maxHealth = 20,
+                    stats = Stats(),
                     lootTableId = null,
                     goldDrop = 5
                 )
@@ -57,15 +61,11 @@ class RespawnManagerTest {
         }
     }
 
-    private val mockDungeonInit = object : DungeonInitializer(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()) {
-        override suspend fun initializeDeepDungeon(seed: String): Result<String> {
-            return Result.success("space_start")
-        }
+    private val mockDungeonInit = object : DungeonInitializerContract {
+        override suspend fun initializeDeepDungeon(seed: String): Result<String> = Result.success("space_start")
     }
 
     private val manager = RespawnManager(mockChunkRepo, mockSpaceRepo, mockMobSpawner, mockDungeonInit)
-
-    private fun mockk(): Any = object {} // Simplified mock
 
     @BeforeTest
     fun setup() {
@@ -89,16 +89,15 @@ class RespawnManagerTest {
         testChunks["space_1"] = spaceChunk
         testChunks["world"] = spaceChunk.copy(level = ChunkLevel.WORLD, children = listOf("space_1"))
 
-        val oldMob = Entity.NPC("mob_old", "Old Goblin", "desc", 10, mapOf(), true, null, 5)
         val space = SpacePropertiesComponent(
             name = "Test Room",
             description = "A room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
             resources = emptyList(),
-            entities = listOf(oldMob),
+            entities = listOf("mob_old"),
             itemsDropped = emptyList(),
             stateFlags = mapOf("flag" to true)
         )
@@ -109,7 +108,7 @@ class RespawnManagerTest {
         assertEquals(1, count)
         val respawned = testSpaces["space_1"]!!
         assertEquals(1, respawned.entities.size)
-        assertEquals("mob_new", respawned.entities.first().id)
+        assertEquals("mob_new", respawned.entities.first())
         // Verify flags preserved
         assertEquals(mapOf("flag" to true), respawned.stateFlags)
     }
@@ -124,12 +123,12 @@ class RespawnManagerTest {
         val space = SpacePropertiesComponent(
             name = "Test Room",
             description = "Room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
             resources = emptyList(),
-            entities = listOf(Entity.NPC("mob", "Orc", "desc", 15, mapOf(), true, null, 10)),
+            entities = listOf("mob"),
             itemsDropped = listOf(item),
             stateFlags = mapOf("treasure_found" to true, "trap_triggered" to true)
         )
@@ -147,15 +146,12 @@ class RespawnManagerTest {
         val space = SpacePropertiesComponent(
             name = "Test Room",
             description = "Room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
             resources = emptyList(),
-            entities = listOf(
-                Entity.NPC("mob1", "Goblin", "desc", 10, mapOf(), true, null, 5),
-                Entity.NPC("mob2", "Orc", "desc", 20, mapOf(), true, null, 10)
-            ),
+            entities = listOf("mob1", "mob2"),
             itemsDropped = emptyList(),
             stateFlags = emptyMap()
         )
@@ -171,7 +167,7 @@ class RespawnManagerTest {
         val space = SpacePropertiesComponent(
             name = "Test Room",
             description = "Room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
@@ -185,7 +181,7 @@ class RespawnManagerTest {
         val result = manager.respawnSpaceEntities("space_1", "crypt", 0.5, 10, 20).getOrThrow()
 
         assertEquals(1, result.entities.size)
-        assertEquals("mob_new", result.entities.first().id)
+        assertEquals("mob_new", result.entities.first())
     }
 
     @Test
@@ -224,12 +220,12 @@ class RespawnManagerTest {
         val space = SpacePropertiesComponent(
             name = "Test Room",
             description = "Room",
-            exits = emptyMap(),
+            exits = emptyList(),
             brightness = 50,
             terrainType = TerrainType.NORMAL,
             traps = emptyList(),
             resources = emptyList(),
-            entities = listOf(Entity.NPC("old", "Old", "desc", 10, mapOf(), true, null, 5)),
+            entities = listOf("old"),
             itemsDropped = emptyList(),
             stateFlags = emptyMap()
         )

@@ -2,6 +2,7 @@ package com.jcraw.mud.reasoning.procedural
 
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.ItemType
+import com.jcraw.mud.core.getRoomViews
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -226,17 +227,26 @@ class ProceduralGenerationTest {
         ).generateDungeon()
 
         // Same seed should produce identical layouts
-        assertEquals(world1.rooms.size, world2.rooms.size,
-            "Same seed should produce same number of rooms")
+        assertEquals(
+            expected = world1.spaces.size,
+            actual = world2.spaces.size,
+            message = "Same seed should produce same number of rooms"
+        )
 
         // Room IDs should match
-        assertEquals(world1.rooms.keys, world2.rooms.keys,
-            "Same seed should produce same room IDs")
+        assertEquals(
+            expected = world1.spaces.keys,
+            actual = world2.spaces.keys,
+            message = "Same seed should produce same room IDs"
+        )
 
         // Room names should match
-        world1.rooms.keys.forEach { roomId ->
-            assertEquals(world1.rooms[roomId]?.name, world2.rooms[roomId]?.name,
-                "Room names should match for same seed")
+        world1.spaces.keys.forEach { spaceId ->
+            assertEquals(
+                expected = world1.spaces[spaceId]?.name,
+                actual = world2.spaces[spaceId]?.name,
+                message = "Room names should match for same seed"
+            )
         }
     }
 
