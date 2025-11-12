@@ -1,0 +1,105 @@
+Behavior-Driven Testing Playbook: From "It Sucks" to "Ship It"
+Look, requirements docs are like that one kernel patch you regret merging—they sound good on paper but turn into a maintenance nightmare when the real world (or players) kicks in. You've already seen it: V2 world gen works "by spec" but feels like procedural vomit. Time to flip the script. This ain't pure TDD gospel; it's behavior-driven development (BDD) tuned for your AI-MUD beast—capture the "player feel" as executable assertions, let the code (and Cloud Code) chase 'em till they pass. No more spec bloat, no V3 rewrite rituals. Just play, pinpoint pain, test it, fix it, repeat. Keeps you driving from the gut, not the whiteboard.
+This playbook's your starter kit: high-level ideas, workflow, test flavors, pitfalls to dodge. No code snippets— that's for when you prompt the machine. Aim for tests that scream "why this matters" like a good commit message. Let's make your game evolve without the death spirals.
+Core Philosophy
+
+Tests as Living Specs: Forget static docs. Tests are the spec—runnable, fail-fast, and tied to outcomes players care about (immersion, pacing, coherence). When something feels off (e.g., "Why's this goblin chat like a bad chatbot?"), don't tweak the prompt chain by hand. Codify the gripe: "Goblin taunts should menace, not meme—assert narrative tone via keyword sentiment or LLM quick-check."
+Red-Green-Refactor, But Loose: Red (fail on current code), Green (hack till it passes), Refactor (clean without breaking). But since you're LLM-heavy, "green" might mean prompt tweaks or guardrail adds, not just bug squashes.
+Focus on Feel, Not Bits: Prioritize black-box integration tests: feed input, check output/story arc. Mock the fuzzy (LLM responses via canned JSON), own the crisp (dice rolls, state updates).
+Modular & Scalable: Tests grouped by "moments" (e.g., zone entry, combat loop). Easy to add multi-bot swarms later for multiplayer desync hunts.
+Tools Fit: JUnit/Kotest for the backbone, MockK for stubs, maybe Cucumber for Gherkin-style readability if you want English-y tests. Run 'em in CI or ad-hoc via Gradle tasks.
+
+Workflow: Play → Test → Evolve
+Cycle this like a kernel bisect—short, vicious loops. 80% playtime, 20% test-writing.
+
+Play & Pinpoint (The Human Bit):
+Boot the game, poke around. No notes yet—just feel it.
+Hit a snag? Pause. Ask: "What's broken here? Pacing too slow? Narration flat? World janky?"
+Jot a one-liner behavioral goal: "Entering a new biome should hook with 2-3 sensory details, tied to prior zone's climate—no arctic beaches."
+Pro Tip: Log your session raw (inputs/outputs) to a temp file. Replay it later to seed the test.
+
+Capture as Test (Make It Bite):
+Spin up a test: Setup a fixture (e.g., player at zone edge, fixed seed for repro).
+Assert the behavior: "Given input 'enter north', expect output containing 'bitter wind howls' but not 'palm trees sway'."
+For AI fuzz: Use a mock LLM that spits deterministic responses based on your prompt history. Assert on structure (e.g., JSON with {tone: "grim", hooks: >=2}).
+Run it. Red? Good—that's your baseline suck.
+
+Chase Green (Let the Machine Sweat):
+Feed the failing test to Cloud Code: "Make this pass by tweaking worldgen prompts or adding biome adjacency rules. Keep it simple—no new layers."
+Iterate: Run, fail, tweak prompt/guardrail/code. Aim for <5 mins per green.
+Validate: Re-play the fixed bit manually. Does it feel better? If not, sharpen the assertion (e.g., add "narrative length 50-100 words for punch").
+
+Refactor & Archive (Clean the Slate):
+Once green, slim it: Extract common fixtures (e.g., shared "biomeHandshakes" setup).
+Tag it: @BiomeCoherence, @PlayerImmersion. Group suites by bible sections (World, Combat, 4X).
+Old V2 cruft? Ignore it—new tests will starve bad paths. Delete only if coverage reports scream.
+
+Review & Scale (Don't Let It Rot):
+Weekly: Run full suite. Flaky? Seed everything (RNG, LLM mocks).
+Multiplayer Angle: Add bot-orchestrator tests later—spawn 2-3 agents, assert shared state syncs (e.g., "Player A loots chest; B sees it empty").
+Metrics: Track "feel score" via quick LLM post-mortems on logs (e.g., "Rate immersion 1-10").
+
+
+Test Flavors: Pick Your Poison
+Tailor to your MUD's soul—mix 'em for coverage without bloat. Each one's a "why we built this" story.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FlavorWhen to UseExample AssertionWhy It RulesHappy Path SnapshotsCore loops feel right (e.g., explore → narrate)."Command 'scout east' yields room desc with 3 unique lore hooks, under 80 words."Catches verbosity creep; keeps pacing snappy.Edge Case ProbesFreeform breaks (e.g., "I summon a dragon in a tavern")."Impossible action fails with flavorful rejection, no crash; XP penalty if reckless."Enforces rules without killing creativity—your "anything imaginable" promise.Variance ChecksProcedural magic (e.g., world gen coherence)."Generate 5 adjacent zones; assert 80% shared theme (e.g., all 'forested' or 'cursed')." Property-based: Kotest shrinks failures.Nails endless explore without fever-dream nonsense.Failure BranchesRisks sting (e.g., combat fumble)."Low-skill attack roll <10: Expect 'you swing wild, goblin laughs' + minor wound."Builds tension; tests diminishing returns on high levels.Multi-Agent SimsAsync multiplayer vibes."Two players in same room: A's move updates B's view in <2 turns; no overwrites."Scales to bot swarms—test desyncs before they rage-quit lobbies.Feel ValidatorsSquishy stuff (narration tone).Mock LLM output; assert "sentiment grim (score >0.7 via simple keyword map) + player agency hook."Your secret sauce—quantifies "epic" without full sims.
+
+Mock Strategy: LLM? Stub with fixed JSON (e.g., {"narrative": "The shadows whisper..."}). DB? In-memory H2. RNG? Seeded Random(42). Keeps it fast/repro.
+E2E Golden Runs: One per suite—full session (char create → boss kill). Log as "story file" for human review. Include at least one with voice stubs if you're prototyping that.
+
+Pitfalls & Guardrails
+
+Don't Over-Test: Skip getters or pure math—focus on behaviors that'd make a reviewer (or player) yell. Aim <300 lines per suite file.
+Flake Hell: Everything seeded. If LLM's involved, cap retries at 3; fail hard on variance.
+Scope Creep: One pain per test. "World feels off" → split to "biome entry" + "travel pacing."
+Cloud Code Handoff: Phrase prompts like: "Implement this failing test: [paste test]. Suggest minimal changes to prompts/code. Test after."
+Measure Success: After 5 cycles, ask: Fewer manual fixes? Faster "awesome" moments? If not, tweak (e.g., add Gherkin: Given/When/Then for readability).
+
+This setup turns your dev loop into a feedback flywheel—play more, spec less, ship feel-first. It's iterative like your bible says, but now the tests enforce modularity. Grab a pain point (world handshakes?), write that first test, and let's see it bite. If it misses the mark, we'll sharpen it next round. No bullshit—just progress.
