@@ -473,4 +473,61 @@ class GraphGeneratorTest {
 
         return dfs(nodes.first().id, null)
     }
+
+    @Test
+    fun `loopFrequency affects edge count`() {
+        val rng = Random(999)
+        val generator = GraphGenerator(rng, difficultyLevel = 1)
+
+        // Generate with low loop frequency
+        val lowLoopLayout = GraphLayout.Grid(4, 4, loopFrequency = 0.1)
+        val lowLoopNodes = generator.generate("test", lowLoopLayout)
+        val lowLoopEdgeCount = lowLoopNodes.sumOf { it.neighbors.size } / 2 // Div by 2 for bidirectional edges
+
+        // Generate with high loop frequency
+        val highLoopLayout = GraphLayout.Grid(4, 4, loopFrequency = 1.0)
+        val highLoopNodes = generator.generate("test2", highLoopLayout)
+        val highLoopEdgeCount = highLoopNodes.sumOf { it.neighbors.size } / 2
+
+        // High frequency should produce more edges
+        assertTrue(
+            highLoopEdgeCount > lowLoopEdgeCount,
+            "High loop frequency (1.0) should create more edges than low frequency (0.1). " +
+                "Got high=$highLoopEdgeCount, low=$lowLoopEdgeCount"
+        )
+
+        println("Edge counts: low frequency (0.1) = $lowLoopEdgeCount, high frequency (1.0) = $highLoopEdgeCount")
+    }
+
+    @Test
+    fun `loopFrequency 0 dot 5 creates graphs with cycles`() {
+        val rng = Random(888)
+        val generator = GraphGenerator(rng, difficultyLevel = 1)
+
+        // Default frequency should still create cycles
+        val layout = GraphLayout.Grid(3, 3, loopFrequency = 0.5)
+        val nodes = generator.generate("test", layout)
+
+        val hasCycle = detectCycle(nodes)
+        assertTrue(hasCycle, "Default frequency (0.5) should create at least one cycle")
+    }
+
+    @Test
+    fun `loopFrequency 1 dot 0 creates highly connected graphs`() {
+        val rng = Random(777)
+        val generator = GraphGenerator(rng, difficultyLevel = 1)
+
+        // Max frequency should create lots of edges
+        val layout = GraphLayout.Grid(4, 4, loopFrequency = 1.0)
+        val nodes = generator.generate("test", layout)
+
+        // With max frequency, average degree should be at least as high as default
+        val avgDegree = nodes.sumOf { it.neighbors.size }.toDouble() / nodes.size
+        assertTrue(
+            avgDegree >= 3.0,
+            "Max loop frequency should create well-connected graph (avg degree >= 3.0). Got $avgDegree"
+        )
+
+        println("Average degree with loopFrequency=1.0: $avgDegree")
+    }
 }

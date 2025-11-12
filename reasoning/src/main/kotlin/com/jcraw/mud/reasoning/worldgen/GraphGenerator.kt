@@ -67,8 +67,8 @@ class GraphGenerator(
         // Step 2: Connect nodes via Kruskal MST
         val mstEdges = kruskalMST(nodes)
 
-        // Step 3: Add 50-75% extra edges for loops
-        val loopEdges = addLoopEdges(nodes, mstEdges)
+        // Step 3: Add extra edges for loops (frequency controlled by layout)
+        val loopEdges = addLoopEdges(nodes, mstEdges, layout.loopFrequency)
         val allEdges = mstEdges + loopEdges
 
         // Step 4: Build adjacency for each node
@@ -325,12 +325,16 @@ class GraphGenerator(
     /**
      * Add extra edges for loops to guarantee avg degree >= 3.0
      * Creates alternative paths and exploration choices
-     * Promotes average degree of 3.0-3.5 for engaging navigation
+     * Promotes average degree of 3.0-3.5 for engaging navigation at default frequency
      * Returns additional edges beyond MST
+     *
+     * @param loopFrequency Multiplier for loop edge count (0.0-1.0)
+     *        0.0 = minimal loops, 0.5 = default ~3.0 avg degree, 1.0 = maximum loops
      */
     private fun addLoopEdges(
         nodes: List<GraphNodeComponent>,
-        mstEdges: List<Pair<String, String>>
+        mstEdges: List<Pair<String, String>>,
+        loopFrequency: Double = 0.5
     ): List<Pair<String, String>> {
         val n = nodes.size
 
@@ -341,9 +345,15 @@ class GraphGenerator(
         // Each edge adds 2 to total degree, so need (N+2)/2 edges minimum
         val minExtraEdges = ((n + 2) / 2.0).toInt().coerceAtLeast(1)
 
-        // Add 10-20% buffer for variety (avg degree 3.1-3.4)
+        // Add 10-20% buffer for variety (avg degree 3.1-3.4 at default frequency)
         val buffer = (minExtraEdges * (0.10 + rng.nextDouble() * 0.10)).toInt().coerceAtLeast(1)
-        val targetCount = minExtraEdges + buffer
+
+        // Apply loop frequency multiplier (scales from minimum to maximum)
+        // 0.0 → minExtraEdges (avg degree ~3.0)
+        // 0.5 → minExtraEdges + buffer (default, avg degree 3.1-3.4)
+        // 1.0 → minExtraEdges + 2*buffer (max, avg degree ~3.5-4.0)
+        val extraEdges = (buffer * 2.0 * loopFrequency).toInt()
+        val targetCount = (minExtraEdges + extraEdges).coerceAtLeast(1)
 
         val loopEdges = mutableListOf<Pair<String, String>>()
         val existingEdges = mstEdges.toSet()

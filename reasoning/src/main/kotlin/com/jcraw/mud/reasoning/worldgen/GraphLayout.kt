@@ -6,9 +6,19 @@ import kotlinx.serialization.Serializable
  * Algorithm selection for graph topology generation
  * Sealed class enables exhaustive when statements and type-safe configuration
  * Each layout algorithm produces different structural patterns for world navigation
+ *
+ * @property loopFrequency Controls density of loop edges (0.0-1.0)
+ *           0.0 = minimum loops (MST only), 0.5 = default, 1.0 = maximum loops
  */
 @Serializable
 sealed class GraphLayout {
+    /**
+     * Loop generation frequency multiplier
+     * Scales the number of extra edges added beyond minimum spanning tree
+     * Range: 0.0 (sparse, tree-like) to 1.0 (dense, many loops)
+     * Default: 0.5 (balanced - targets avg degree ~3.0)
+     */
+    abstract val loopFrequency: Double
     /**
      * Grid layout - Rectangular graph with regular connectivity
      * Best for: Dungeons, buildings, structured environments
@@ -23,12 +33,14 @@ sealed class GraphLayout {
     @Serializable
     data class Grid(
         val width: Int,
-        val height: Int
+        val height: Int,
+        override val loopFrequency: Double = 0.5
     ) : GraphLayout() {
         init {
             require(width > 0) { "Grid width must be positive, got $width" }
             require(height > 0) { "Grid height must be positive, got $height" }
             require(width * height <= 100) { "Grid too large: ${width}x${height} = ${width * height} nodes (max 100)" }
+            require(loopFrequency in 0.0..1.0) { "Grid loopFrequency must be 0.0-1.0, got $loopFrequency" }
         }
 
         /**
@@ -53,11 +65,13 @@ sealed class GraphLayout {
     @Serializable
     data class BSP(
         val minRoomSize: Int = 3,
-        val maxDepth: Int = 4
+        val maxDepth: Int = 4,
+        override val loopFrequency: Double = 0.5
     ) : GraphLayout() {
         init {
             require(minRoomSize >= 2) { "BSP minRoomSize must be >= 2, got $minRoomSize" }
             require(maxDepth in 1..6) { "BSP maxDepth must be 1-6, got $maxDepth" }
+            require(loopFrequency in 0.0..1.0) { "BSP loopFrequency must be 0.0-1.0, got $loopFrequency" }
         }
 
         /**
@@ -83,11 +97,13 @@ sealed class GraphLayout {
     @Serializable
     data class FloodFill(
         val nodeCount: Int,
-        val density: Double = 0.4
+        val density: Double = 0.4,
+        override val loopFrequency: Double = 0.5
     ) : GraphLayout() {
         init {
             require(nodeCount in 5..100) { "FloodFill nodeCount must be 5-100, got $nodeCount" }
             require(density in 0.1..1.0) { "FloodFill density must be 0.1-1.0, got $density" }
+            require(loopFrequency in 0.0..1.0) { "FloodFill loopFrequency must be 0.0-1.0, got $loopFrequency" }
         }
 
         override fun toString(): String = "FloodFill(nodes=$nodeCount, density=$density)"

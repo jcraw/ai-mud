@@ -220,7 +220,7 @@ All V2 systems fully integrated and tested:
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
 - 🚧 World System V3 (Chunks 1-5 complete, all game modes V3-compatible):
   - ✅ Chunk 1-2: GraphNodeComponent ECS component (155 lines, 29 tests), database schema, GraphNodeRepository (219 lines, 29 unit tests)
-  - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, 20% extra edges for loops, node type assignment (31 tests GraphGeneratorTest, 25 tests GraphLayoutTest)
+  - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, configurable loop frequency (targets avg degree ~3.0-3.5), node type assignment (34 tests GraphGeneratorTest, 25 tests GraphLayoutTest)
   - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers (212 lines, 20 tests GraphValidatorTest)
   - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system
   - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces/chunks/entities storage, 22 new V3 methods (movePlayerV3, getCurrentSpace, getChunk, entity CRUD), Room deprecated
