@@ -39,6 +39,13 @@ class IntentRecognizer(
         roomContext: String? = null,
         exitsWithNames: Map<Direction, String>? = null
     ): Intent {
+        // Fast path: Check if input is ONLY a cardinal direction BEFORE splitting (bypass LLM)
+        // This ensures compound commands like "north and take sword" don't match the fast path
+        val pureDirection = parseCardinalDirection(input)
+        if (pureDirection != null) {
+            return Intent.Move(pureDirection)
+        }
+
         // Split compound commands (e.g., "take sword and equip it" → "take sword")
         val firstCommand = splitCompoundCommand(input)
 
@@ -72,6 +79,36 @@ class IntentRecognizer(
 
         // No compound detected, return as-is
         return input
+    }
+
+    /**
+     * Check if input is ONLY a cardinal direction (no extra words).
+     * Returns the Direction if it's a pure cardinal direction, null otherwise.
+     */
+    private fun parseCardinalDirection(input: String): Direction? {
+        val trimmed = input.trim().lowercase()
+
+        // Check if input is ONLY a cardinal direction (no extra words)
+        return when (trimmed) {
+            // Full names
+            "north", "south", "east", "west" -> Direction.fromString(trimmed)
+            "northeast", "northwest", "southeast", "southwest" -> Direction.fromString(trimmed)
+            "up", "down" -> Direction.fromString(trimmed)
+
+            // Abbreviations
+            "n" -> Direction.NORTH
+            "s" -> Direction.SOUTH
+            "e" -> Direction.EAST
+            "w" -> Direction.WEST
+            "ne" -> Direction.NORTHEAST
+            "nw" -> Direction.NORTHWEST
+            "se" -> Direction.SOUTHEAST
+            "sw" -> Direction.SOUTHWEST
+            "u" -> Direction.UP
+            "d" -> Direction.DOWN
+
+            else -> null
+        }
     }
 
     /**
