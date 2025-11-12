@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -60,16 +61,19 @@ class ProceduralLoopTest : BehaviorTestBase() {
         println()
 
         // Track exploration
-        val visitedRooms = mutableListOf<SpaceId>()
+        val visitedRooms = mutableSetOf<SpaceId>()  // Set to detect revisits
+        val visitedRoomsList = mutableListOf<SpaceId>()  // List to track order
         val pathTaken = mutableListOf<String>()
         visitedRooms.add(startingRoomId)
+        visitedRoomsList.add(startingRoomId)
 
         var loopFound = false
-        var loopAttempts = 0
+        var backtracked = false
         val maxMoves = 20  // Limit exploration to 20 moves
 
         println("🤖 LLM Agent begins exploration...")
         println("   Goal: Find a path back to starting room $startingRoomId")
+        println("   Rule: No backtracking - must visit unique rooms only")
         println()
 
         // Exploration loop
@@ -86,14 +90,55 @@ class ProceduralLoopTest : BehaviorTestBase() {
             // Check if we've looped back to start
             if (moveNum > 1 && currentRoomId == startingRoomId) {
                 println()
+
+                // Check if this is just an immediate reversal (2 moves)
+                if (pathTaken.size == 2) {
+                    val first = pathTaken[0]
+                    val second = pathTaken[1]
+                    if (second == getOppositeDirection(first)) {
+                        println("❌ BACKTRACKING DETECTED! Path ${first} → ${second} is just reversing direction.")
+                        println("   This is not a valid loop - just went out and back.")
+                        backtracked = true
+                        break
+                    }
+                }
+
+                // Check for any direction reversals in the path
+                var hasReversal = false
+                for (i in 0 until pathTaken.size - 1) {
+                    if (pathTaken[i + 1] == getOppositeDirection(pathTaken[i])) {
+                        hasReversal = true
+                        println("❌ BACKTRACKING DETECTED! Path contains reversal: ${pathTaken[i]} → ${pathTaken[i + 1]}")
+                        println("   Full path: ${pathTaken.joinToString(" → ")}")
+                        backtracked = true
+                        break
+                    }
+                }
+
+                if (backtracked) {
+                    break
+                }
+
                 println("✅ LOOP FOUND! Returned to starting room after ${moveNum - 1} moves!")
                 println("   Path taken: ${pathTaken.joinToString(" → ")}")
-                println("   Unique rooms in loop: ${visitedRooms.toSet().size}")
+                println("   Unique rooms in loop: ${visitedRooms.size}")
                 loopFound = true
                 break
             }
 
+            // Check for backtracking (visiting a room we've already been to, excluding start)
+            if (moveNum > 1 && visitedRooms.contains(currentRoomId)) {
+                println()
+                println("❌ BACKTRACKING DETECTED! Visited room $currentRoomId again.")
+                println("   This is not a proper loop - just retracing steps.")
+                println("   Path taken: ${pathTaken.joinToString(" → ")}")
+                println("   Rooms visited: ${visitedRoomsList.joinToString(" → ")}")
+                backtracked = true
+                break
+            }
+
             visitedRooms.add(currentRoomId)
+            visitedRoomsList.add(currentRoomId)
 
             // Get available exits
             val exits = currentSpace?.exits ?: emptyList()
@@ -107,13 +152,22 @@ class ProceduralLoopTest : BehaviorTestBase() {
             // Ask LLM to choose next direction
             val direction = chooseMoveWithLLM(
                 currentSpace = currentSpace,
-                visitedRooms = visitedRooms,
+                visitedRooms = visitedRooms.toList(),
                 pathTaken = pathTaken,
                 startingRoomId = startingRoomId,
                 moveNum = moveNum
             )
 
             println("   🤖 LLM chooses: $direction")
+
+            // Check for immediate direction reversal (backtracking)
+            if (pathTaken.isNotEmpty()) {
+                val lastDirection = pathTaken.last()
+                val oppositeDirection = getOppositeDirection(lastDirection)
+                if (direction == oppositeDirection) {
+                    println("   ⚠️  Warning: Reversing direction ($lastDirection → $direction)")
+                }
+            }
 
             // Execute move
             val output = command("go $direction")
@@ -136,11 +190,19 @@ class ProceduralLoopTest : BehaviorTestBase() {
         println("Final room: ${worldState().player.currentRoomId}")
         println("Moves taken: ${pathTaken.size}")
         println("Path: ${pathTaken.joinToString(" → ")}")
-        println("Unique rooms visited: ${visitedRooms.toSet().size}")
-        println("Loop found: ${if (loopFound) "✅ YES" else "❌ NO"}")
+        println("Unique rooms visited: ${visitedRooms.size}")
+        println("Backtracking occurred: ${if (backtracked) "❌ YES" else "✅ NO"}")
+        println("Valid loop found: ${if (loopFound && !backtracked) "✅ YES" else "❌ NO"}")
         println("=".repeat(60) + "\n")
 
-        // Assert success
+        // Assert success - must find loop AND not backtrack
+        assertFalse(
+            backtracked,
+            "Player backtracked by revisiting a room. This is not a valid loop. " +
+                "Path: ${pathTaken.joinToString(" → ")} " +
+                "Rooms: ${visitedRoomsList.joinToString(" → ")}"
+        )
+
         assertTrue(
             loopFound,
             "Expected LLM player to find a loop back to starting room $startingRoomId " +
@@ -182,7 +244,7 @@ class ProceduralLoopTest : BehaviorTestBase() {
             appendLine("- Current room: ${currentSpace?.name} (ID: ${worldState().player.currentRoomId})")
             appendLine("- Move number: $moveNum")
             appendLine("- Path so far: ${if (pathTaken.isEmpty()) "(start)" else pathTaken.joinToString(" → ")}")
-            appendLine("- Visited rooms: ${visitedRooms.size} unique locations")
+            appendLine("- Unique rooms visited: ${visitedRooms.size} locations")
             appendLine()
             appendLine("Available exits from current room: ${exits.joinToString(", ")}")
             appendLine()
@@ -213,5 +275,24 @@ class ProceduralLoopTest : BehaviorTestBase() {
             ?: exits.first()  // Fallback to first exit if LLM gives invalid response
 
         return chosenDirection
+    }
+
+    /**
+     * Get the opposite direction for detecting backtracking.
+     */
+    private fun getOppositeDirection(direction: String): String {
+        return when (direction.lowercase()) {
+            "north", "n" -> "south"
+            "south", "s" -> "north"
+            "east", "e" -> "west"
+            "west", "w" -> "east"
+            "northeast", "ne" -> "southwest"
+            "southwest", "sw" -> "northeast"
+            "northwest", "nw" -> "southeast"
+            "southeast", "se" -> "northwest"
+            "up", "u" -> "down"
+            "down", "d" -> "up"
+            else -> ""
+        }
     }
 }
