@@ -106,11 +106,11 @@ object ClientCombatHandlers {
         // Check if player died
         if (updatedPlayer.isDead()) {
             game.emitEvent(GameEvent.Combat("\nYou have been defeated! Game over."))
-            game.running = false
             game.emitEvent(GameEvent.StatusUpdate(
                 hp = 0,
                 maxHp = game.worldState.player.maxHealth
             ))
+            game.handlePlayerDeath()
             return
         }
 

@@ -26,6 +26,7 @@ import com.jcraw.mud.reasoning.combat.SpeedCalculator
 import com.jcraw.mud.reasoning.combat.AIDecision
 import com.jcraw.mud.reasoning.combat.DeathHandler
 import com.jcraw.mud.reasoning.combat.CorpseDecayManager
+import com.jcraw.mud.reasoning.death.PlayerRespawnService
 import com.jcraw.mud.core.Component
 import com.jcraw.mud.core.ComponentType
 import com.jcraw.mud.core.CombatComponent
@@ -57,6 +58,7 @@ class MudGame(
 ) {
     internal var worldState: WorldState = initialWorldState
     private var running = true
+    private var respawnState: RespawnState? = null
     internal val combatResolver = CombatResolver()
     internal val skillCheckResolver = SkillCheckResolver()
     internal val persistenceManager = PersistenceManager()
@@ -78,6 +80,7 @@ class MudGame(
     private val lootGenerator = LootGenerator(itemRepository)
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
+    private val playerRespawnService = PlayerRespawnService(corpseRepository)
 
     // Social system components
     private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
@@ -157,13 +160,20 @@ class MudGame(
         describeCurrentRoom()
 
         while (running) {
-            // Process NPC turns before player input (Combat V2)
-            processNPCTurns()
+            // Pause NPC actions while waiting on permadeath prompts
+            if (respawnState == null) {
+                processNPCTurns()
+            }
 
             print("\n> ")
             val input = readLine()?.trim() ?: continue
 
             if (input.isBlank()) continue
+
+            respawnState?.let {
+                handleRespawnInput(input)
+                continue
+            }
 
             val space = worldState.getCurrentSpace()
             val spaceContext = space?.let {
@@ -589,72 +599,71 @@ class MudGame(
 
     /**
      * Handle player death with permadeath mechanics:
-     * - Create corpse with player's items at death location
-     * - Respawn player at starting location with empty inventory
-     * - Player can return to recover items from corpse
-     *
-     * NOTE: This uses Combat V2's death system. Chunk 6's improved death system
-     * (com.jcraw.mud.reasoning.death.handlePlayerDeath) provides:
-     * - Database-persisted corpses (survive game restarts)
-     * - Spawn at town instead of first room
-     * - Decay timers (5000 turns)
-     * - Corpse retrieval with weight checks
-     * TODO: Integrate Chunk 6 death system when town space ID is available
+     * - Persist corpse with player's items at death location
+     * - Prompt player to continue with a brand new character
+     * - Respawn at starting location once player provides a new name
      */
     internal fun handlePlayerDeath() {
-        println("\n" + "=".repeat(60))
-        println("  YOU HAVE DIED")
-        println("=".repeat(60))
+        if (respawnState != null) return
 
-        val currentSpaceId = worldState.player.currentRoomId
-        val playerEntity = Entity.Player(
-            id = "player_entity_${worldState.player.id}",
-            name = worldState.player.name,
-            description = "A manifestation of ${worldState.player.name}'s presence.",
+        val pending = playerRespawnService.createPendingRespawn(
+            worldState = worldState,
             playerId = worldState.player.id,
-            health = worldState.player.health,
-            maxHealth = worldState.player.maxHealth,
-            equippedWeapon = worldState.player.equippedWeapon?.id,
-            equippedArmor = worldState.player.equippedArmor?.id
-        )
-
-        val worldWithEntity = worldState.addEntityToSpace(currentSpaceId, playerEntity)
-        val deathResult = deathHandler.handleDeath(playerEntity.id, worldWithEntity)
-
-        if (deathResult is DeathHandler.DeathResult.PlayerDeath) {
-            worldState = deathResult.updatedWorld
-            println("\nYour belongings have been scattered at your death location.")
-            println("You can return to recover them from your corpse...")
-        } else {
-            println("\nYour items have been lost.")
-            worldState = worldWithEntity.removeEntityFromSpace(currentSpaceId, playerEntity.id) ?: worldWithEntity
+            spawnSpaceIdOverride = worldState.gameProperties["starting_space"]
+        ).getOrElse { error ->
+            println("\nFailed to process permadeath: ${error.message}")
+            running = false
+            return
         }
 
-        // Respawn player
-        println("\nPress any key to respawn...")
-        readLine()
+        respawnState = RespawnState.AwaitingConfirmation(pending)
 
-        // Reset player state (empty inventory, full health, no equipment)
-        val respawnedPlayer = worldState.player.copy(
-            health = worldState.player.maxHealth,
-            inventory = emptyList(),
-            equippedWeapon = null,
-            equippedArmor = null
-        )
+        println()
+        println(pending.deathResult.narration)
+        println("\nContinue as new character (Y/N)?")
+    }
 
-        val spawnSpaceId = worldState.gameProperties["starting_space"]
-            ?: worldState.graphNodes.keys.firstOrNull()
-            ?: worldState.spaces.keys.firstOrNull()
-        worldState = if (spawnSpaceId != null) {
-            worldState.updatePlayer(respawnedPlayer.copy(currentRoomId = spawnSpaceId))
-        } else {
-            worldState.updatePlayer(respawnedPlayer)
+    private fun handleRespawnInput(input: String) {
+        val state = respawnState ?: return
+        when (state) {
+            is RespawnState.AwaitingConfirmation -> {
+                when (input.lowercase()) {
+                    "y", "yes" -> {
+                        respawnState = RespawnState.AwaitingName(state.pending)
+                        println("Name your new character:")
+                    }
+                    "n", "no" -> {
+                        println("You accept your fate. Game over.")
+                        respawnState = null
+                        running = false
+                    }
+                    else -> println("Please answer Y or N.")
+                }
+            }
+            is RespawnState.AwaitingName -> {
+                val trimmed = input.trim()
+                if (trimmed.isEmpty()) {
+                    println("Name cannot be blank.")
+                    return
+                }
+
+                val outcome = playerRespawnService.completeRespawn(worldState, state.pending, trimmed)
+                outcome.onFailure { error ->
+                    println("Failed to respawn: ${error.message}")
+                }.onSuccess { result ->
+                    worldState = result.worldState
+                    respawnState = null
+                    lastConversationNpcId = null
+                    println(result.respawnMessage)
+                    describeCurrentRoom()
+                }
+            }
         }
+    }
 
-        println("\n" + "=".repeat(60))
-        println("  You awaken at the dungeon entrance...")
-        println("=".repeat(60))
-        describeCurrentRoom()
+    private sealed interface RespawnState {
+        data class AwaitingConfirmation(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
+        data class AwaitingName(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
     }
 
     /**

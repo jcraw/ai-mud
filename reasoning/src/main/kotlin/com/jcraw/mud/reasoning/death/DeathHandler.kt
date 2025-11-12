@@ -25,19 +25,25 @@ import java.util.UUID
 /**
  * Result of player death handling
  *
- * @param newPlayer Fresh player state spawned at town
+ * @param playerId Identifier of the fallen hero (used for continuity)
  * @param corpseId Unique identifier for created corpse
- * @param townSpaceId Space ID where player respawned
+ * @param townSpaceId Space ID where the replacement character will spawn
  * @param deathSpaceId Space ID where player died
- * @param narration Death and respawn narration for player
+ * @param narration Death + respawn narration for the UI
  */
 data class DeathResult(
-    val newPlayer: PlayerState,
+    val playerId: PlayerId,
     val corpseId: String,
     val townSpaceId: String,
     val deathSpaceId: String,
     val narration: String
-)
+) {
+    /**
+     * Create a fresh player instance for the next run.
+     */
+    fun createNewPlayer(newCharacterName: String): PlayerState =
+        createFreshPlayer(playerId, newCharacterName, townSpaceId)
+}
 
 /**
  * Handle player death.
@@ -82,15 +88,12 @@ fun handlePlayerDeath(
         return Result.failure(error)
     }
 
-    // Create fresh player state with starter gear
-    val newPlayer = createFreshPlayer(player.id, player.name, townSpaceId)
-
     // Generate death narration
     val narration = createCorpseNarration(player, currentSpaceId, corpseId, gameTime)
 
     return Result.success(
         DeathResult(
-            newPlayer = newPlayer,
+            playerId = player.id,
             corpseId = corpseId,
             townSpaceId = townSpaceId,
             deathSpaceId = currentSpaceId,
@@ -162,7 +165,7 @@ fun createCorpseNarration(
  */
 private fun createFreshPlayer(
     playerId: PlayerId,
-    playerName: String,
+    newCharacterName: String,
     townSpaceId: String
 ): PlayerState {
     // Starter gear
@@ -198,7 +201,7 @@ private fun createFreshPlayer(
 
     return PlayerState(
         id = playerId,
-        name = playerName,
+        name = newCharacterName,
         currentRoomId = townSpaceId, // Spawn at town
         health = 100,
         maxHealth = 100,

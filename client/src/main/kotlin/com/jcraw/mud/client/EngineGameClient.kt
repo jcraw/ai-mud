@@ -9,6 +9,7 @@ import com.jcraw.mud.reasoning.*
 import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
 import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.reasoning.procedural.QuestGenerator
+import com.jcraw.mud.reasoning.death.PlayerRespawnService
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
 import com.jcraw.mud.memory.social.SocialDatabase
@@ -39,6 +40,7 @@ class EngineGameClient(
     private val _events = MutableSharedFlow<GameEvent>(replay = 10)
     internal var worldState: WorldState
     internal var running = true
+    private var respawnState: RespawnState? = null
     internal var lastConversationNpcId: String? = null
 
     // Engine components
@@ -83,6 +85,7 @@ class EngineGameClient(
     internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
     internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
     internal val spaceEntityRepository: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
+    private val corpseRepository: com.jcraw.mud.memory.world.SQLiteCorpseRepository
     internal val graphNodeRepository: com.jcraw.mud.memory.world.SQLiteGraphNodeRepository
     internal val exitLinker: com.jcraw.mud.reasoning.world.ExitLinker?
     internal val exitResolver: com.jcraw.mud.reasoning.world.ExitResolver?
@@ -95,6 +98,7 @@ class EngineGameClient(
     private val respawnChecker: com.jcraw.mud.reasoning.world.RespawnChecker
     private val spacePopulationService: com.jcraw.mud.reasoning.world.SpacePopulationService
     private val worldStateSeeder: com.jcraw.mud.reasoning.world.WorldStateSeeder?
+    private val playerRespawnService: PlayerRespawnService
 
     // World System V3 components (graph-based navigation)
     private val loreInheritanceEngine: com.jcraw.mud.reasoning.world.LoreInheritanceEngine?
@@ -149,6 +153,7 @@ class EngineGameClient(
         worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
         spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
+        corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
         graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
         respawnRepository = com.jcraw.mud.memory.world.SQLiteRespawnRepository(worldDatabase)
         trapGenerator = com.jcraw.mud.reasoning.world.TrapGenerator(llmClient)
@@ -157,6 +162,7 @@ class EngineGameClient(
         spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)
         respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
         spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
+        playerRespawnService = PlayerRespawnService(corpseRepository)
 
         // Initialize World System V3 components
         loreInheritanceEngine = if (llmClient != null) {
@@ -279,7 +285,14 @@ class EngineGameClient(
     }
 
     override suspend fun sendInput(text: String) {
-        if (!running || text.isBlank()) return
+        if (text.isBlank()) return
+
+        respawnState?.let {
+            handleRespawnInput(text)
+            return
+        }
+
+        if (!running) return
 
         // Parse intent - V3 uses space-based context
         val space = worldState.getCurrentSpace()
@@ -740,5 +753,79 @@ class EngineGameClient(
             // Update both player and world state (world may have NPC disposition changes)
             worldState = updatedWorld.updatePlayer(updatedPlayer)
         }
+    }
+
+    internal fun handlePlayerDeath() {
+        if (respawnState != null) return
+
+        val pending = playerRespawnService.createPendingRespawn(
+            worldState = worldState,
+            playerId = worldState.player.id,
+            spawnSpaceIdOverride = worldState.gameProperties["starting_space"]
+        ).getOrElse { error ->
+            emitEvent(
+                GameEvent.System(
+                    "Failed to process permadeath: ${error.message}",
+                    GameEvent.MessageLevel.ERROR
+                )
+            )
+            running = false
+            return
+        }
+
+        respawnState = RespawnState.AwaitingConfirmation(pending)
+        emitEvent(GameEvent.Combat("\n${pending.deathResult.narration}"))
+        emitEvent(GameEvent.System("Continue as new character? (Y/N)", GameEvent.MessageLevel.INFO))
+    }
+
+    private fun handleRespawnInput(rawInput: String) {
+        val state = respawnState ?: return
+        val input = rawInput.trim()
+
+        when (state) {
+            is RespawnState.AwaitingConfirmation -> {
+                when (input.lowercase()) {
+                    "y", "yes" -> {
+                        respawnState = RespawnState.AwaitingName(state.pending)
+                        emitEvent(GameEvent.System("Name your new character:", GameEvent.MessageLevel.INFO))
+                    }
+                    "n", "no" -> {
+                        emitEvent(GameEvent.System("You accept your fate. Game over.", GameEvent.MessageLevel.INFO))
+                        respawnState = null
+                        running = false
+                    }
+                    else -> emitEvent(GameEvent.System("Please answer Y or N.", GameEvent.MessageLevel.WARNING))
+                }
+            }
+            is RespawnState.AwaitingName -> {
+                if (input.isBlank()) {
+                    emitEvent(GameEvent.System("Name cannot be blank.", GameEvent.MessageLevel.WARNING))
+                    return
+                }
+
+                val outcome = playerRespawnService.completeRespawn(worldState, state.pending, input)
+                outcome.onFailure { error ->
+                    emitEvent(GameEvent.System("Failed to respawn: ${error.message}", GameEvent.MessageLevel.ERROR))
+                }.onSuccess { result ->
+                    worldState = result.worldState
+                    respawnState = null
+                    lastConversationNpcId = null
+                    emitEvent(GameEvent.System(result.respawnMessage))
+                    emitEvent(
+                        GameEvent.StatusUpdate(
+                            hp = worldState.player.health,
+                            maxHp = worldState.player.maxHealth,
+                            location = worldState.player.currentRoomId
+                        )
+                    )
+                    describeCurrentRoom()
+                }
+            }
+        }
+    }
+
+    private sealed interface RespawnState {
+        data class AwaitingConfirmation(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
+        data class AwaitingName(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
     }
 }

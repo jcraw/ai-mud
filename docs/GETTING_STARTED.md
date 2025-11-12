@@ -120,6 +120,11 @@ For complete details, see [World Generation Documentation](./WORLD_GENERATION.md
 - `attack` - Continue attacking in combat
 - `kill <npc>`, `hit <npc>` - Alternative attack commands
 
+### Permadeath & Restart
+- HP hitting 0 creates a corpse that stores every item, equipped piece, and gold you carried.
+- The engine prompts **“Continue as new character (Y/N)?”**. Answer `Y` to name a fresh adventurer who respawns at the starting space; `N` cleanly ends the run.
+- Corpses persist in the world, so your new character can return and `loot corpse` to reclaim everything before decay.
+
 ### Equipment
 - `equip <item>` - Equip a weapon or armor from inventory
 - `wield <item>`, `wear <item>` - Alternative equip commands
