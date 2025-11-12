@@ -48,7 +48,7 @@ abstract class BehaviorTestBase {
      * Override to provide custom initial world state.
      */
     protected open fun createInitialWorldState(): WorldState {
-        return SampleDungeon.createSampleDungeonV3()
+        return SampleDungeon.createInitialWorldState()
     }
 
     @BeforeEach
@@ -81,38 +81,12 @@ abstract class BehaviorTestBase {
     protected open fun createEngine(): InMemoryGameEngine {
         val worldState = createInitialWorldState()
 
-        return if (llmClient != null) {
-            // Full engine with LLM components
-            val memoryManager = MemoryManager(llmClient!!)
-            val descriptionGenerator = RoomDescriptionGenerator(llmClient!!, memoryManager)
-            val npcInteractionGenerator = NPCInteractionGenerator(llmClient!!, memoryManager)
-            val combatNarrator = CombatNarrator(llmClient!!)
-            val emoteHandler = EmoteHandler()
-            val knowledgeManager = NPCKnowledgeManager(llmClient!!, memoryManager)
-            val dispositionManager = DispositionManager()
-            val skillManager = SkillManager()
-
-            InMemoryGameEngine(
-                initialWorldState = worldState,
-                descriptionGenerator = descriptionGenerator,
-                npcInteractionGenerator = npcInteractionGenerator,
-                combatNarrator = combatNarrator,
-                memoryManager = memoryManager,
-                llmClient = llmClient,
-                emoteHandler = emoteHandler,
-                knowledgeManager = knowledgeManager,
-                dispositionManager = dispositionManager,
-                skillManager = skillManager
-            )
-        } else {
-            // Fallback engine without LLM
-            InMemoryGameEngine(
-                initialWorldState = worldState,
-                emoteHandler = EmoteHandler(),
-                dispositionManager = DispositionManager(),
-                skillManager = SkillManager()
-            )
-        }
+        // Simple setup - InMemoryGameEngine works without optional components
+        // LLM components are optional and will be used if available
+        return InMemoryGameEngine(
+            initialWorldState = worldState,
+            llmClient = llmClient
+        )
     }
 
     // ====================
@@ -129,14 +103,14 @@ abstract class BehaviorTestBase {
         context.block()
     }
 
-    protected suspend fun command(input: String): String {
+    internal suspend fun command(input: String): String {
         lastOutput = engine.processInput(input)
         return lastOutput
     }
 
-    protected fun worldState(): WorldState = engine.getWorldState()
+    internal fun worldState(): WorldState = engine.getWorldState()
 
-    protected fun reset() {
+    internal fun reset() {
         engine.reset()
         lastOutput = ""
     }
@@ -145,15 +119,15 @@ abstract class BehaviorTestBase {
     // Common setups
     // ====================
 
-    protected fun playerInDungeon(): WorldState {
+    internal fun playerInDungeon(): WorldState {
         return engine.getWorldState()
     }
 
-    protected suspend fun movePlayerTo(direction: Direction): String {
+    internal suspend fun movePlayerTo(direction: Direction): String {
         return command("go ${direction.displayName}")
     }
 
-    protected suspend fun givePlayerItem(item: Entity.Item) {
+    internal suspend fun givePlayerItem(item: Entity.Item) {
         val state = engine.getWorldState()
         val updated = state.updatePlayer(state.player.addToInventory(item))
         // Note: Can't directly update engine state, need to use a trick
@@ -163,6 +137,9 @@ abstract class BehaviorTestBase {
         // This is a limitation - we can't directly mutate engine state
         // Users should use command() to manipulate state
     }
+
+    // Make lastOutput accessible to context
+    internal val output: String get() = lastOutput
 
     private fun loadApiKeyFromLocalProperties(): String? {
         return try {
@@ -184,9 +161,9 @@ abstract class BehaviorTestBase {
  * Context for BDD-style test execution.
  * Provides clean DSL: given/when/then.
  */
-class BehaviorTestContext(private val base: BehaviorTestBase) {
+class BehaviorTestContext internal constructor(private val base: BehaviorTestBase) {
 
-    suspend fun playerInDungeon() {
+    fun playerInDungeon() {
         base.playerInDungeon()
     }
 
@@ -196,7 +173,7 @@ class BehaviorTestContext(private val base: BehaviorTestBase) {
 
     fun worldState(): WorldState = base.worldState()
 
-    val output: String get() = base.lastOutput
+    val output: String get() = base.output
 
     // Alias for readability
     suspend fun `when`(block: suspend BehaviorTestContext.() -> Unit) {

@@ -3,6 +3,7 @@ package com.jcraw.mud.testbot.validation
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.RoomView
+import com.jcraw.mud.core.getCurrentRoomView
 import com.jcraw.mud.testbot.TestStep
 import com.jcraw.mud.testbot.ValidationResult
 
