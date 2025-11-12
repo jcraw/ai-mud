@@ -143,14 +143,25 @@ abstract class BehaviorTestBase {
 
     private fun loadApiKeyFromLocalProperties(): String? {
         return try {
-            val file = java.io.File("local.properties")
-            if (file.exists()) {
-                val props = java.util.Properties()
-                props.load(file.inputStream())
-                props.getProperty("openai.api.key")
-            } else {
-                null
+            // Try multiple locations for local.properties
+            val locations = listOf(
+                "local.properties",           // Current directory
+                "../local.properties",        // Parent directory (if running from module)
+                "../../local.properties"      // Grandparent (if running from nested module)
+            )
+
+            for (path in locations) {
+                val file = java.io.File(path)
+                if (file.exists()) {
+                    val props = java.util.Properties()
+                    props.load(file.inputStream())
+                    val key = props.getProperty("openai.api.key")
+                    if (key != null && key.isNotBlank()) {
+                        return key
+                    }
+                }
             }
+            null
         } catch (e: Exception) {
             null
         }
