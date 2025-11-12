@@ -83,17 +83,33 @@ class IntentRecognizer(
 
     /**
      * Check if input is ONLY a cardinal direction (no extra words).
+     * Also handles "go <direction>" and "move <direction>" patterns.
      * Returns the Direction if it's a pure cardinal direction, null otherwise.
      */
     private fun parseCardinalDirection(input: String): Direction? {
         val trimmed = input.trim().lowercase()
 
+        // Handle "go <direction>" and "move <direction>" patterns
+        val goPattern = Regex("^(?:go|move)\\s+(\\w+)$")
+        val goMatch = goPattern.find(trimmed)
+        if (goMatch != null) {
+            val directionPart = goMatch.groupValues[1]
+            return parseDirectionWord(directionPart)
+        }
+
         // Check if input is ONLY a cardinal direction (no extra words)
-        return when (trimmed) {
+        return parseDirectionWord(trimmed)
+    }
+
+    /**
+     * Parse a single word as a direction.
+     */
+    private fun parseDirectionWord(word: String): Direction? {
+        return when (word) {
             // Full names
-            "north", "south", "east", "west" -> Direction.fromString(trimmed)
-            "northeast", "northwest", "southeast", "southwest" -> Direction.fromString(trimmed)
-            "up", "down" -> Direction.fromString(trimmed)
+            "north", "south", "east", "west" -> Direction.fromString(word)
+            "northeast", "northwest", "southeast", "southwest" -> Direction.fromString(word)
+            "up", "down" -> Direction.fromString(word)
 
             // Abbreviations
             "n" -> Direction.NORTH
