@@ -80,7 +80,6 @@ class MudGame(
     private val lootGenerator = LootGenerator(itemRepository)
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
-    private val playerRespawnService = PlayerRespawnService(corpseRepository)
 
     // Social system components
     private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
@@ -125,6 +124,7 @@ class MudGame(
 
     // Death & Corpse System components (Chunk 6)
     internal val corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
+    private val playerRespawnService = PlayerRespawnService(corpseRepository)
     // TODO: Add corpse decay scheduler when integrated
     // internal val corpseDecayScheduler = CorpseDecayScheduler(corpseRepository)
 

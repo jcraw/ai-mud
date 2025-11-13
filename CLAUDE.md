@@ -171,6 +171,42 @@ Memory (store for RAG)
 4. **Choose dungeon**: Sample (6 rooms) or procedural (4 themes, customizable size)
 5. **Play**: See [Getting Started Guide](docs/GETTING_STARTED.md) for full command reference
 
+## Configuration
+
+### Mob Generation Toggle
+
+**Keywords**: disable mobs, turn off monsters, turn off enemies, no hostile NPCs, empty dungeon, mob spawning toggle
+
+Control whether monsters spawn in the game world. This affects all hostile and friendly NPCs spawned via the mob spawning system.
+
+**What gets disabled**:
+- ✅ Hostile monsters (enemies in dungeons)
+- ✅ Friendly creatures (non-hostile NPCs)
+- ❌ Merchants (always spawn - gameplay critical)
+- ❌ Bosses (always spawn - gameplay critical)
+
+**Location**: `core/src/main/kotlin/com/jcraw/mud/core/MobGenerationConfig.kt`
+
+**Usage**:
+```kotlin
+// Disable all mob spawning
+MobGenerationConfig.enabled = false
+
+// Re-enable mob spawning (default)
+MobGenerationConfig.enabled = true
+```
+
+**Affects**:
+- Initial world/chunk generation
+- Game load respawns
+- Timer-based respawns
+
+**Use cases**:
+- Testing game mechanics without combat
+- Exploring world generation
+- Debugging navigation systems
+- Creating empty dungeons for screenshots
+
 ## Important Notes
 
 - **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.

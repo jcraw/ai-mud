@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.MobGenerationConfig
 import com.jcraw.mud.core.Stats
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.Serializable
@@ -47,6 +48,9 @@ open class MobSpawner(
         difficulty: Int,
         spaceSize: Int = 10
     ): List<Entity.NPC> {
+        // Check if mob generation is disabled
+        if (!MobGenerationConfig.enabled) return emptyList()
+
         val mobCount = MobSpawnTuning.desiredMobCount(mobDensity, spaceSize)
         if (mobCount == 0) return emptyList()
 
