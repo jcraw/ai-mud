@@ -29,6 +29,9 @@ class ProceduralLoopTest : BehaviorTestBase() {
     // This test uses deterministic exploration - no LLM needed
     override val requiresLLM: Boolean = false
 
+    // Store seed for current test iteration
+    private var currentSeed: Int = 0
+
     /**
      * Generate a procedural V3 world with high loop frequency.
      * This ensures the test has actual graph cycles to find.
@@ -36,8 +39,10 @@ class ProceduralLoopTest : BehaviorTestBase() {
     override fun createInitialWorldState(): WorldState {
         println("\n=== Generating Procedural World with Loops ===")
 
-        // Use deterministic RNG for reproducible tests
-        val rng = kotlin.random.Random(12345)
+        // Use the current seed (set by test method)
+        val rng = kotlin.random.Random(currentSeed)
+        println("Using seed: $currentSeed")
+
         val graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(rng, difficultyLevel = 1)
 
         // Create layout with MAX loop frequency to guarantee loops
@@ -177,60 +182,153 @@ class ProceduralLoopTest : BehaviorTestBase() {
         return false
     }
 
+    /**
+     * Find a loop path from start position back to itself using BFS.
+     * Returns list of directions to navigate the loop, or null if no loop found.
+     * Excludes trivial back-and-forth loops (e.g., east→west).
+     */
+    private fun findLoopPath(startingRoomId: String, minLoopSize: Int = 4, maxDepth: Int = 10): List<String>? {
+        data class SearchNode(
+            val roomId: String,
+            val path: List<String>,
+            val visitedRooms: Set<String>
+        )
+
+        val queue = ArrayDeque<SearchNode>()
+
+        // Get starting exits
+        val startSpace = worldState().spaces[startingRoomId]
+        val startExits = startSpace?.exits ?: return null
+
+        // Try each initial direction
+        for (exit in startExits) {
+            queue.add(SearchNode(
+                roomId = exit.targetId,
+                path = listOf(exit.direction),
+                visitedRooms = setOf(startingRoomId, exit.targetId)
+            ))
+        }
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+
+            // Found a loop! Must be at least minLoopSize to avoid trivial backtracking
+            if (current.roomId == startingRoomId && current.path.size >= minLoopSize) {
+                return current.path
+            }
+
+            // Don't explore too deep
+            if (current.path.size >= maxDepth) {
+                continue
+            }
+
+            // Explore neighbors
+            val space = worldState().spaces[current.roomId]
+            val exits = space?.exits ?: continue
+
+            for (exit in exits) {
+                val nextRoomId = exit.targetId
+
+                // Allow returning to start only if we have enough moves
+                if (nextRoomId == startingRoomId) {
+                    if (current.path.size >= minLoopSize - 1) {
+                        queue.add(SearchNode(
+                            roomId = nextRoomId,
+                            path = current.path + exit.direction,
+                            visitedRooms = current.visitedRooms + nextRoomId
+                        ))
+                    }
+                } else if (nextRoomId !in current.visitedRooms) {
+                    // Only visit new rooms (except for returning to start)
+                    queue.add(SearchNode(
+                        roomId = nextRoomId,
+                        path = current.path + exit.direction,
+                        visitedRooms = current.visitedRooms + nextRoomId
+                    ))
+                }
+            }
+        }
+
+        return null
+    }
+
     @Test
     fun `Generated world with high loop frequency has navigable cycles`() = runTest {
+        // Test with multiple random seeds to ensure robustness
+        val seeds = listOf(12345, 54321, 99999, 11111, 42424)
+        val successfulTests = mutableListOf<String>()
+
         println("\n" + "=".repeat(60))
-        println("TEST: Verify Loop Frequency Parameter Creates Cycles")
-        println("=".repeat(60) + "\n")
+        println("TEST: Verify Spatial Consistency Across Multiple Graphs")
+        println("Testing with ${seeds.size} different random seeds")
+        println("=".repeat(60))
 
-        // Record starting position
-        val startingRoomId = worldState().player.currentRoomId
-        val startingSpace = worldState().getCurrentSpace()
+        for ((iteration, seed) in seeds.withIndex()) {
+            println("\n" + "-".repeat(60))
+            println("ITERATION ${iteration + 1}/${seeds.size} - Seed: $seed")
+            println("-".repeat(60))
 
-        println("📍 Starting Position: ${startingSpace?.name} (ID: $startingRoomId)")
-        println("   Description: ${startingSpace?.description?.take(100)}...")
-        println()
+            // Set seed and recreate engine with new world
+            currentSeed = seed
+            engine = createEngine()
 
-        // Test 1: Verify graph has cycles (already done in setup, but reconfirm)
-        val graphNodes = worldState().graphNodes.values.toList()
-        val hasCycles = detectCycle(graphNodes)
-        println("✅ Test 1: Graph topology has cycles: $hasCycles")
-        assertTrue(hasCycles, "Graph should contain cycles with loopFrequency=1.0")
+            // Record starting position
+            val startingRoomId = worldState().player.currentRoomId
+            val startingSpace = worldState().getCurrentSpace()
 
-        // Test 2: Verify we can navigate successfully
-        println("\n🤖 Testing navigation (5 moves)...")
-        for (i in 1..5) {
-            val currentSpace = worldState().getCurrentSpace()
-            val exits = currentSpace?.exits ?: emptyList()
+            println("📍 Starting Position: ${startingSpace?.name} (ID: $startingRoomId)")
 
-            if (exits.isNotEmpty()) {
-                val direction = exits.first().direction
+            // Test 1: Verify graph has cycles
+            val graphNodes = worldState().graphNodes.values.toList()
+            val hasCycles = detectCycle(graphNodes)
+            assertTrue(hasCycles, "Graph should contain cycles with loopFrequency=1.0")
+
+            // Test 2: Find and navigate any loop path
+            println("🤖 Searching for a navigable loop using BFS...")
+
+            val loopPath = findLoopPath(startingRoomId)
+
+            if (loopPath == null) {
+                println("❌ Could not find a loop path within search depth")
+                throw AssertionError("Graph has cycles but starting node is not in a cycle (seed: $seed)")
+            }
+
+            println("✅ Found loop path with ${loopPath.size} moves: ${loopPath.joinToString(" → ")}")
+
+            // Test 3: Execute the loop and verify we return to start
+            val movements = mutableListOf<String>()
+            for ((index, direction) in loopPath.withIndex()) {
                 val oldRoom = worldState().player.currentRoomId
                 val output = command("go $direction")
                 val newRoom = worldState().player.currentRoomId
 
-                println("Move $i: $oldRoom → $direction → $newRoom")
+                movements.add("$oldRoom → $direction → $newRoom")
+                assertTrue(output.isNotEmpty(), "Move ${index + 1} should produce output")
+            }
 
-                // Verify we actually moved (or stayed if error)
-                assertTrue(
-                    output.isNotEmpty(),
-                    "Navigation command should return output"
-                )
+            val finalRoomId = worldState().player.currentRoomId
+
+            // Verify spatial consistency
+            if (finalRoomId == startingRoomId) {
+                println("✅ Loop completed! Returned to starting position")
+                successfulTests.add("Seed $seed: ${loopPath.size}-move loop")
+            } else {
+                println("❌ Spatial inconsistency detected!")
+                throw AssertionError("Loop path did not return to start (seed: $seed). Expected: $startingRoomId, Got: $finalRoomId")
             }
         }
 
-        println("✅ Test 2: Navigation works correctly")
-
-        // Final results
+        // Final summary
         println("\n" + "=".repeat(60))
-        println("TEST RESULTS")
+        println("FINAL TEST RESULTS")
         println("=".repeat(60))
-        println("✅ Graph has cycles (via DFS cycle detection)")
-        println("✅ Navigation works (5 successful command executions)")
-        println("✅ Loop frequency parameter is working")
+        println("✅ All ${seeds.size} iterations passed!")
+        println("\nSuccessful loop tests:")
+        successfulTests.forEach { println("  • $it") }
+        println("\n✅ Spatial consistency verified across multiple graph topologies")
+        println("✅ Navigation system is spatially coherent")
         println("=".repeat(60) + "\n")
 
-        // Test passes if we got here
         println("All assertions passed!")
     }
 
