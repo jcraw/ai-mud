@@ -127,8 +127,8 @@ data class WorldState(
         val playerState = players[playerId] ?: return null
         val currentNode = graphNodes[playerState.currentRoomId] ?: return null
 
-        // Find edge matching direction
-        val edge = currentNode.getEdge(direction.displayName) ?: return null
+        // Find edge matching direction (position-aware for spatial coherence)
+        val edge = currentNode.getEdgeGeometric(direction.displayName) ?: return null
 
         val access = evaluateEdgeAccess(playerState, currentNode, edge)
         if (!access.canTraverse) return null
@@ -142,6 +142,11 @@ data class WorldState(
         if (access.shouldRevealEdge) {
             updatedPlayer = updatedPlayer.revealExit(access.edgeId)
         }
+
+        // Auto-reveal the reverse edge (the path back)
+        // If you just came from that direction, you know how to get back
+        val reverseEdgeId = "${edge.targetId}->${playerState.currentRoomId}"
+        updatedPlayer = updatedPlayer.revealExit(reverseEdgeId)
 
         // Move player to target
         return updatePlayer(updatedPlayer.moveToRoom(edge.targetId))
@@ -168,6 +173,11 @@ data class WorldState(
         if (access.shouldRevealEdge) {
             updatedPlayer = updatedPlayer.revealExit(access.edgeId)
         }
+
+        // Auto-reveal the reverse edge (the path back)
+        // If you just came from that direction, you know how to get back
+        val reverseEdgeId = "${edge.targetId}->${playerState.currentRoomId}"
+        updatedPlayer = updatedPlayer.revealExit(reverseEdgeId)
 
         return updatePlayer(updatedPlayer.moveToRoom(edge.targetId))
     }

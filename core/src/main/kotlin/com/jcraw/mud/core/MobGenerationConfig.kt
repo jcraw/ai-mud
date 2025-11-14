@@ -44,5 +44,5 @@ object MobGenerationConfig {
      * When false, no monsters spawn (merchants and bosses still spawn).
      * Default: true
      */
-    var enabled: Boolean = true
+    var enabled: Boolean = false
 }

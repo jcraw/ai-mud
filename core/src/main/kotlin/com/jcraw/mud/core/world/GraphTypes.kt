@@ -99,7 +99,26 @@ data class EdgeData(
      * Access conditions (skill checks, item requirements)
      * Player must meet all conditions to traverse this edge
      */
-    val conditions: List<Condition> = emptyList()
+    val conditions: List<Condition> = emptyList(),
+
+    /**
+     * Geometric angle from source to target node (in radians)
+     * Used for position-aware navigation to maintain spatial coherence
+     * 0 = east, π/2 = south, π = west, 3π/2 = north
+     */
+    val geometricAngle: Double? = null,
+
+    /**
+     * Source node position (x, y) at edge creation time
+     * Used for geometric navigation fallback if label doesn't match spatial reality
+     */
+    val fromPosition: Pair<Int, Int>? = null,
+
+    /**
+     * Target node position (x, y) at edge creation time
+     * Used for geometric navigation fallback if label doesn't match spatial reality
+     */
+    val toPosition: Pair<Int, Int>? = null
 ) {
     /**
      * Generate unique ID for this edge (for tracking revealed exits)

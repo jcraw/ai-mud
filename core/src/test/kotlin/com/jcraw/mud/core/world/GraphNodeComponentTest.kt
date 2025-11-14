@@ -462,4 +462,190 @@ class GraphNodeComponentTest {
         assertEquals(5, node.position!!.first)
         assertEquals(10, node.position!!.second)
     }
+
+    // ==================== GEOMETRIC NAVIGATION TESTS ====================
+
+    @Test
+    fun `getEdgeGeometric returns exact match when label matches`() {
+        val edge = EdgeData(
+            targetId = "node-2",
+            direction = "north",
+            geometricAngle = 3 * Math.PI / 2, // north
+            fromPosition = Pair(5, 5),
+            toPosition = Pair(5, 4)
+        )
+        val node = GraphNodeComponent(
+            id = "node-1",
+            type = NodeType.Linear,
+            position = Pair(5, 5),
+            neighbors = listOf(edge),
+            chunkId = "chunk-1"
+        )
+
+        val found = node.getEdgeGeometric("north")
+        assertNotNull(found)
+        assertEquals("node-2", found.targetId)
+    }
+
+    @Test
+    fun `getEdgeGeometric uses geometric fallback when label doesnt match`() {
+        // Edge labeled "passage-1" but geometrically points east
+        val edge = EdgeData(
+            targetId = "node-2",
+            direction = "passage-1",
+            geometricAngle = 0.0, // east
+            fromPosition = Pair(5, 5),
+            toPosition = Pair(6, 5)
+        )
+        val node = GraphNodeComponent(
+            id = "node-1",
+            type = NodeType.Linear,
+            position = Pair(5, 5),
+            neighbors = listOf(edge),
+            chunkId = "chunk-1"
+        )
+
+        val found = node.getEdgeGeometric("east")
+        assertNotNull(found)
+        assertEquals("node-2", found.targetId)
+    }
+
+    @Test
+    fun `getEdgeGeometric maintains spatial coherence for cardinal directions`() {
+        // Test E, SE, S, SW, W, NW, N, NE
+        val testCases = listOf(
+            Triple("east", 0.0, Pair(6, 5)),
+            Triple("southeast", Math.PI / 4, Pair(6, 6)),
+            Triple("south", Math.PI / 2, Pair(5, 6)),
+            Triple("southwest", 3 * Math.PI / 4, Pair(4, 6)),
+            Triple("west", Math.PI, Pair(4, 5)),
+            Triple("northwest", 5 * Math.PI / 4, Pair(4, 4)),
+            Triple("north", 3 * Math.PI / 2, Pair(5, 4)),
+            Triple("northeast", 7 * Math.PI / 4, Pair(6, 4))
+        )
+
+        for ((direction, angle, targetPos) in testCases) {
+            val edge = EdgeData(
+                targetId = "node-$direction",
+                direction = "passage-1", // Wrong label
+                geometricAngle = angle,
+                fromPosition = Pair(5, 5),
+                toPosition = targetPos
+            )
+            val node = GraphNodeComponent(
+                id = "node-center",
+                type = NodeType.Hub,
+                position = Pair(5, 5),
+                neighbors = listOf(edge),
+                chunkId = "chunk-1"
+            )
+
+            val found = node.getEdgeGeometric(direction)
+            assertNotNull(found, "Should find edge for $direction")
+            assertEquals("node-$direction", found.targetId, "Wrong target for $direction")
+        }
+    }
+
+    @Test
+    fun `getEdgeGeometric returns null when no position available`() {
+        val edge = EdgeData(
+            targetId = "node-2",
+            direction = "passage-1"
+            // No geometric data
+        )
+        val node = GraphNodeComponent(
+            id = "node-1",
+            type = NodeType.Linear,
+            position = null, // No position
+            neighbors = listOf(edge),
+            chunkId = "chunk-1"
+        )
+
+        val found = node.getEdgeGeometric("east")
+        assertNull(found)
+    }
+
+    @Test
+    fun `getEdgeGeometric returns null when angle difference too large`() {
+        // Edge points north but we're looking for south
+        val edge = EdgeData(
+            targetId = "node-2",
+            direction = "passage-1",
+            geometricAngle = 3 * Math.PI / 2, // north
+            fromPosition = Pair(5, 5),
+            toPosition = Pair(5, 4)
+        )
+        val node = GraphNodeComponent(
+            id = "node-1",
+            type = NodeType.Linear,
+            position = Pair(5, 5),
+            neighbors = listOf(edge),
+            chunkId = "chunk-1"
+        )
+
+        val found = node.getEdgeGeometric("south")
+        assertNull(found, "Should not match opposite direction")
+    }
+
+    @Test
+    fun `getEdgeGeometric selects closest angle when multiple edges`() {
+        val edgeNorth = EdgeData(
+            targetId = "node-north",
+            direction = "passage-1",
+            geometricAngle = 3 * Math.PI / 2, // north
+            fromPosition = Pair(5, 5),
+            toPosition = Pair(5, 4)
+        )
+        val edgeNortheast = EdgeData(
+            targetId = "node-northeast",
+            direction = "passage-2",
+            geometricAngle = 7 * Math.PI / 4, // northeast
+            fromPosition = Pair(5, 5),
+            toPosition = Pair(6, 4)
+        )
+        val node = GraphNodeComponent(
+            id = "node-1",
+            type = NodeType.Branching,
+            position = Pair(5, 5),
+            neighbors = listOf(edgeNorth, edgeNortheast),
+            chunkId = "chunk-1"
+        )
+
+        val foundNorth = node.getEdgeGeometric("north")
+        assertNotNull(foundNorth)
+        assertEquals("node-north", foundNorth.targetId)
+
+        val foundNortheast = node.getEdgeGeometric("northeast")
+        assertNotNull(foundNortheast)
+        assertEquals("node-northeast", foundNortheast.targetId)
+    }
+
+    @Test
+    fun `getEdgeGeometric supports spatial coherence for grid navigation`() {
+        // Simulate: Start at (1,1), go E to (2,1), go S to (2,2)
+        // From (2,2), should be able to go NW back to (1,1)
+
+        // From position (2, 2), NW should point to (1, 1)
+        // Angle from (2,2) to (1,1): dx=-1, dy=-1
+        // atan2(-dy, dx) = atan2(1, -1) = 3π/4 (northwest in screen coords)
+        // But we flip Y: northwest = 5π/4
+        val edgeToOrigin = EdgeData(
+            targetId = "origin",
+            direction = "passage-3", // Wrong label
+            geometricAngle = 5 * Math.PI / 4, // northwest
+            fromPosition = Pair(2, 2),
+            toPosition = Pair(1, 1)
+        )
+        val nodeAtTwoTwo = GraphNodeComponent(
+            id = "node-2-2",
+            type = NodeType.Branching,
+            position = Pair(2, 2),
+            neighbors = listOf(edgeToOrigin),
+            chunkId = "chunk-1"
+        )
+
+        val found = nodeAtTwoTwo.getEdgeGeometric("northwest")
+        assertNotNull(found, "Should find NW edge from (2,2) to (1,1)")
+        assertEquals("origin", found.targetId)
+    }
 }

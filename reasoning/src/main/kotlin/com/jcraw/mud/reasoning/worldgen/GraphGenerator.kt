@@ -460,12 +460,45 @@ class GraphGenerator(
             val direction = calculateDirection(fromNode, toNode)
             val reverseDirection = calculateDirection(toNode, fromNode)
 
-            // Add bidirectional edges
+            // Calculate geometric angles and positions for spatial coherence
+            val (angleDegreesFromTo, _) = calculateAngleAndDistance(fromNode, toNode)
+            val (angleDegreesToFrom, _) = calculateAngleAndDistance(toNode, fromNode)
+
+            // Convert degrees to radians (0=east, π/2=south, π=west, 3π/2=north)
+            // calculateAngleAndDistance uses: 0°=east, 90°=north (negated dy)
+            // We need: 0=east, π/2=south, π=west, 3π/2=north
+            val angleRadiansFromTo = angleDegreesFromTo?.let { degrees ->
+                // Convert: 0°=E, 90°=N → 0=E, 3π/2=N, π/2=S
+                val radians = Math.toRadians(degrees)
+                // Flip Y axis: input has -dy (north=+90°), we want south=+90°
+                val flipped = -radians
+                // Normalize to [0, 2π)
+                (flipped + 2 * Math.PI) % (2 * Math.PI)
+            }
+            val angleRadiansToFrom = angleDegreesToFrom?.let { degrees ->
+                val radians = Math.toRadians(degrees)
+                val flipped = -radians
+                (flipped + 2 * Math.PI) % (2 * Math.PI)
+            }
+
+            // Add bidirectional edges with geometric data
             edgeMap.getValue(from).add(
-                EdgeData(targetId = to, direction = direction)
+                EdgeData(
+                    targetId = to,
+                    direction = direction,
+                    geometricAngle = angleRadiansFromTo,
+                    fromPosition = fromNode.position,
+                    toPosition = toNode.position
+                )
             )
             edgeMap.getValue(to).add(
-                EdgeData(targetId = from, direction = reverseDirection)
+                EdgeData(
+                    targetId = from,
+                    direction = reverseDirection,
+                    geometricAngle = angleRadiansToFrom,
+                    fromPosition = toNode.position,
+                    toPosition = fromNode.position
+                )
             )
         }
 
@@ -629,12 +662,22 @@ class GraphGenerator(
 
                 nodeMap[node.id] = currentNode.copy(
                     neighbors = currentNode.neighbors.map {
-                        if (it.targetId == edge.targetId) it.copy(direction = newForward) else it
+                        if (it.targetId == edge.targetId) it.copy(
+                            direction = newForward,
+                            geometricAngle = it.geometricAngle,
+                            fromPosition = it.fromPosition,
+                            toPosition = it.toPosition
+                        ) else it
                     }
                 )
                 nodeMap[targetNode.id] = currentTarget.copy(
                     neighbors = currentTarget.neighbors.map {
-                        if (it.targetId == node.id) it.copy(direction = newReverse) else it
+                        if (it.targetId == node.id) it.copy(
+                            direction = newReverse,
+                            geometricAngle = it.geometricAngle,
+                            fromPosition = it.fromPosition,
+                            toPosition = it.toPosition
+                        ) else it
                     }
                 )
             }
@@ -736,13 +779,21 @@ class GraphGenerator(
                         targetId = node.id,
                         direction = reverseDirection,
                         hidden = oldEdge.hidden,
-                        conditions = oldEdge.conditions
+                        conditions = oldEdge.conditions,
+                        geometricAngle = oldEdge.geometricAngle,
+                        fromPosition = oldEdge.fromPosition,
+                        toPosition = oldEdge.toPosition
                     )
                 }
             }
 
             // Add updated forward edge to result
-            result.add(context.edge.copy(direction = newDirection))
+            result.add(context.edge.copy(
+                direction = newDirection,
+                geometricAngle = context.edge.geometricAngle,
+                fromPosition = context.edge.fromPosition,
+                toPosition = context.edge.toPosition
+            ))
         }
 
         return result
@@ -779,7 +830,12 @@ class GraphGenerator(
                 pickFallbackDirection(used)
             }
             used += label
-            context.edge.copy(direction = label)
+            context.edge.copy(
+                direction = label,
+                geometricAngle = context.edge.geometricAngle,
+                fromPosition = context.edge.fromPosition,
+                toPosition = context.edge.toPosition
+            )
         }
     }
 
@@ -810,7 +866,13 @@ class GraphGenerator(
                     } else {
                         "back"
                     }
-                    reverseList.add(edge.copy(targetId = fromId, direction = reverseDirection))
+                    reverseList.add(edge.copy(
+                        targetId = fromId,
+                        direction = reverseDirection,
+                        geometricAngle = edge.geometricAngle,
+                        fromPosition = edge.fromPosition,
+                        toPosition = edge.toPosition
+                    ))
                 }
             }
         }

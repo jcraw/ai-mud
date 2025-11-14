@@ -1,0 +1,81 @@
+        ================================================================================
+        [2025-11-14T04:55:51.181844309Z]
+
+        Player: go n
+
+        Game Master:
+        Dark Corridor
+narrow stone passage. echoing footsteps. dripping water sounds. spider webs in corners. worn flagstone floor.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-11-14T04:55:52.594928830Z]
+
+        Player: go n
+
+        Game Master:
+        Abandoned Throne Room
+massive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-11-14T04:55:57.590912633Z]
+
+        Player: rush to throne
+
+        Game Master:
+        Command not supported in test mode: Interact(target=throne)
+
+        Validation: FAIL
+Reason: Combat did not initiate as expected, and the response indicates a command error.
+        ================================================================================
+        [2025-11-14T04:56:01.496777955Z]
+
+        Player: attack skeleton king unarmed
+
+        Game Master:
+        You attack Skeleton King with bare fists for 11 damage!
+Skeleton King strikes back for 15 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king unarmed' in room but combat didn't start
+        ================================================================================
+        [2025-11-14T04:56:04.372496817Z]
+
+        Player: continue attacking skeleton king unarmed
+
+        Game Master:
+        You attack Skeleton King with bare fists for 14 damage!
+Skeleton King strikes back for 8 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king unarmed' in room but combat didn't start
+        ================================================================================
+        [2025-11-14T04:56:07.153481349Z]
+
+        Player: continue attacking skeleton king unarmed
+
+        Game Master:
+        You attack Skeleton King with bare fists for 13 damage!
+Skeleton King strikes back for 15 damage!
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king unarmed' in room but combat didn't start
+        ================================================================================
+        [2025-11-14T04:56:10.016222123Z]
+
+        Player: continue attacking skeleton king unarmed
+
+        Game Master:
+        You attack Skeleton King with bare fists for 6 damage!
+Skeleton King strikes back for 8 damage!
+You have been defeated! Game over.
+
+        Validation: FAIL
+Reason: [CODE] Bug: NPC 'skeleton king unarmed' in room but combat didn't start

@@ -1,0 +1,89 @@
+        ================================================================================
+        [2025-11-14T04:52:30.441118698Z]
+
+        Player: look at entrance
+
+        Game Master:
+        You don't see that here.
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'entrance'
+        ================================================================================
+        [2025-11-14T04:52:35.608327683Z]
+
+        Player: talk old guard
+
+        Game Master:
+        Old Guard says: ""Ah, a brave adventurer comes to this old sentinel's post! I may be a bit battered, but I can still lend an ear or some advice. What brings you to these gates?""
+
+        Validation: PASS
+Reason: [CODE] NPC dialogue generated for 'old guard' (talk is conversation, not a check)
+        ================================================================================
+        [2025-11-14T04:52:40.279514040Z]
+
+        Player: persuade old guard
+
+        Game Master:
+        Failed! The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'
+
+        Validation: PASS
+Reason: [CODE] Persuasion check failed on 'old guard' (dice roll lost, mechanics work)
+        ================================================================================
+        [2025-11-14T04:52:42.159164918Z]
+
+        Player: go north
+
+        Game Master:
+        Dark Corridor
+narrow stone passage. echoing footsteps. dripping water sounds. spider webs in corners. worn flagstone floor.
+Exits: south, east, west, north
+You see: Suspicious Loose Stone
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Dark Corridor'
+        ================================================================================
+        [2025-11-14T04:52:43.454196304Z]
+
+        Player: go north
+
+        Game Master:
+        Abandoned Throne Room
+massive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.
+Exits: south, north
+You see: Skeleton King
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Abandoned Throne Room'
+        ================================================================================
+        [2025-11-14T04:52:46.955197694Z]
+
+        Player: intimidate Skeleton King
+
+        Game Master:
+        Failed! The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies.
+
+        Validation: PASS
+Reason: [CODE] Intimidation check failed on 'Skeleton King' (dice roll lost, mechanics work. Flavor text about hostility/consequences is normal for failed intimidation)
+        ================================================================================
+        [2025-11-14T04:52:51.607658987Z]
+
+        Player: look at throne
+
+        Game Master:
+        massive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.
+
+        Validation: PASS
+Reason: [CODE] Description provided for 'throne'
+        ================================================================================
+        [2025-11-14T04:52:53.479655259Z]
+
+        Player: go north
+
+        Game Master:
+        Hidden Chamber
+mysteriously lit crystal formations. ancient magical circles etched in floor. floating arcane symbols. humming with magical energy. portal-like shimmer in far wall.
+Exits: south
+You see: Heavy Stone Door, Ancient Rune Inscription
+
+        Validation: PASS
+Reason: [CODE] Movement succeeded: entered room 'Hidden Chamber'

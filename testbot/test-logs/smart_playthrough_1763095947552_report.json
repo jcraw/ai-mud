@@ -1,0 +1,310 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.SmartPlaythrough"
+    },
+    "totalSteps": 8,
+    "passedSteps": 8,
+    "failedSteps": 0,
+    "finalStatus": "PASSED",
+    "startTime": "2025-11-14T04:52:27.552143896Z",
+    "endTime": "2025-11-14T04:52:53.479909229Z",
+    "duration": 25927,
+    "steps": [
+        {
+            "timestamp": "2025-11-14T04:52:30.441118698Z",
+            "playerInput": "look at entrance",
+            "gmResponse": "You don't see that here.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'entrance'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "entrance",
+                    "description_length": "24"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:35.608327683Z",
+            "playerInput": "talk old guard",
+            "gmResponse": "Old Guard says: \"\"Ah, a brave adventurer comes to this old sentinel's post! I may be a bit battered, but I can still lend an ear or some advice. What brings you to these gates?\"\"",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] NPC dialogue generated for 'old guard' (talk is conversation, not a check)",
+                "details": {
+                    "validation_type": "code",
+                    "npc": "old guard",
+                    "interaction_type": "conversation",
+                    "npc_in_room": "true"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:40.279514040Z",
+            "playerInput": "persuade old guard",
+            "gmResponse": "Failed! The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Persuasion check failed on 'old guard' (dice roll lost, mechanics work)",
+                "details": {
+                    "validation_type": "code",
+                    "npc": "old guard",
+                    "check_result": "failed",
+                    "npc_in_room": "true"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:42.159164918Z",
+            "playerInput": "go north",
+            "gmResponse": "Dark Corridor\nnarrow stone passage. echoing footsteps. dripping water sounds. spider webs in corners. worn flagstone floor.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Dark Corridor",
+                    "room_id": "corridor"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:43.454196304Z",
+            "playerInput": "go north",
+            "gmResponse": "Abandoned Throne Room\nmassive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.\nExits: south, north\nYou see: Skeleton King",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Abandoned Throne Room",
+                    "room_id": "throne_room"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:46.955197694Z",
+            "playerInput": "intimidate Skeleton King",
+            "gmResponse": "Failed! The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Intimidation check failed on 'Skeleton King' (dice roll lost, mechanics work. Flavor text about hostility/consequences is normal for failed intimidation)",
+                "details": {
+                    "validation_type": "code",
+                    "npc": "Skeleton King",
+                    "check_result": "failed",
+                    "npc_in_room": "true"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:51.607658987Z",
+            "playerInput": "look at throne",
+            "gmResponse": "massive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'throne'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "throne",
+                    "description_length": "145"
+                }
+            }
+        },
+        {
+            "timestamp": "2025-11-14T04:52:53.479655259Z",
+            "playerInput": "go north",
+            "gmResponse": "Hidden Chamber\nmysteriously lit crystal formations. ancient magical circles etched in floor. floating arcane symbols. humming with magical energy. portal-like shimmer in far wall.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Movement succeeded: entered room 'Hidden Chamber'",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass",
+                    "room_name": "Hidden Chamber",
+                    "room_id": "secret_chamber"
+                }
+            }
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-11-14T04:52:30.441118698Z",
+                "playerInput": "look at entrance",
+                "gmResponse": "You don't see that here.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'entrance'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "entrance",
+                        "description_length": "24"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-11-14T04:52:35.608327683Z",
+                "playerInput": "talk old guard",
+                "gmResponse": "Old Guard says: \"\"Ah, a brave adventurer comes to this old sentinel's post! I may be a bit battered, but I can still lend an ear or some advice. What brings you to these gates?\"\"",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] NPC dialogue generated for 'old guard' (talk is conversation, not a check)",
+                    "details": {
+                        "validation_type": "code",
+                        "npc": "old guard",
+                        "interaction_type": "conversation",
+                        "npc_in_room": "true"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-11-14T04:52:40.279514040Z",
+                "playerInput": "persuade old guard",
+                "gmResponse": "Failed! The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Persuasion check failed on 'old guard' (dice roll lost, mechanics work)",
+                    "details": {
+                        "validation_type": "code",
+                        "npc": "old guard",
+                        "check_result": "failed",
+                        "npc_in_room": "true"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-11-14T04:52:42.159164918Z",
+                "playerInput": "go north",
+                "gmResponse": "Dark Corridor\nnarrow stone passage. echoing footsteps. dripping water sounds. spider webs in corners. worn flagstone floor.\nExits: south, east, west, north\nYou see: Suspicious Loose Stone",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Dark Corridor'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Dark Corridor",
+                        "room_id": "corridor"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-11-14T04:52:43.454196304Z",
+                "playerInput": "go north",
+                "gmResponse": "Abandoned Throne Room\nmassive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.\nExits: south, north\nYou see: Skeleton King",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Abandoned Throne Room'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Abandoned Throne Room",
+                        "room_id": "throne_room"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-11-14T04:52:46.955197694Z",
+                "playerInput": "intimidate Skeleton King",
+                "gmResponse": "Failed! The Skeleton King laughs, a hollow rattling sound. 'You dare threaten ME? Foolish mortal!' His hostility intensifies.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Intimidation check failed on 'Skeleton King' (dice roll lost, mechanics work. Flavor text about hostility/consequences is normal for failed intimidation)",
+                    "details": {
+                        "validation_type": "code",
+                        "npc": "Skeleton King",
+                        "check_result": "failed",
+                        "npc_in_room": "true"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-11-14T04:52:51.607658987Z",
+                "playerInput": "look at throne",
+                "gmResponse": "massive stone throne. faded royal tapestries. cracked marble floor. ominous shadows. cold draft from unseen passages. skeleton slumped on throne.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'throne'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "throne",
+                        "description_length": "145"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-11-14T04:52:53.479655259Z",
+                "playerInput": "go north",
+                "gmResponse": "Hidden Chamber\nmysteriously lit crystal formations. ancient magical circles etched in floor. floating arcane symbols. humming with magical energy. portal-like shimmer in far wall.\nExits: south\nYou see: Heavy Stone Door, Ancient Rune Inscription",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Movement succeeded: entered room 'Hidden Chamber'",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass",
+                        "room_name": "Hidden Chamber",
+                        "room_id": "secret_chamber"
+                    }
+                }
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        }
+    ],
+    "uniqueRoomsVisited": 3,
+    "roomNames": [
+        "Dark Corridor",
+        "Abandoned Throne Room",
+        "Hidden Chamber"
+    ]
+}

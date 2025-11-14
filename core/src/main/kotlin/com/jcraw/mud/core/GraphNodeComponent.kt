@@ -87,6 +87,73 @@ data class GraphNodeComponent(
     }
 
     /**
+     * Get edge by direction with position-aware fallback
+     * First tries exact label match, then uses geometric calculation if available
+     * This maintains spatial coherence even when direction labels don't match geometry
+     *
+     * @param direction The direction string to match (e.g., "north", "east")
+     * @param currentPosition Optional current node position for geometric calculations
+     * @return Matching edge or null if not found
+     */
+    fun getEdgeGeometric(direction: String, currentPosition: Pair<Int, Int>? = this.position): EdgeData? {
+        // Fast path: Try exact label match first
+        val exactMatch = neighbors.find { it.direction.equals(direction, ignoreCase = true) }
+        if (exactMatch != null) return exactMatch
+
+        // If no position available, can't do geometric matching
+        if (currentPosition == null) return null
+
+        // Calculate expected angle for requested direction
+        val expectedAngle = directionToAngle(direction) ?: return null
+
+        // Find edge with closest geometric angle
+        val geometricMatch = neighbors
+            .filter { it.geometricAngle != null }
+            .minByOrNull { edge ->
+                angleDifference(expectedAngle, edge.geometricAngle!!)
+            }
+
+        // Only return if angle difference is reasonable (within 45 degrees tolerance)
+        return if (geometricMatch != null &&
+                   angleDifference(expectedAngle, geometricMatch.geometricAngle!!) < Math.PI / 4) {
+            geometricMatch
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Convert direction string to expected angle in radians
+     * 0 = east, π/2 = south, π = west, 3π/2 = north
+     */
+    private fun directionToAngle(direction: String): Double? {
+        return when (direction.lowercase()) {
+            "east", "e" -> 0.0
+            "southeast", "se" -> Math.PI / 4
+            "south", "s" -> Math.PI / 2
+            "southwest", "sw" -> 3 * Math.PI / 4
+            "west", "w" -> Math.PI
+            "northwest", "nw" -> 5 * Math.PI / 4
+            "north", "n" -> 3 * Math.PI / 2
+            "northeast", "ne" -> 7 * Math.PI / 4
+            else -> null // up/down/passage-N have no geometric meaning
+        }
+    }
+
+    /**
+     * Calculate smallest angle difference between two angles (in radians)
+     * Handles wraparound (e.g., 350° and 10° are close)
+     */
+    private fun angleDifference(angle1: Double, angle2: Double): Double {
+        val diff = Math.abs(angle1 - angle2)
+        return if (diff > Math.PI) {
+            2 * Math.PI - diff
+        } else {
+            diff
+        }
+    }
+
+    /**
      * Get all visible edges (not hidden or already revealed)
      * Used for exit display
      */

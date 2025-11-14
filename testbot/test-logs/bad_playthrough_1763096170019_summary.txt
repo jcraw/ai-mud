@@ -1,0 +1,51 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: bad_playthrough
+        Description: Play poorly: skip gear, rush combat, die to boss (validates difficulty)
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 6
+        - Passed: 2
+        - Failed: 4
+        - Pass Rate: 33%
+
+        Timing:
+        - Start: 2025-11-14T04:56:10.019340196Z
+        - End: 2025-11-14T04:56:23.675564917Z
+        - Duration: 13.66s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 4: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 5: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 6: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
