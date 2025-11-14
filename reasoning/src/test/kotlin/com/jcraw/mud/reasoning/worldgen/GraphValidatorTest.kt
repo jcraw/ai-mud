@@ -20,6 +20,7 @@ class GraphValidatorTest {
     @DisplayName("Valid graph with all requirements passes validation")
     fun testValidGraph() {
         // Create 5-node graph with loop, good connectivity, frontiers
+        // Average degree: (3 + 3 + 4 + 3 + 2) / 5 = 3.0
         val nodes = listOf(
             GraphNodeComponent(
                 id = "node1",
@@ -37,7 +38,8 @@ class GraphValidatorTest {
                 chunkId = "test",
                 neighbors = listOf(
                     EdgeData("node1", "south"),
-                    EdgeData("node3", "east")
+                    EdgeData("node3", "east"),
+                    EdgeData("node5", "northeast")  // Added edge to increase avg degree
                 )
             ),
             GraphNodeComponent(
@@ -66,6 +68,7 @@ class GraphValidatorTest {
                 type = NodeType.Frontier,
                 chunkId = "test",
                 neighbors = listOf(
+                    EdgeData("node2", "southwest"),  // Reverse of added edge
                     EdgeData("node3", "west"),
                     EdgeData("node4", "west")
                 )
@@ -74,6 +77,9 @@ class GraphValidatorTest {
 
         val result = validator.validate(nodes)
 
+        if (result is ValidationResult.Failure) {
+            println("Validation failures: ${result.reasons}")
+        }
         assertTrue(result is ValidationResult.Success, "Valid graph should pass validation")
     }
 
@@ -568,6 +574,98 @@ class GraphValidatorTest {
         if (result is ValidationResult.Failure) {
             assertFalse(result.reasons.any { it.contains("Frontier count") && it.contains("< 2") })
         }
+    }
+
+    // ==================== BIDIRECTIONAL DIRECTION CONSISTENCY TESTS ====================
+
+    @Test
+    @DisplayName("Bidirectional edges have opposite directions")
+    fun testBidirectionalDirectionConsistency() {
+        // Create graph where edge pairs should have opposite directions
+        val nodes = listOf(
+            GraphNodeComponent(
+                id = "node1",
+                type = NodeType.Hub,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node2", "north"),
+                    EdgeData("node3", "east")
+                )
+            ),
+            GraphNodeComponent(
+                id = "node2",
+                type = NodeType.Linear,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node1", "south"),  // Opposite of north
+                    EdgeData("node3", "east")
+                )
+            ),
+            GraphNodeComponent(
+                id = "node3",
+                type = NodeType.Frontier,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node1", "west"),  // Opposite of east
+                    EdgeData("node2", "west")   // Opposite of east
+                )
+            )
+        )
+
+        val result = validator.validate(nodes)
+
+        // Should pass bidirectional direction check
+        if (result is ValidationResult.Failure) {
+            assertFalse(
+                result.reasons.any { it.contains("bidirectional") || it.contains("direction") },
+                "Graph with opposite directions should pass bidirectional check"
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("Inconsistent bidirectional directions fail validation")
+    fun testInconsistentBidirectionalDirections() {
+        // Create graph where edge pairs DON'T have opposite directions
+        // This is the bug we're trying to catch!
+        val nodes = listOf(
+            GraphNodeComponent(
+                id = "node1",
+                type = NodeType.Hub,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node2", "north"),  // Goes north to node2
+                    EdgeData("node3", "east")
+                )
+            ),
+            GraphNodeComponent(
+                id = "node2",
+                type = NodeType.Linear,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node1", "northeast"),  // BUG: Should be "south", not "northeast"
+                    EdgeData("node3", "east")
+                )
+            ),
+            GraphNodeComponent(
+                id = "node3",
+                type = NodeType.Frontier,
+                chunkId = "test",
+                neighbors = listOf(
+                    EdgeData("node1", "west"),
+                    EdgeData("node2", "west")
+                )
+            )
+        )
+
+        val result = validator.validate(nodes)
+
+        assertTrue(result is ValidationResult.Failure, "Graph with inconsistent directions should fail")
+        val failure = result as ValidationResult.Failure
+        assertTrue(
+            failure.reasons.any { it.contains("bidirectional direction") },
+            "Should report bidirectional direction inconsistency"
+        )
     }
 
     // ==================== EDGE CASE TESTS ====================

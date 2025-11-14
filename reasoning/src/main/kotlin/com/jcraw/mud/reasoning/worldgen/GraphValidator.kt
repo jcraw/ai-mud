@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.worldgen
 
 import com.jcraw.mud.core.GraphNodeComponent
+import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.world.NodeType
 
 /**
@@ -46,6 +47,10 @@ class GraphValidator {
         if (frontierCnt < 2) {
             issues.add("Frontier count $frontierCnt < 2 - insufficient expansion points")
         }
+
+        // Check 5: Bidirectional edges have opposite directions
+        val directionIssues = validateBidirectionalDirections(nodes)
+        issues.addAll(directionIssues)
 
         return if (issues.isEmpty()) {
             ValidationResult.Success
@@ -204,6 +209,65 @@ class GraphValidator {
         return nodes.associate { node ->
             node.id to node.neighbors.map { it.targetId }
         }
+    }
+
+    /**
+     * Validate that bidirectional edges have opposite directions
+     * For every edge A→B with direction X, edge B→A should have opposite direction
+     *
+     * @param nodes Graph nodes
+     * @return List of validation issues (empty if all edges are consistent)
+     */
+    private fun validateBidirectionalDirections(nodes: List<GraphNodeComponent>): List<String> {
+        val issues = mutableListOf<String>()
+        val nodeMap = nodes.associateBy { it.id }
+
+        // Track which edge pairs we've already checked
+        val checkedPairs = mutableSetOf<Pair<String, String>>()
+
+        for (node in nodes) {
+            for (edge in node.neighbors) {
+                val pairKey = node.id to edge.targetId
+                val reversePairKey = edge.targetId to node.id
+
+                // Skip if we've already checked this pair
+                if (pairKey in checkedPairs || reversePairKey in checkedPairs) {
+                    continue
+                }
+                checkedPairs.add(pairKey)
+
+                // Find the reverse edge
+                val targetNode = nodeMap[edge.targetId]
+                if (targetNode == null) {
+                    issues.add("Node ${node.id} references non-existent node ${edge.targetId}")
+                    continue
+                }
+
+                val reverseEdge = targetNode.neighbors.find { it.targetId == node.id }
+                if (reverseEdge == null) {
+                    issues.add("Missing bidirectional edge: ${node.id} → ${edge.targetId} exists, but reverse doesn't")
+                    continue
+                }
+
+                // Check if directions are opposites
+                val forwardDir = Direction.fromString(edge.direction)
+                val reverseDir = Direction.fromString(reverseEdge.direction)
+
+                if (forwardDir != null && reverseDir != null) {
+                    val expectedReverse = forwardDir.opposite
+                    if (expectedReverse != reverseDir) {
+                        issues.add(
+                            "Inconsistent bidirectional direction: " +
+                            "${node.id} → ${edge.targetId} (${edge.direction}) " +
+                            "but ${edge.targetId} → ${node.id} (${reverseEdge.direction}) " +
+                            "- expected ${expectedReverse?.displayName}"
+                        )
+                    }
+                }
+            }
+        }
+
+        return issues
     }
 }
 

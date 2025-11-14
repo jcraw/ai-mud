@@ -37,9 +37,13 @@ class LoreInheritanceEngine(
         val directionHint = if (direction != null) " for $direction direction" else ""
 
         val systemPrompt = """
-            You are a world-building assistant creating hierarchical lore for a fantasy dungeon.
+            You are a world-building assistant creating hierarchical lore for an underground abyssal dungeon.
             Maintain consistency with parent lore but introduce local details.
             Output exactly 2-4 sentences.
+
+            CRITICAL CONSTRAINT: This is a strictly underground dungeon. Use only stone, cavern,
+            underground, and abyssal motifs. NO surface elements (trees, sky, foliage, sun, clouds,
+            grass, etc.) unless explicitly marked as magical anomalies.
         """.trimIndent()
 
         val userContext = """
@@ -49,14 +53,16 @@ class LoreInheritanceEngine(
 
             Guidelines:
             - Maintain consistency (same faction names, overall themes)
-            - Introduce local details (specific inhabitants, weather, landmarks, faction branches)
+            - Introduce local details (specific inhabitants, patrol routes, geological features)
             - Match granularity to level:
               * WORLD: Global politics, major factions
               * REGION: Regional rulers, large-scale geography
               * ZONE: Local settlements, specific threats
               * SUBZONE: Immediate area, patrol routes
               * SPACE: Room-specific events, current state
-            ${if (direction != null) "- Consider spatial implications (e.g., 'north' = colder, 'down' = deeper/older)" else ""}
+            ${if (direction != null) "- Consider spatial implications: 'down' = deeper/darker/older, 'up' = toward surface/lighter, horizontal = different cavern systems" else ""}
+            - Use underground vocabulary: caverns, tunnels, chasms, stone passages, darkness, depths, etc.
+            - NO surface elements: no trees, sky, sun, clouds, grass, forest, foliage, etc.
 
             Output 2-4 sentences only.
         """.trimIndent()

@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.worldgen
 
 import com.jcraw.mud.core.world.NodeType
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.random.Random
@@ -314,10 +315,34 @@ class GraphGeneratorTest {
 
         nodes.forEach { node ->
             val directions = node.neighbors.map { it.direction.lowercase() }
+            if (directions.size != directions.toSet().size) {
+                println("Node ${node.id} has duplicate directions: $directions")
+                println("  Neighbors: ${node.neighbors}")
+            }
             assertEquals(
                 directions.size,
                 directions.toSet().size,
                 "Node ${node.id} has duplicate directions: $directions"
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("Large grid maintains bidirectional direction consistency")
+    fun testLargeGridBidirectionalConsistency() {
+        // Generate a large grid similar to real-world usage
+        val layout = GraphLayout.Grid(width = 6, height = 6, loopFrequency = 0.3)
+        val nodes = generator.generate("large_chunk", layout)
+
+        // Verify bidirectional consistency
+        val validator = GraphValidator()
+        val result = validator.validate(nodes)
+
+        if (result is ValidationResult.Failure) {
+            val directionIssues = result.reasons.filter { it.contains("bidirectional direction") }
+            assertTrue(
+                directionIssues.isEmpty(),
+                "Large grid has bidirectional direction issues: ${directionIssues.joinToString("; ")}"
             )
         }
     }
@@ -529,5 +554,183 @@ class GraphGeneratorTest {
         )
 
         println("Average degree with loopFrequency=1.0: $avgDegree")
+    }
+
+    // ==================== SPATIAL CONSISTENCY ====================
+
+    @Test
+    @DisplayName("Direction labels should match geometric positions")
+    fun `direction labels match geometric angles`() {
+        val layout = GraphLayout.Grid(width = 3, height = 3, loopFrequency = 0.5)
+        val nodes = generator.generate("test_chunk", layout)
+        val nodeMap = nodes.associateBy { it.id }
+
+        var totalEdges = 0
+        var correctEdges = 0
+        var passageEdges = 0
+
+        // For each node with position data
+        nodes.filter { it.position != null }.forEach { node ->
+            val (x1, y1) = node.position!!
+
+            // Check each edge from this node
+            node.neighbors.forEach { edge ->
+                val targetNode = nodeMap[edge.targetId]
+                if (targetNode?.position != null) {
+                    totalEdges++
+                    val (x2, y2) = targetNode.position!!
+
+                    // Calculate geometric angle (0° = east, 90° = north)
+                    val dx = x2 - x1
+                    val dy = y2 - y1
+                    val angle = Math.toDegrees(kotlin.math.atan2(-dy.toDouble(), dx.toDouble())).let {
+                        if (it < 0) it + 360.0 else it
+                    }
+
+                    // Determine expected direction based on angle
+                    val expectedDirection = when {
+                        angle < 22.5 || angle >= 337.5 -> "east"
+                        angle >= 22.5 && angle < 67.5 -> "northeast"
+                        angle >= 67.5 && angle < 112.5 -> "north"
+                        angle >= 112.5 && angle < 157.5 -> "northwest"
+                        angle >= 157.5 && angle < 202.5 -> "west"
+                        angle >= 202.5 && angle < 247.5 -> "southwest"
+                        angle >= 247.5 && angle < 292.5 -> "south"
+                        angle >= 292.5 && angle < 337.5 -> "southeast"
+                        else -> "unknown"
+                    }
+
+                    // Count results
+                    when {
+                        edge.direction == expectedDirection -> correctEdges++
+                        edge.direction.startsWith("passage-") -> passageEdges++
+                        else -> {
+                            // This is an inconsistency - log it but allow some tolerance
+                            println("  Inconsistent edge: ${node.id}($x1,$y1) -> ${edge.targetId}($x2,$y2): " +
+                                "direction='${edge.direction}', expected='$expectedDirection', angle=$angle°")
+                        }
+                    }
+                }
+            }
+        }
+
+        // At least 80% of edges should either match geometric direction or use passage labels
+        val validEdges = correctEdges + passageEdges
+        val validPercentage = (validEdges.toDouble() / totalEdges) * 100
+
+        println("Edge direction accuracy: $correctEdges/$totalEdges correct (${(correctEdges.toDouble()/totalEdges*100).toInt()}%), " +
+            "$passageEdges passage labels, $validEdges/$totalEdges total valid (${validPercentage.toInt()}%)")
+
+        assertTrue(
+            validPercentage >= 80.0,
+            "At least 80% of edges should have spatially accurate directions, got ${validPercentage.toInt()}%"
+        )
+    }
+
+    @Test
+    @DisplayName("Opposite directions should return to origin")
+    fun `opposite directions form closed loops`() {
+        val layout = GraphLayout.Grid(width = 4, height = 4, loopFrequency = 0.8)
+        val nodes = generator.generate("test_chunk", layout)
+        val nodeMap = nodes.associateBy { it.id }
+
+        val opposites = mapOf(
+            "north" to "south",
+            "south" to "north",
+            "east" to "west",
+            "west" to "east",
+            "northeast" to "southwest",
+            "southwest" to "northeast",
+            "northwest" to "southeast",
+            "southeast" to "northwest"
+        )
+
+        var testedPairs = 0
+
+        // For each node, try to go in a direction and back
+        nodes.forEach { startNode ->
+            startNode.neighbors.forEach { edge ->
+                val direction = edge.direction
+                val oppositeDirection = opposites[direction]
+
+                if (oppositeDirection != null) {
+                    // Go to target node
+                    val targetNode = nodeMap[edge.targetId]
+
+                    // Try to come back using opposite direction
+                    val returnEdge = targetNode?.neighbors?.find { it.direction == oppositeDirection }
+
+                    if (returnEdge != null) {
+                        testedPairs++
+                        assertEquals(
+                            startNode.id,
+                            returnEdge.targetId,
+                            "Going ${direction} from ${startNode.id} to ${targetNode.id}, " +
+                                "then ${oppositeDirection} should return to ${startNode.id}, " +
+                                "but went to ${returnEdge.targetId} instead"
+                        )
+                    }
+                }
+            }
+        }
+
+        assertTrue(testedPairs > 0, "Should have tested at least one direction pair")
+        println("Tested $testedPairs opposite direction pairs - all consistent")
+    }
+
+    @Test
+    @DisplayName("All loops maintain spatial consistency when positions exist")
+    fun `loops are spatially consistent when positions available`() {
+        // Use different seed and higher loop frequency to ensure loops
+        val testRng = Random(999)
+        val testGenerator = GraphGenerator(testRng, difficultyLevel = 1)
+        val layout = GraphLayout.Grid(width = 6, height = 6, loopFrequency = 0.8)
+        val nodes = testGenerator.generate("test_chunk", layout)
+        val nodeMap = nodes.associateBy { it.id }
+
+        // Verify spatial consistency for ANY loops that exist
+        var testedLoops = 0
+        var spatialInconsistencies = 0
+
+        nodes.forEach { node1 ->
+            node1.neighbors.forEach { edge1 ->
+                val node2 = nodeMap[edge1.targetId] ?: return@forEach
+
+                node2.neighbors.forEach { edge2 ->
+                    if (edge2.targetId == node1.id) return@forEach // Skip back-edges
+                    val node3 = nodeMap[edge2.targetId] ?: return@forEach
+
+                    // Check if there's an edge back to node1 (forming a 3-cycle)
+                    val edge3 = node3.neighbors.find { it.targetId == node1.id }
+                    if (edge3 != null) {
+                        testedLoops++
+
+                        // Verify spatial consistency if positions available
+                        if (node1.position != null && node2.position != null && node3.position != null) {
+                            val (x1, y1) = node1.position!!
+                            val (x2, y2) = node2.position!!
+                            val (x3, y3) = node3.position!!
+
+                            // The sum of direction vectors should be exactly zero (closed loop)
+                            val dx = (x2 - x1) + (x3 - x2) + (x1 - x3)
+                            val dy = (y2 - y1) + (y3 - y2) + (y1 - y3)
+
+                            if (dx != 0 || dy != 0) {
+                                spatialInconsistencies++
+                                println("  Inconsistent loop: ${node1.id}(${x1},${y1}) -> " +
+                                    "${node2.id}(${x2},${y2}) -> ${node3.id}(${x3},${y3}) " +
+                                    "-> back. Displacement: ($dx, $dy)")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        println("Tested $testedLoops three-node loops for spatial consistency")
+        assertEquals(
+            0, spatialInconsistencies,
+            "Found $spatialInconsistencies spatially inconsistent loops (should be 0)"
+        )
     }
 }

@@ -471,11 +471,14 @@ class GraphGenerator(
 
         ensureBidirectionalConsistency(edgeMap, nodeMap)
 
-        // Update nodes with edges
-        return nodes.map { node ->
+        // Assign unique directions per node (original method)
+        val nodesWithUniqueDirections = nodes.map { node ->
             val normalized = assignUniqueDirections(node, edgeMap[node.id] ?: emptyList(), nodeMap)
             node.copy(neighbors = normalized)
         }
+
+        // Fix bidirectional direction inconsistencies
+        return fixBidirectionalDirections(nodesWithUniqueDirections)
     }
 
     /**
@@ -538,6 +541,213 @@ class GraphGenerator(
         return PRIMARY_DIRECTIONS.minByOrNull { angularDistance(angle, it.angle) }?.name ?: "passage"
     }
 
+    /**
+     * Fix bidirectional direction inconsistencies after initial direction assignment
+     */
+    private fun fixBidirectionalDirections(nodes: List<GraphNodeComponent>): List<GraphNodeComponent> {
+        val nodeMap = nodes.associateBy { it.id }.toMutableMap()
+        val opposites = mapOf(
+            "north" to "south", "south" to "north",
+            "east" to "west", "west" to "east",
+            "northeast" to "southwest", "southwest" to "northeast",
+            "northwest" to "southeast", "southeast" to "northwest",
+            "up" to "down", "down" to "up",
+            "inward" to "outward", "outward" to "inward",
+            "ascent" to "descent", "descent" to "ascent",
+            "forward" to "back", "back" to "forward"
+        )
+
+        val processedPairs = mutableSetOf<Pair<String, String>>()
+
+        for (originalNode in nodes) {
+            // Always get the current version from nodeMap (may have been updated)
+            val node = nodeMap[originalNode.id] ?: continue
+
+            for (edge in node.neighbors) {
+                val pairKey = node.id to edge.targetId
+                if (pairKey in processedPairs) continue
+                processedPairs.add(pairKey)
+                processedPairs.add(edge.targetId to node.id)
+
+                // Find reverse edge (from current nodeMap)
+                val targetNode = nodeMap[edge.targetId] ?: continue
+                val reverseEdge = targetNode.neighbors.find { it.targetId == node.id } ?: continue
+
+                // Check if directions are opposites
+                val expectedReverse = opposites[edge.direction.lowercase()]
+                if (expectedReverse == reverseEdge.direction.lowercase()) {
+                    continue  // Already correct
+                }
+
+                // Need to fix - calculate geometric directions first
+                val nodeUsed = nodeMap[node.id]!!.neighbors
+                    .filter { it.targetId != edge.targetId }
+                    .map { it.direction.lowercase() }
+                    .toSet()
+                val targetUsed = nodeMap[targetNode.id]!!.neighbors
+                    .filter { it.targetId != node.id }
+                    .map { it.direction.lowercase() }
+                    .toSet()
+
+                // Try to use geometric directions if available
+                var newForward = ""
+                var newReverse = ""
+
+                // Calculate geometric direction from node to target
+                val (forwardAngle, _) = calculateAngleAndDistance(node, targetNode)
+                if (forwardAngle != null) {
+                    val geometricForward = getBestDirectionForAngle(forwardAngle)
+                    val expectedReverse = opposites[geometricForward]
+
+                    if (geometricForward !in nodeUsed && expectedReverse != null && expectedReverse !in targetUsed) {
+                        // Perfect - we can use the geometric directions
+                        newForward = geometricForward
+                        newReverse = expectedReverse
+                    }
+                }
+
+                // If we couldn't use geometric directions, try any valid opposite pair
+                if (newForward.isEmpty()) {
+                    for ((fwd, rev) in opposites) {
+                        if (fwd !in nodeUsed && rev !in targetUsed) {
+                            newForward = fwd
+                            newReverse = rev
+                            break
+                        }
+                    }
+                }
+
+                // Last resort: use passage labels
+                if (newForward.isEmpty()) {
+                    newForward = "passage-${nodeUsed.size + 1}"
+                    newReverse = "passage-back-${targetUsed.size + 1}"
+                }
+
+                // Update both nodes in nodeMap (using current versions)
+                val currentNode = nodeMap[node.id]!!
+                val currentTarget = nodeMap[targetNode.id]!!
+
+                nodeMap[node.id] = currentNode.copy(
+                    neighbors = currentNode.neighbors.map {
+                        if (it.targetId == edge.targetId) it.copy(direction = newForward) else it
+                    }
+                )
+                nodeMap[targetNode.id] = currentTarget.copy(
+                    neighbors = currentTarget.neighbors.map {
+                        if (it.targetId == node.id) it.copy(direction = newReverse) else it
+                    }
+                )
+            }
+        }
+
+        return nodeMap.values.toList()
+    }
+
+    /**
+     * Assign unique directions to node's edges while preserving bidirectional symmetry
+     * Updates reverse edges in the edgeMap with opposite directions
+     */
+    private fun assignUniqueDirectionsBidirectional(
+        node: GraphNodeComponent,
+        edgeMap: MutableMap<String, MutableList<EdgeData>>,
+        nodeMap: Map<String, GraphNodeComponent>
+    ): List<EdgeData> {
+        val neighbors = edgeMap[node.id] ?: return emptyList()
+        if (neighbors.size <= 1) return neighbors
+
+        // Helper to get opposite direction
+        val opposites = mapOf(
+            "north" to "south", "south" to "north",
+            "east" to "west", "west" to "east",
+            "northeast" to "southwest", "southwest" to "northeast",
+            "northwest" to "southeast", "southeast" to "northwest",
+            "up" to "down", "down" to "up",
+            "inward" to "outward", "outward" to "inward",
+            "ascent" to "descent", "descent" to "ascent",
+            "forward" to "back", "back" to "forward"
+        )
+
+        // Create contexts and sort by angle
+        val contexts = neighbors.map { edge ->
+            val (angle, distance) = calculateAngleAndDistance(node, nodeMap[edge.targetId])
+            NeighborContext(edge, angle, distance)
+        }.sortedWith(
+            compareBy<NeighborContext> { it.angle ?: Double.MAX_VALUE }
+                .thenBy { it.distance }
+        )
+
+        // Assign unique directions
+        val used = mutableSetOf<String>()
+        val result = mutableListOf<EdgeData>()
+
+        for (context in contexts) {
+            // Try to find a direction whose opposite won't create a duplicate on the reverse node
+            val reverseEdges = edgeMap[context.edge.targetId] ?: emptyList()
+            val reverseUsed = reverseEdges
+                .filter { it.targetId != node.id }  // Exclude the edge back to us
+                .map { it.direction.lowercase() }
+                .toSet()
+
+            var newDirection = ""
+            var reverseDirection = ""
+
+            // Try to pick a direction whose opposite is also available on the reverse node
+            for (candidateDir in generateSequence(0) { it + 1 }.take(20)) {  // Try up to 20 options
+                val candidate = if (candidateDir == 0) {
+                    context.angle?.let { pickDirectionForAngle(it, used) }
+                        ?: pickFallbackDirection(used)
+                } else {
+                    pickFallbackDirection(used)
+                }
+
+                val candidateReverse = opposites[candidate] ?: run {
+                    val toNode = nodeMap[context.edge.targetId]
+                    if (toNode != null) {
+                        val (reverseAngle, _) = calculateAngleAndDistance(toNode, node)
+                        reverseAngle?.let { baseDirectionForAngle(it) } ?: "back"
+                    } else {
+                        "back"
+                    }
+                }
+
+                // Only assign if BOTH directions are available (no duplicates on either node)
+                if (candidate.lowercase() !in used && candidateReverse.lowercase() !in reverseUsed) {
+                    newDirection = candidate
+                    reverseDirection = candidateReverse
+                    break
+                }
+            }
+
+            if (newDirection.isEmpty()) {
+                // Fallback: just pick any unused direction
+                newDirection = pickFallbackDirection(used)
+                reverseDirection = opposites[newDirection] ?: "back"
+            }
+
+            used.add(newDirection.lowercase())
+
+            // Update reverse edge in edgeMap
+            val reverseEdgeList = edgeMap[context.edge.targetId]
+            if (reverseEdgeList != null) {
+                val reverseIndex = reverseEdgeList.indexOfFirst { it.targetId == node.id }
+                if (reverseIndex >= 0) {
+                    val oldEdge = reverseEdgeList[reverseIndex]
+                    reverseEdgeList[reverseIndex] = EdgeData(
+                        targetId = node.id,
+                        direction = reverseDirection,
+                        hidden = oldEdge.hidden,
+                        conditions = oldEdge.conditions
+                    )
+                }
+            }
+
+            // Add updated forward edge to result
+            result.add(context.edge.copy(direction = newDirection))
+        }
+
+        return result
+    }
+
     private fun assignUniqueDirections(
         node: GraphNodeComponent,
         neighbors: List<EdgeData>,
@@ -555,11 +765,32 @@ class GraphGenerator(
 
         val used = mutableSetOf<String>()
         return contexts.map { context ->
-            val label = context.angle?.let { pickDirectionForAngle(it, used) }
-                ?: pickFallbackDirection(used)
+            val label = if (context.angle != null) {
+                // When we have position data, ALWAYS respect geometric direction
+                val geometricDirection = getBestDirectionForAngle(context.angle)
+                if (geometricDirection !in used) {
+                    geometricDirection
+                } else {
+                    // Geometric direction already used - use passage-N to preserve spatial truth
+                    "passage-${used.size + 1}"
+                }
+            } else {
+                // No position data - can use any fallback direction
+                pickFallbackDirection(used)
+            }
             used += label
             context.edge.copy(direction = label)
         }
+    }
+
+    /**
+     * Get the geometrically correct direction for an angle
+     * Returns the PRIMARY_DIRECTION with the closest angle match
+     * Does NOT check if the direction is already used
+     */
+    private fun getBestDirectionForAngle(angle: Double): String {
+        return PRIMARY_DIRECTIONS.minByOrNull { angularDistance(angle, it.angle) }?.name
+            ?: "passage-1" // Fallback if PRIMARY_DIRECTIONS is somehow empty
     }
 
     private fun ensureBidirectionalConsistency(
