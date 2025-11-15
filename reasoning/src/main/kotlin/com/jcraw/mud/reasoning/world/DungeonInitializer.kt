@@ -399,14 +399,7 @@ class DungeonInitializer(
             return Result.success(CombatSubzoneResult(spaceId, subzoneId))
         }
 
-        val treasureRoomCandidate = treasureRoomPlacer.selectTreasureRoomNode(
-            graphNodes,
-            graphNodes.first().id
-        )
-        val treasureBiome = treasureRoomCandidate?.let {
-            TreasureRoomPlacer.getBiomeName(subzoneChunk.biomeTheme)
-        }
-
+        // Treasure room is now in town - skip placement here
         val nodeIdMapping = graphNodes.associate { node ->
             node.id to ChunkIdGenerator.generate(ChunkLevel.SPACE, subzoneId)
         }
@@ -416,45 +409,20 @@ class DungeonInitializer(
             val remappedEdges = node.neighbors.map { edge ->
                 edge.copy(targetId = nodeIdMapping[edge.targetId] ?: edge.targetId)
             }
-            val typeOverride = if (treasureRoomCandidate?.id == node.id) {
-                com.jcraw.mud.core.world.NodeType.TreasureRoom
-            } else {
-                node.type
-            }
             node.copy(
                 id = newId,
                 chunkId = subzoneId,
-                neighbors = remappedEdges,
-                type = typeOverride
+                neighbors = remappedEdges
             )
         }
 
         val spaceIds = mutableListOf<String>()
-        val treasureSpaceId = treasureRoomCandidate?.id?.let { nodeIdMapping[it] }
         remappedNodes.forEach { node ->
             graphNodeRepo.save(node).getOrElse { return Result.failure(it) }
-            var stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
+            val stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
                 .getOrElse { return Result.failure(it) }
 
-            if (treasureSpaceId != null && node.id == treasureSpaceId && treasureBiome != null) {
-                stub = stub.copy(
-                    isSafeZone = true,
-                    isTreasureRoom = true,
-                    traps = emptyList(),
-                    resources = emptyList(),
-                    entities = emptyList()
-                )
-            }
-
-            // Save space first (treasure room has FK constraint to space)
             spaceRepo.save(stub, node.id).getOrElse { return Result.failure(it) }
-
-            // Then save treasure room if this is a treasure room node
-            if (treasureSpaceId != null && node.id == treasureSpaceId && treasureBiome != null) {
-                val treasureComponent = treasureRoomPlacer.createStarterTreasureRoomComponent(treasureBiome)
-                treasureRoomRepository.save(treasureComponent, node.id)
-                    .getOrElse { return Result.failure(it) }
-            }
             spaceIds += node.id
         }
 

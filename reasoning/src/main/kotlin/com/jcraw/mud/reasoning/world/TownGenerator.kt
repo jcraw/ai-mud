@@ -4,8 +4,14 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.SpaceEntityRepository
+import com.jcraw.mud.core.repository.TreasureRoomRepository
+import com.jcraw.mud.core.repository.GraphNodeRepository
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.core.world.GenerationContext
+import com.jcraw.mud.core.world.NodeType
+import com.jcraw.mud.core.world.EdgeData
+import com.jcraw.mud.core.world.ExitData
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomPlacer
 import java.util.UUID
 
 /**
@@ -19,11 +25,15 @@ class TownGenerator(
     private val worldGenerator: WorldGenerator,
     private val chunkRepo: WorldChunkRepository,
     private val spaceRepo: SpacePropertiesRepository,
-    private val entityRepo: SpaceEntityRepository
+    private val entityRepo: SpaceEntityRepository,
+    private val treasureRoomRepo: TreasureRoomRepository,
+    private val graphNodeRepo: GraphNodeRepository
 ) {
+    private val treasureRoomPlacer = TreasureRoomPlacer()
     /**
      * Generate a town subzone within a parent zone
      * Returns (subzoneId, firstSpaceId) for the generated town
+     * Now includes a treasure room adjacent to the town square
      *
      * @param parentZone Parent zone chunk to attach town to
      * @param seed World seed for generation consistency
@@ -58,17 +68,84 @@ class TownGenerator(
         )
         chunkRepo.save(townSubzone, subzoneId).getOrElse { return Result.failure(it) }
 
-        // Generate town SPACE
+        // Generate town square SPACE
         val (townSpace, townSpaceId) = worldGenerator.generateSpace(townSubzone, subzoneId)
             .getOrElse { return Result.failure(it) }
 
-        // Mark as safe zone and populate with merchants
-        val safeTownSpace = townSpace.copy(isSafeZone = true)
-        val populatedSpace = populateTownSpace(safeTownSpace).getOrElse { return Result.failure(it) }
-        spaceRepo.save(populatedSpace, townSpaceId).getOrElse { return Result.failure(it) }
+        // Generate treasure room SPACE
+        val (treasureSpace, treasureSpaceId) = worldGenerator.generateSpace(townSubzone, subzoneId)
+            .getOrElse { return Result.failure(it) }
 
-        // Update subzone with first child
-        val updatedSubzone = townSubzone.copy(children = listOf(townSpaceId))
+        // Create treasure room with "town" biome (ancient_abyss theme)
+        val treasureComponent = treasureRoomPlacer.createStarterTreasureRoomComponent("ancient_abyss")
+
+        // Configure treasure room space
+        val configuredTreasureSpace = treasureSpace.copy(
+            name = "Vault of Beginnings",
+            description = "An ancient vault with five ornate pedestals, each displaying a legendary treasure. " +
+                         "The air shimmers with protective magic. You may claim one item, but choose wisely - " +
+                         "your choice will shape your journey through the Abyss.",
+            isSafeZone = true,
+            isTreasureRoom = true,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList()
+        )
+
+        // Link town square to treasure room (east/west)
+        val townToTreasure = ExitData(
+            targetId = treasureSpaceId,
+            direction = "east",
+            description = "A reinforced door leads to an ancient vault. Strange symbols glow faintly on its surface.",
+            conditions = emptyList(),
+            isHidden = false
+        )
+
+        val treasureToTown = ExitData(
+            targetId = townSpaceId,
+            direction = "west",
+            description = "The door leads back to the bustling town square.",
+            conditions = emptyList(),
+            isHidden = false
+        )
+
+        // Update spaces with exits
+        val townWithExit = townSpace.copy(isSafeZone = true).addExit(townToTreasure)
+        val treasureWithExit = configuredTreasureSpace.addExit(treasureToTown)
+
+        // Populate town space with merchants
+        val populatedSpace = populateTownSpace(townWithExit).getOrElse { return Result.failure(it) }
+
+        // Save both spaces
+        spaceRepo.save(populatedSpace, townSpaceId).getOrElse { return Result.failure(it) }
+        spaceRepo.save(treasureWithExit, treasureSpaceId).getOrElse { return Result.failure(it) }
+
+        // Save treasure room component
+        treasureRoomRepo.save(treasureComponent, treasureSpaceId)
+            .getOrElse { return Result.failure(it) }
+
+        // Create graph nodes for both spaces
+        val townNode = GraphNodeComponent(
+            id = townSpaceId,
+            position = null,
+            type = NodeType.Hub,
+            neighbors = listOf(EdgeData(treasureSpaceId, "east", false)),
+            chunkId = subzoneId
+        )
+
+        val treasureNode = GraphNodeComponent(
+            id = treasureSpaceId,
+            position = null,
+            type = NodeType.TreasureRoom,
+            neighbors = listOf(EdgeData(townSpaceId, "west", false)),
+            chunkId = subzoneId
+        )
+
+        graphNodeRepo.save(townNode).getOrElse { return Result.failure(it) }
+        graphNodeRepo.save(treasureNode).getOrElse { return Result.failure(it) }
+
+        // Update subzone with both children
+        val updatedSubzone = townSubzone.copy(children = listOf(townSpaceId, treasureSpaceId))
         chunkRepo.save(updatedSubzone, subzoneId).getOrElse { return Result.failure(it) }
 
         return Result.success(subzoneId to townSpaceId)

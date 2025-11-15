@@ -35,20 +35,22 @@ class PlayerRespawnServiceTest {
 
     @Test
     fun `createPendingRespawn stores corpse and returns pending token`() {
-        val repo = FakeCorpseRepository()
-        val service = PlayerRespawnService(repo)
+        val corpseRepo = FakeCorpseRepository()
+        val treasureRepo = FakeTreasureRoomRepository()
+        val service = PlayerRespawnService(corpseRepo, treasureRepo)
 
         val pending = service.createPendingRespawn(baseWorld(), player.id).getOrThrow()
 
         assertEquals(player.id, pending.playerId)
-        assertEquals(1, repo.corpses.size, "Corpse should be persisted")
-        assertNotNull(repo.corpses[pending.deathResult.corpseId])
+        assertEquals(1, corpseRepo.corpses.size, "Corpse should be persisted")
+        assertNotNull(corpseRepo.corpses[pending.deathResult.corpseId])
     }
 
     @Test
     fun `completeRespawn replaces player with new avatar`() {
-        val repo = FakeCorpseRepository()
-        val service = PlayerRespawnService(repo)
+        val corpseRepo = FakeCorpseRepository()
+        val treasureRepo = FakeTreasureRoomRepository()
+        val service = PlayerRespawnService(corpseRepo, treasureRepo)
         val world = baseWorld()
         val pending = service.createPendingRespawn(world, player.id).getOrThrow()
 
@@ -94,5 +96,43 @@ class PlayerRespawnServiceTest {
         }
 
         override fun getAll(): Result<Map<String, CorpseData>> = Result.success(corpses)
+    }
+
+    private class FakeTreasureRoomRepository : com.jcraw.mud.core.repository.TreasureRoomRepository {
+        val treasureRooms = mutableMapOf<String, com.jcraw.mud.core.TreasureRoomComponent>()
+
+        override fun save(component: com.jcraw.mud.core.TreasureRoomComponent, spaceId: String): Result<Unit> {
+            treasureRooms[spaceId] = component
+            return Result.success(Unit)
+        }
+
+        override fun findBySpaceId(spaceId: String): Result<com.jcraw.mud.core.TreasureRoomComponent?> {
+            return Result.success(treasureRooms[spaceId])
+        }
+
+        override fun updateCurrentlyTakenItem(spaceId: String, itemTemplateId: String?): Result<Unit> {
+            val room = treasureRooms[spaceId] ?: return Result.failure(Exception("Room not found"))
+            treasureRooms[spaceId] = room.copy(currentlyTakenItem = itemTemplateId)
+            return Result.success(Unit)
+        }
+
+        override fun markAsLooted(spaceId: String): Result<Unit> {
+            val room = treasureRooms[spaceId] ?: return Result.failure(Exception("Room not found"))
+            treasureRooms[spaceId] = room.markAsLooted()
+            return Result.success(Unit)
+        }
+
+        override fun updatePedestalState(spaceId: String, itemTemplateId: String, newState: String): Result<Unit> {
+            return Result.success(Unit)
+        }
+
+        override fun delete(spaceId: String): Result<Unit> {
+            treasureRooms.remove(spaceId)
+            return Result.success(Unit)
+        }
+
+        override fun findAll(): Result<List<Pair<String, com.jcraw.mud.core.TreasureRoomComponent>>> {
+            return Result.success(treasureRooms.map { it.key to it.value })
+        }
     }
 }

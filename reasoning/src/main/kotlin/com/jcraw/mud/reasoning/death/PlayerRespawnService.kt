@@ -4,6 +4,7 @@ import com.jcraw.mud.core.PlayerId
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.repository.CorpseRepository
+import com.jcraw.mud.core.repository.TreasureRoomRepository
 
 /**
  * Orchestrates permadeath restart flow for any client.
@@ -12,12 +13,14 @@ import com.jcraw.mud.core.repository.CorpseRepository
  * - Persist player corpses via [CorpseRepository]
  * - Produce pending restart tokens that UIs can hold while prompting
  * - Create fresh player avatars once the user confirms and names them
+ * - Reset treasure rooms when a new character is created
  *
  * Stateless aside from the repository dependency, so it is safe to share
  * across multiple clients/players (multiplayer-ready).
  */
 class PlayerRespawnService(
-    private val corpseRepository: CorpseRepository
+    private val corpseRepository: CorpseRepository,
+    private val treasureRoomRepository: TreasureRoomRepository
 ) {
 
     /**
@@ -66,6 +69,7 @@ class PlayerRespawnService(
 
     /**
      * Finalize restart once the player confirms permadeath and provides a new name.
+     * Also resets all treasure rooms in the world to pristine condition.
      */
     fun completeRespawn(
         worldState: WorldState,
@@ -75,6 +79,12 @@ class PlayerRespawnService(
         val trimmedName = newCharacterName.trim()
         if (trimmedName.isEmpty()) {
             return Result.failure(IllegalArgumentException("Character name cannot be blank"))
+        }
+
+        // Reset all treasure rooms when new character spawns
+        resetAllTreasureRooms().onFailure { error ->
+            // Log error but don't fail respawn - treasure rooms are non-critical
+            println("Warning: Failed to reset treasure rooms during respawn: ${error.message}")
         }
 
         val newPlayer = pending.deathResult.createNewPlayer(trimmedName)
@@ -97,6 +107,27 @@ class PlayerRespawnService(
                 respawnMessage = message
             )
         )
+    }
+
+    /**
+     * Reset all treasure rooms in the world to pristine condition.
+     * Called when a new character is created after death.
+     */
+    private fun resetAllTreasureRooms(): Result<Unit> {
+        // Get all treasure rooms
+        val allTreasureRooms = treasureRoomRepository.findAll().getOrElse { error ->
+            return Result.failure(error)
+        }
+
+        // Reset each treasure room
+        allTreasureRooms.forEach { (spaceId, treasureRoom) ->
+            val resetRoom = treasureRoom.reset()
+            treasureRoomRepository.save(resetRoom, spaceId).getOrElse { error ->
+                return Result.failure(error)
+            }
+        }
+
+        return Result.success(Unit)
     }
 
     private fun resolveSpawnSpaceId(worldState: WorldState): String? {

@@ -73,7 +73,9 @@ fun main() {
         worldGenerator,
         worldChunkRepository,
         spacePropertiesRepository,
-        spaceEntityRepository
+        spaceEntityRepository,
+        treasureRoomRepository,
+        graphNodeRepository
     )
     val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
     val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(

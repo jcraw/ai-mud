@@ -81,9 +81,6 @@ class MudGame(
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
 
-    // Treasure Room System components
-    internal val treasureRoomHandler = com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler(itemRepository)
-
     // Social system components
     private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
@@ -125,9 +122,13 @@ class MudGame(
     internal val respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
     internal val spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
 
+    // Treasure Room System components (after worldDatabase initialization)
+    internal val treasureRoomRepository = com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository(worldDatabase)
+    internal val treasureRoomHandler = com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler(itemRepository)
+
     // Death & Corpse System components (Chunk 6)
     internal val corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
-    private val playerRespawnService = PlayerRespawnService(corpseRepository)
+    private val playerRespawnService = PlayerRespawnService(corpseRepository, treasureRoomRepository)
     // TODO: Add corpse decay scheduler when integrated
     // internal val corpseDecayScheduler = CorpseDecayScheduler(corpseRepository)
 

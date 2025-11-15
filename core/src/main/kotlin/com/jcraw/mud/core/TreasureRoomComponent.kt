@@ -87,6 +87,20 @@ data class TreasureRoomComponent(
     }
 
     /**
+     * Reset treasure room to initial state (called when player dies/respawns)
+     * Unlocks all pedestals, clears taken item, and resets looted flag
+     *
+     * @return New TreasureRoomComponent reset to pristine condition
+     */
+    fun reset(): TreasureRoomComponent {
+        return copy(
+            currentlyTakenItem = null,
+            hasBeenLooted = false,
+            pedestals = pedestals.map { it.copy(state = PedestalState.AVAILABLE) }
+        )
+    }
+
+    /**
      * Lock all pedestals except the specified one
      * @param exceptItemId Item template ID to keep AVAILABLE
      * @return List of pedestals with appropriate states

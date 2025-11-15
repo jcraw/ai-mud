@@ -165,7 +165,7 @@ class EngineGameClient(
         spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)
         respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
         spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
-        playerRespawnService = PlayerRespawnService(corpseRepository)
+        playerRespawnService = PlayerRespawnService(corpseRepository, treasureRoomRepository)
         treasureRoomHandler = com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler(itemRepository)
 
         // Initialize World System V3 components
@@ -201,7 +201,7 @@ class EngineGameClient(
         if (llmClient != null && worldGenerator != null && worldStateSeeder != null) {
             exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             exitResolver = com.jcraw.mud.reasoning.world.ExitResolver(llmClient)
-            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository)
+            val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository, treasureRoomRepository, graphNodeRepository)
             val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(

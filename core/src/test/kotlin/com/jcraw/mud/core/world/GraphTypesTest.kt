@@ -76,6 +76,7 @@ class GraphTypesTest {
                 NodeType.Boss -> "boss"
                 NodeType.Frontier -> "frontier"
                 NodeType.Questable -> "questable"
+                NodeType.TreasureRoom -> "treasureroom"
             }
             assertTrue(handled.isNotEmpty())
         }
