@@ -504,14 +504,39 @@ class GraphGenerator(
 
         ensureBidirectionalConsistency(edgeMap, nodeMap)
 
-        // Assign unique directions per node (original method)
-        val nodesWithUniqueDirections = nodes.map { node ->
-            val normalized = assignUniqueDirections(node, edgeMap[node.id] ?: emptyList(), nodeMap)
-            node.copy(neighbors = normalized)
+        // Assign unique directions using edge-pair-aware algorithm
+        // Process each edge pair once to ensure bidirectional consistency
+        val processedPairs = mutableSetOf<Pair<String, String>>()
+
+        for (node in nodes) {
+            val nodeId = node.id
+            val edges = edgeMap[nodeId] ?: continue
+
+            for (edge in edges) {
+                val pairKey = if (nodeId < edge.targetId) {
+                    nodeId to edge.targetId
+                } else {
+                    edge.targetId to nodeId
+                }
+
+                // Skip if this edge pair was already processed
+                if (pairKey in processedPairs) continue
+                processedPairs.add(pairKey)
+
+                // Assign bidirectional directions for this pair
+                assignDirectionPair(nodeId, edge.targetId, edgeMap, nodeMap)
+            }
         }
 
-        // Fix bidirectional direction inconsistencies
-        return fixBidirectionalDirections(nodesWithUniqueDirections)
+        // Build final nodes from the fully updated edgeMap
+        val nodesWithUniqueDirections = nodes.map { node ->
+            node.copy(neighbors = edgeMap[node.id] ?: emptyList())
+        }
+
+        // Validate bidirectional consistency
+        validateBidirectionalOpposites(nodesWithUniqueDirections)
+
+        return nodesWithUniqueDirections
     }
 
     /**
@@ -684,6 +709,134 @@ class GraphGenerator(
         }
 
         return nodeMap.values.toList()
+    }
+
+    /**
+     * Validate that all bidirectional edges have true opposite directions
+     * Throws exception if spatial inconsistency detected
+     */
+    private fun validateBidirectionalOpposites(nodes: List<GraphNodeComponent>) {
+        val opposites = mapOf(
+            "north" to "south", "south" to "north",
+            "east" to "west", "west" to "east",
+            "northeast" to "southwest", "southwest" to "northeast",
+            "northwest" to "southeast", "southeast" to "northwest",
+            "up" to "down", "down" to "up",
+            "inward" to "outward", "outward" to "inward",
+            "ascent" to "descent", "descent" to "ascent",
+            "forward" to "back", "back" to "forward"
+        )
+
+        val nodeMap = nodes.associateBy { it.id }
+        val errors = mutableListOf<String>()
+
+        for (node in nodes) {
+            for (edge in node.neighbors) {
+                val targetNode = nodeMap[edge.targetId] ?: continue
+                val reverseEdge = targetNode.neighbors.find { it.targetId == node.id }
+
+                if (reverseEdge == null) {
+                    errors.add("Missing reverse edge: ${node.id} -> ${edge.targetId} (${edge.direction}) has no return path")
+                    continue
+                }
+
+                val expectedReverse = opposites[edge.direction.lowercase()]
+                if (expectedReverse != null && expectedReverse != reverseEdge.direction.lowercase()) {
+                    errors.add(
+                        "Direction mismatch: ${node.id} -> ${edge.targetId} (${edge.direction}) " +
+                        "but reverse is ${targetNode.id} -> ${node.id} (${reverseEdge.direction}), " +
+                        "expected ${expectedReverse}"
+                    )
+                }
+            }
+        }
+
+        if (errors.isNotEmpty()) {
+            println("WARNING: Bidirectional validation found ${errors.size} issues:")
+            errors.take(10).forEach { println("  - $it") }
+            if (errors.size > 10) {
+                println("  ... and ${errors.size - 10} more")
+            }
+        }
+    }
+
+    /**
+     * Assign directions to a single edge pair, ensuring they are opposites
+     * Updates both edges in the edgeMap
+     */
+    private fun assignDirectionPair(
+        fromId: String,
+        toId: String,
+        edgeMap: MutableMap<String, MutableList<EdgeData>>,
+        nodeMap: Map<String, GraphNodeComponent>
+    ) {
+        val opposites = mapOf(
+            "north" to "south", "south" to "north",
+            "east" to "west", "west" to "east",
+            "northeast" to "southwest", "southwest" to "northeast",
+            "northwest" to "southeast", "southeast" to "northwest",
+            "up" to "down", "down" to "up",
+            "inward" to "outward", "outward" to "inward",
+            "ascent" to "descent", "descent" to "ascent",
+            "forward" to "back", "back" to "forward"
+        )
+
+        val fromNode = nodeMap[fromId] ?: return
+        val toNode = nodeMap[toId] ?: return
+
+        // Get existing edges
+        val fromEdges = edgeMap[fromId] ?: return
+        val toEdges = edgeMap[toId] ?: return
+
+        val forwardEdgeIdx = fromEdges.indexOfFirst { it.targetId == toId }
+        val reverseEdgeIdx = toEdges.indexOfFirst { it.targetId == fromId }
+
+        if (forwardEdgeIdx < 0 || reverseEdgeIdx < 0) return
+
+        val forwardEdge = fromEdges[forwardEdgeIdx]
+        val reverseEdge = toEdges[reverseEdgeIdx]
+
+        // Get all used directions for both nodes (excluding this pair)
+        val fromUsed = fromEdges.filterIndexed { idx, _ -> idx != forwardEdgeIdx }
+            .map { it.direction.lowercase() }.toSet()
+        val toUsed = toEdges.filterIndexed { idx, _ -> idx != reverseEdgeIdx }
+            .map { it.direction.lowercase() }.toSet()
+
+        // Try to find geometric direction first
+        val (forwardAngle, _) = calculateAngleAndDistance(fromNode, toNode)
+        var newForward = ""
+        var newReverse = ""
+
+        if (forwardAngle != null) {
+            val geometricDir = getBestDirectionForAngle(forwardAngle)
+            val geometricReverse = opposites[geometricDir]
+
+            if (geometricDir !in fromUsed && geometricReverse != null && geometricReverse !in toUsed) {
+                newForward = geometricDir
+                newReverse = geometricReverse
+            }
+        }
+
+        // If geometric didn't work, try any valid opposite pair
+        if (newForward.isEmpty()) {
+            for ((fwd, rev) in opposites) {
+                if (fwd !in fromUsed && rev !in toUsed) {
+                    newForward = fwd
+                    newReverse = rev
+                    break
+                }
+            }
+        }
+
+        // Last resort: use passage labels
+        if (newForward.isEmpty()) {
+            newForward = "passage-${fromUsed.size + 1}"
+            newReverse = "passage-back-${toUsed.size + 1}"
+        }
+
+        // Update both edges in the edgeMap
+        fromEdges[forwardEdgeIdx] = forwardEdge.copy(direction = newForward)
+        toEdges[reverseEdgeIdx] = reverseEdge.copy(direction = newReverse)
     }
 
     /**

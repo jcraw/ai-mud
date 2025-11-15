@@ -39,6 +39,9 @@ class WorldGenerator(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    // Track generated space names per chunk to avoid duplicates
+    private val generatedNamesPerChunk = mutableMapOf<String, MutableSet<String>>()
+
     /**
      * Generates a world chunk (WORLD, REGION, ZONE, or SUBZONE level).
      *
@@ -287,7 +290,10 @@ class WorldGenerator(
         }
 
         // Generate name and description using LLM based on node type and neighbors
-        val (name, description) = generateNodeNameAndDescription(graphNode, chunk).getOrElse { return Result.failure(it) }
+        val (name, description) = generateNodeNameAndDescription(graphNode, chunk, graphNode.chunkId).getOrElse { return Result.failure(it) }
+
+        // Track generated name to avoid duplicates
+        generatedNamesPerChunk.getOrPut(graphNode.chunkId) { mutableSetOf() }.add(name)
 
         // Determine brightness and terrain based on node type
         val (brightness, terrain) = determineNodeProperties(graphNode.type, chunk)
@@ -307,11 +313,13 @@ class WorldGenerator(
     /**
      * V3: Generate name and description for a graph node.
      * Uses node type, neighbors, and chunk lore to create contextual content.
+     * Avoids duplicate names by checking previously generated names in the chunk.
      * Returns Pair<name, description>
      */
     private suspend fun generateNodeNameAndDescription(
         node: GraphNodeComponent,
-        chunk: WorldChunkComponent
+        chunk: WorldChunkComponent,
+        chunkId: String
     ): Result<Pair<String, String>> {
         val nodeTypeDescription = when (node.type) {
             is com.jcraw.mud.core.world.NodeType.Hub -> "safe zone or gathering point"
@@ -335,6 +343,14 @@ class WorldGenerator(
             ""
         }
 
+        // Get existing names in this chunk to avoid duplicates
+        val existingNames = generatedNamesPerChunk[chunkId] ?: emptySet()
+        val existingNamesContext = if (existingNames.isNotEmpty()) {
+            "\nExisting space names in this area (avoid duplicates): ${existingNames.joinToString(", ")}"
+        } else {
+            ""
+        }
+
         val systemPrompt = """
             You are a world-building assistant for a fantasy dungeon MUD.
             Generate atmospheric space names and descriptions in JSON format only.
@@ -344,10 +360,11 @@ class WorldGenerator(
             Theme: ${chunk.biomeTheme}
             Lore: ${chunk.lore}
             Node Type: $nodeTypeDescription
-            Exits: $exitDirections$hiddenHint
+            Exits: $exitDirections$hiddenHint$existingNamesContext
 
             Generate a vivid name and description for this space.
             Name should be 2-4 words, evocative and thematic (e.g., "Treacherous Alley", "Crystal Cavern").
+            IMPORTANT: The name must be unique and different from any existing names listed above.
             Description should be 2-3 sentences reflecting the node type and available exits.
             Keep exit mentions directional and atmospheric; do not invent specific destinations (towns, villages, etc.) unless explicitly referenced in the lore or exit list.
 

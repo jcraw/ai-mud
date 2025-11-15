@@ -1,18 +1,63 @@
 #!/bin/bash
 # Test spatial coherence fix for V3 navigation
-# This script tests that E→S→W→N navigation returns to the starting position
+# This script tests bidirectional navigation consistency for all 8 compass directions
 
-echo "Testing V3 Spatial Coherence Fix"
-echo "================================="
+echo "Testing V3 Spatial Coherence (All 8 Directions)"
+echo "================================================"
 echo ""
-echo "This will:"
-echo "1. Generate a NEW V3 world with Grid layout"
-echo "2. Navigate east, south, west, north"
-echo "3. Verify we return to the starting position"
+echo "This will test bidirectional consistency for:"
+echo "  - Cardinal directions: N↔S, E↔W"
+echo "  - Diagonal directions: NE↔SW, NW↔SE"
+echo "  - Loop test: E→S→W→N"
 echo ""
 
-# Create input commands
-cat > /tmp/spatial_test_input.txt << 'EOF'
+# Function to test a single bidirectional pair
+test_bidirectional() {
+    local dir1=$1
+    local dir2=$2
+    local test_name=$3
+
+    # Create input commands
+    cat > /tmp/spatial_test_input.txt << EOF
+2
+3
+1
+1
+look
+$dir1
+look
+$dir2
+look
+quit
+y
+EOF
+
+    # Run the game with input
+    app/build/install/app/bin/app < /tmp/spatial_test_input.txt > /tmp/spatial_test_output.txt 2>&1
+
+    # Extract locations
+    START_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | head -1 | sed 's/.*Location: //')
+    AFTER_DIR1=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '2p' | sed 's/.*Location: //')
+    FINAL_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '3p' | sed 's/.*Location: //')
+
+    if [ -z "$START_LOC" ] || [ -z "$FINAL_LOC" ]; then
+        echo "  ⚠️  SKIP: $test_name (direction not available in this world)"
+        return 2
+    fi
+
+    if [ "$START_LOC" = "$FINAL_LOC" ]; then
+        echo "  ✅ PASS: $test_name"
+        return 0
+    else
+        echo "  ❌ FAIL: $test_name (Started: $START_LOC, After $dir1: $AFTER_DIR1, After $dir2: $FINAL_LOC)"
+        return 1
+    fi
+}
+
+# Test loop navigation
+test_loop() {
+    # Create input commands
+    cat > /tmp/spatial_test_input.txt << 'EOF'
 2
 3
 1
@@ -30,45 +75,61 @@ quit
 y
 EOF
 
-# Run the game with input
-echo "Running game..."
-app/build/install/app/bin/app < /tmp/spatial_test_input.txt > /tmp/spatial_test_output.txt 2>&1
+    # Run the game with input
+    app/build/install/app/bin/app < /tmp/spatial_test_input.txt > /tmp/spatial_test_output.txt 2>&1
 
-# Extract location IDs from the output
+    # Extract locations
+    START_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | head -1 | sed 's/.*Location: //')
+    FINAL_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '5p' | sed 's/.*Location: //')
+
+    if [ -z "$START_LOC" ] || [ -z "$FINAL_LOC" ]; then
+        echo "  ⚠️  SKIP: Loop test E→S→W→N (directions not available)"
+        return 2
+    fi
+
+    if [ "$START_LOC" = "$FINAL_LOC" ]; then
+        echo "  ✅ PASS: Loop test E→S→W→N"
+        return 0
+    else
+        echo "  ❌ FAIL: Loop test E→S→W→N (Started: $START_LOC, Ended: $FINAL_LOC)"
+        return 1
+    fi
+}
+
+# Run all tests
+echo "Running bidirectional tests:"
+echo "============================"
+FAILED=0
+PASSED=0
+SKIPPED=0
+
+test_bidirectional "north" "south" "N↔S"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "south" "north" "S↔N"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "east" "west" "E↔W"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "west" "east" "W↔E"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "northeast" "southwest" "NE↔SW"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "southwest" "northeast" "SW↔NE"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "northwest" "southeast" "NW↔SE"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+test_bidirectional "southeast" "northwest" "SE↔NW"; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
+
 echo ""
-echo "Extracting location trail:"
-echo "=========================="
-grep "Location: SPACE_" /tmp/spatial_test_output.txt | head -6
-
-# Get the first and last locations
-START_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | head -1 | sed 's/.*Location: //')
-AFTER_E=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '2p' | sed 's/.*Location: //')
-AFTER_S=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '3p' | sed 's/.*Location: //')
-AFTER_W=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '4p' | sed 's/.*Location: //')
-AFTER_N=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '5p' | sed 's/.*Location: //')
-FINAL_LOC=$(grep "Location: SPACE_" /tmp/spatial_test_output.txt | sed -n '6p' | sed 's/.*Location: //')
+echo "Running loop test:"
+echo "=================="
+test_loop; RESULT=$?; [ $RESULT -eq 0 ] && ((PASSED++)) || [ $RESULT -eq 1 ] && ((FAILED++)) || ((SKIPPED++))
 
 echo ""
-echo "Analysis:"
-echo "========="
-echo "Start:       $START_LOC"
-echo "After E:     $AFTER_E"
-echo "After E→S:   $AFTER_S"
-echo "After E→S→W: $AFTER_W"
-echo "After E→S→W→N: $AFTER_N"
-echo "Final (after 'look'): $FINAL_LOC"
+echo "Summary:"
+echo "========"
+echo "  Passed:  $PASSED"
+echo "  Failed:  $FAILED"
+echo "  Skipped: $SKIPPED"
 echo ""
 
-# Check if we're back at the start
-if [ "$START_LOC" = "$FINAL_LOC" ]; then
-    echo "✅ SUCCESS: Spatial coherence maintained!"
-    echo "   Navigation E→S→W→N returned to starting position."
+if [ $FAILED -eq 0 ]; then
+    echo "✅ ALL TESTS PASSED! Spatial coherence is maintained."
     exit 0
 else
-    echo "❌ FAILURE: Spatial coherence broken!"
-    echo "   Started at: $START_LOC"
-    echo "   Ended at:   $FINAL_LOC"
-    echo ""
+    echo "❌ SOME TESTS FAILED! Spatial coherence issues detected."
     echo "Full output saved to: /tmp/spatial_test_output.txt"
     exit 1
 fi
