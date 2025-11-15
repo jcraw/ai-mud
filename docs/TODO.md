@@ -331,6 +331,12 @@ Complete - GameServer and PlayerSession with thread-safe shared world state and 
 
 ## Optional Enhancements
 
+- [ ] **Treasure Room System** - Brogue-inspired choice mechanic with starter items (see `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md`)
+  - 5 pedestals aligned with skill categories (Combat, Rogue, Magic, Utility, Hybrid)
+  - Unlimited swaps (take one, return to unlock others)
+  - Early dungeon placement for playstyle definition
+  - Biome-adaptive theming (stone/obsidian/ice altars)
+  - Estimated: 24-28h across 8 chunks
 - [ ] Network layer for remote multi-player
 - [ ] Persistent vector storage (save/load embeddings)
 - [ ] Additional quest types (Escort, Defend, Craft)
