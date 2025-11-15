@@ -70,6 +70,33 @@ For complete documentation, see:
 - **InMemoryGameEngine**: Headless engine for automated testing
 - See [Testing Strategy](docs/TESTING.md) for details
 
+## In Progress Features 🚧
+
+### Treasure Room System (Chunks 1-5/8 Complete - 63%)
+Brogue-inspired treasure room system with playstyle-defining item selection.
+
+**Completed**:
+- ✅ **Chunk 1: Core Components** (3h) - TreasureRoomComponent, Pedestal, PedestalState, TreasureRoomType enums (203 lines + 340 test lines, 30 tests passing)
+- ✅ **Chunk 2: Database Schema** (3h) - SQLite schema (treasure_rooms + pedestals tables), TreasureRoomRepository interface (72 lines), SQLiteTreasureRoomRepository (257 lines), treasure_room_templates.json (119 lines), integration tests (448 lines, 33 tests)
+- ✅ **Chunk 3: Interaction Handlers** (4h) - TreasureRoomHandler (218 lines), TreasureRoomHandlers app layer (280 lines), 3 new Intent types (TakeTreasure/ReturnTreasure/ExaminePedestal), WorldState V3 integration (treasureRooms map + helper methods), game loop integration (console/multi-user/GUI), biome-specific barrier descriptions
+- ✅ **Chunk 4: Starter Treasure Items** (2h) - 5 RARE items added to item_templates.json (802 lines): Flamebrand Longsword (STR +3), Shadowweave Cloak (AGI +4), Stormcaller Staff (MAG +3, WIS +2), Titan's Band (END +5), Arcane Blade (STR +2, MAG +3). Template references updated in treasure_room_templates.json
+- ✅ **Chunk 5: Biome Theming & LLM Descriptions** (1h) - TreasureRoomDescriptionGenerator (243 lines) with LLM-based atmospheric descriptions, 6 biome themes (ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls), state-aware pedestal descriptions, fallback descriptions for API-less mode
+
+**Design**:
+- 5 pedestals for skill categories: Combat (Flamebrand Longsword), Rogue (Shadowweave Cloak), Magic (Stormcaller Staff), Utility (Titan's Band), Hybrid (Arcane Blade)
+- Unlimited swaps: Take one item, barriers lock others, return to swap freely
+- One-time choice: Leaving room with item finalizes decision, pedestals emptied
+- Early placement: Spawns in first 2-3 rooms for playstyle definition
+- Biome theming: Altars adapt to dungeon (stone/obsidian/ice/bone) with LLM-generated atmospheric descriptions
+- State-aware descriptions: Available/locked/empty pedestals have distinct visual descriptions
+
+**Remaining** (est. 6-10h):
+- Chunk 6: World generation integration
+- Chunk 7: UI/UX polish & leave room detection
+- Chunk 8: Testing & documentation
+
+See `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md` for complete plan.
+
 ## Future Enhancements (Optional)
 
 - **Network layer** - TCP/WebSocket support for remote multi-player

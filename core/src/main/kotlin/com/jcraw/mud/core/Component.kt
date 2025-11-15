@@ -28,6 +28,7 @@ enum class ComponentType {
     RESPAWN,
     CORPSE,
     GRAPH_NODE,
+    TREASURE_ROOM,
     // Future component types can be added here
 }
 

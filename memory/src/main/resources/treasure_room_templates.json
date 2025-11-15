@@ -1,0 +1,118 @@
+{
+  "starter_treasure_room": {
+    "roomType": "STARTER",
+    "description": "A chamber filled with ancient magic, where powerful artifacts rest upon themed pedestals. You may claim one treasure to define your path, but choose wisely—once you depart, the remaining treasures will vanish forever.",
+    "pedestals": [
+      {
+        "itemTemplateId": "flamebrand_longsword",
+        "category": "COMBAT",
+        "themeDescriptionTemplate": "{material} altar bearing a warrior's blade",
+        "description": "A pedestal dedicated to martial prowess, bearing a longsword wreathed in eternal flame"
+      },
+      {
+        "itemTemplateId": "shadowweave_cloak",
+        "category": "ROGUE",
+        "themeDescriptionTemplate": "shadowed {material} pedestal wreathed in darkness",
+        "description": "A pedestal shrouded in shadows, displaying a cloak woven from living darkness"
+      },
+      {
+        "itemTemplateId": "stormcaller_staff",
+        "category": "MAGIC",
+        "themeDescriptionTemplate": "glowing {material} shrine pulsing with arcane energy",
+        "description": "A pedestal radiating magical energy, topped with a staff crackling with lightning"
+      },
+      {
+        "itemTemplateId": "titans_band",
+        "category": "UTILITY",
+        "themeDescriptionTemplate": "sturdy {material} stand adorned with fortitude runes",
+        "description": "A practical pedestal bearing a golden ring inscribed with the power of titans"
+      },
+      {
+        "itemTemplateId": "arcane_blade",
+        "category": "HYBRID",
+        "themeDescriptionTemplate": "ornate {material} dais marked with dual symbols",
+        "description": "An elegant pedestal displaying a blade humming with arcane energy, bridging warrior and mage"
+      }
+    ],
+    "biomeThemes": {
+      "ancient_abyss": {
+        "material": "weathered stone",
+        "barrierType": "shimmering arcane barrier",
+        "atmosphereHints": ["ancient", "crumbling", "moss-covered", "weathered"]
+      },
+      "magma_cave": {
+        "material": "obsidian",
+        "barrierType": "wall of molten energy",
+        "atmosphereHints": ["glowing", "volcanic", "heat-warped", "smoldering"]
+      },
+      "frozen_depths": {
+        "material": "ice crystal",
+        "barrierType": "frozen barrier of solid ice",
+        "atmosphereHints": ["frosted", "glacial", "pristine", "crystalline"]
+      },
+      "bone_crypt": {
+        "material": "bone",
+        "barrierType": "cage of blackened bone",
+        "atmosphereHints": ["skeletal", "macabre", "dusty", "grim"]
+      },
+      "elven_ruins": {
+        "material": "silver-veined marble",
+        "barrierType": "translucent barrier of woven moonlight",
+        "atmosphereHints": ["elegant", "ancient", "luminous", "graceful"]
+      },
+      "dwarven_halls": {
+        "material": "granite",
+        "barrierType": "mechanical barrier of interlocking gears",
+        "atmosphereHints": ["sturdy", "geometric", "metallic", "fortified"]
+      }
+    }
+  },
+  "combat_treasure_room": {
+    "roomType": "COMBAT",
+    "description": "An armory chamber where weapons of legend rest. The air thrums with barely contained violence.",
+    "pedestals": [
+      {
+        "itemTemplateId": "dragonslayer_greatsword",
+        "category": "TWO_HANDED",
+        "themeDescriptionTemplate": "{material} weapon rack bearing an immense blade",
+        "description": "Future enhancement: Combat-focused treasure room with legendary weapons"
+      },
+      {
+        "itemTemplateId": "vampiric_dagger",
+        "category": "DUAL_WIELD",
+        "themeDescriptionTemplate": "{material} display case with twin daggers",
+        "description": "Future enhancement: Dual-wielding assassin weapons"
+      },
+      {
+        "itemTemplateId": "sacred_warhammer",
+        "category": "BLUNT",
+        "themeDescriptionTemplate": "{material} anvil altar topped with a hammer",
+        "description": "Future enhancement: Holy warrior's weapon"
+      }
+    ]
+  },
+  "magic_treasure_room": {
+    "roomType": "MAGIC",
+    "description": "A sanctum where arcane knowledge crystallizes. Each pedestal radiates different magical schools.",
+    "pedestals": [
+      {
+        "itemTemplateId": "necromancers_tome",
+        "category": "DARK_MAGIC",
+        "themeDescriptionTemplate": "{material} lectern bound with chains",
+        "description": "Future enhancement: Death magic spellbook"
+      },
+      {
+        "itemTemplateId": "elemental_orb",
+        "category": "ELEMENTAL",
+        "themeDescriptionTemplate": "floating {material} platform with swirling orb",
+        "description": "Future enhancement: Elemental mastery artifact"
+      },
+      {
+        "itemTemplateId": "chronomancers_hourglass",
+        "category": "TIME_MAGIC",
+        "themeDescriptionTemplate": "{material} pillar with suspended hourglass",
+        "description": "Future enhancement: Time manipulation device"
+      }
+    ]
+  }
+}

@@ -319,8 +319,20 @@ Implement interaction handlers for treasure rooms: take item from pedestal, retu
 
 ---
 
-### Chunk 4: Starter Treasure Room Items
-**Estimated Time:** 4 hours
+### Chunk 4: Starter Treasure Room Items ✅ COMPLETE
+**Estimated Time:** 4 hours | **Actual Time:** ~2 hours
+
+**Status:** Completed - 5 RARE treasure items added to item_templates.json and treasure_room_templates.json updated
+
+**Implementation Notes:**
+- Created 5 RARE items with skill bonuses (using existing skill_bonus_* property pattern)
+- **Flamebrand Longsword** (Combat): 25 damage, STR +3, one-handed for versatility
+- **Shadowweave Cloak** (Rogue): 8 defense, AGI +4, back slot
+- **Stormcaller Staff** (Magic): 20 damage, MAG +3, WIS +2, two-handed
+- **Titan's Band** (Utility): END +5, accessory slot (changed from satchel for build variety)
+- **Arcane Blade** (Hybrid): 22 damage, STR +2, MAG +3, one-handed spellsword weapon
+- Updated treasure_room_templates.json references to use new item IDs
+- Simplified approach: No StarterItemGenerator.kt needed (templates sufficient)
 
 **Description:**
 Create 5 high-quality starter items aligned with major skill categories (Combat, Rogue, Magic, Utility, Hybrid). Define item templates with RARE rarity, skill bonuses, and progression-friendly stats. Add items to item_templates.json and integrate with treasure room template.
@@ -473,8 +485,20 @@ Create 5 high-quality starter items aligned with major skill categories (Combat,
 
 ---
 
-### Chunk 5: Biome Theming & LLM Descriptions
-**Estimated Time:** 3 hours
+### Chunk 5: Biome Theming & LLM Descriptions ✅ COMPLETE
+**Estimated Time:** 3 hours | **Actual Time:** ~1 hour
+
+**Status:** Completed - TreasureRoomDescriptionGenerator created with LLM integration and 6 biome themes
+
+**Implementation Notes:**
+- Created TreasureRoomDescriptionGenerator.kt (243 lines) with full LLM integration
+- Implemented 6 biome themes as companion object: ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls
+- BiomeTheme data class with material, aesthetic, barrierType, atmosphereHints fields
+- State-aware descriptions: AVAILABLE (ready to claim), LOCKED (barrier description), EMPTY (bare pedestal)
+- LLM prompts emphasize "choose wisely" and one-time choice mechanics
+- Fallback descriptions for API-less mode
+- Uses gpt-4o-mini for cost-effective atmospheric generation
+- Temperature 0.8 for creative variety
 
 **Description:**
 Implement biome-adaptive altar/pedestal descriptions using LLM. Integrate with dungeon theming system to generate atmospheric descriptions (ancient stone altars in ruins, obsidian shrines in magma caves, ice pedestals in frozen caverns). Add room entry description that highlights the treasure room's unique nature.

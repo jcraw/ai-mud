@@ -81,6 +81,9 @@ class MudGame(
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
 
+    // Treasure Room System components
+    internal val treasureRoomHandler = com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler(itemRepository)
+
     // Social system components
     private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)
@@ -312,6 +315,9 @@ class MudGame(
             is Intent.TakeAll -> com.jcraw.app.handlers.ItemHandlers.handleTakeAll(this)
             is Intent.Drop -> com.jcraw.app.handlers.ItemHandlers.handleDrop(this, intent.target)
             is Intent.Give -> com.jcraw.app.handlers.ItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)
+            is Intent.TakeTreasure -> com.jcraw.app.handlers.TreasureRoomHandlers.handleTakeTreasure(this, intent.itemTarget)
+            is Intent.ReturnTreasure -> com.jcraw.app.handlers.TreasureRoomHandlers.handleReturnTreasure(this, intent.itemTarget)
+            is Intent.ExaminePedestal -> com.jcraw.app.handlers.TreasureRoomHandlers.handleExaminePedestal(this, intent.target)
             is Intent.Talk -> com.jcraw.app.handlers.SocialHandlers.handleTalk(this, intent.target)
             is Intent.Say -> com.jcraw.app.handlers.SocialHandlers.handleSay(this, intent.message, intent.npcTarget)
             is Intent.Attack -> com.jcraw.app.handlers.CombatHandlers.handleAttack(this, intent.target)

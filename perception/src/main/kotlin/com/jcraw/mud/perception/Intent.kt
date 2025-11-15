@@ -87,6 +87,29 @@ sealed class Intent {
     data class Give(val itemTarget: String, val npcTarget: String) : Intent()
 
     /**
+     * Take an item from a treasure room pedestal/altar
+     * @param itemTarget The name/identifier of the item to take
+     * @param pedestalTarget Optional pedestal/altar descriptor ("altar", "pedestal", "shrine")
+     */
+    @Serializable
+    data class TakeTreasure(val itemTarget: String, val pedestalTarget: String? = null) : Intent()
+
+    /**
+     * Return an item to a treasure room pedestal/altar
+     * @param itemTarget The name/identifier of the item to return
+     * @param pedestalTarget Optional pedestal/altar descriptor
+     */
+    @Serializable
+    data class ReturnTreasure(val itemTarget: String, val pedestalTarget: String? = null) : Intent()
+
+    /**
+     * Examine treasure room pedestals/altars
+     * @param target Optional specific pedestal to examine, or null for all pedestals
+     */
+    @Serializable
+    data class ExaminePedestal(val target: String? = null) : Intent()
+
+    /**
      * Talk to an NPC
      * @param target The name/identifier of the NPC to talk to
      */

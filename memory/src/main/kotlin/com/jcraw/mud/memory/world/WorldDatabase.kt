@@ -178,6 +178,35 @@ class WorldDatabase(
                 """.trimIndent()
             )
 
+            // Treasure rooms table (Brogue-style treasure selection)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS treasure_rooms (
+                    space_id TEXT PRIMARY KEY,
+                    room_type TEXT NOT NULL,
+                    biome_theme TEXT NOT NULL,
+                    currently_taken_item TEXT,
+                    has_been_looted INTEGER NOT NULL,
+                    FOREIGN KEY (space_id) REFERENCES space_properties(chunk_id)
+                )
+                """.trimIndent()
+            )
+
+            // Pedestals table (items in treasure rooms)
+            stmt.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pedestals (
+                    id TEXT PRIMARY KEY,
+                    treasure_room_id TEXT NOT NULL,
+                    item_template_id TEXT NOT NULL,
+                    state TEXT NOT NULL,
+                    pedestal_index INTEGER NOT NULL,
+                    theme_description TEXT NOT NULL,
+                    FOREIGN KEY (treasure_room_id) REFERENCES treasure_rooms(space_id)
+                )
+                """.trimIndent()
+            )
+
             // Create indices for common queries
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_parent ON world_chunks(parent_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_level ON world_chunks(level)")
@@ -186,6 +215,7 @@ class WorldDatabase(
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_respawn_space ON respawn_components(space_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_space ON corpses(space_id)")
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_player ON corpses(player_id)")
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_pedestals_room ON pedestals(treasure_room_id)")
         }
     }
 
@@ -195,6 +225,8 @@ class WorldDatabase(
     fun clearAll() {
         val conn = getConnection()
         conn.createStatement().use { stmt ->
+            stmt.execute("DELETE FROM pedestals")
+            stmt.execute("DELETE FROM treasure_rooms")
             stmt.execute("DELETE FROM corpses")
             stmt.execute("DELETE FROM respawn_components")
             stmt.execute("DELETE FROM space_entities")

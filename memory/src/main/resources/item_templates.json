@@ -722,5 +722,81 @@
     "rarity": "UNCOMMON",
     "description": "A sturdy steel shield that provides excellent protection.",
     "equipSlot": "HANDS_OFF"
+  },
+  {
+    "id": "flamebrand_longsword",
+    "name": "Flamebrand Longsword",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed", "fire", "enchanted"],
+    "properties": {
+      "weight": "4.5",
+      "damage": "25",
+      "value": "500",
+      "skill_bonus_strength": "3"
+    },
+    "rarity": "RARE",
+    "description": "A masterwork longsword wreathed in flickering flames. Its blade burns with eternal fire, and its hilt is warm to the touch. Warriors who wield this weapon find their strength amplified.",
+    "equipSlot": "HANDS_MAIN"
+  },
+  {
+    "id": "shadowweave_cloak",
+    "name": "Shadowweave Cloak",
+    "type": "ARMOR",
+    "tags": ["cloth", "shadow", "enchanted", "stealth"],
+    "properties": {
+      "weight": "1.0",
+      "defense": "8",
+      "value": "450",
+      "skill_bonus_agility": "4"
+    },
+    "rarity": "RARE",
+    "description": "A cloak woven from shadows themselves, it seems to drink in the light around it. Those who wear it move with uncanny grace, their footsteps silent as whispers.",
+    "equipSlot": "BACK"
+  },
+  {
+    "id": "stormcaller_staff",
+    "name": "Stormcaller Staff",
+    "type": "WEAPON",
+    "tags": ["wood", "metal", "magic", "lightning", "enchanted"],
+    "properties": {
+      "weight": "3.0",
+      "damage": "20",
+      "value": "600",
+      "skill_bonus_magic": "3",
+      "skill_bonus_wisdom": "2"
+    },
+    "rarity": "RARE",
+    "description": "A gnarled oak staff topped with a crackling crystal. Arcs of lightning dance between its tip and the ground. Wielders find their magical prowess enhanced and their understanding deepened.",
+    "equipSlot": "HANDS_BOTH"
+  },
+  {
+    "id": "titans_band",
+    "name": "Titan's Band",
+    "type": "ACCESSORY",
+    "tags": ["metal", "enchanted"],
+    "properties": {
+      "weight": "0.2",
+      "value": "550",
+      "skill_bonus_endurance": "5"
+    },
+    "rarity": "RARE",
+    "description": "A thick golden ring inscribed with runes of fortitude. Wearing it fills you with the stamina of giants, allowing you to endure far beyond normal limits.",
+    "equipSlot": "ACCESSORY_1"
+  },
+  {
+    "id": "arcane_blade",
+    "name": "Arcane Blade",
+    "type": "WEAPON",
+    "tags": ["metal", "sharp", "one_handed", "magic", "enchanted"],
+    "properties": {
+      "weight": "3.0",
+      "damage": "22",
+      "value": "650",
+      "skill_bonus_strength": "2",
+      "skill_bonus_magic": "3"
+    },
+    "rarity": "RARE",
+    "description": "A slender blade that hums with arcane energy. Runes of power flow along its edge, glowing with ethereal light. It channels both martial prowess and magical force, perfect for the spellsword.",
+    "equipSlot": "HANDS_MAIN"
   }
 ]

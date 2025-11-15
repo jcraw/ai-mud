@@ -331,12 +331,17 @@ Complete - GameServer and PlayerSession with thread-safe shared world state and 
 
 ## Optional Enhancements
 
-- [ ] **Treasure Room System** - Brogue-inspired choice mechanic with starter items (see `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md`)
-  - 5 pedestals aligned with skill categories (Combat, Rogue, Magic, Utility, Hybrid)
-  - Unlimited swaps (take one, return to unlock others)
-  - Early dungeon placement for playstyle definition
-  - Biome-adaptive theming (stone/obsidian/ice altars)
-  - Estimated: 24-28h across 8 chunks
+- [🚧] **Treasure Room System** - Brogue-inspired choice mechanic with starter items (Chunks 1-3/8 complete - 38%, see `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md`)
+  - **Progress**: ~10h invested, est. 14-18h remaining
+  - ✅ Chunk 1: Core Components (TreasureRoomComponent, Pedestal, PedestalState, 30 tests passing)
+  - ✅ Chunk 2: Database Schema (SQLite schema + repository, treasure_room_templates.json, 33 tests)
+  - ✅ Chunk 3: Interaction Handlers (TreasureRoomHandler, app layer integration, 3 new Intent types, WorldState V3 support)
+  - ⏸️ Chunk 4: Starter treasure items (5 RARE items with skill bonuses)
+  - ⏸️ Chunk 5: Biome theming & LLM descriptions
+  - ⏸️ Chunk 6: World generation integration
+  - ⏸️ Chunk 7: UI/UX polish & leave room detection
+  - ⏸️ Chunk 8: Testing & documentation
+  - **Design**: 5 pedestals (Combat/Rogue/Magic/Utility/Hybrid), unlimited swaps, one-time choice, early placement, biome-adaptive theming
 - [ ] Network layer for remote multi-player
 - [ ] Persistent vector storage (save/load embeddings)
 - [ ] Additional quest types (Escort, Defend, Craft)

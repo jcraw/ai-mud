@@ -19,6 +19,7 @@ data class WorldState(
     val spaces: Map<SpaceId, SpacePropertiesComponent> = emptyMap(),
     val chunks: Map<String, WorldChunkComponent> = emptyMap(), // V3: Chunk hierarchy storage
     val entities: Map<String, Entity> = emptyMap(), // V3: Entity storage (SpacePropertiesComponent refs by ID)
+    val treasureRooms: Map<SpaceId, TreasureRoomComponent> = emptyMap(), // V3: Treasure room components
 
     val players: Map<PlayerId, PlayerState>,
     val turnCount: Int = 0,
@@ -109,6 +110,17 @@ data class WorldState(
      */
     fun updateGraphNode(spaceId: SpaceId, node: GraphNodeComponent): WorldState =
         copy(graphNodes = graphNodes + (spaceId to node))
+
+    /**
+     * Get treasure room by space ID (V3)
+     */
+    fun getTreasureRoom(spaceId: SpaceId): TreasureRoomComponent? = treasureRooms[spaceId]
+
+    /**
+     * Update treasure room component (V3)
+     */
+    fun updateTreasureRoom(spaceId: SpaceId, treasureRoom: TreasureRoomComponent): WorldState =
+        copy(treasureRooms = treasureRooms + (spaceId to treasureRoom))
 
     /**
      * Add new space with graph node (V3)
