@@ -51,6 +51,7 @@ fun main() {
     val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
     val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
     val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+    val treasureRoomRepository = com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository(worldDatabase)
     val graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
     val spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
 
@@ -88,7 +89,8 @@ fun main() {
         townGenerator,
         bossGenerator,
         hiddenExitPlacer,
-        graphNodeRepository
+        graphNodeRepository,
+        treasureRoomRepository
     )
     val abyssStarter = com.jcraw.mud.reasoning.world.AncientAbyssStarter(
         worldSeedRepository,
@@ -99,6 +101,7 @@ fun main() {
         worldChunkRepository,
         graphNodeRepository,
         spacePropertiesRepository,
+        treasureRoomRepository,
         worldGenerator
     )
 

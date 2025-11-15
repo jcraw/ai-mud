@@ -601,8 +601,17 @@ object BiomeThemeMapper {
 
 ---
 
-### Chunk 6: World Generation Integration & Early Placement
-**Estimated Time:** 4 hours
+### Chunk 6: World Generation Integration & Early Placement ✅ COMPLETE
+**Estimated Time:** 4 hours | **Actual Time:** ~4 hours
+
+**Status:** Completed - treasure rooms now spawn during subzone generation with deterministic early placement.
+
+**Implementation Notes:**
+- Extended `TreasureRoomPlacer` with BFS-based candidate selection (distance 2-3 from hub, dead-end priority) plus starter pedestals wired to biome materials.
+- Added `NodeType.TreasureRoom` and `SpacePropertiesComponent.isTreasureRoom`, persisted via SQLite (schema + repository + tests).
+- `DungeonInitializer` tags the chosen graph node, generates safe-zone stubs, and saves a starter `TreasureRoomComponent` through `TreasureRoomRepository`.
+- `WorldStateSeeder` hydrates world state with persisted treasure rooms so handlers can operate immediately after boot.
+- CLI + GUI wiring now construct `SQLiteTreasureRoomRepository` and feed it into world generation/seeding.
 
 **Description:**
 Integrate treasure room spawning into World Generation V2. Implement constraint for early placement (first 2-3 graph nodes from starting position). Add treasure room type to space generation logic and populate with TreasureRoomComponent. Support both V2 hierarchical generation and V3 graph-based generation.
@@ -695,8 +704,17 @@ fun generateTreasureRoomNode(nodeId: String, theme: String): GraphNodeComponent 
 
 ---
 
-### Chunk 7: UI/UX Polish & Leave Room Detection
-**Estimated Time:** 3 hours
+### Chunk 7: UI/UX Polish & Leave Room Detection ✅ COMPLETE
+**Estimated Time:** 3 hours | **Actual Time:** ~3 hours
+
+**Status:** Completed - leaving a treasure room now finalizes the choice, and both console + GUI inform the player at key moments.
+
+**Implementation Notes:**
+- Added shared `TreasureRoomExitLogic` (reasoning module) so both CLI + GUI can mark rooms as looted and build consistent narration when the player departs with an item.
+- Movement handlers detect exits (cardinal + travel) and call the shared helper before the new room is described, ensuring the world state closes remaining pedestals instantly.
+- Console and GUI `describeCurrentRoom` flows now surface treasure-room status: first-time warnings, "return to swap" reminders, and empty-room messaging when looted.
+- GUI client reuses the same exit logic and emits additional narrative events; `handlePlayerMovement` accepts optional narration to display leaving consequences.
+- Added focused unit tests (`TreasureRoomExitLogicTest`) for exit finalization edge cases.
 
 **Description:**
 Implement room transition detection to mark treasure rooms as looted when player leaves with item. Add UI polish: examine command shows all pedestals and states, room entry messages emphasize choice, leave messages show consequence. Integrate with client GUI if applicable.

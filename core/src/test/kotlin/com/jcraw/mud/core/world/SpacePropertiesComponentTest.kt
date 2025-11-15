@@ -367,4 +367,17 @@ class SpacePropertiesComponentTest {
             .withDescription("Safe town square")
         assertTrue(updated.isSafeZone)
     }
+
+    @Test
+    fun `treasure room flag defaults to false`() {
+        val space = SpacePropertiesComponent(name = "Test Room")
+        assertFalse(space.isTreasureRoom)
+    }
+
+    @Test
+    fun `treasure room flag persists through copies`() {
+        val space = SpacePropertiesComponent(name = "Treasure Antechamber", isTreasureRoom = true)
+        val updated = space.copy(description = "A Brogue-inspired vault")
+        assertTrue(updated.isTreasureRoom)
+    }
 }

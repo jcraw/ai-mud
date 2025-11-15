@@ -7,6 +7,8 @@ import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.core.world.ChunkIdGenerator
 import com.jcraw.mud.core.world.GenerationContext
+import com.jcraw.mud.core.repository.TreasureRoomRepository
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomPlacer
 
 /**
  * Result data for Ancient Abyss initialization
@@ -42,8 +44,11 @@ class DungeonInitializer(
     private val townGenerator: TownGenerator,
     private val bossGenerator: BossGenerator,
     private val hiddenExitPlacer: HiddenExitPlacer,
-    private val graphNodeRepo: com.jcraw.mud.core.repository.GraphNodeRepository
+    private val graphNodeRepo: com.jcraw.mud.core.repository.GraphNodeRepository,
+    private val treasureRoomRepository: TreasureRoomRepository
 ): DungeonInitializerContract {
+
+    private val treasureRoomPlacer = TreasureRoomPlacer()
     /**
      * Initializes a new deep dungeon world.
      *
@@ -394,6 +399,14 @@ class DungeonInitializer(
             return Result.success(CombatSubzoneResult(spaceId, subzoneId))
         }
 
+        val treasureRoomCandidate = treasureRoomPlacer.selectTreasureRoomNode(
+            graphNodes,
+            graphNodes.first().id
+        )
+        val treasureBiome = treasureRoomCandidate?.let {
+            TreasureRoomPlacer.getBiomeName(subzoneChunk.biomeTheme)
+        }
+
         val nodeIdMapping = graphNodes.associate { node ->
             node.id to ChunkIdGenerator.generate(ChunkLevel.SPACE, subzoneId)
         }
@@ -403,18 +416,39 @@ class DungeonInitializer(
             val remappedEdges = node.neighbors.map { edge ->
                 edge.copy(targetId = nodeIdMapping[edge.targetId] ?: edge.targetId)
             }
+            val typeOverride = if (treasureRoomCandidate?.id == node.id) {
+                com.jcraw.mud.core.world.NodeType.TreasureRoom
+            } else {
+                node.type
+            }
             node.copy(
                 id = newId,
                 chunkId = subzoneId,
-                neighbors = remappedEdges
+                neighbors = remappedEdges,
+                type = typeOverride
             )
         }
 
         val spaceIds = mutableListOf<String>()
+        val treasureSpaceId = treasureRoomCandidate?.id?.let { nodeIdMapping[it] }
         remappedNodes.forEach { node ->
             graphNodeRepo.save(node).getOrElse { return Result.failure(it) }
-            val stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
+            var stub = worldGenerator.generateSpaceStub(node, subzoneChunk)
                 .getOrElse { return Result.failure(it) }
+
+            if (treasureSpaceId != null && node.id == treasureSpaceId && treasureBiome != null) {
+                stub = stub.copy(
+                    isSafeZone = true,
+                    isTreasureRoom = true,
+                    traps = emptyList(),
+                    resources = emptyList(),
+                    entities = emptyList()
+                )
+                val treasureComponent = treasureRoomPlacer.createStarterTreasureRoomComponent(treasureBiome)
+                treasureRoomRepository.save(treasureComponent, node.id)
+                    .getOrElse { return Result.failure(it) }
+            }
+
             spaceRepo.save(stub, node.id).getOrElse { return Result.failure(it) }
             spaceIds += node.id
         }

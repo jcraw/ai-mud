@@ -125,6 +125,8 @@ class WorldDatabase(
                     entities TEXT NOT NULL,
                     items_dropped TEXT NOT NULL,
                     state_flags TEXT NOT NULL,
+                    is_safe_zone INTEGER NOT NULL DEFAULT 0,
+                    is_treasure_room INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (chunk_id) REFERENCES world_chunks(id)
                 )
                 """.trimIndent()
@@ -133,6 +135,22 @@ class WorldDatabase(
             // Add name column for existing databases
             try {
                 stmt.execute("ALTER TABLE space_properties ADD COLUMN name TEXT NOT NULL DEFAULT 'Unknown Location'")
+            } catch (e: SQLException) {
+                if (!e.message.orEmpty().contains("duplicate column name")) {
+                    throw e
+                }
+            }
+
+            try {
+                stmt.execute("ALTER TABLE space_properties ADD COLUMN is_safe_zone INTEGER NOT NULL DEFAULT 0")
+            } catch (e: SQLException) {
+                if (!e.message.orEmpty().contains("duplicate column name")) {
+                    throw e
+                }
+            }
+
+            try {
+                stmt.execute("ALTER TABLE space_properties ADD COLUMN is_treasure_room INTEGER NOT NULL DEFAULT 0")
             } catch (e: SQLException) {
                 if (!e.message.orEmpty().contains("duplicate column name")) {
                     throw e

@@ -71,6 +71,7 @@ object GraphToRoomAdapter {
                 is com.jcraw.mud.core.world.NodeType.Linear -> "Passage"
                 is com.jcraw.mud.core.world.NodeType.Branching -> "Junction"
                 is com.jcraw.mud.core.world.NodeType.DeadEnd -> "Dead End"
+                is com.jcraw.mud.core.world.NodeType.TreasureRoom -> "Treasure Vault"
                 is com.jcraw.mud.core.world.NodeType.Boss -> "Boss Chamber"
                 is com.jcraw.mud.core.world.NodeType.Frontier -> "Frontier"
                 is com.jcraw.mud.core.world.NodeType.Questable -> "Quest Location"
@@ -124,6 +125,7 @@ object GraphToRoomAdapter {
                 is com.jcraw.mud.core.world.NodeType.Boss -> traits.add("Boss chamber")
                 is com.jcraw.mud.core.world.NodeType.Frontier -> traits.add("Frontier boundary")
                 is com.jcraw.mud.core.world.NodeType.Questable -> traits.add("Quest location")
+                is com.jcraw.mud.core.world.NodeType.TreasureRoom -> traits.add("Treasure vault")
                 else -> {} // Linear, branching, dead-end don't need explicit traits
             }
         }
@@ -176,6 +178,7 @@ object GraphToRoomAdapter {
         properties["trapCount"] = space.traps.size.toString()
         properties["resourceCount"] = space.resources.size.toString()
         properties["isSafeZone"] = space.isSafeZone.toString()
+        properties["isTreasureRoom"] = space.isTreasureRoom.toString()
 
         // Store non-cardinal exit directions for future custom movement
         val nonCardinalExits = space.exits

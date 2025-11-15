@@ -89,8 +89,8 @@ class SQLiteSpacePropertiesRepository(
             // Now save space properties
             val sql = """
                 INSERT OR REPLACE INTO space_properties
-                (chunk_id, name, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (chunk_id, name, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags, is_safe_zone, is_treasure_room)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
             conn.prepareStatement(sql).use { stmt ->
@@ -105,6 +105,8 @@ class SQLiteSpacePropertiesRepository(
                 stmt.setString(9, json.encodeToString(properties.entities))
                 stmt.setString(10, json.encodeToString(properties.itemsDropped))
                 stmt.setString(11, json.encodeToString(properties.stateFlags))
+                stmt.setInt(12, if (properties.isSafeZone) 1 else 0)
+                stmt.setInt(13, if (properties.isTreasureRoom) 1 else 0)
                 stmt.executeUpdate()
             }
 
@@ -134,7 +136,9 @@ class SQLiteSpacePropertiesRepository(
                         resources = json.decodeFromString<List<ResourceNode>>(rs.getString("resources")),
                         entities = json.decodeFromString<List<String>>(rs.getString("entities")),
                         itemsDropped = json.decodeFromString<List<ItemInstance>>(rs.getString("items_dropped")),
-                        stateFlags = json.decodeFromString<Map<String, Boolean>>(rs.getString("state_flags"))
+                        stateFlags = json.decodeFromString<Map<String, Boolean>>(rs.getString("state_flags")),
+                        isSafeZone = rs.getInt("is_safe_zone") == 1,
+                        isTreasureRoom = rs.getInt("is_treasure_room") == 1
                     )
                     Result.success(properties)
                 } else {

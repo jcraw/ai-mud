@@ -7,6 +7,7 @@ import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.repository.GraphNodeRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
+import com.jcraw.mud.core.repository.TreasureRoomRepository
 
 /**
  * Loads persisted graph nodes/spaces/chunks into an in-memory WorldState.
@@ -16,6 +17,7 @@ class WorldStateSeeder(
     private val worldChunkRepository: WorldChunkRepository,
     private val graphNodeRepository: GraphNodeRepository,
     private val spacePropertiesRepository: SpacePropertiesRepository,
+    private val treasureRoomRepository: TreasureRoomRepository,
     private val worldGenerator: WorldGenerator?
 ) {
     fun seedWorldState(
@@ -68,10 +70,16 @@ class WorldStateSeeder(
             }
         }
 
+        val treasureRooms = treasureRoomRepository.findAll().getOrElse {
+            onWarning("Failed to load treasure rooms: ${it.message}")
+            emptyList()
+        }.toMap()
+
         return baseState.copy(
             graphNodes = loadedNodes,
             spaces = loadedSpaces,
-            chunks = loadedChunks
+            chunks = loadedChunks,
+            treasureRooms = baseState.treasureRooms + treasureRooms
         )
     }
 

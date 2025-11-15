@@ -212,6 +212,7 @@ class SQLiteGraphNodeRepository(
             "Linear" -> NodeType.Linear
             "Branching" -> NodeType.Branching
             "DeadEnd" -> NodeType.DeadEnd
+            "TreasureRoom" -> NodeType.TreasureRoom
             "Boss" -> NodeType.Boss
             "Frontier" -> NodeType.Frontier
             "Questable" -> NodeType.Questable

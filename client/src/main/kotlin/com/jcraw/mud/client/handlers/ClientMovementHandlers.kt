@@ -3,6 +3,7 @@ package com.jcraw.mud.client.handlers
 import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomExitLogic
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -11,13 +12,16 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
+        val previousSpaceId = game.worldState.player.currentRoomId
+        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val newState = game.worldState.movePlayerV3(direction)
         if (newState == null) {
             game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
             return
         }
         game.worldState = newState
-        game.handlePlayerMovement(direction.displayName)
+        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        game.handlePlayerMovement(direction.displayName, treasureExitMessage)
     }
 
     fun handleLook(game: EngineGameClient, target: String?) {
@@ -202,10 +206,13 @@ object ClientMovementHandlers {
             return
         }
 
+        val previousSpaceId = game.worldState.player.currentRoomId
+        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val edgeMove = game.worldState.movePlayerByExit(normalized)
         if (edgeMove != null) {
             game.worldState = edgeMove
-            game.handlePlayerMovement(normalized)
+            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            game.handlePlayerMovement(normalized, treasureExitMessage)
             return
         }
 
@@ -224,7 +231,8 @@ object ClientMovementHandlers {
         val fallback = game.worldState.movePlayerByExit(resolvedExit.direction)
         if (fallback != null) {
             game.worldState = fallback
-            game.handlePlayerMovement(resolvedExit.direction)
+            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            game.handlePlayerMovement(resolvedExit.direction, treasureExitMessage)
             return
         }
 
@@ -246,7 +254,8 @@ object ClientMovementHandlers {
             .updatePlayer(updatedPlayer)
             .updateSpace(resolvedExit.targetId, targetSpace)
             .updateGraphNode(resolvedExit.targetId, targetNode)
-        game.handlePlayerMovement(resolvedExit.direction)
+        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        game.handlePlayerMovement(resolvedExit.direction, treasureExitMessage)
     }
 
     fun handleScout(game: EngineGameClient, rawDirection: String?) {
@@ -297,5 +306,16 @@ object ClientMovementHandlers {
         }
 
         game.emitEvent(GameEvent.Narrative(description))
+    }
+
+    private fun finalizeTreasureRoomExit(
+        game: EngineGameClient,
+        previousSpaceId: String,
+        previousTreasureRoom: TreasureRoomComponent?
+    ): String? {
+        val treasureRoom = previousTreasureRoom ?: return null
+        val result = TreasureRoomExitLogic.finalizeExit(treasureRoom, game.itemRepository) ?: return null
+        game.worldState = game.worldState.updateTreasureRoom(previousSpaceId, result.updatedComponent)
+        return result.narration
     }
 }

@@ -21,7 +21,8 @@ data class SpacePropertiesComponent(
     val itemsDropped: List<ItemInstance> = emptyList(),
     val stateFlags: Map<String, Boolean> = emptyMap(),
     val descriptionStale: Boolean = false,
-    val isSafeZone: Boolean = false // Safe zones: No mob spawns, no traps, no combat
+    val isSafeZone: Boolean = false, // Safe zones: No mob spawns, no traps, no combat
+    val isTreasureRoom: Boolean = false // Treasure room marker for Brogue-style rooms
 ) : Component {
     override val componentType: ComponentType
         get() = ComponentType.SPACE_PROPERTIES

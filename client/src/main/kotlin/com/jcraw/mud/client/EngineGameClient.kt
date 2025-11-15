@@ -84,6 +84,7 @@ class EngineGameClient(
     private val worldSeedRepository: com.jcraw.mud.memory.world.SQLiteWorldSeedRepository
     internal val worldChunkRepository: com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
     internal val spacePropertiesRepository: com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
+    internal val treasureRoomRepository: com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository
     internal val spaceEntityRepository: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
     private val corpseRepository: com.jcraw.mud.memory.world.SQLiteCorpseRepository
     internal val graphNodeRepository: com.jcraw.mud.memory.world.SQLiteGraphNodeRepository
@@ -152,6 +153,7 @@ class EngineGameClient(
         worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
         worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
         spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
+        treasureRoomRepository = com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository(worldDatabase)
         spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
         corpseRepository = com.jcraw.mud.memory.world.SQLiteCorpseRepository(worldDatabase)
         graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
@@ -188,6 +190,7 @@ class EngineGameClient(
                 worldChunkRepository,
                 graphNodeRepository,
                 spacePropertiesRepository,
+                treasureRoomRepository,
                 it
             )
         }
@@ -201,7 +204,7 @@ class EngineGameClient(
             val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)
             val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
                 worldGenerator, worldSeedRepository, worldChunkRepository, spacePropertiesRepository,
-                townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepository
+                townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepository, treasureRoomRepository
             )
             val abyssStarter = com.jcraw.mud.reasoning.world.AncientAbyssStarter(
                 worldSeedRepository,
@@ -528,6 +531,9 @@ class EngineGameClient(
     private fun describeWorldV2Space(space: com.jcraw.mud.core.SpacePropertiesComponent, spaceId: String) {
         val narrativeText = buildString {
             appendLine("\n${space.description}")
+            if (space.isTreasureRoom) {
+                appendTreasureRoomStatus(this, spaceId)
+            }
 
             // V3: Show exits from graph, not from space.exits (LLM-generated exits are unreliable)
             val graphNode = worldState.getGraphNode(spaceId)
@@ -582,8 +588,27 @@ class EngineGameClient(
         ))
     }
 
-    internal fun handlePlayerMovement(movementLabel: String) {
+    private fun appendTreasureRoomStatus(builder: StringBuilder, spaceId: String) {
+        val treasureRoom = worldState.getTreasureRoom(spaceId)
+        builder.appendLine()
+        val takenItem = treasureRoom?.currentlyTakenItem
+        when {
+            treasureRoom == null -> builder.appendLine("(Treasure room data failed to load.)")
+            treasureRoom.hasBeenLooted -> builder.appendLine("Only dust-coated pedestals remain; the room has been looted.")
+            takenItem == null -> builder.appendLine("Five pedestals hum with magic. Claim one treasure via 'examine pedestals'—the others will seal away.")
+            else -> {
+                val itemName = itemRepository.findTemplateById(takenItem)
+                    .getOrNull()
+                    ?.name
+                    ?: takenItem
+                builder.appendLine("The other treasures are sealed while you hold the $itemName. Return it to swap your choice.")
+            }
+        }
+    }
+
+    internal fun handlePlayerMovement(movementLabel: String, treasureExitMessage: String? = null) {
         emitEvent(GameEvent.Narrative("You move $movementLabel."))
+        treasureExitMessage?.let { emitEvent(GameEvent.Narrative(it)) }
         val currentSpaceId = worldState.player.currentRoomId
         ensureSpaceContent(currentSpaceId)
         worldState.getCurrentGraphNode()?.let { maybeExpandFrontier(it) }

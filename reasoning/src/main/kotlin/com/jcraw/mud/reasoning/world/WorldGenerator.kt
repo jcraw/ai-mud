@@ -326,6 +326,7 @@ class WorldGenerator(
             is com.jcraw.mud.core.world.NodeType.Linear -> "corridor or passage"
             is com.jcraw.mud.core.world.NodeType.Branching -> "junction or crossroads"
             is com.jcraw.mud.core.world.NodeType.DeadEnd -> "dead-end chamber"
+            is com.jcraw.mud.core.world.NodeType.TreasureRoom -> "treasure vault filled with pedestals"
             is com.jcraw.mud.core.world.NodeType.Boss -> "ominous boss chamber"
             is com.jcraw.mud.core.world.NodeType.Frontier -> "unexplored frontier"
             is com.jcraw.mud.core.world.NodeType.Questable -> "significant quest location"
@@ -417,6 +418,7 @@ class WorldGenerator(
             is com.jcraw.mud.core.world.NodeType.Linear -> 40 to TerrainType.NORMAL // Dim passages
             is com.jcraw.mud.core.world.NodeType.Branching -> 50 to TerrainType.NORMAL // Moderate light
             is com.jcraw.mud.core.world.NodeType.DeadEnd -> 30 to TerrainType.DIFFICULT // Dark, challenging
+            is com.jcraw.mud.core.world.NodeType.TreasureRoom -> 65 to TerrainType.NORMAL // Highlight treasures
             is com.jcraw.mud.core.world.NodeType.Boss -> 60 to TerrainType.NORMAL // Dramatic lighting
             is com.jcraw.mud.core.world.NodeType.Frontier -> 20 to TerrainType.DIFFICULT // Unexplored, rough
             is com.jcraw.mud.core.world.NodeType.Questable -> 55 to TerrainType.NORMAL // Interesting, accessible

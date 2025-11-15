@@ -72,7 +72,7 @@ For complete documentation, see:
 
 ## In Progress Features 🚧
 
-### Treasure Room System (Chunks 1-5/8 Complete - 63%)
+### Treasure Room System (Chunks 1-7/8 Complete - 88%)
 Brogue-inspired treasure room system with playstyle-defining item selection.
 
 **Completed**:
@@ -81,19 +81,24 @@ Brogue-inspired treasure room system with playstyle-defining item selection.
 - ✅ **Chunk 3: Interaction Handlers** (4h) - TreasureRoomHandler (218 lines), TreasureRoomHandlers app layer (280 lines), 3 new Intent types (TakeTreasure/ReturnTreasure/ExaminePedestal), WorldState V3 integration (treasureRooms map + helper methods), game loop integration (console/multi-user/GUI), biome-specific barrier descriptions
 - ✅ **Chunk 4: Starter Treasure Items** (2h) - 5 RARE items added to item_templates.json (802 lines): Flamebrand Longsword (STR +3), Shadowweave Cloak (AGI +4), Stormcaller Staff (MAG +3, WIS +2), Titan's Band (END +5), Arcane Blade (STR +2, MAG +3). Template references updated in treasure_room_templates.json
 - ✅ **Chunk 5: Biome Theming & LLM Descriptions** (1h) - TreasureRoomDescriptionGenerator (243 lines) with LLM-based atmospheric descriptions, 6 biome themes (ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls), state-aware pedestal descriptions, fallback descriptions for API-less mode
+- ✅ **Chunk 6: World Generation Integration** (3h) - NodeType.TreasureRoom added to GraphTypes, TreasureRoomPlacer (189 lines) with BFS-based placement (distance 2-3 from start), DungeonInitializer integration with selectTreasureRoomNode, SpacePropertiesComponent.isTreasureRoom flag, safe zone marking, biome-aware component creation
+- ✅ **Chunk 7: Leave Room Detection** (2h) - TreasureRoomExitLogic (37 lines) for finalization, MovementHandlers integration (tracks previous room, calls finalizeExit, displays narration), ClientMovementHandlers integration, treasure room status display in both console and GUI
 
 **Design**:
 - 5 pedestals for skill categories: Combat (Flamebrand Longsword), Rogue (Shadowweave Cloak), Magic (Stormcaller Staff), Utility (Titan's Band), Hybrid (Arcane Blade)
 - Unlimited swaps: Take one item, barriers lock others, return to swap freely
 - One-time choice: Leaving room with item finalizes decision, pedestals emptied
-- Early placement: Spawns in first 2-3 rooms for playstyle definition
+- Early placement: BFS distance 2-3 from start node, priority: DeadEnd > Linear > Branching
 - Biome theming: Altars adapt to dungeon (stone/obsidian/ice/bone) with LLM-generated atmospheric descriptions
-- State-aware descriptions: Available/locked/empty pedestals have distinct visual descriptions
+- Safe zones: Treasure rooms marked as safe (no combat, traps, or resource spawns)
+- Exit finalization: "As you depart with the [item], the remaining treasures shimmer and fade. Your choice is final."
 
-**Remaining** (est. 6-10h):
-- Chunk 6: World generation integration
-- Chunk 7: UI/UX polish & leave room detection
+**Remaining** (est. 2-4h):
 - Chunk 8: Testing & documentation
+  - Wire GUI intent handlers (EngineGameClient) into TreasureRoomHandlers for examine/take/return
+  - Unit tests for TreasureRoomPlacer (BFS distance, candidate selection, biome mapping)
+  - Integration tests for MovementHandlers (exit detection, treasure room finalization)
+  - World generation integration tests (treasure room placement, safe zone marking)
 
 See `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md` for complete plan.
 

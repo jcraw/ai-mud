@@ -6,7 +6,9 @@ import com.jcraw.mud.core.Direction
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.mud.core.TreasureRoomComponent
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomExitLogic
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -19,6 +21,8 @@ object MovementHandlers {
         // Hostile NPCs in turn queue will get their attacks when their timer expires
 
         // V3: Graph-based navigation
+        val previousSpaceId = game.worldState.player.currentRoomId
+        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val newState = game.worldState.movePlayerV3(direction)
 
         if (newState == null) {
@@ -27,7 +31,8 @@ object MovementHandlers {
         }
 
         game.worldState = newState
-        postMove(game, direction.displayName)
+        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        postMove(game, direction.displayName, treasureExitMessage)
     }
 
     fun handleLook(game: MudGame, target: String?) {
@@ -158,10 +163,13 @@ object MovementHandlers {
             return
         }
 
+        val previousSpaceId = game.worldState.player.currentRoomId
+        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val directMove = game.worldState.movePlayerByExit(normalized)
         if (directMove != null) {
             game.worldState = directMove
-            postMove(game, normalized)
+            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            postMove(game, normalized, treasureExitMessage)
             return
         }
 
@@ -180,7 +188,8 @@ object MovementHandlers {
         val fallback = game.worldState.movePlayerByExit(resolvedExit.direction)
         if (fallback != null) {
             game.worldState = fallback
-            postMove(game, resolvedExit.direction)
+            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            postMove(game, resolvedExit.direction, treasureExitMessage)
             return
         }
 
@@ -192,7 +201,8 @@ object MovementHandlers {
 
         val updatedPlayer = game.worldState.player.moveToRoom(resolvedExit.targetId)
         game.worldState = game.worldState.updatePlayer(updatedPlayer)
-        postMove(game, resolvedExit.direction)
+        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        postMove(game, resolvedExit.direction, treasureExitMessage)
     }
 
     fun handleScout(game: MudGame, target: String?) {
@@ -236,8 +246,9 @@ object MovementHandlers {
         println("  It seems to lead toward $destinationName.")
     }
 
-    private fun postMove(game: MudGame, movementLabel: String) {
+    private fun postMove(game: MudGame, movementLabel: String, treasureExitMessage: String? = null) {
         println("You move $movementLabel.")
+        treasureExitMessage?.let { println(it) }
 
         val currentSpace = game.worldState.getCurrentSpace()
         val currentNode = game.worldState.getCurrentGraphNode()
@@ -328,6 +339,17 @@ object MovementHandlers {
         game.trackQuests(QuestAction.VisitedRoom(currentSpaceId))
 
         game.describeCurrentRoom()
+    }
+
+    private fun finalizeTreasureRoomExit(
+        game: MudGame,
+        previousSpaceId: String,
+        previousTreasureRoom: TreasureRoomComponent?
+    ): String? {
+        val treasureRoom = previousTreasureRoom ?: return null
+        val result = TreasureRoomExitLogic.finalizeExit(treasureRoom, game.itemRepository) ?: return null
+        game.worldState = game.worldState.updateTreasureRoom(previousSpaceId, result.updatedComponent)
+        return result.narration
     }
 
     private fun populateSpaceIfNeeded(

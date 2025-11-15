@@ -111,6 +111,7 @@ class WorldDatabaseTest {
         }
 
         assertTrue(columns.contains("chunk_id"))
+        assertTrue(columns.contains("name"))
         assertTrue(columns.contains("description"))
         assertTrue(columns.contains("exits"))
         assertTrue(columns.contains("brightness"))
@@ -120,6 +121,8 @@ class WorldDatabaseTest {
         assertTrue(columns.contains("entities"))
         assertTrue(columns.contains("items_dropped"))
         assertTrue(columns.contains("state_flags"))
+        assertTrue(columns.contains("is_safe_zone"))
+        assertTrue(columns.contains("is_treasure_room"))
     }
 
     @Test
@@ -171,18 +174,21 @@ class WorldDatabaseTest {
         // Try to insert space_properties with non-existent chunk_id
         assertThrows<SQLException> {
             conn.prepareStatement(
-                "INSERT INTO space_properties (chunk_id, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO space_properties (chunk_id, name, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags, is_safe_zone, is_treasure_room) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             ).use { stmt ->
                 stmt.setString(1, "nonexistent_chunk")
                 stmt.setString(2, "Test")
-                stmt.setString(3, "{}")
-                stmt.setInt(4, 50)
-                stmt.setString(5, "NORMAL")
-                stmt.setString(6, "[]")
+                stmt.setString(3, "Test desc")
+                stmt.setString(4, "{}")
+                stmt.setInt(5, 50)
+                stmt.setString(6, "NORMAL")
                 stmt.setString(7, "[]")
                 stmt.setString(8, "[]")
                 stmt.setString(9, "[]")
-                stmt.setString(10, "{}")
+                stmt.setString(10, "[]")
+                stmt.setString(11, "{}")
+                stmt.setInt(12, 0)
+                stmt.setInt(13, 0)
                 stmt.executeUpdate()
             }
         }
@@ -195,7 +201,9 @@ class WorldDatabaseTest {
         // Insert data
         conn.prepareStatement("INSERT INTO world_seed (id, seed_string, global_lore) VALUES (1, 'test', 'lore')").use { it.executeUpdate() }
         conn.prepareStatement("INSERT INTO world_chunks (id, level, parent_id, children, lore, biome_theme, size_estimate, mob_density, difficulty_level) VALUES ('chunk1', 'WORLD', NULL, '[]', 'lore', 'theme', 10, 0.5, 5)").use { it.executeUpdate() }
-        conn.prepareStatement("INSERT INTO space_properties (chunk_id, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags) VALUES ('chunk1', 'desc', '{}', 50, 'NORMAL', '[]', '[]', '[]', '[]', '{}')").use { it.executeUpdate() }
+        conn.prepareStatement(
+            "INSERT INTO space_properties (chunk_id, name, description, exits, brightness, terrain_type, traps, resources, entities, items_dropped, state_flags, is_safe_zone, is_treasure_room) VALUES ('chunk1', 'Room', 'desc', '{}', 50, 'NORMAL', '[]', '[]', '[]', '[]', '{}', 0, 0)"
+        ).use { it.executeUpdate() }
 
         // Clear
         database.clearAll()

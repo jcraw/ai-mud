@@ -355,6 +355,30 @@ class SQLiteSpacePropertiesRepositoryTest {
         assertEquals(false, loaded?.stateFlags?.get("lever_pulled"))
     }
 
+    @Test
+    fun `safe zone and treasure flags persist`() {
+        val props = SpacePropertiesComponent(
+            name = "Treasure Vault",
+            description = "Glittering vault",
+            exits = emptyList(),
+            brightness = 70,
+            terrainType = TerrainType.NORMAL,
+            traps = emptyList(),
+            resources = emptyList(),
+            entities = emptyList(),
+            itemsDropped = emptyList(),
+            stateFlags = emptyMap(),
+            isSafeZone = true,
+            isTreasureRoom = true
+        )
+
+        repository.save(props, "chunk1").getOrThrow()
+        val loaded = repository.findByChunkId("chunk1").getOrThrow()
+
+        assertTrue(loaded?.isSafeZone == true)
+        assertTrue(loaded?.isTreasureRoom == true)
+    }
+
     // === Optimized Update Tests ===
 
     @Test

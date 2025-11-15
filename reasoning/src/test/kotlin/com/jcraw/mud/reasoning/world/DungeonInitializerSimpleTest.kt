@@ -3,6 +3,7 @@ package com.jcraw.mud.reasoning.world
 import com.jcraw.mud.core.world.ChunkLevel
 import com.jcraw.mud.memory.world.SQLiteGraphNodeRepository
 import com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository
+import com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository
 import com.jcraw.mud.memory.world.SQLiteWorldChunkRepository
 import com.jcraw.mud.memory.world.SQLiteWorldSeedRepository
 import com.jcraw.mud.memory.world.WorldDatabase
@@ -27,6 +28,7 @@ class DungeonInitializerSimpleTest {
     private lateinit var chunkRepo: SQLiteWorldChunkRepository
     private lateinit var spaceRepo: SQLiteSpacePropertiesRepository
     private lateinit var graphNodeRepo: SQLiteGraphNodeRepository
+    private lateinit var treasureRoomRepo: SQLiteTreasureRoomRepository
     private lateinit var worldGenerator: WorldGenerator
     private lateinit var initializer: DungeonInitializer
     private lateinit var spaceEntityRepo: com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository
@@ -40,6 +42,7 @@ class DungeonInitializerSimpleTest {
         chunkRepo = SQLiteWorldChunkRepository(database)
         spaceRepo = SQLiteSpacePropertiesRepository(database)
         graphNodeRepo = SQLiteGraphNodeRepository(database)
+        treasureRoomRepo = SQLiteTreasureRoomRepository(database)
         spaceEntityRepo = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(database)
 
         // Create mock LLM and generator
@@ -52,7 +55,17 @@ class DungeonInitializerSimpleTest {
         val bossGenerator = BossGenerator(worldGenerator, spaceRepo)
         val hiddenExitPlacer = HiddenExitPlacer(worldGenerator, chunkRepo, spaceRepo)
 
-        initializer = DungeonInitializer(worldGenerator, seedRepo, chunkRepo, spaceRepo, townGenerator, bossGenerator, hiddenExitPlacer, graphNodeRepo)
+        initializer = DungeonInitializer(
+            worldGenerator,
+            seedRepo,
+            chunkRepo,
+            spaceRepo,
+            townGenerator,
+            bossGenerator,
+            hiddenExitPlacer,
+            graphNodeRepo,
+            treasureRoomRepo
+        )
     }
 
     @AfterAll

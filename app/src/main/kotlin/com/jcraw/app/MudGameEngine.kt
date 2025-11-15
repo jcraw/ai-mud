@@ -233,6 +233,10 @@ class MudGame(
         val description = generateRoomDescription(currentSpace, player.currentRoomId)
         println(description.ifBlank { "An unexplored area..." })
 
+        if (currentSpace.isTreasureRoom) {
+            describeTreasureRoomState(player.currentRoomId)
+        }
+
         val visibleExits = currentNode.neighbors.filter { edge ->
             !edge.hidden || player.hasRevealedExit("${currentNode.id}:${edge.targetId}")
         }
@@ -267,6 +271,28 @@ class MudGame(
                     }
                     else -> println("  - ${entity.name}")
                 }
+            }
+        }
+    }
+
+    private fun describeTreasureRoomState(spaceId: String) {
+        val treasureRoom = worldState.getTreasureRoom(spaceId)
+        if (treasureRoom == null) {
+            println("\n(An eerie hush lingers—this treasure room's state couldn't be loaded.)")
+            return
+        }
+
+        println()
+        val takenItem = treasureRoom.currentlyTakenItem
+        when {
+            treasureRoom.hasBeenLooted -> println("Only bare pedestals remain; the room's magic has faded.")
+            takenItem == null -> println("Five pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.")
+            else -> {
+                val templateName = itemRepository.findTemplateById(takenItem)
+                    .getOrNull()
+                    ?.name
+                    ?: takenItem
+                println("The other pedestals are sealed while you hold the $templateName. Return it if you wish to choose again.")
             }
         }
     }

@@ -45,6 +45,15 @@ sealed class NodeType {
     }
 
     /**
+     * Treasure rooms - Brogue-style choice chambers
+     * Reserved for early-game power spikes and themed loot
+     */
+    @Serializable
+    object TreasureRoom : NodeType() {
+        override fun toString(): String = "TreasureRoom"
+    }
+
+    /**
      * Boss nodes - Boss rooms, major encounters
      * Placed at strategic graph positions (farthest from entry)
      */
