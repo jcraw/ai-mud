@@ -444,12 +444,17 @@ class DungeonInitializer(
                     resources = emptyList(),
                     entities = emptyList()
                 )
+            }
+
+            // Save space first (treasure room has FK constraint to space)
+            spaceRepo.save(stub, node.id).getOrElse { return Result.failure(it) }
+
+            // Then save treasure room if this is a treasure room node
+            if (treasureSpaceId != null && node.id == treasureSpaceId && treasureBiome != null) {
                 val treasureComponent = treasureRoomPlacer.createStarterTreasureRoomComponent(treasureBiome)
                 treasureRoomRepository.save(treasureComponent, node.id)
                     .getOrElse { return Result.failure(it) }
             }
-
-            spaceRepo.save(stub, node.id).getOrElse { return Result.failure(it) }
             spaceIds += node.id
         }
 

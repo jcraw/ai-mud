@@ -100,6 +100,7 @@ class EngineGameClient(
     private val spacePopulationService: com.jcraw.mud.reasoning.world.SpacePopulationService
     private val worldStateSeeder: com.jcraw.mud.reasoning.world.WorldStateSeeder?
     private val playerRespawnService: PlayerRespawnService
+    internal val treasureRoomHandler: com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
 
     // World System V3 components (graph-based navigation)
     private val loreInheritanceEngine: com.jcraw.mud.reasoning.world.LoreInheritanceEngine?
@@ -165,6 +166,7 @@ class EngineGameClient(
         respawnChecker = com.jcraw.mud.reasoning.world.RespawnChecker(respawnRepository, mobSpawner)
         spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)
         playerRespawnService = PlayerRespawnService(corpseRepository)
+        treasureRoomHandler = com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler(itemRepository)
 
         // Initialize World System V3 components
         loreInheritanceEngine = if (llmClient != null) {
@@ -720,9 +722,9 @@ class EngineGameClient(
             is Intent.TakeAll -> ClientItemHandlers.handleTakeAll(this)
             is Intent.Drop -> ClientItemHandlers.handleDrop(this, intent.target)
             is Intent.Give -> ClientItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)
-            is Intent.TakeTreasure -> emitEvent(GameEvent.System("Treasure rooms not yet integrated", GameEvent.MessageLevel.WARNING))
-            is Intent.ReturnTreasure -> emitEvent(GameEvent.System("Treasure rooms not yet integrated", GameEvent.MessageLevel.WARNING))
-            is Intent.ExaminePedestal -> emitEvent(GameEvent.System("Treasure rooms not yet integrated", GameEvent.MessageLevel.WARNING))
+            is Intent.TakeTreasure -> ClientTreasureRoomHandlers.handleTakeTreasure(this, intent.itemTarget)
+            is Intent.ReturnTreasure -> ClientTreasureRoomHandlers.handleReturnTreasure(this, intent.itemTarget)
+            is Intent.ExaminePedestal -> ClientTreasureRoomHandlers.handleExaminePedestal(this, intent.target)
             is Intent.Talk -> ClientSocialHandlers.handleTalk(this, intent.target)
             is Intent.Say -> ClientSocialHandlers.handleSay(this, intent.message, intent.npcTarget)
             is Intent.Attack -> ClientCombatHandlers.handleAttack(this, intent.target)

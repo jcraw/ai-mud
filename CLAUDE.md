@@ -72,7 +72,9 @@ For complete documentation, see:
 
 ## In Progress Features 🚧
 
-### Treasure Room System (Chunks 1-7/8 Complete - 88%)
+None - All planned V2 features complete.
+
+### Treasure Room System ✅ (COMPLETE - All 8 chunks)
 Brogue-inspired treasure room system with playstyle-defining item selection.
 
 **Completed**:
@@ -83,6 +85,7 @@ Brogue-inspired treasure room system with playstyle-defining item selection.
 - ✅ **Chunk 5: Biome Theming & LLM Descriptions** (1h) - TreasureRoomDescriptionGenerator (243 lines) with LLM-based atmospheric descriptions, 6 biome themes (ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls), state-aware pedestal descriptions, fallback descriptions for API-less mode
 - ✅ **Chunk 6: World Generation Integration** (3h) - NodeType.TreasureRoom added to GraphTypes, TreasureRoomPlacer (189 lines) with BFS-based placement (distance 2-3 from start), DungeonInitializer integration with selectTreasureRoomNode, SpacePropertiesComponent.isTreasureRoom flag, safe zone marking, biome-aware component creation
 - ✅ **Chunk 7: Leave Room Detection** (2h) - TreasureRoomExitLogic (37 lines) for finalization, MovementHandlers integration (tracks previous room, calls finalizeExit, displays narration), ClientMovementHandlers integration, treasure room status display in both console and GUI
+- ✅ **Chunk 8: Testing & Documentation** (2h) - ClientTreasureRoomHandlers (250 lines) with GUI intent wiring, TreasureRoomPlacerTest (26 unit tests), TreasureRoomIntegrationTest (8 integration tests for exit detection), TreasureRoomWorldGenIntegrationTest (15 integration tests for placement/safe zones), documentation updates
 
 **Design**:
 - 5 pedestals for skill categories: Combat (Flamebrand Longsword), Rogue (Shadowweave Cloak), Magic (Stormcaller Staff), Utility (Titan's Band), Hybrid (Arcane Blade)
@@ -92,13 +95,13 @@ Brogue-inspired treasure room system with playstyle-defining item selection.
 - Biome theming: Altars adapt to dungeon (stone/obsidian/ice/bone) with LLM-generated atmospheric descriptions
 - Safe zones: Treasure rooms marked as safe (no combat, traps, or resource spawns)
 - Exit finalization: "As you depart with the [item], the remaining treasures shimmer and fade. Your choice is final."
+- Full integration: Console, multi-user, and GUI client all support treasure rooms
 
-**Remaining** (est. 2-4h):
-- Chunk 8: Testing & documentation
-  - Wire GUI intent handlers (EngineGameClient) into TreasureRoomHandlers for examine/take/return
-  - Unit tests for TreasureRoomPlacer (BFS distance, candidate selection, biome mapping)
-  - Integration tests for MovementHandlers (exit detection, treasure room finalization)
-  - World generation integration tests (treasure room placement, safe zone marking)
+**Commands**:
+- `examine pedestals` / `examine altars` - View all treasure room items and their states
+- `take treasure <item>` - Claim an item from a pedestal (locks others)
+- `return treasure <item>` - Return item to pedestal (unlocks others for swapping)
+- Leaving room with item finalizes choice (room becomes looted)
 
 See `docs/requirements/V2/FEATURE_PLAN_treasure_room_system.md` for complete plan.
 
@@ -126,6 +129,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 - **Gathering**: interact/harvest/gather <resource>
 - **Crafting**: craft <recipe>
 - **Trading**: buy <item> [from <merchant>], sell <item> [to <merchant>], list stock
+- **Treasure Rooms**: examine pedestals, take treasure <item>, return treasure <item>
 - **Pickpocketing**: pickpocket <npc>, steal <item> from <npc>, place <item> on <npc>
 - **Skill checks**: check <feature>, persuade <npc>, intimidate <npc>
 - **Social**: smile/wave/nod/bow [at <npc>], ask <npc> about <topic>
@@ -284,6 +288,7 @@ All V2 systems fully integrated and tested:
 - ✅ Quest System - Procedural generation with auto-tracking
 - ✅ World Generation V2 (7 chunks) - Hierarchical procedural generation with exit resolution
 - ✅ Starting Dungeon (8 chunks) - Ancient Abyss with town, merchants, respawn, boss fight
+- ✅ Treasure Room System (8 chunks) - Brogue-inspired item selection with BFS placement, biome theming, safe zones
 - ✅ GUI Client - Compose Multiplatform with real engine integration
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
 - 🚧 World System V3 (Chunks 1-5 complete, all game modes V3-compatible):
