@@ -70,7 +70,7 @@ object TreasureRoomHandlers {
                 if (result.treasureRoomComponent.currentlyTakenItem != null) {
                     val barrierType = getBarrierTypeForBiome(treasureRoomComponent.biomeTheme)
                     println("\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away.")
-                    println("You may return the ${result.itemName} to swap your choice, but once you leave this room with it, your decision is final.")
+                    println("You may return to this room at any time to swap your choice for a different treasure.")
                 }
             }
             is TreasureRoomHandler.TreasureRoomResult.Failure -> {

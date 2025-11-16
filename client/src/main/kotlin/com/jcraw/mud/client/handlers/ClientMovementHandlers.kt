@@ -20,8 +20,9 @@ object ClientMovementHandlers {
             return
         }
         game.worldState = newState
-        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-        game.handlePlayerMovement(direction.displayName, treasureExitMessage)
+        // Treasure room exit finalization disabled - players can return and swap anytime
+        // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        game.handlePlayerMovement(direction.displayName, null)
     }
 
     fun handleLook(game: EngineGameClient, target: String?) {
@@ -211,8 +212,9 @@ object ClientMovementHandlers {
         val edgeMove = game.worldState.movePlayerByExit(normalized)
         if (edgeMove != null) {
             game.worldState = edgeMove
-            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-            game.handlePlayerMovement(normalized, treasureExitMessage)
+            // Treasure room exit finalization disabled - players can return and swap anytime
+            // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            game.handlePlayerMovement(normalized, null)
             return
         }
 
