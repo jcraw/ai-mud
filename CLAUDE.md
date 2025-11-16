@@ -248,6 +248,7 @@ MobGenerationConfig.enabled = true
 - **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.
 - **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-5 (partial) complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests). Phase 5 (reasoning tests) + Phase 6-7 remaining (est. 2-3h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
 - **⚠️ Test status** - 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
+- **🐛 KNOWN ISSUE** - Treasure room items not appearing in inventory (GUI client). See `KNOWN_ISSUES.md` for details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain

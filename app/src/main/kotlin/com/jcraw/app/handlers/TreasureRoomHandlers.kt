@@ -53,6 +53,10 @@ object TreasureRoomHandlers {
         // Handle result
         when (result) {
             is TreasureRoomHandler.TreasureRoomResult.Success -> {
+                // DEBUG
+                println("DEBUG: Before update - inventory has ${playerInventory.items.size} items")
+                println("DEBUG: After take - inventory has ${result.playerInventory.items.size} items")
+
                 // Update world state with new components
                 var newState = game.worldState.updatePlayer(
                     game.worldState.player.copy(inventoryComponent = result.playerInventory)
@@ -62,6 +66,9 @@ object TreasureRoomHandlers {
                 newState = newState.updateTreasureRoom(spaceId, result.treasureRoomComponent)
 
                 game.worldState = newState
+
+                // DEBUG
+                println("DEBUG: After worldState update - player inventory has ${game.worldState.player.inventoryComponent?.items?.size ?: 0} items")
 
                 // Print success message with atmospheric description
                 println("You take the ${result.itemName} from its ${getPedestalDescription(treasureRoomComponent, itemTemplateId)}.")

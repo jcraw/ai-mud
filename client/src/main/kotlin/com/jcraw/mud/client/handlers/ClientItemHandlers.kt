@@ -197,7 +197,53 @@ object ClientItemHandlers {
     }
 
     fun handleEquip(game: EngineGameClient, target: String) {
-        val item = game.worldState.player.inventory.find { invItem ->
+        val player = game.worldState.player
+        val invComp = player.inventoryComponent
+
+        // V2 Inventory System
+        if (invComp != null) {
+            // Find item in V2 inventory
+            val itemInstance = invComp.items.find { instance ->
+                val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
+                template != null && (
+                    template.name.lowercase().contains(target.lowercase()) ||
+                    instance.templateId.lowercase().contains(target.lowercase())
+                )
+            }
+
+            if (itemInstance == null) {
+                game.emitEvent(GameEvent.System("You don't have that in your inventory.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            // Get template
+            val template = game.itemRepository.findTemplateById(itemInstance.templateId).getOrNull()
+            if (template == null) {
+                game.emitEvent(GameEvent.System("Error: Item template not found", GameEvent.MessageLevel.ERROR))
+                return
+            }
+
+            // Check if item is equippable
+            val equipSlot = template.equipSlot
+            if (equipSlot == null) {
+                game.emitEvent(GameEvent.System("You can't equip that.", GameEvent.MessageLevel.WARNING))
+                return
+            }
+
+            // Equip the item
+            val updatedInventory = invComp.equip(itemInstance, equipSlot)
+            if (updatedInventory == null) {
+                game.emitEvent(GameEvent.System("Error: Could not equip item", GameEvent.MessageLevel.ERROR))
+                return
+            }
+            game.worldState = game.worldState.updatePlayer(player.copy(inventoryComponent = updatedInventory))
+
+            game.emitEvent(GameEvent.Narrative("You equip the ${template.name}."))
+            return
+        }
+
+        // Legacy Inventory System (fallback)
+        val item = player.inventory.find { invItem ->
             invItem.name.lowercase().contains(target.lowercase()) ||
             invItem.id.lowercase().contains(target.lowercase())
         }
@@ -209,8 +255,8 @@ object ClientItemHandlers {
 
         when (item.itemType) {
             ItemType.WEAPON -> {
-                val oldWeapon = game.worldState.player.equippedWeapon
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.equipWeapon(item))
+                val oldWeapon = player.equippedWeapon
+                game.worldState = game.worldState.updatePlayer(player.equipWeapon(item))
 
                 if (oldWeapon != null) {
                     game.emitEvent(GameEvent.Narrative("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage)."))
@@ -219,8 +265,8 @@ object ClientItemHandlers {
                 }
             }
             ItemType.ARMOR -> {
-                val oldArmor = game.worldState.player.equippedArmor
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.equipArmor(item))
+                val oldArmor = player.equippedArmor
+                game.worldState = game.worldState.updatePlayer(player.equipArmor(item))
 
                 if (oldArmor != null) {
                     game.emitEvent(GameEvent.Narrative("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense)."))

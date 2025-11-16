@@ -1,6 +1,7 @@
 package com.jcraw.app
 
 import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.InventoryComponent
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.CombatResolver
@@ -118,7 +119,13 @@ fun main() {
     val player = com.jcraw.mud.core.PlayerState(
         id = "player_cli",
         name = "Adventurer",
-        currentRoomId = abyssStart.startingSpaceId
+        currentRoomId = abyssStart.startingSpaceId,
+        inventoryComponent = InventoryComponent(
+            items = emptyList(),
+            equipped = emptyMap(),
+            gold = 0,
+            capacityWeight = 50.0
+        )
     )
 
     var worldState: WorldState = WorldState(

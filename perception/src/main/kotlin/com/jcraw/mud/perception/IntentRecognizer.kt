@@ -177,7 +177,7 @@ Valid intent types:
 - "examine" - Same as "look" - examine something in detail
 - "search" - Search the current room/area for hidden items using skill check (target optional: e.g., "moss", "walls")
 - "interact" - Interact with an object (requires target)
-- "inventory" - View player inventory (no target)
+- "inventory" - View player inventory and equipped items (no target). Triggered by: "inventory", "i", "inv", "equipment", "eq", "gear", "what do i have", "what am i wearing", "what am i carrying", "show equipment"
 - "take" - Pick up an item (requires target)
 - "take_all" - Pick up all items in the room (no target, triggered by "take all", "get all", "take everything", etc.)
 - "drop" - Drop an item (requires target)
@@ -185,7 +185,7 @@ Valid intent types:
 - "talk" - Talk to an NPC (requires target)
 - "say" - Speak a line of dialogue (use "target" for the message text, optional "npc_target" for whom it's addressed)
 - "attack" - Attack an NPC or continue combat (target optional if in combat, extract ANY identifying word from NPC name)
-- "equip" - Equip a weapon or armor (requires target, extract ANY identifying word from item name)
+- "equip" - Equip/wield/wear a weapon or armor (requires target, extract ANY identifying word from item name). Triggered by: "equip sword", "wield sword", "wear armor", "put on helmet", "don shield"
 - "use" - Use/consume an item (requires target, extract ANY identifying word from item name)
 - "check" - Perform a skill check on a feature (requires target, extract ANY identifying word)
 - "persuade" - Persuade an NPC (requires target, extract ANY identifying word from NPC name)
@@ -218,7 +218,7 @@ Important parsing rules:
 1. Be flexible - understand natural language variations
 2. Extract the core action and target from rambling text
 3. "look around", "look around room", "look at the room" all map to look with no target
-4. "look at X", "examine X", "inspect X" map to look with target X
+4. "look at X", "examine X", "inspect X" map to look with target X (EXCEPT pedestals/altars - see rule 26)
 5. "look around for items", "look for items to take" map to look with no target (lists ground items)
 6. "search", "search room", "search for hidden items", "look for hidden items" all map to search (triggers skill check)
 7. "search X" or "look for hidden items in X" map to search with target X
@@ -241,6 +241,9 @@ Important parsing rules:
 21. VIEW SKILLS: "skills", "skill sheet", "show skills", "abilities", "character sheet" → view_skills (no target)
 22. LIST STOCK: Commands like "list stock", "show stock", "list merchant stock", "show Alara's stock" map to trade intent with action="list". Include merchant name if mentioned.
 23. BUY/SELL: Extract quantity if a number appears before the item ("buy 3 potions from Alara" → quantity 3). Merchant names typically follow words like "from", "to", or "with".
+24. EQUIP VARIATIONS: "wield sword", "wear armor", "put on helmet", "don shield" all map to equip intent with item as target. Do NOT use interact for equipment-related commands.
+25. INVENTORY VARIATIONS: "equipment", "gear", "what do i have", "what am i wearing", "what am i carrying", "show equipment", "show gear" all map to inventory intent (no target).
+26. TREASURE ROOM PEDESTALS: "look at pedestals", "look at altars", "examine pedestals", "examine altars", "inspect pedestals", "inspect altars" all map to examine_pedestal intent. This shows the treasure room items - do NOT use regular look intent for pedestals/altars.
 
 Response format (JSON only, no markdown):
 {
@@ -743,7 +746,7 @@ Response format (JSON only, no markdown):
                 }
             }
             "skills", "abilities", "sheet" -> Intent.ViewSkills
-            "inventory", "i" -> Intent.Inventory
+            "inventory", "i", "equipment", "gear", "eq" -> Intent.Inventory
             "buy", "purchase" -> parseTradeCommand(args, action = "buy", missingItemMessage = "Buy what?", merchantPrepositions = listOf("from", "with"))
             "sell" -> parseTradeCommand(args, action = "sell", missingItemMessage = "Sell what?", merchantPrepositions = listOf("to", "with"))
             "list" -> parseListStock(args)

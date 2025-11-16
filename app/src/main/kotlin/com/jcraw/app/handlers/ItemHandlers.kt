@@ -64,6 +64,12 @@ object ItemHandlers {
         val player = game.worldState.player
         val invComp = player.inventoryComponent
 
+        // DEBUG
+        println("DEBUG: inventoryComponent is ${if (invComp != null) "NOT NULL (V2)" else "NULL (legacy)"}")
+        if (invComp != null) {
+            println("DEBUG: V2 inventory has ${invComp.items.size} items")
+        }
+
         // Display V2 inventory if available
         if (invComp != null) {
             // Show gold
@@ -333,8 +339,53 @@ object ItemHandlers {
     }
 
     fun handleEquip(game: MudGame, target: String) {
-        // Find the item in inventory
-        val item = game.worldState.player.inventory.find { invItem ->
+        val player = game.worldState.player
+        val invComp = player.inventoryComponent
+
+        // V2 Inventory System
+        if (invComp != null) {
+            // Find item in V2 inventory
+            val itemInstance = invComp.items.find { instance ->
+                val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
+                template != null && (
+                    template.name.lowercase().contains(target.lowercase()) ||
+                    instance.templateId.lowercase().contains(target.lowercase())
+                )
+            }
+
+            if (itemInstance == null) {
+                println("You don't have that in your inventory.")
+                return
+            }
+
+            // Get template
+            val template = game.itemRepository.findTemplateById(itemInstance.templateId).getOrNull()
+            if (template == null) {
+                println("Error: Item template not found")
+                return
+            }
+
+            // Check if item is equippable
+            val equipSlot = template.equipSlot
+            if (equipSlot == null) {
+                println("You can't equip that.")
+                return
+            }
+
+            // Equip the item
+            val updatedInventory = invComp.equip(itemInstance, equipSlot)
+            if (updatedInventory == null) {
+                println("Error: Could not equip item")
+                return
+            }
+            game.worldState = game.worldState.updatePlayer(player.copy(inventoryComponent = updatedInventory))
+
+            println("You equip the ${template.name}.")
+            return
+        }
+
+        // Legacy Inventory System (fallback)
+        val item = player.inventory.find { invItem ->
             invItem.name.lowercase().contains(target.lowercase()) ||
             invItem.id.lowercase().contains(target.lowercase())
         }
@@ -346,8 +397,8 @@ object ItemHandlers {
 
         when (item.itemType) {
             ItemType.WEAPON -> {
-                val oldWeapon = game.worldState.player.equippedWeapon
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.equipWeapon(item))
+                val oldWeapon = player.equippedWeapon
+                game.worldState = game.worldState.updatePlayer(player.equipWeapon(item))
 
                 if (oldWeapon != null) {
                     println("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage).")
@@ -356,8 +407,8 @@ object ItemHandlers {
                 }
             }
             ItemType.ARMOR -> {
-                val oldArmor = game.worldState.player.equippedArmor
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.equipArmor(item))
+                val oldArmor = player.equippedArmor
+                game.worldState = game.worldState.updatePlayer(player.equipArmor(item))
 
                 if (oldArmor != null) {
                     println("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense).")
