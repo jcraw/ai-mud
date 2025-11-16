@@ -207,6 +207,9 @@ Valid intent types:
 - "train_skill" - Train with NPC mentor (requires "target" for skill name and "npc_target" for training method/NPC like "with the knight")
 - "choose_perk" - Select perk at milestone (requires "target" for skill name and "perk_choice" for choice number 1-2)
 - "view_skills" - Display skill sheet (no target, triggered by "skills", "skill sheet", "abilities", "show skills", etc.)
+- "take_treasure" - Take item from treasure room pedestal (requires target, triggered by "take treasure <item>", "take <item> from pedestal/altar")
+- "return_treasure" - Return item to treasure room pedestal (requires target, triggered by "return treasure <item>", "return <item>", "put back <item>")
+- "examine_pedestal" - Examine treasure room pedestals/altars (target optional, triggered by "examine pedestals", "examine altars", "look at pedestals")
 - "help" - Show help (no target)
 - "quit" - Quit game (no target)
 - "invalid" - Unable to parse or unknown command (use "reason" to explain)
@@ -402,6 +405,9 @@ Response format (JSON only, no markdown):
                     }
                 }
                 "view_skills" -> Intent.ViewSkills
+                "take_treasure" -> if (target != null) Intent.TakeTreasure(target) else Intent.Invalid("Take which treasure?")
+                "return_treasure" -> if (target != null) Intent.ReturnTreasure(target) else Intent.Invalid("Return which treasure?")
+                "examine_pedestal" -> Intent.ExaminePedestal(target)
                 "help" -> Intent.Help
                 "quit" -> Intent.Quit
                 "invalid" -> Intent.Invalid("Unknown command: ${originalInput.take(50)}. Type 'help' for available commands.")
@@ -568,7 +574,14 @@ Response format (JSON only, no markdown):
                 }
                 Intent.Move(direction)
             }
-            "look", "l", "examine", "inspect" -> Intent.Look(args)
+            "look", "l", "examine", "inspect" -> {
+                // Check if examining treasure room pedestals/altars
+                if (args != null && (args.contains("pedestal", ignoreCase = true) || args.contains("altar", ignoreCase = true))) {
+                    Intent.ExaminePedestal(args)
+                } else {
+                    Intent.Look(args)
+                }
+            }
             "search" -> Intent.Search(args)
             "interact" -> if (args.isNullOrBlank()) Intent.Invalid("Interact with what?") else Intent.Interact(args)
             "take", "get", "pickup", "pick" -> {
@@ -576,6 +589,13 @@ Response format (JSON only, no markdown):
                     Intent.Invalid("Take what?")
                 } else if (args.lowercase() == "all" || args.lowercase() == "everything") {
                     Intent.TakeAll
+                } else if (args.startsWith("treasure ", ignoreCase = true)) {
+                    val itemName = args.substring("treasure ".length).trim()
+                    if (itemName.isBlank()) {
+                        Intent.Invalid("Take which treasure?")
+                    } else {
+                        Intent.TakeTreasure(itemName)
+                    }
                 } else {
                     Intent.Take(args)
                 }
@@ -697,6 +717,29 @@ Response format (JSON only, no markdown):
                     }
                 } else {
                     Intent.Invalid("Choose what?")
+                }
+            }
+            "treasure" -> {
+                // Handle "treasure" as a command prefix
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("What do you want to do with the treasure?")
+                } else {
+                    Intent.Invalid("Try 'take treasure <item>' or 'return treasure <item>'")
+                }
+            }
+            "return", "putback", "replace" -> {
+                // Handle return treasure command
+                if (args.isNullOrBlank()) {
+                    Intent.Invalid("Return what?")
+                } else if (args.startsWith("treasure ", ignoreCase = true)) {
+                    val itemName = args.substring("treasure ".length).trim()
+                    if (itemName.isBlank()) {
+                        Intent.Invalid("Return which treasure?")
+                    } else {
+                        Intent.ReturnTreasure(itemName)
+                    }
+                } else {
+                    Intent.ReturnTreasure(args)
                 }
             }
             "skills", "abilities", "sheet" -> Intent.ViewSkills

@@ -271,6 +271,7 @@ object ClientTradeHandlers {
                 ItemType.CONTAINER -> ItemType.CONTAINER
                 ItemType.SPELL_BOOK -> ItemType.SPELL_BOOK
                 ItemType.SKILL_BOOK -> ItemType.SKILL_BOOK
+                ItemType.ACCESSORY -> ItemType.ACCESSORY
                 ItemType.MISC -> ItemType.MISC
             },
             properties = properties,

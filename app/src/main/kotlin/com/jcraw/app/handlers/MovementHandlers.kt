@@ -31,8 +31,9 @@ object MovementHandlers {
         }
 
         game.worldState = newState
-        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-        postMove(game, direction.displayName, treasureExitMessage)
+        // Treasure room exit finalization disabled - players can return and swap anytime
+        // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+        postMove(game, direction.displayName, null)
     }
 
     fun handleLook(game: MudGame, target: String?) {
@@ -168,8 +169,9 @@ object MovementHandlers {
         val directMove = game.worldState.movePlayerByExit(normalized)
         if (directMove != null) {
             game.worldState = directMove
-            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-            postMove(game, normalized, treasureExitMessage)
+            // Treasure room exit finalization disabled - players can return and swap anytime
+            // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
+            postMove(game, normalized, null)
             return
         }
 

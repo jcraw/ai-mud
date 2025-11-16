@@ -81,6 +81,11 @@ class MudGame(
     internal val deathHandler = DeathHandler(lootGenerator)
     internal val corpseDecayManager = CorpseDecayManager()
 
+    init {
+        // Load item templates from JSON on first startup
+        com.jcraw.mud.memory.item.ItemTemplateLoader.loadTemplatesFromResource(itemRepository)
+    }
+
     // Social system components
     private val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
     private val socialComponentRepo = SqliteSocialComponentRepository(socialDatabase)

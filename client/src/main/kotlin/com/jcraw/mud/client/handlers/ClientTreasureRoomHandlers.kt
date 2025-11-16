@@ -174,7 +174,18 @@ object ClientTreasureRoomHandlers {
                     Rarity.LEGENDARY -> "[LEGENDARY] "
                 }
 
-                appendLine("${info.pedestalIndex + 1}. $stateSymbol $rarityColor${info.itemName} - $stateText")
+                // Find the item template to extract stats
+                val itemTemplate = treasureRoomComponent.pedestals[info.pedestalIndex].let { pedestal ->
+                    templates[pedestal.itemTemplateId]
+                }
+
+                // Extract stat bonuses and format them
+                val statsText = itemTemplate?.let { template ->
+                    val stats = extractItemStats(template)
+                    if (stats.isNotEmpty()) " (${stats.joinToString(", ")})" else ""
+                } ?: ""
+
+                appendLine("${info.pedestalIndex + 1}. $stateSymbol $rarityColor${info.itemName}$statsText - $stateText")
                 appendLine("   ${info.themeDescription}")
                 if (info.state == PedestalState.AVAILABLE) {
                     appendLine("   ${info.itemDescription}")
@@ -189,8 +200,7 @@ object ClientTreasureRoomHandlers {
     private fun buildItemTemplatesMap(game: EngineGameClient, treasureRoom: TreasureRoomComponent): Map<String, ItemTemplate> {
         val templates = mutableMapOf<String, ItemTemplate>()
         treasureRoom.pedestals.forEach { pedestal ->
-            val result = game.itemRepository.findTemplateById(pedestal.itemTemplateId)
-            result.getOrNull()?.let { templates[it.id] = it }
+            game.itemTemplateCache[pedestal.itemTemplateId]?.let { templates[it.id] = it }
         }
         return templates
     }
@@ -229,5 +239,45 @@ object ClientTreasureRoomHandlers {
             "bone_crypt", "bone_crypts" -> "cages of blackened bone"
             else -> "magical barriers"
         }
+    }
+
+    /**
+     * Extract stat bonuses from item template properties
+     */
+    private fun extractItemStats(template: ItemTemplate): List<String> {
+        val stats = mutableListOf<String>()
+
+        // Skill bonuses
+        template.properties["skill_bonus_strength"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("STR +$bonus")
+        }
+        template.properties["skill_bonus_agility"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("AGI +$bonus")
+        }
+        template.properties["skill_bonus_endurance"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("END +$bonus")
+        }
+        template.properties["skill_bonus_magic"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("MAG +$bonus")
+        }
+        template.properties["skill_bonus_wisdom"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("WIS +$bonus")
+        }
+        template.properties["skill_bonus_charisma"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("CHA +$bonus")
+        }
+        template.properties["skill_bonus_perception"]?.toIntOrNull()?.let { bonus ->
+            if (bonus > 0) stats.add("PER +$bonus")
+        }
+
+        // Weapon/armor stats
+        template.properties["damage"]?.toIntOrNull()?.let { damage ->
+            if (damage > 0) stats.add(0, "${damage} dmg")  // Add damage first
+        }
+        template.properties["defense"]?.toIntOrNull()?.let { defense ->
+            if (defense > 0) stats.add(0, "${defense} def")  // Add defense first
+        }
+
+        return stats
     }
 }

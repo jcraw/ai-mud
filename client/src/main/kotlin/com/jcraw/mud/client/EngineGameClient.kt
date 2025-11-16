@@ -61,7 +61,7 @@ class EngineGameClient(
     private val itemJson = Json { ignoreUnknownKeys = true }
     private val itemDatabase = ItemDatabase(DatabaseConfig.ITEMS_DB)
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
-    private val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
+    internal val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
 
     // Social system components
     private val socialDatabase: SocialDatabase
@@ -111,6 +111,9 @@ class EngineGameClient(
     init {
         // Initialize shared database configuration
         DatabaseConfig.init()
+
+        // Load item templates from JSON on first startup
+        com.jcraw.mud.memory.item.ItemTemplateLoader.loadTemplatesFromResource(itemRepository)
 
         // Initialize social system components
         socialDatabase = SocialDatabase(DatabaseConfig.SOCIAL_DB)
@@ -240,6 +243,12 @@ class EngineGameClient(
                     intelligence = 9,
                     wisdom = 8,
                     charisma = 9
+                ),
+                inventoryComponent = InventoryComponent(
+                    items = emptyList(),
+                    equipped = emptyMap(),
+                    gold = 0,
+                    capacityWeight = 50.0
                 )
             )
 
@@ -586,7 +595,7 @@ class EngineGameClient(
         emitEvent(GameEvent.StatusUpdate(
             hp = worldState.player.health,
             maxHp = worldState.player.maxHealth,
-            location = spaceId // Use space ID as location
+            location = worldState.getSpace(spaceId)?.name ?: spaceId
         ))
     }
 
@@ -718,7 +727,33 @@ class EngineGameClient(
             is Intent.Trade -> ClientTradeHandlers.handleTrade(this, intent)
             is Intent.UseItem -> emitEvent(GameEvent.System("Advanced item use not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Inventory -> ClientItemHandlers.handleInventory(this)
-            is Intent.Take -> ClientItemHandlers.handleTake(this, intent.target)
+            is Intent.Take -> {
+                // Check if in treasure room and item matches a pedestal item
+                val spaceId = worldState.player.currentRoomId
+                val treasureRoom = worldState.getTreasureRoom(spaceId)
+                if (treasureRoom != null && !treasureRoom.hasBeenLooted) {
+                    // Check if target matches any pedestal item (by template ID or item name)
+                    val matchesPedestal = treasureRoom.pedestals.any { pedestal ->
+                        val template = itemTemplateCache[pedestal.itemTemplateId]
+                        val itemName = template?.name ?: ""
+                        val templateId = pedestal.itemTemplateId
+
+                        itemName.lowercase().contains(intent.target.lowercase()) ||
+                        templateId.lowercase().contains(intent.target.lowercase())
+                    }
+
+                    if (matchesPedestal) {
+                        // Route to treasure handler
+                        ClientTreasureRoomHandlers.handleTakeTreasure(this, intent.target)
+                    } else {
+                        // Regular floor item
+                        ClientItemHandlers.handleTake(this, intent.target)
+                    }
+                } else {
+                    // Not in treasure room or already looted - regular take
+                    ClientItemHandlers.handleTake(this, intent.target)
+                }
+            }
             is Intent.TakeAll -> ClientItemHandlers.handleTakeAll(this)
             is Intent.Drop -> ClientItemHandlers.handleDrop(this, intent.target)
             is Intent.Give -> ClientItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)

@@ -46,7 +46,16 @@ object ClientItemHandlers {
     }
 
     fun handleTake(game: EngineGameClient, target: String) {
+        // Check if player is in a treasure room first
         val spaceId = game.worldState.player.currentRoomId
+        val treasureRoom = game.worldState.getTreasureRoom(spaceId)
+
+        if (treasureRoom != null && !treasureRoom.hasBeenLooted) {
+            // Delegate to treasure room handler
+            ClientTreasureRoomHandlers.handleTakeTreasure(game, target)
+            return
+        }
+
         val entities = game.worldState.getEntitiesInSpace(spaceId)
 
         val item = entities.filterIsInstance<Entity.Item>()

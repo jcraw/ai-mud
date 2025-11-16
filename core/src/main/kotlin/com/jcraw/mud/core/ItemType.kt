@@ -35,6 +35,9 @@ enum class ItemType {
     /** Books containing skill training knowledge */
     SKILL_BOOK,
 
+    /** Rings, amulets, and other accessories that provide bonuses */
+    ACCESSORY,
+
     /** @deprecated Legacy type for generic items - use RESOURCE or TOOL instead */
     @Deprecated("Use more specific types like RESOURCE or TOOL")
     MISC

@@ -146,8 +146,17 @@ object ItemHandlers {
     }
 
     fun handleTake(game: MudGame, target: String) {
-        // V3: Use entity storage
+        // Check if player is in a treasure room first
         val spaceId = game.worldState.player.currentRoomId
+        val treasureRoom = game.worldState.getTreasureRoom(spaceId)
+
+        if (treasureRoom != null && !treasureRoom.hasBeenLooted) {
+            // Delegate to treasure room handler
+            TreasureRoomHandlers.handleTakeTreasure(game, target)
+            return
+        }
+
+        // V3: Use entity storage
         val item = game.worldState.getEntitiesInSpace(spaceId)
             .filterIsInstance<Entity.Item>()
             .find { entity ->
