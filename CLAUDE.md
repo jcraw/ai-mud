@@ -57,6 +57,9 @@ For complete documentation, see:
 - **Character selection**: 5 pre-made templates (Warrior, Rogue, Mage, Cleric, Bard)
 - **Full gameplay**: All game systems work through GUI
 - **Unidirectional flow**: Immutable UiState with StateFlow/ViewModel pattern
+- **Combat V2 Integration**: GUI uses same AttackResolver/skill-based combat as console
+- **Feature Parity**: Gathering (interact/harvest) and crafting now available in GUI
+- **Unified Codebase**: GUI and console clients share identical game logic
 
 ### Testing ⚠️
 - **Main code compiles successfully** - Application and client build and run
@@ -245,10 +248,11 @@ MobGenerationConfig.enabled = true
 
 ## Important Notes
 
+- **✅ CLIENT UNIFICATION COMPLETE** - GUI and console clients now use identical V2 combat system (AttackResolver, skill-based damage, V2 inventory bonuses). Gathering and crafting now available in GUI.
+- **✅ V2 INVENTORY BONUSES FIXED** - Combat damage now correctly uses SkillModifierCalculator with V2 inventory and ItemRepository templates in both clients.
 - **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.
 - **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-5 (partial) complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests). Phase 5 (reasoning tests) + Phase 6-7 remaining (est. 2-3h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
 - **⚠️ Test status** - 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
-- **🐛 KNOWN ISSUE** - Treasure room items not appearing in inventory (GUI client). See `KNOWN_ISSUES.md` for details.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -283,14 +287,19 @@ MobGenerationConfig.enabled = true
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones
+  - ✅ **Client Unification** - GUI and console use identical V2 combat (AttackResolver, skill-based damage, V2 inventory)
+  - ✅ **Deprecated Legacy Methods** - PlayerState.getWeaponDamageBonus() and getArmorDefenseBonus() marked deprecated
 - ✅ Item System V2 (10 chunks) - Full inventory, gathering, crafting, trading, pickpocketing
+  - ✅ **GUI Feature Parity** - Gathering (interact/harvest) and crafting now available in GUI client
 - ✅ Skill System V2 (11 phases) - Use-based progression, perks, resources, social integration
 - ✅ Social System (11 phases) - Disposition, NPC memory, emotes, knowledge system
 - ✅ Quest System - Procedural generation with auto-tracking
 - ✅ World Generation V2 (7 chunks) - Hierarchical procedural generation with exit resolution
 - ✅ Starting Dungeon (8 chunks) - Ancient Abyss with town, merchants, respawn, boss fight
 - ✅ Treasure Room System (8 chunks) - Brogue-inspired item selection with BFS placement, biome theming, safe zones
+  - ✅ **V2 Inventory Fix** - Treasure room items now use correct V2 inventory bonuses via SkillModifierCalculator
 - ✅ GUI Client - Compose Multiplatform with real engine integration
+  - ✅ **Unified Codebase** - GUI is now a thin wrapper, shares all game logic with console
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
 - 🚧 World System V3 (Chunks 1-5 complete, all game modes V3-compatible):
   - ✅ Chunk 1-2: GraphNodeComponent ECS component (155 lines, 29 tests), database schema, GraphNodeRepository (219 lines, 29 unit tests)

@@ -3,27 +3,41 @@ package com.jcraw.mud.client.handlers
 import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.combat.AttackResult
+import com.jcraw.mud.reasoning.combat.CombatBehavior
+import com.jcraw.mud.reasoning.combat.DeathHandler
+import com.jcraw.mud.reasoning.town.SafeZoneValidator
 import kotlinx.coroutines.runBlocking
-import kotlin.random.Random
 
 /**
  * Handles combat system in the GUI client.
- * Uses simple combat mechanics for GUI client.
+ * Uses V2 combat system (AttackResolver, skills, equipment) - identical to console.
  */
 object ClientCombatHandlers {
 
     fun handleAttack(game: EngineGameClient, target: String?) {
+        val spaceId = game.worldState.player.currentRoomId
+
+        // Check if current space is a safe zone (blocks combat)
+        val currentSpace = game.spacePropertiesRepository.findByChunkId(spaceId).getOrNull()
+
+        if (currentSpace != null && SafeZoneValidator.isSafeZone(currentSpace)) {
+            game.emitEvent(GameEvent.System(
+                SafeZoneValidator.getCombatBlockedMessage(target ?: "unknown"),
+                GameEvent.MessageLevel.WARNING
+            ))
+            return
+        }
+
         // Validate target
         if (target.isNullOrBlank()) {
             game.emitEvent(GameEvent.System("Attack whom?", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        // Get entities in current space
-        val entities = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
-
         // Find the target NPC
-        val npc = entities.filterIsInstance<Entity.NPC>()
+        val npc = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.NPC>()
             .find { entity ->
                 entity.name.lowercase().contains(target.lowercase()) ||
                 entity.id.lowercase().contains(target.lowercase())
@@ -34,108 +48,136 @@ object ClientCombatHandlers {
             return
         }
 
-        // Get V2 equipped items for V2-aware bonuses (if available)
+        // Get V2 equipped items for damage calculation
         val player = game.worldState.player
         val playerInventory = player.inventoryComponent
+        val attackerEquipped = playerInventory?.equipped ?: emptyMap()
 
-        // Calculate player damage: base + weapon + STR modifier
-        val playerBaseDamage = Random.nextInt(5, 16)
-        // TODO: Update to use V2 inventory for weapon damage calculation
-        val weaponBonus = game.worldState.player.getWeaponDamageBonus()
-        val strModifier = game.worldState.player.stats.strModifier()
-        val playerDamage = (playerBaseDamage + weaponBonus + strModifier).coerceAtLeast(1)
+        // Get NPC equipped items (if any)
+        val npcInventory = npc.getComponent<InventoryComponent>(ComponentType.INVENTORY)
+        val defenderEquipped = npcInventory?.equipped ?: emptyMap()
 
-        // Calculate NPC damage: base + STR modifier - armor defense
-        val npcBaseDamage = Random.nextInt(3, 13)
-        val npcStrModifier = npc.stats.strModifier()
-        // TODO: Update to use V2 inventory for armor defense calculation
-        val armorDefense = game.worldState.player.getArmorDefenseBonus()
-        val npcDamage = (npcBaseDamage + npcStrModifier - armorDefense).coerceAtLeast(1)
+        // Build item templates map for both attacker and defender
+        val allTemplateIds = (attackerEquipped.values + defenderEquipped.values).map { it.templateId }.toSet()
+        val templates = allTemplateIds.mapNotNull { templateId ->
+            game.itemRepository.findTemplateById(templateId).getOrNull()?.let { template -> template.id to template }
+        }.toMap()
 
-        // Apply damage to NPC
-        val npcHealth = npc.health - playerDamage
-        val npcDied = npcHealth <= 0
-
-        // Generate narrative - Get weapon name from V2 inventory if available
-        val weapon = if (playerInventory != null) {
-            // Build templates map for weapon lookup
-            val weaponInstance = playerInventory.equipped[EquipSlot.HANDS_MAIN]
-                ?: playerInventory.equipped[EquipSlot.HANDS_OFF]
-            if (weaponInstance != null) {
-                val template = game.itemRepository.findTemplateById(weaponInstance.templateId).getOrNull()
-                template?.name ?: "bare fists"
-            } else {
-                "bare fists"
+        // Resolve attack using AttackResolver (V2 Combat System)
+        val attackResult = if (game.attackResolver != null) {
+            try {
+                runBlocking {
+                    game.attackResolver.resolveAttack(
+                        attackerId = game.worldState.player.id,
+                        defenderId = npc.id,
+                        action = "attack ${npc.name}",
+                        worldState = game.worldState,
+                        attackerEquipped = attackerEquipped,
+                        defenderEquipped = defenderEquipped,
+                        templates = templates
+                    )
+                }
+            } catch (e: Exception) {
+                // Fallback to simple attack if resolver fails
+                null
             }
         } else {
-            game.worldState.player.equippedWeapon?.name ?: "bare fists"
+            null
         }
-        val narrative = if (game.combatNarrator != null) {
-            runBlocking {
-                game.combatNarrator.narrateAction(
-                    weapon = weapon,
-                    damage = playerDamage,
-                    maxHp = npc.maxHealth,
-                    isHit = true,
-                    isCritical = false,
-                    isDeath = npcDied,
-                    isSpell = false,
-                    targetName = npc.name
-                )
+
+        when (attackResult) {
+            is AttackResult.Hit -> {
+                // Apply damage from AttackResolver - damage already applied to component
+                val updatedNpc = npc.withComponent(attackResult.updatedDefenderCombat) as Entity.NPC
+
+                // Update space with damaged NPC
+                game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
+
+                // Generate and display attack narrative
+                // Get weapon name from V2 inventory if available, fallback to legacy
+                val weapon = if (playerInventory != null) {
+                    val weaponInstance = playerInventory.equipped[EquipSlot.HANDS_MAIN]
+                        ?: playerInventory.equipped[EquipSlot.HANDS_OFF]
+                        ?: playerInventory.equipped[EquipSlot.HANDS_BOTH]
+                    if (weaponInstance != null) {
+                        templates[weaponInstance.templateId]?.name ?: "bare fists"
+                    } else {
+                        "bare fists"
+                    }
+                } else {
+                    game.worldState.player.equippedWeapon?.name ?: "bare fists"
+                }
+                val narrative = if (game.combatNarrator != null) {
+                    runBlocking {
+                        game.combatNarrator.narrateAction(
+                            weapon = weapon,
+                            damage = attackResult.damage,
+                            maxHp = npc.maxHealth,
+                            isHit = true,
+                            isCritical = false,
+                            isDeath = attackResult.wasKilled,
+                            isSpell = false,
+                            targetName = npc.name
+                        )
+                    }
+                } else {
+                    "You hit ${npc.name} for ${attackResult.damage} damage!"
+                }
+                game.emitEvent(GameEvent.Combat(narrative))
+
+                // Check if NPC died
+                if (attackResult.wasKilled) {
+                    game.emitEvent(GameEvent.Combat("\nVictory! ${npc.name} has been defeated!"))
+
+                    // Handle corpse + loot creation
+                    val deathResult = game.deathHandler.handleDeath(npc.id, game.worldState)
+                    game.worldState = when (deathResult) {
+                        is DeathHandler.DeathResult.NPCDeath -> deathResult.updatedWorld
+                        else -> game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
+                    }
+
+                    // Track NPC kill for quests
+                    game.trackQuests(QuestAction.KilledNPC(npc.id))
+                    return
+                }
+
+                // Trigger counter-attack behavior (V2 Combat)
+                // This makes the NPC hostile and adds them to the turn queue
+                if (game.turnQueue != null) {
+                    game.worldState = CombatBehavior.triggerCounterAttack(
+                        npcId = npc.id,
+                        spaceId = spaceId,
+                        worldState = game.worldState,
+                        turnQueue = game.turnQueue
+                    )
+                }
             }
-        } else {
-            "You attack ${npc.name} with $weapon for $playerDamage damage!"
-        }
+            is AttackResult.Miss -> {
+                // Generate and display miss narrative
+                val narrative = if (attackResult.wasDodged) {
+                    "${npc.name} dodges your attack!"
+                } else {
+                    "You miss ${npc.name}!"
+                }
+                game.emitEvent(GameEvent.Combat(narrative))
 
-        game.emitEvent(GameEvent.Combat(narrative))
-
-        // Check if NPC died
-        if (npcDied) {
-            game.emitEvent(GameEvent.Combat("\nVictory! ${npc.name} has been defeated!"))
-            game.worldState = game.worldState.removeEntityFromSpace(game.worldState.player.currentRoomId, npc.id) ?: game.worldState
-
-            // Track NPC kill for quests
-            game.trackQuests(QuestAction.KilledNPC(npc.id))
-
-            // Update player health if they took damage from the last exchange
-            if (npcDamage > 0) {
-                val updatedPlayer = game.worldState.player.takeDamage(npcDamage)
-                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+                // Trigger counter-attack even on miss
+                if (game.turnQueue != null) {
+                    game.worldState = CombatBehavior.triggerCounterAttack(
+                        npcId = npc.id,
+                        spaceId = spaceId,
+                        worldState = game.worldState,
+                        turnQueue = game.turnQueue
+                    )
+                }
             }
-
-            // Update status
-            game.emitEvent(GameEvent.StatusUpdate(
-                hp = game.worldState.player.health,
-                maxHp = game.worldState.player.maxHealth
-            ))
-            return
+            is AttackResult.Failure -> {
+                game.emitEvent(GameEvent.System("Attack failed: ${attackResult.reason}", GameEvent.MessageLevel.WARNING))
+            }
+            null -> {
+                // Fallback: AttackResolver not available (no LLM client)
+                game.emitEvent(GameEvent.System("Combat system not available (requires API key)", GameEvent.MessageLevel.WARNING))
+            }
         }
-
-        // NPC counter-attacks
-        if (npcDamage > 0) {
-            val counterNarrative = "${npc.name} strikes back for $npcDamage damage!"
-            game.emitEvent(GameEvent.Combat("\n$counterNarrative"))
-        }
-
-        // Apply damage to player
-        val updatedPlayer = game.worldState.player.takeDamage(npcDamage)
-        game.worldState = game.worldState.updatePlayer(updatedPlayer)
-
-        // Check if player died
-        if (updatedPlayer.isDead()) {
-            game.emitEvent(GameEvent.Combat("\nYou have been defeated! Game over."))
-            game.emitEvent(GameEvent.StatusUpdate(
-                hp = 0,
-                maxHp = game.worldState.player.maxHealth
-            ))
-            game.handlePlayerDeath()
-            return
-        }
-
-        // Update status
-        game.emitEvent(GameEvent.StatusUpdate(
-            hp = game.worldState.player.health,
-            maxHp = game.worldState.player.maxHealth
-        ))
     }
 }

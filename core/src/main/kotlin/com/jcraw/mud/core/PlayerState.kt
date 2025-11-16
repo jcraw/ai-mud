@@ -67,6 +67,20 @@ data class PlayerState(
         }
     }
 
+    /**
+     * Get weapon damage bonus from equipped weapon.
+     *
+     * @deprecated This method uses legacy inventory system. For V2 combat, use
+     * `SkillModifierCalculator.getWeaponDamage()` with V2 inventory (inventoryComponent.equipped)
+     * and ItemRepository templates. AttackResolver and DamageCalculator handle this automatically.
+     */
+    @Deprecated(
+        message = "Use SkillModifierCalculator.getWeaponDamage() with V2 inventory instead",
+        replaceWith = ReplaceWith(
+            "skillModifierCalculator.getWeaponDamage(inventoryComponent?.equipped ?: emptyMap(), templates)",
+            "com.jcraw.mud.reasoning.skills.SkillModifierCalculator"
+        )
+    )
     fun getWeaponDamageBonus(): Int = equippedWeapon?.damageBonus ?: 0
 
     fun equipArmor(armor: Entity.Item): PlayerState {
@@ -94,6 +108,20 @@ data class PlayerState(
         }
     }
 
+    /**
+     * Get armor defense bonus from equipped armor.
+     *
+     * @deprecated This method uses legacy inventory system. For V2 combat, use
+     * `SkillModifierCalculator.getTotalArmorDefense()` with V2 inventory (inventoryComponent.equipped)
+     * and ItemRepository templates. AttackResolver and DamageCalculator handle this automatically.
+     */
+    @Deprecated(
+        message = "Use SkillModifierCalculator.getTotalArmorDefense() with V2 inventory instead",
+        replaceWith = ReplaceWith(
+            "skillModifierCalculator.getTotalArmorDefense(inventoryComponent?.equipped ?: emptyMap(), templates)",
+            "com.jcraw.mud.reasoning.skills.SkillModifierCalculator"
+        )
+    )
     fun getArmorDefenseBonus(): Int = equippedArmor?.defenseBonus ?: 0
 
     fun useConsumable(item: Entity.Item): PlayerState {

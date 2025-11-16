@@ -57,10 +57,18 @@ class EngineGameClient(
     private val questGenerator: QuestGenerator
     private val questTracker: QuestTracker
 
+    // Combat System V2 components
+    internal val turnQueue: com.jcraw.mud.reasoning.combat.TurnQueueManager?
+    internal val monsterAIHandler: com.jcraw.mud.reasoning.combat.MonsterAIHandler?
+    private val skillClassifier: com.jcraw.mud.reasoning.combat.SkillClassifier?
+    internal val attackResolver: com.jcraw.mud.reasoning.combat.AttackResolver?
+    internal val deathHandler: com.jcraw.mud.reasoning.combat.DeathHandler
+
     // Item system components
     private val itemJson = Json { ignoreUnknownKeys = true }
     private val itemDatabase = ItemDatabase(DatabaseConfig.ITEMS_DB)
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
+    internal val recipeRepository = com.jcraw.mud.memory.item.SQLiteRecipeRepository(itemDatabase)
     internal val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
 
     // Social system components
@@ -132,6 +140,14 @@ class EngineGameClient(
         descriptionGenerator = llmClient?.let { RoomDescriptionGenerator(it, memoryManager!!) }
         npcInteractionGenerator = llmClient?.let { NPCInteractionGenerator(it, memoryManager!!) }
         combatNarrator = llmClient?.let { CombatNarrator(it, memoryManager!!) }
+
+        // Initialize Combat System V2 components
+        turnQueue = if (llmClient != null) com.jcraw.mud.reasoning.combat.TurnQueueManager() else null
+        monsterAIHandler = if (llmClient != null) com.jcraw.mud.reasoning.combat.MonsterAIHandler(llmClient) else null
+        skillClassifier = if (llmClient != null) com.jcraw.mud.reasoning.combat.SkillClassifier(llmClient) else null
+        attackResolver = if (skillClassifier != null) com.jcraw.mud.reasoning.combat.AttackResolver(skillClassifier!!) else null
+        val lootGenerator = com.jcraw.mud.reasoning.loot.LootGenerator(itemRepository)
+        deathHandler = com.jcraw.mud.reasoning.combat.DeathHandler(lootGenerator)
 
         dispositionManager = DispositionManager(socialComponentRepo, socialEventRepo)
         emoteHandler = EmoteHandler(dispositionManager)

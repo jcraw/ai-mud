@@ -388,6 +388,272 @@ object ClientSkillQuestHandlers {
         ))
     }
 
+    /**
+     * Handle interaction with objects (features, containers, harvestable resources)
+     * Supports skill checks, tool requirements, and XP rewards for gathering
+     */
+    fun handleInteract(game: EngineGameClient, target: String) {
+        // Use entity storage
+        val spaceId = game.worldState.player.currentRoomId
+
+        // Normalize target for matching
+        val normalizedTarget = target.lowercase().replace("_", " ")
+
+        // Find the feature
+        val feature = game.worldState.getEntitiesInSpace(spaceId)
+            .filterIsInstance<Entity.Feature>()
+            .find { entity ->
+                val normalizedName = entity.name.lowercase()
+                val normalizedId = entity.id.lowercase().replace("_", " ")
+
+                normalizedName.contains(normalizedTarget) ||
+                normalizedId.contains(normalizedTarget) ||
+                normalizedTarget.contains(normalizedName) ||
+                normalizedTarget.contains(normalizedId) ||
+                normalizedTarget.split(" ").all { word ->
+                    normalizedName.contains(word) || normalizedId.contains(word)
+                }
+            }
+
+        if (feature == null) {
+            game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Check if feature is harvestable (has lootTableId)
+        if (feature.lootTableId == null) {
+            game.emitEvent(GameEvent.System("There's nothing to harvest from that.", GameEvent.MessageLevel.INFO))
+            return
+        }
+
+        // Check if already completed (harvested)
+        if (feature.isCompleted) {
+            game.emitEvent(GameEvent.System("This resource has already been harvested.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Check tool requirement (if specified in properties)
+        val requiredToolTag = feature.properties["required_tool_tag"]
+        if (requiredToolTag != null) {
+            // TODO: Check player's InventoryComponent for tool with matching tag
+            // For now, assume player has the tool (will be implemented with InventoryComponent)
+        }
+
+        game.emitEvent(GameEvent.System("\nYou attempt to harvest ${feature.name}...", GameEvent.MessageLevel.INFO))
+
+        // Perform skill check if specified
+        var harvestSuccess = true
+        var skillCheckResult: com.jcraw.mud.core.SkillCheckResult? = null
+
+        if (feature.skillChallenge != null) {
+            val challenge = feature.skillChallenge!!
+            val result = game.skillCheckResolver.checkPlayer(
+                game.worldState.player,
+                challenge.statType,
+                challenge.difficulty
+            )
+            skillCheckResult = result
+
+            // Display roll details
+            val rollText = buildString {
+                appendLine("Rolling ${challenge.statType.name} check...")
+                appendLine("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
+
+                if (result.isCriticalSuccess) {
+                    appendLine("🎲 CRITICAL SUCCESS! (Natural 20)")
+                } else if (result.isCriticalFailure) {
+                    appendLine("💀 CRITICAL FAILURE! (Natural 1)")
+                }
+            }
+            game.emitEvent(GameEvent.System(rollText.trim(), GameEvent.MessageLevel.INFO))
+
+            harvestSuccess = result.success
+
+            if (!result.success) {
+                game.emitEvent(GameEvent.System("❌ You failed to harvest the resource properly.", GameEvent.MessageLevel.WARNING))
+
+                // Award 20% XP on failure
+                val skillName = challenge.statType.name
+                val baseXp = 25L
+                val xpEvents = game.skillManager.grantXp(
+                    entityId = game.worldState.player.id,
+                    skillName = skillName,
+                    baseXp = baseXp,
+                    success = false
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            game.emitEvent(GameEvent.System(
+                                "+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            game.emitEvent(GameEvent.System(
+                                "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                        }
+                        else -> {}
+                    }
+                }
+
+                return
+            }
+
+            game.emitEvent(GameEvent.System("✅ Success!", GameEvent.MessageLevel.INFO))
+        }
+
+        // Generate loot using LootGenerator
+        val lootGenerator = com.jcraw.mud.reasoning.loot.LootGenerator(game.itemRepository)
+
+        // Look up loot table from registry
+        val lootTable = com.jcraw.mud.reasoning.loot.LootTableRegistry.getTable(feature.lootTableId!!)
+        if (lootTable == null) {
+            game.emitEvent(GameEvent.System("Error: Loot table not found for ${feature.lootTableId}", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        val instancesResult = lootGenerator.generateLoot(
+            lootTable,
+            com.jcraw.mud.reasoning.loot.LootSource.FEATURE
+        )
+
+        val instances = instancesResult.getOrNull() ?: emptyList()
+
+        if (instances.isEmpty()) {
+            game.emitEvent(GameEvent.System("You didn't find anything useful.", GameEvent.MessageLevel.INFO))
+        } else {
+            val harvestText = buildString {
+                appendLine("\nYou harvested:")
+                instances.forEach { instance ->
+                    val templateResult = game.itemRepository.findTemplateById(instance.templateId)
+                    val templateName = templateResult.getOrNull()?.name ?: "item"
+                    appendLine("  - $templateName")
+
+                    // Add to player inventory
+                    val playerInv = game.worldState.player.inventoryComponent ?: com.jcraw.mud.core.InventoryComponent(
+                        items = emptyList(),
+                        equipped = emptyMap(),
+                        gold = 0,
+                        capacityWeight = 50.0
+                    )
+
+                    val updatedInv = playerInv.copy(items = playerInv.items + instance)
+                    val updatedPlayer = game.worldState.player.copy(inventoryComponent = updatedInv)
+                    game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+                    // Track for quests
+                    game.trackQuests(com.jcraw.mud.reasoning.QuestAction.CollectedItem(instance.id))
+                }
+            }
+            game.emitEvent(GameEvent.System(harvestText.trim(), GameEvent.MessageLevel.INFO))
+        }
+
+        // Award XP for gathering skill based on feature's skill requirement
+        if (feature.skillChallenge != null && skillCheckResult != null) {
+            val skillName = feature.skillChallenge!!.statType.name
+            val baseXp = 50L
+
+            val xpEvents = game.skillManager.grantXp(
+                entityId = game.worldState.player.id,
+                skillName = skillName,
+                baseXp = baseXp,
+                success = true
+            ).getOrNull() ?: emptyList()
+
+            xpEvents.forEach { event ->
+                when (event) {
+                    is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                        game.emitEvent(GameEvent.System(
+                            "+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})",
+                            GameEvent.MessageLevel.INFO
+                        ))
+                    }
+                    is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                        game.emitEvent(GameEvent.System(
+                            "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                            GameEvent.MessageLevel.INFO
+                        ))
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        // Mark feature as completed
+        val updatedFeature = feature.copy(isCompleted = true)
+        game.worldState = game.worldState.replaceEntityInSpace(spaceId, feature.id, updatedFeature) ?: game.worldState
+    }
+
+    /**
+     * Handle crafting items from recipes
+     */
+    fun handleCraft(game: EngineGameClient, target: String) {
+        val craftingManager = com.jcraw.mud.reasoning.crafting.CraftingManager(
+            game.recipeRepository,
+            game.itemRepository
+        )
+
+        // Find the recipe
+        val recipeResult = craftingManager.findRecipe(target)
+        if (recipeResult.isFailure) {
+            game.emitEvent(GameEvent.System(
+                "Failed to find recipe: ${recipeResult.exceptionOrNull()?.message}",
+                GameEvent.MessageLevel.WARNING
+            ))
+            return
+        }
+
+        val recipe = recipeResult.getOrNull()
+        if (recipe == null) {
+            game.emitEvent(GameEvent.System(
+                "No recipe found for '$target'.\nTip: Use 'craft' alone to see available recipes.",
+                GameEvent.MessageLevel.WARNING
+            ))
+            return
+        }
+
+        // Get player's inventory and skill component
+        val playerInventory = game.worldState.player.inventoryComponent
+        if (playerInventory == null) {
+            game.emitEvent(GameEvent.System("Inventory system not available.", GameEvent.MessageLevel.WARNING))
+            return
+        }
+
+        // Get player's skill component from skill manager
+        val skillComponent = game.skillManager.getSkillComponent(game.worldState.player.id)
+
+        // Try to craft (note: craft() mutates inventory directly)
+        val result = craftingManager.craft(skillComponent, playerInventory, recipe)
+
+        when (result) {
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Success -> {
+                // craft() already mutated inventory, just update the player state
+                val updatedPlayer = game.worldState.player.copy(inventoryComponent = playerInventory)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+                // Show crafting result
+                game.emitEvent(GameEvent.System("✨ ${result.message}", GameEvent.MessageLevel.INFO))
+
+                // Track for quests (use CollectedItem since crafted items count as collected)
+                game.trackQuests(com.jcraw.mud.reasoning.QuestAction.CollectedItem(result.craftedItem.id))
+            }
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Failure -> {
+                // craft() already mutated inventory (consumed some materials)
+                val updatedPlayer = game.worldState.player.copy(inventoryComponent = playerInventory)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+                game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+            }
+            is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Invalid -> {
+                game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+            }
+        }
+    }
+
     fun handleQuit(game: EngineGameClient) {
         game.emitEvent(GameEvent.System("Goodbye!", GameEvent.MessageLevel.INFO))
         game.running = false
