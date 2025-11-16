@@ -10,39 +10,137 @@ import com.jcraw.mud.reasoning.QuestAction
 object ClientItemHandlers {
 
     fun handleInventory(game: EngineGameClient) {
+        val player = game.worldState.player
+        val invComp = player.inventoryComponent
+
         val text = buildString {
             appendLine("Inventory:")
             appendLine()
 
-            if (game.worldState.player.equippedWeapon != null) {
-                appendLine("  Equipped Weapon: ${game.worldState.player.equippedWeapon!!.name} (+${game.worldState.player.equippedWeapon!!.damageBonus} damage)")
-            } else {
-                appendLine("  Equipped Weapon: (none)")
-            }
+            // V2 Inventory System
+            if (invComp != null) {
+                // Show gold
+                appendLine("  Gold: ${invComp.gold}")
 
-            if (game.worldState.player.equippedArmor != null) {
-                appendLine("  Equipped Armor: ${game.worldState.player.equippedArmor!!.name} (+${game.worldState.player.equippedArmor!!.defenseBonus} defense)")
-            } else {
-                appendLine("  Equipped Armor: (none)")
-            }
+                // Show weight capacity
+                val templates = mutableMapOf<String, ItemTemplate>()
+                invComp.items.forEach { instance ->
+                    val result = game.itemRepository.findTemplateById(instance.templateId)
+                    result.getOrNull()?.let { templates[it.id] = it }
+                }
+                val currentWeight = invComp.currentWeight(templates)
+                val capacity = invComp.capacityWeight
+                appendLine("  Weight: ${"%.1f".format(currentWeight)}kg / ${"%.1f".format(capacity)}kg")
 
-            if (game.worldState.player.inventory.isEmpty()) {
-                appendLine("  Carrying: (nothing)")
-            } else {
-                appendLine("  Carrying:")
-                game.worldState.player.inventory.forEach { item ->
-                    val extra = when (item.itemType) {
-                        ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
-                        ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
-                        ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
-                        else -> ""
+                // Show equipped items
+                if (invComp.equipped.isNotEmpty()) {
+                    appendLine()
+                    appendLine("  Equipped:")
+                    invComp.equipped.forEach { (slot, instance) ->
+                        val template = templates[instance.templateId]
+                        if (template != null) {
+                            val info = formatItemInfo(instance, template)
+                            appendLine("    $slot: ${template.name}$info")
+                        }
                     }
-                    appendLine("    - ${item.name}$extra")
+                } else {
+                    appendLine()
+                    appendLine("  Equipped: (nothing)")
+                }
+
+                // Show inventory items (exclude equipped)
+                val unequippedItems = invComp.items.filter { item ->
+                    !invComp.equipped.values.any { it.id == item.id }
+                }
+
+                if (unequippedItems.isEmpty()) {
+                    appendLine("  Carrying: (nothing)")
+                } else {
+                    appendLine("  Carrying:")
+                    unequippedItems.forEach { instance ->
+                        val template = templates[instance.templateId]
+                        if (template != null) {
+                            val info = formatItemInfo(instance, template)
+                            appendLine("    - ${template.name}$info")
+                        }
+                    }
+                }
+            } else {
+                // Legacy Inventory System (fallback)
+                if (player.equippedWeapon != null) {
+                    appendLine("  Equipped Weapon: ${player.equippedWeapon!!.name} (+${player.equippedWeapon!!.damageBonus} damage)")
+                } else {
+                    appendLine("  Equipped Weapon: (none)")
+                }
+
+                if (player.equippedArmor != null) {
+                    appendLine("  Equipped Armor: ${player.equippedArmor!!.name} (+${player.equippedArmor!!.defenseBonus} defense)")
+                } else {
+                    appendLine("  Equipped Armor: (none)")
+                }
+
+                if (player.inventory.isEmpty()) {
+                    appendLine("  Carrying: (nothing)")
+                } else {
+                    appendLine("  Carrying:")
+                    player.inventory.forEach { item ->
+                        val extra = when (item.itemType) {
+                            ItemType.WEAPON -> " [weapon, +${item.damageBonus} damage]"
+                            ItemType.ARMOR -> " [armor, +${item.defenseBonus} defense]"
+                            ItemType.CONSUMABLE -> " [heals ${item.healAmount} HP]"
+                            else -> ""
+                        }
+                        appendLine("    - ${item.name}$extra")
+                    }
                 }
             }
         }
 
         game.emitEvent(GameEvent.Narrative(text))
+    }
+
+    /**
+     * Format item display info from ItemInstance and ItemTemplate
+     * Returns a string like " [weapon, +10 damage, quality 7/10]"
+     */
+    private fun formatItemInfo(instance: ItemInstance, template: ItemTemplate): String {
+        val parts = mutableListOf<String>()
+
+        // Add type
+        parts.add(template.type.name.lowercase())
+
+        // Add relevant properties based on type
+        when (template.type) {
+            ItemType.WEAPON -> {
+                val baseDamage = template.getPropertyInt("damage", 0)
+                val damage = (baseDamage * instance.getQualityMultiplier()).toInt()
+                if (damage > 0) parts.add("+$damage damage")
+            }
+            ItemType.ARMOR -> {
+                val baseDefense = template.getPropertyInt("defense", 0)
+                val defense = (baseDefense * instance.getQualityMultiplier()).toInt()
+                if (defense > 0) parts.add("+$defense defense")
+            }
+            ItemType.CONSUMABLE -> {
+                val healing = template.getPropertyInt("healing", 0)
+                if (healing > 0) parts.add("heals $healing HP")
+                if (instance.charges != null) parts.add("${instance.charges} charges")
+            }
+            ItemType.TOOL -> {
+                if (instance.charges != null) parts.add("${instance.charges} charges")
+            }
+            ItemType.RESOURCE -> {
+                if (instance.quantity > 1) parts.add("x${instance.quantity}")
+            }
+            else -> {}
+        }
+
+        // Add quality if not average
+        if (instance.quality != 5) {
+            parts.add("quality ${instance.quality}/10")
+        }
+
+        return if (parts.isEmpty()) "" else " [${parts.joinToString(", ")}]"
     }
 
     fun handleTake(game: EngineGameClient, target: String) {

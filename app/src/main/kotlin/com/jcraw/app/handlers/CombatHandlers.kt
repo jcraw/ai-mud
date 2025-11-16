@@ -58,6 +58,21 @@ object CombatHandlers {
             return
         }
 
+        // Get V2 equipped items for damage calculation
+        val player = game.worldState.player
+        val playerInventory = player.inventoryComponent
+        val attackerEquipped = playerInventory?.equipped ?: emptyMap()
+
+        // Get NPC equipped items (if any)
+        val npcInventory = npc.getComponent<InventoryComponent>(ComponentType.INVENTORY)
+        val defenderEquipped = npcInventory?.equipped ?: emptyMap()
+
+        // Build item templates map for both attacker and defender
+        val allTemplateIds = (attackerEquipped.values + defenderEquipped.values).map { it.templateId }.toSet()
+        val templates = allTemplateIds.mapNotNull { templateId ->
+            game.itemRepository.findTemplateById(templateId).getOrNull()?.let { template -> template.id to template }
+        }.toMap()
+
         // Resolve attack using AttackResolver (Phase 3)
         val attackResult = if (game.attackResolver != null) {
             try {
@@ -66,7 +81,10 @@ object CombatHandlers {
                         attackerId = game.worldState.player.id,
                         defenderId = npc.id,
                         action = "attack ${npc.name}",
-                        worldState = game.worldState
+                        worldState = game.worldState,
+                        attackerEquipped = attackerEquipped,
+                        defenderEquipped = defenderEquipped,
+                        templates = templates
                     )
                 }
             } catch (e: Exception) {
@@ -87,7 +105,18 @@ object CombatHandlers {
                 game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
 
                 // Generate and display attack narrative
-                val weapon = game.worldState.player.equippedWeapon?.name ?: "bare fists"
+                // Get weapon name from V2 inventory if available, fallback to legacy
+                val weapon = if (playerInventory != null) {
+                    val weaponInstance = playerInventory.equipped[EquipSlot.HANDS_MAIN]
+                        ?: playerInventory.equipped[EquipSlot.HANDS_OFF]
+                    if (weaponInstance != null) {
+                        templates[weaponInstance.templateId]?.name ?: "bare fists"
+                    } else {
+                        "bare fists"
+                    }
+                } else {
+                    game.worldState.player.equippedWeapon?.name ?: "bare fists"
+                }
                 val narrative = if (game.combatNarrator != null) {
                     runBlocking {
                         game.combatNarrator.narrateAction(
