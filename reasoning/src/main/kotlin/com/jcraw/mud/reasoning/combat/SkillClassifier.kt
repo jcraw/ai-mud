@@ -23,16 +23,27 @@ class SkillClassifier(private val llmClient: LLMClient?) {
         action: String,
         entitySkills: SkillComponent
     ): List<SkillWeight> {
+        println("[SKILL CLASSIFIER DEBUG] Action: $action")
+        println("[SKILL CLASSIFIER DEBUG] Entity has skills: ${entitySkills.skills.keys}")
+        println("[SKILL CLASSIFIER DEBUG] Unlocked skills: ${entitySkills.getUnlockedSkills().keys}")
+
         // Try LLM classification first if available
         if (llmClient != null) {
+            println("[SKILL CLASSIFIER DEBUG] Trying LLM classification")
             val result = tryLLMClassification(action, entitySkills)
             if (result.isNotEmpty()) {
+                println("[SKILL CLASSIFIER DEBUG] LLM result: $result")
                 return normalizeWeights(result)
             }
+            println("[SKILL CLASSIFIER DEBUG] LLM returned empty, falling back")
+        } else {
+            println("[SKILL CLASSIFIER DEBUG] No LLM client, using fallback")
         }
 
         // Fallback to hardcoded mappings
-        return fallbackClassification(action, entitySkills)
+        val fallbackResult = fallbackClassification(action, entitySkills)
+        println("[SKILL CLASSIFIER DEBUG] Fallback result: $fallbackResult")
+        return fallbackResult
     }
 
     /**
@@ -42,13 +53,15 @@ class SkillClassifier(private val llmClient: LLMClient?) {
         action: String,
         entitySkills: SkillComponent
     ): List<SkillWeight> {
-        val unlockedSkills = entitySkills.getUnlockedSkills().keys.toList()
-        if (unlockedSkills.isEmpty()) {
+        // Get ALL skills from SkillDefinitions, not just unlocked ones
+        // This allows level 0 skill classification
+        val allSkills = SkillDefinitions.allSkills.keys.toList()
+        if (allSkills.isEmpty()) {
             return emptyList()
         }
 
         val systemPrompt = buildSystemPrompt()
-        val userContext = buildUserContext(action, unlockedSkills)
+        val userContext = buildUserContext(action, allSkills)
 
         return try {
             val response = llmClient?.chatCompletion(
@@ -114,9 +127,11 @@ class SkillClassifier(private val llmClient: LLMClient?) {
 
             val parsed = json.decodeFromString<List<SkillWeightDto>>(jsonContent)
 
-            // Filter to skills entity actually has and normalize
+            // Filter to skills that exist in SkillDefinitions (not just what entity has unlocked)
+            // This allows level 0 skill usage
+            val validSkills = SkillDefinitions.allSkills.keys
             parsed
-                .filter { entitySkills.hasSkill(it.skill) }
+                .filter { it.skill in validSkills }
                 .map { SkillWeight(it.skill, it.weight.coerceIn(0.0, 1.0)) }
         } catch (e: Exception) {
             println("⚠️ Failed to parse skill weights: ${e.message}")
@@ -134,56 +149,48 @@ class SkillClassifier(private val llmClient: LLMClient?) {
         val actionLower = action.lowercase()
         val weights = mutableListOf<SkillWeight>()
 
-        // Weapon type detection
+        // Weapon type detection - always add skills, even if not unlocked (for level 0 usage)
         when {
             actionLower.contains("sword") || actionLower.contains("blade") -> {
-                addIfHasSkill(weights, "Sword Fighting", 0.7, entitySkills)
-                addIfHasSkill(weights, "Strength", 0.3, entitySkills)
+                weights.add(SkillWeight("Sword Fighting", 0.7))
+                weights.add(SkillWeight("Strength", 0.3))
             }
             actionLower.contains("axe") -> {
-                addIfHasSkill(weights, "Axe Mastery", 0.7, entitySkills)
-                addIfHasSkill(weights, "Strength", 0.3, entitySkills)
+                weights.add(SkillWeight("Axe Mastery", 0.7))
+                weights.add(SkillWeight("Strength", 0.3))
             }
             actionLower.contains("bow") || actionLower.contains("arrow") -> {
-                addIfHasSkill(weights, "Bow Accuracy", 0.7, entitySkills)
-                addIfHasSkill(weights, "Agility", 0.3, entitySkills)
+                weights.add(SkillWeight("Bow Accuracy", 0.7))
+                weights.add(SkillWeight("Agility", 0.3))
             }
             actionLower.contains("fire") -> {
-                addIfHasSkill(weights, "Fire Magic", 0.8, entitySkills)
-                addIfHasSkill(weights, "Intelligence", 0.2, entitySkills)
+                weights.add(SkillWeight("Fire Magic", 0.8))
+                weights.add(SkillWeight("Intelligence", 0.2))
             }
             actionLower.contains("water") || actionLower.contains("ice") -> {
-                addIfHasSkill(weights, "Water Magic", 0.8, entitySkills)
-                addIfHasSkill(weights, "Intelligence", 0.2, entitySkills)
+                weights.add(SkillWeight("Water Magic", 0.8))
+                weights.add(SkillWeight("Intelligence", 0.2))
             }
             actionLower.contains("earth") || actionLower.contains("stone") -> {
-                addIfHasSkill(weights, "Earth Magic", 0.8, entitySkills)
-                addIfHasSkill(weights, "Intelligence", 0.2, entitySkills)
+                weights.add(SkillWeight("Earth Magic", 0.8))
+                weights.add(SkillWeight("Intelligence", 0.2))
             }
             actionLower.contains("air") || actionLower.contains("wind") || actionLower.contains("lightning") -> {
-                addIfHasSkill(weights, "Air Magic", 0.8, entitySkills)
-                addIfHasSkill(weights, "Intelligence", 0.2, entitySkills)
+                weights.add(SkillWeight("Air Magic", 0.8))
+                weights.add(SkillWeight("Intelligence", 0.2))
             }
             actionLower.contains("hide") || actionLower.contains("stealth") -> {
-                addIfHasSkill(weights, "Stealth", 0.8, entitySkills)
-                addIfHasSkill(weights, "Agility", 0.2, entitySkills)
+                weights.add(SkillWeight("Stealth", 0.8))
+                weights.add(SkillWeight("Agility", 0.2))
             }
             else -> {
-                // Generic melee attack - use Strength as default
-                addIfHasSkill(weights, "Strength", 1.0, entitySkills)
+                // Generic melee attack - use Unarmed Combat + Strength as default
+                weights.add(SkillWeight("Unarmed Combat", 0.6))
+                weights.add(SkillWeight("Strength", 0.4))
             }
         }
 
-        return if (weights.isEmpty()) {
-            // Last resort: use Strength if available
-            if (entitySkills.hasSkill("Strength")) {
-                listOf(SkillWeight("Strength", 1.0))
-            } else {
-                emptyList()
-            }
-        } else {
-            normalizeWeights(weights)
-        }
+        return normalizeWeights(weights)
     }
 
     private fun addIfHasSkill(

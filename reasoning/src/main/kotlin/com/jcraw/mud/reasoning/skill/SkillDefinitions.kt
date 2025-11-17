@@ -131,6 +131,24 @@ object SkillDefinitions {
             description = "Blocking and shield bash techniques. Reduces incoming damage and enables counters.",
             tags = listOf("combat", "defense"),
             baseUnlockChance = 6
+        ),
+        SkillDefinition(
+            name = "Dodge",
+            description = "Evading and sidestepping attacks. Increases chance to avoid incoming damage.",
+            tags = listOf("combat", "defense"),
+            baseUnlockChance = 5
+        ),
+        SkillDefinition(
+            name = "Parry",
+            description = "Deflecting attacks with weapon or shield. Reduces damage and creates counter-attack opportunities.",
+            tags = listOf("combat", "defense"),
+            baseUnlockChance = 5
+        ),
+        SkillDefinition(
+            name = "Unarmed Combat",
+            description = "Fighting without weapons using fists, kicks, and grapples. Damage scales with Strength.",
+            tags = listOf("combat", "weapon", "melee", "unarmed"),
+            baseUnlockChance = 8
         )
     )
 

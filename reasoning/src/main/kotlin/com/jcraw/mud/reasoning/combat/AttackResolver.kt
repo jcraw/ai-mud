@@ -77,13 +77,19 @@ class AttackResolver(
         val skillWeights = skillClassifier.classifySkills(action, attackerSkills)
 
         if (skillWeights.isEmpty()) {
+            // Should never happen with new SkillClassifier, but fallback to level 0 attack
+            println("[COMBAT DEBUG] No skills classified (unexpected), using pure d20 roll")
             return AttackResult.failure("No applicable skills for this action")
         }
 
         // 2. Calculate attack modifier (weighted sum of skill levels)
+        // getEffectiveLevel() returns 0 for unlocked skills, allowing level 0 usage
         val attackModifier = skillWeights.sumOf {
-            attackerSkills.getEffectiveLevel(it.skill) * it.weight
+            val skillLevel = attackerSkills.getEffectiveLevel(it.skill)
+            println("[COMBAT DEBUG]   - Using skill ${it.skill}: level=$skillLevel (weight=${it.weight})")
+            skillLevel * it.weight
         }.toInt()
+        println("[COMBAT DEBUG] Total attack modifier: $attackModifier")
 
         // 3. Roll attack: d20 + modifier
         val attackRoll = rollD20() + attackModifier

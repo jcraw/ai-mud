@@ -141,6 +141,9 @@ object CombatHandlers {
                 }
                 println("\n$narrative")
 
+                // Attempt to unlock skills used in the attack
+                attemptSkillUnlocks(game, attackResult.skillsUsed, success = true)
+
                 // Check if NPC died
                 if (attackResult.wasKilled) {
                     println("\nVictory! ${npc.name} has been defeated!")
@@ -179,6 +182,9 @@ object CombatHandlers {
                     "You miss ${npc.name}!"
                 }
                 println("\n$narrative")
+
+                // Attempt to unlock skills even on miss (learn from failure)
+                attemptSkillUnlocks(game, attackResult.skillsUsed, success = false)
 
                 // Trigger counter-attack even on miss
                 if (game.turnQueue != null) {
@@ -271,6 +277,43 @@ object CombatHandlers {
             attackResult.playerDied -> {
                 // Use new permadeath system
                 game.handlePlayerDeath()
+            }
+        }
+    }
+
+    /**
+     * Attempt to unlock skills used in combat
+     * Also grants XP to already-unlocked skills
+     */
+    private fun attemptSkillUnlocks(game: MudGame, skillsUsed: List<String>, success: Boolean) {
+        val playerId = game.worldState.player.id
+        val playerSkills = game.skillManager.getSkillComponent(playerId)
+
+        skillsUsed.forEach { skillName ->
+            val skill = playerSkills.getSkill(skillName)
+
+            if (skill == null || !skill.unlocked) {
+                // Skill not unlocked - attempt to unlock via Attempt method
+                val unlockResult = game.skillManager.unlockSkill(
+                    entityId = playerId,
+                    skillName = skillName,
+                    method = com.jcraw.mud.reasoning.skill.UnlockMethod.Attempt
+                )
+
+                unlockResult.onSuccess { unlockEvent ->
+                    if (unlockEvent != null) {
+                        println("🎉 Through combat, you've discovered $skillName!")
+                    }
+                }
+            } else {
+                // Skill already unlocked - grant XP
+                val xpAmount = if (success) 10L else 2L  // Less XP on miss
+                game.skillManager.grantXp(
+                    entityId = playerId,
+                    skillName = skillName,
+                    baseXp = xpAmount,
+                    success = success
+                )
             }
         }
     }
