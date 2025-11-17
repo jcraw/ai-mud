@@ -324,9 +324,6 @@ class EngineGameClient(
 
         if (!running) return
 
-        // Process NPC turns before player input (Combat V2)
-        processNPCTurns()
-
         // Parse intent - V3 uses space-based context
         val space = worldState.getCurrentSpace()
         val spaceContext = space?.description
@@ -343,6 +340,9 @@ class EngineGameClient(
         val baseCost = getBaseCostForIntent(intent)
         val actionCost = com.jcraw.mud.reasoning.combat.ActionCosts.calculateCost(baseCost, speedLevel)
         worldState = worldState.advanceTime(actionCost)
+
+        // Process NPC turns after player action (Combat V2)
+        processNPCTurns()
     }
 
     override fun observeEvents(): Flow<GameEvent> = _events.asSharedFlow()
@@ -1027,25 +1027,16 @@ class EngineGameClient(
                     val newPlayer = worldState.player.takeDamage(result.damage)
                     worldState = worldState.updatePlayer(newPlayer)
 
-                    // Generate narrative
-                    val npcWeapon = "weapon"
-                    val narrative = if (combatNarrator != null) {
+                    // Generate narrative with LLM flavor text + damage line
+                    val flavorText = if (llmClient != null) {
                         runBlocking {
-                            combatNarrator.narrateAction(
-                                weapon = npcWeapon,
-                                damage = result.damage,
-                                maxHp = worldState.player.maxHealth,
-                                isHit = true,
-                                isCritical = false,
-                                isDeath = newPlayer.isDead(),
-                                isSpell = false,
-                                targetName = worldState.player.name
-                            )
+                            generateNPCAttackNarration(npc.name, result.damage, newPlayer.isDead())
                         }
                     } else {
-                        "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
+                        "${npc.name} strikes with deadly precision!"
                     }
-                    emitEvent(GameEvent.Combat(narrative))
+                    val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
+                    emitEvent(GameEvent.Combat("$flavorText\n$damageLine"))
 
                     // Check if player died
                     if (newPlayer.isDead()) {
@@ -1098,6 +1089,31 @@ class EngineGameClient(
             is Intent.Pickpocket -> com.jcraw.mud.reasoning.combat.ActionCosts.HIDE
             // Most other actions are relatively quick
             else -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
+        }
+    }
+
+    /**
+     * Generate LLM narration for NPC attack
+     */
+    private suspend fun generateNPCAttackNarration(npcName: String, damage: Int, isDeath: Boolean): String {
+        val client = llmClient ?: return "$npcName strikes with deadly force!"
+
+        val deathContext = if (isDeath) " The blow is fatal." else ""
+        val systemPrompt = "You are a vivid combat narrator for a fantasy game."
+        val userContext = """Generate a single short sentence (10-15 words) describing how $npcName attacks the player, dealing $damage damage.$deathContext
+Be vivid and visceral, from the NPC's perspective. Just the action description, no damage numbers."""
+
+        return try {
+            val response = client.chatCompletion(
+                modelId = "gpt-4o-mini",
+                systemPrompt = systemPrompt,
+                userContext = userContext,
+                temperature = 0.8
+            )
+            val text = response.choices.firstOrNull()?.message?.content ?: "$npcName strikes with deadly force!"
+            text.trim().removeSuffix(".")
+        } catch (e: Exception) {
+            "$npcName strikes with brutal force!"
         }
     }
 
