@@ -1,5 +1,6 @@
 package com.jcraw.sophia.llm
 
+import com.jcraw.mud.config.GameConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import io.ktor.client.*
@@ -35,14 +36,17 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
         temperature: Double
     ): OpenAIResponse {
         val actualTemperature = if (modelId.startsWith("gpt-5")) 1.0 else temperature
-        println("🌐 OpenAI API call starting...")
-        println("   Model: $modelId")
-        println("   Max tokens: $maxTokens")
-        println("   Temperature: $actualTemperature${if (actualTemperature != temperature) " (forced to 1.0 for GPT-5)" else ""}")
-        println("   System prompt (full):")
-        println(systemPrompt.prependIndent("      "))
-        println("   User context (full):")
-        println(userContext.prependIndent("      "))
+
+        if (GameConfig.logLLMCalls) {
+            println("🌐 OpenAI API call starting...")
+            println("   Model: $modelId")
+            println("   Max tokens: $maxTokens")
+            println("   Temperature: $actualTemperature${if (actualTemperature != temperature) " (forced to 1.0 for GPT-5)" else ""}")
+            println("   System prompt (full):")
+            println(systemPrompt.prependIndent("      "))
+            println("   User context (full):")
+            println(userContext.prependIndent("      "))
+        }
 
         val messages = listOf(
             OpenAIMessage("system", systemPrompt),
@@ -63,7 +67,9 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
                 setBody(request)
             }
 
-            println("📡 HTTP Status: ${httpResponse.status}")
+            if (GameConfig.logLLMCalls) {
+                println("📡 HTTP Status: ${httpResponse.status}")
+            }
 
             if (httpResponse.status.value !in 200..299) {
                 val errorBody = httpResponse.bodyAsText()
@@ -73,14 +79,16 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
 
             val response = httpResponse.body<OpenAIResponse>()
 
-            println("🔥 LLM API: $modelId | tokens=${response.usage.totalTokens} (${response.usage.promptTokens}+${response.usage.completionTokens ?: 0})")
-            println("✅ OpenAI API call successful, received ${response.choices.size} choices")
+            if (GameConfig.logLLMCalls) {
+                println("🔥 LLM API: $modelId | tokens=${response.usage.totalTokens} (${response.usage.promptTokens}+${response.usage.completionTokens ?: 0})")
+                println("✅ OpenAI API call successful, received ${response.choices.size} choices")
 
-            // Debug the response content when empty
-            if (response.choices.any { it.message.content.isNullOrBlank() }) {
-                response.choices.forEachIndexed { index, choice ->
-                    println("   Choice $index content: '${choice.message.content}' (length: ${choice.message.content?.length ?: 0})")
-                    println("   Choice $index finish_reason: ${choice.finishReason}")
+                // Debug the response content when empty
+                if (response.choices.any { it.message.content.isNullOrBlank() }) {
+                    response.choices.forEachIndexed { index, choice ->
+                        println("   Choice $index content: '${choice.message.content}' (length: ${choice.message.content?.length ?: 0})")
+                        println("   Choice $index finish_reason: ${choice.finishReason}")
+                    }
                 }
             }
 
@@ -94,14 +102,16 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
     }
 
     override suspend fun createEmbedding(text: String, model: String): List<Double> {
-        println("🔢 OpenAI Embedding API call starting...")
-        println("   Model: $model")
+        if (GameConfig.logLLMCalls) {
+            println("🔢 OpenAI Embedding API call starting...")
+            println("   Model: $model")
 
-        // Show text intelligently based on length
-        if (text.length <= 200) {
-            println("   Text: $text")
-        } else {
-            println("   Text (${text.length} chars): ${text.take(150)}...")
+            // Show text intelligently based on length
+            if (text.length <= 200) {
+                println("   Text: $text")
+            } else {
+                println("   Text (${text.length} chars): ${text.take(150)}...")
+            }
         }
 
         val request = OpenAIEmbeddingRequest(
@@ -116,7 +126,9 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
                 setBody(request)
             }
 
-            println("📡 HTTP Status: ${httpResponse.status}")
+            if (GameConfig.logLLMCalls) {
+                println("📡 HTTP Status: ${httpResponse.status}")
+            }
 
             if (httpResponse.status.value !in 200..299) {
                 val errorBody = httpResponse.bodyAsText()
@@ -126,8 +138,10 @@ class OpenAIClient(private val apiKey: String) : LLMClient {
 
             val response = httpResponse.body<OpenAIEmbeddingResponse>()
 
-            println("🔥 Embedding API: $model | tokens=${response.usage.totalTokens}")
-            println("✅ Embedding generated, dimension: ${response.data.first().embedding.size}")
+            if (GameConfig.logLLMCalls) {
+                println("🔥 Embedding API: $model | tokens=${response.usage.totalTokens}")
+                println("✅ Embedding generated, dimension: ${response.data.first().embedding.size}")
+            }
 
             return response.data.first().embedding
         } catch (e: Exception) {

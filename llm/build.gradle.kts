@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":config"))
     implementation(libs.bundles.kotlinxEcosystem)
     implementation(libs.ktorClientCore)
     implementation(libs.ktorClientCio)
