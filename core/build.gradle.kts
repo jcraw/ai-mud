@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":config"))
     implementation(libs.bundles.kotlinxEcosystem)
     testImplementation(kotlin("test"))
 }

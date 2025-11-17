@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":config"))
     implementation(project(":core"))
     implementation(project(":llm"))
     implementation(project(":memory"))

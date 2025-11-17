@@ -145,6 +145,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
 
 ### Modules
 - **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest, GameClient, GameEvent)
+- **config** - Unified configuration for debugging and testing
 - **perception** - Input parsing and intent recognition
 - **reasoning** - LLM-powered content generation and game logic
 - **memory** - Vector database integration and state persistence
@@ -212,7 +213,13 @@ Memory (store for RAG)
 
 ## Configuration
 
-### Mob Generation Toggle
+**Location**: `config/src/main/kotlin/com/jcraw/mud/config/GameConfig.kt`
+
+Centralized configuration object for debugging and testing. All modules can import and modify these values.
+
+### Available Flags
+
+#### Mob Generation (`enableMobGeneration`)
 
 **Keywords**: disable mobs, turn off monsters, turn off enemies, no hostile NPCs, empty dungeon, mob spawning toggle
 
@@ -224,17 +231,6 @@ Control whether monsters spawn in the game world. This affects all hostile and f
 - ❌ Merchants (always spawn - gameplay critical)
 - ❌ Bosses (always spawn - gameplay critical)
 
-**Location**: `core/src/main/kotlin/com/jcraw/mud/core/MobGenerationConfig.kt`
-
-**Usage**:
-```kotlin
-// Disable all mob spawning
-MobGenerationConfig.enabled = false
-
-// Re-enable mob spawning (default)
-MobGenerationConfig.enabled = true
-```
-
 **Affects**:
 - Initial world/chunk generation
 - Game load respawns
@@ -245,6 +241,20 @@ MobGenerationConfig.enabled = true
 - Exploring world generation
 - Debugging navigation systems
 - Creating empty dungeons for screenshots
+
+#### LLM Call Logging (`logLLMCalls`)
+
+Enable verbose logging of all LLM API requests and responses. Useful for debugging prompts, tracking API usage, and understanding LLM behavior.
+
+### Usage
+
+```kotlin
+// Disable all mob spawning
+GameConfig.enableMobGeneration = false
+
+// Enable LLM call logging
+GameConfig.logLLMCalls = true
+```
 
 ## Important Notes
 
