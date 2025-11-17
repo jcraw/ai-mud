@@ -30,6 +30,7 @@ class MultiUserGame(
     private val memoryManager: MemoryManager?,
     private val combatResolver: CombatResolver,
     private val skillCheckResolver: SkillCheckResolver,
+    private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager,
     private val llmClient: OpenAIClient?
 ) {
     private lateinit var gameServer: GameServer
@@ -57,6 +58,7 @@ class MultiUserGame(
             combatNarrator = effectiveCombatNarrator,
             skillCheckResolver = skillCheckResolver,
             sceneryGenerator = sceneryGenerator,
+            skillManager = skillManager,
             socialDatabase = socialDatabase
         )
 

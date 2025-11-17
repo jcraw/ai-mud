@@ -89,7 +89,8 @@ class InMemoryGameEngine(
 
     private suspend fun handleMove(direction: Direction): String {
         // Movement is always allowed in Combat System V2
-        val newState = worldState.movePlayerV3(direction)
+        val playerSkills = skillManager?.getSkillComponent(worldState.player.id) ?: com.jcraw.mud.core.SkillComponent()
+        val newState = worldState.movePlayerV3(direction, playerSkills)
         return if (newState != null) {
             worldState = newState
             val space = worldState.getCurrentSpace()!!

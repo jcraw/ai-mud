@@ -162,6 +162,12 @@ fun main() {
         val skillCheckResolver = SkillCheckResolver()
         val combatResolver = CombatResolver()
 
+        // Skill system components
+        val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(com.jcraw.mud.core.DatabaseConfig.SKILLS_DB)
+        val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
+        val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
+        val skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)
+
         val multiUserGame = MultiUserGame(
             initialWorldState = worldStateWithQuests,
             descriptionGenerator = descriptionGenerator,
@@ -170,6 +176,7 @@ fun main() {
             memoryManager = memoryManager,
             combatResolver = combatResolver,
             skillCheckResolver = skillCheckResolver,
+            skillManager = skillManager,
             llmClient = llmClient
         )
 

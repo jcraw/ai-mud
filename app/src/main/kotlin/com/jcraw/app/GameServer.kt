@@ -32,6 +32,7 @@ class GameServer(
     private val combatNarrator: CombatNarrator,
     private val skillCheckResolver: SkillCheckResolver,
     private val sceneryGenerator: SceneryDescriptionGenerator,
+    private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager,
     private val socialDatabase: SocialDatabase? = null
 ) {
     private val sessions = mutableMapOf<PlayerId, PlayerSession>()
@@ -256,7 +257,8 @@ class GameServer(
     ): Triple<String, WorldState, GameEvent?> {
         // V3: No modal combat, movement always allowed
         val oldSpaceId = playerState.currentRoomId
-        val newWorldState = worldState.movePlayerV3(playerId, direction)
+        val playerSkills = skillManager.getSkillComponent(playerId)
+        val newWorldState = worldState.movePlayerV3(playerId, direction, playerSkills)
 
         return if (newWorldState != null) {
             val newPlayerState = newWorldState.getPlayer(playerId)!!

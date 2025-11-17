@@ -529,7 +529,8 @@ class MudGame(
                     attackerId = npc.id,
                     defenderId = worldState.player.id,
                     action = "${npc.name} attacks",
-                    worldState = worldState
+                    worldState = worldState,
+                    skillManager = skillManager
                 )
             }
 

@@ -14,7 +14,8 @@ object ClientMovementHandlers {
     fun handleMove(game: EngineGameClient, direction: Direction) {
         val previousSpaceId = game.worldState.player.currentRoomId
         val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
-        val newState = game.worldState.movePlayerV3(direction)
+        val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
+        val newState = game.worldState.movePlayerV3(direction, playerSkills)
         if (newState == null) {
             game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
             return
@@ -209,7 +210,8 @@ object ClientMovementHandlers {
 
         val previousSpaceId = game.worldState.player.currentRoomId
         val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
-        val edgeMove = game.worldState.movePlayerByExit(normalized)
+        val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
+        val edgeMove = game.worldState.movePlayerByExit(normalized, playerSkills)
         if (edgeMove != null) {
             game.worldState = edgeMove
             // Treasure room exit finalization disabled - players can return and swap anytime
@@ -224,13 +226,13 @@ object ClientMovementHandlers {
             return
         }
 
-        val resolvedExit = space.resolveExit(normalized, game.worldState.player)
+        val resolvedExit = space.resolveExit(normalized, game.worldState.player, playerSkills)
         if (resolvedExit == null) {
             game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
             return
         }
 
-        val fallback = game.worldState.movePlayerByExit(resolvedExit.direction)
+        val fallback = game.worldState.movePlayerByExit(resolvedExit.direction, playerSkills)
         if (fallback != null) {
             game.worldState = fallback
             val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
@@ -268,15 +270,16 @@ object ClientMovementHandlers {
         }
 
         val player = game.worldState.player
+        val playerSkills = game.skillManager.getSkillComponent(player.id)
         if (rawDirection.isNullOrBlank()) {
-            val visible = space.getVisibleExits(player)
+            val visible = space.getVisibleExits(player, playerSkills)
             if (visible.isEmpty()) {
                 game.emitEvent(GameEvent.Narrative("You don't notice any obvious exits."))
             } else {
                 val text = buildString {
                     appendLine("Visible exits:")
                     visible.forEach { exit ->
-                        appendLine("  - ${exit.direction}: ${exit.describeWithConditions(player)}")
+                        appendLine("  - ${exit.direction}: ${exit.describeWithConditions(player, playerSkills)}")
                     }
                 }
                 game.emitEvent(GameEvent.Narrative(text))
@@ -284,7 +287,7 @@ object ClientMovementHandlers {
             return
         }
 
-        val resolved = space.resolveExit(rawDirection, player)
+        val resolved = space.resolveExit(rawDirection, player, playerSkills)
         if (resolved == null) {
             game.emitEvent(GameEvent.System("You can't find any exit matching \"$rawDirection\".", GameEvent.MessageLevel.INFO))
             return
@@ -294,7 +297,7 @@ object ClientMovementHandlers {
             appendLine("You examine the ${resolved.direction}:")
             appendLine("  ${resolved.description}")
             if (resolved.conditions.isNotEmpty()) {
-                val unmet = resolved.conditions.filterNot { it.meetsCondition(player) }
+                val unmet = resolved.conditions.filterNot { it.meetsCondition(player, playerSkills) }
                 if (unmet.isNotEmpty()) {
                     appendLine("  Requirements: ${unmet.joinToString(", ") { it.describe() }}")
                 }

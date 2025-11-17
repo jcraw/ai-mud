@@ -250,6 +250,7 @@ MobGenerationConfig.enabled = true
 
 - **✅ CLIENT UNIFICATION COMPLETE** - GUI and console clients now use identical V2 combat system (AttackResolver, skill-based damage, V2 inventory bonuses). Gathering and crafting now available in GUI.
 - **✅ V2 INVENTORY BONUSES FIXED** - Combat damage now correctly uses SkillModifierCalculator with V2 inventory and ItemRepository templates in both clients.
+- **✅ PLAYERSTATE.SKILLS DEPRECATED** - PlayerState.skills and related methods are deprecated. Use SkillManager.getSkillComponent() instead. AttackResolver now uses SkillManager bridge pattern. All V3 movement methods require playerSkills parameter.
 - **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.
 - **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-5 (partial) complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests). Phase 5 (reasoning tests) + Phase 6-7 remaining (est. 2-3h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
 - **⚠️ Test status** - 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
