@@ -196,8 +196,10 @@ class MudGame(
             processIntent(intent)
 
             // Advance game time after player action (Combat V2)
-            // Note: This is a basic implementation - real action costs would come from ActionCosts
-            val actionCost = 5L // Default cost for most actions
+            // Calculate action cost based on intent type and player's Speed skill
+            val speedLevel = skillManager.getSkillComponent(worldState.player.id)?.getEffectiveLevel("Speed") ?: 0
+            val baseCost = getBaseCostForIntent(intent)
+            val actionCost = ActionCosts.calculateCost(baseCost, speedLevel)
             worldState = worldState.advanceTime(actionCost)
         }
 
@@ -714,6 +716,23 @@ class MudGame(
             val targetName = worldState.getSpace(edge.targetId)?.name ?: edge.targetId
             direction to targetName
         }.toMap()
+    }
+
+    /**
+     * Determine the base action cost for an intent type.
+     * Maps intent types to ActionCosts constants.
+     */
+    private fun getBaseCostForIntent(intent: Intent): Int {
+        return when (intent) {
+            is Intent.Attack -> ActionCosts.MELEE_ATTACK
+            is Intent.Move, is Intent.Travel -> ActionCosts.MOVE
+            is Intent.Use, is Intent.UseItem -> ActionCosts.ITEM_USE
+            is Intent.Talk, is Intent.Say, is Intent.Persuade, is Intent.Intimidate -> ActionCosts.SOCIAL
+            is Intent.Check -> ActionCosts.SOCIAL
+            is Intent.Pickpocket -> ActionCosts.HIDE
+            // Most other actions are relatively quick
+            else -> ActionCosts.SOCIAL
+        }
     }
 }
 

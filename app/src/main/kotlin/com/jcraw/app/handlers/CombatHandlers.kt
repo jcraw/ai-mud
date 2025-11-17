@@ -303,6 +303,14 @@ object CombatHandlers {
                 unlockResult.onSuccess { unlockEvent ->
                     if (unlockEvent != null) {
                         println("🎉 Through combat, you've discovered $skillName!")
+                    } else {
+                        // Unlock failed - grant 1 XP so player can eventually progress
+                        game.skillManager.grantXp(
+                            entityId = playerId,
+                            skillName = skillName,
+                            baseXp = 1L,
+                            success = success
+                        )
                     }
                 }
             } else {
