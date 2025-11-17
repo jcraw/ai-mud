@@ -135,14 +135,14 @@ data class WorldState(
      * Move player using graph-based navigation (V3)
      * Returns null if movement fails (no exit, space not generated, etc.)
      */
-    fun movePlayerV3(playerId: PlayerId, direction: Direction): WorldState? {
+    fun movePlayerV3(playerId: PlayerId, direction: Direction, playerSkills: SkillComponent): WorldState? {
         val playerState = players[playerId] ?: return null
         val currentNode = graphNodes[playerState.currentRoomId] ?: return null
 
         // Find edge matching direction (position-aware for spatial coherence)
         val edge = currentNode.getEdgeGeometric(direction.displayName) ?: return null
 
-        val access = evaluateEdgeAccess(playerState, currentNode, edge)
+        val access = evaluateEdgeAccess(playerState, playerSkills, currentNode, edge)
         if (!access.canTraverse) return null
 
         // Check if target space exists
@@ -167,17 +167,17 @@ data class WorldState(
     /**
      * Move main player using graph-based navigation (V3)
      */
-    fun movePlayerV3(direction: Direction): WorldState? = movePlayerV3(player.id, direction)
+    fun movePlayerV3(direction: Direction, playerSkills: SkillComponent): WorldState? = movePlayerV3(player.id, direction, playerSkills)
 
     /**
      * Move player using an arbitrary exit label (supports natural language directions).
      * Attempts to resolve an edge whose direction matches the given label.
      */
-    fun movePlayerByExit(playerId: PlayerId, exitLabel: String): WorldState? {
+    fun movePlayerByExit(playerId: PlayerId, exitLabel: String, playerSkills: SkillComponent): WorldState? {
         val playerState = players[playerId] ?: return null
         val currentNode = graphNodes[playerState.currentRoomId] ?: return null
         val edge = currentNode.getEdge(exitLabel) ?: return null
-        val access = evaluateEdgeAccess(playerState, currentNode, edge)
+        val access = evaluateEdgeAccess(playerState, playerSkills, currentNode, edge)
         if (!access.canTraverse) return null
         if (!spaces.containsKey(edge.targetId)) return null
 
@@ -194,19 +194,19 @@ data class WorldState(
         return updatePlayer(updatedPlayer.moveToRoom(edge.targetId))
     }
 
-    fun movePlayerByExit(exitLabel: String): WorldState? = movePlayerByExit(player.id, exitLabel)
+    fun movePlayerByExit(exitLabel: String, playerSkills: SkillComponent): WorldState? = movePlayerByExit(player.id, exitLabel, playerSkills)
 
     /**
      * Get available exits from current location (V3)
      * Only returns visible edges (filters hidden exits player can't see)
      */
-    fun getAvailableExitsV3(playerId: PlayerId): List<Direction> {
+    fun getAvailableExitsV3(playerId: PlayerId, playerSkills: SkillComponent): List<Direction> {
         val playerState = players[playerId] ?: return emptyList()
         val node = graphNodes[playerState.currentRoomId] ?: return emptyList()
         val space = spaces[playerState.currentRoomId] ?: return emptyList()
 
         // Get visible exits from space (handles Perception checks for hidden exits)
-        val visibleExits = space.getVisibleExits(playerState)
+        val visibleExits = space.getVisibleExits(playerState, playerSkills)
 
         // Convert exit directions to Direction enum (filter out non-cardinal)
         return visibleExits.mapNotNull { exit ->
@@ -217,7 +217,7 @@ data class WorldState(
     /**
      * Get available exits for main player (V3)
      */
-    fun getAvailableExitsV3(): List<Direction> = getAvailableExitsV3(player.id)
+    fun getAvailableExitsV3(playerSkills: SkillComponent): List<Direction> = getAvailableExitsV3(player.id, playerSkills)
 
     // ========================================
     // V3: Chunk management methods
@@ -453,6 +453,7 @@ private data class EdgeAccess(
 
 private fun evaluateEdgeAccess(
     player: PlayerState,
+    playerSkills: SkillComponent,
     node: GraphNodeComponent,
     edge: EdgeData
 ): EdgeAccess {
@@ -462,7 +463,7 @@ private fun evaluateEdgeAccess(
         condition is Condition.SkillCheck && condition.skill.equals("Perception", ignoreCase = true)
     }
 
-    if (!gatingConditions.all { it.meetsCondition(player) }) {
+    if (!gatingConditions.all { it.meetsCondition(player, playerSkills) }) {
         return EdgeAccess(canTraverse = false, shouldRevealEdge = false, edgeId = edgeId)
     }
 
@@ -474,7 +475,7 @@ private fun evaluateEdgeAccess(
         return EdgeAccess(canTraverse = true, shouldRevealEdge = false, edgeId = edgeId)
     }
 
-    val perceptionMet = perceptionChecks.any { it.meetsCondition(player) }
+    val perceptionMet = perceptionChecks.any { it.meetsCondition(player, playerSkills) }
     return if (perceptionMet) {
         EdgeAccess(canTraverse = true, shouldRevealEdge = true, edgeId = edgeId)
     } else {

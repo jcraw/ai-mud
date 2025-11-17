@@ -74,7 +74,7 @@ object CombatHandlers {
         }.toMap()
 
         // Resolve attack using AttackResolver (Phase 3)
-        val attackResult = if (game.attackResolver != null) {
+        val attackResult = if (game.attackResolver != null && game.skillManager != null) {
             try {
                 runBlocking {
                     game.attackResolver.resolveAttack(
@@ -82,6 +82,7 @@ object CombatHandlers {
                         defenderId = npc.id,
                         action = "attack ${npc.name}",
                         worldState = game.worldState,
+                        skillManager = game.skillManager,
                         attackerEquipped = attackerEquipped,
                         defenderEquipped = defenderEquipped,
                         templates = templates

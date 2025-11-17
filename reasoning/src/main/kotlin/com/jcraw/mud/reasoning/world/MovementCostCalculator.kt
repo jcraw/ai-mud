@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.PlayerState
+import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.core.world.TerrainType
 import kotlin.random.Random
 
@@ -33,10 +34,11 @@ class MovementCostCalculator {
      * - IMPASSABLE: Movement fails, 0 ticks consumed
      *
      * @param terrain The terrain type to traverse
-     * @param playerState Current player state (for skill modifiers)
+     * @param playerState Current player state (for stats)
+     * @param playerSkills V2 skill component (for Athletics checks)
      * @return MovementCost with ticks, damage risk, and success status
      */
-    fun calculateCost(terrain: TerrainType, playerState: PlayerState): MovementCost {
+    fun calculateCost(terrain: TerrainType, playerState: PlayerState, playerSkills: SkillComponent): MovementCost {
         return when (terrain) {
             TerrainType.NORMAL -> {
                 MovementCost(
@@ -49,7 +51,7 @@ class MovementCostCalculator {
 
             TerrainType.DIFFICULT -> {
                 val baseTicks = 2
-                val modifiedTicks = applySkillModifiers(baseTicks, playerState)
+                val modifiedTicks = applySkillModifiers(baseTicks, playerSkills)
 
                 // Dexterity check to avoid 1d6 damage
                 val dexterityModifier = playerState.stats.dexterity / 2 - 5
@@ -90,11 +92,12 @@ class MovementCostCalculator {
      * - Athletics level 20+: Reduces difficult terrain cost by 2 ticks (minimum 1)
      *
      * @param baseCost The base tick cost before modifiers
-     * @param player Current player state with skills
+     * @param playerSkills V2 skill component for Athletics checks
      * @return Modified tick cost (never less than 1)
      */
-    private fun applySkillModifiers(baseCost: Int, player: PlayerState): Int {
-        val athleticsLevel = player.getSkillLevel("Athletics")
+    private fun applySkillModifiers(baseCost: Int, playerSkills: SkillComponent): Int {
+        // Use V2 skill system
+        val athleticsLevel = playerSkills.getEffectiveLevel("Athletics")
 
         val reduction = when {
             athleticsLevel >= 20 -> 2

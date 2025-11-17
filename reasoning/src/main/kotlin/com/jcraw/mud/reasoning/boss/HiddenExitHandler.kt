@@ -12,10 +12,11 @@ class HiddenExitHandler {
      * Check if player can discover/use hidden exit
      *
      * @param player Player attempting to use exit
+     * @param playerSkills V2 skill component for skill checks
      * @param exit The exit data with conditions
      * @return HiddenExitResult indicating success or failure with narration
      */
-    fun checkHiddenExit(player: PlayerState, exit: ExitData): HiddenExitResult {
+    fun checkHiddenExit(player: PlayerState, playerSkills: SkillComponent, exit: ExitData): HiddenExitResult {
         // Check if exit is hidden
         if (!exit.isHidden) {
             return HiddenExitResult.Success("The exit is clearly visible.")
@@ -23,7 +24,7 @@ class HiddenExitHandler {
 
         // Check exit conditions (typically skill checks)
         val passedConditions = exit.conditions.filter { condition ->
-            condition.meetsCondition(player)
+            condition.meetsCondition(player, playerSkills)
         }
 
         // If any condition is met, reveal the exit

@@ -13,7 +13,7 @@ data class PlayerState(
     val inventory: List<Entity.Item> = emptyList(), // Legacy - use inventoryComponent instead
     val equippedWeapon: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
     val equippedArmor: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
-    val skills: Map<String, Int> = emptyMap(),
+    val skills: Map<String, Int> = emptyMap(), // Legacy V1 - use SkillManager.getSkillComponent() instead
     val properties: Map<String, String> = emptyMap(),
     val revealedExits: Set<String> = emptySet(), // V3: Hidden exits revealed by Perception checks
     val activeQuests: List<Quest> = emptyList(),
@@ -38,8 +38,34 @@ data class PlayerState(
 
     fun isDead(): Boolean = health <= 0
 
+    /**
+     * Get skill level from legacy V1 skills map.
+     *
+     * @deprecated This method uses legacy V1 skills system. Use SkillManager.getSkillComponent()
+     * to access V2 skills with XP, perks, buffs, and resource pools.
+     */
+    @Deprecated(
+        message = "Use SkillManager.getSkillComponent() for V2 skills instead",
+        replaceWith = ReplaceWith(
+            "skillManager.getSkillComponent(id).getEffectiveLevel(skillName)",
+            "com.jcraw.mud.reasoning.skills.SkillManager"
+        )
+    )
     fun getSkillLevel(skillName: String): Int = skills[skillName] ?: 0
 
+    /**
+     * Set skill level in legacy V1 skills map.
+     *
+     * @deprecated This method uses legacy V1 skills system. Use SkillManager.addXP()
+     * to update V2 skills with proper progression.
+     */
+    @Deprecated(
+        message = "Use SkillManager.addXP() for V2 skills instead",
+        replaceWith = ReplaceWith(
+            "skillManager.addXP(id, skillName, xpAmount)",
+            "com.jcraw.mud.reasoning.skills.SkillManager"
+        )
+    )
     fun setSkillLevel(skillName: String, level: Int): PlayerState = copy(skills = skills + (skillName to level))
 
     fun equipWeapon(weapon: Entity.Item): PlayerState {

@@ -64,7 +64,7 @@ object ClientCombatHandlers {
         }.toMap()
 
         // Resolve attack using AttackResolver (V2 Combat System)
-        val attackResult = if (game.attackResolver != null) {
+        val attackResult = if (game.attackResolver != null && game.skillManager != null) {
             try {
                 runBlocking {
                     game.attackResolver.resolveAttack(
@@ -72,6 +72,7 @@ object ClientCombatHandlers {
                         defenderId = npc.id,
                         action = "attack ${npc.name}",
                         worldState = game.worldState,
+                        skillManager = game.skillManager,
                         attackerEquipped = attackerEquipped,
                         defenderEquipped = defenderEquipped,
                         templates = templates

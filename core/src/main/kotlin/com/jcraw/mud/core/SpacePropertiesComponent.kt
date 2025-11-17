@@ -38,7 +38,7 @@ data class SpacePropertiesComponent(
      * Resolve exit by intent (exact or fuzzy match)
      * Returns matching exit data or null
      */
-    fun resolveExit(intent: String, player: PlayerState): ExitData? {
+    fun resolveExit(intent: String, player: PlayerState, playerSkills: SkillComponent): ExitData? {
         val normalizedIntent = intent.lowercase().trim()
 
         // Phase 1: Exact match (cardinal directions)
@@ -47,7 +47,7 @@ data class SpacePropertiesComponent(
         }
         if (exactMatch != null) {
             // Check if player can see this exit (hidden check)
-            if (exactMatch.isHidden && !canSeeHiddenExit(player, exactMatch)) {
+            if (exactMatch.isHidden && !canSeeHiddenExit(player, playerSkills, exactMatch)) {
                 return null
             }
             return exactMatch
@@ -59,7 +59,7 @@ data class SpacePropertiesComponent(
             normalizedIntent.contains(exit.direction.lowercase())
         }
         if (fuzzyMatch != null) {
-            if (fuzzyMatch.isHidden && !canSeeHiddenExit(player, fuzzyMatch)) {
+            if (fuzzyMatch.isHidden && !canSeeHiddenExit(player, playerSkills, fuzzyMatch)) {
                 return null
             }
             return fuzzyMatch
@@ -72,17 +72,17 @@ data class SpacePropertiesComponent(
     /**
      * Check if player can see hidden exit (Perception check)
      */
-    private fun canSeeHiddenExit(player: PlayerState, exit: ExitData): Boolean {
+    private fun canSeeHiddenExit(player: PlayerState, playerSkills: SkillComponent, exit: ExitData): Boolean {
         val skillCondition = exit.conditions.firstOrNull { it is Condition.SkillCheck } as? Condition.SkillCheck
-        return skillCondition == null || skillCondition.meetsCondition(player)
+        return skillCondition == null || skillCondition.meetsCondition(player, playerSkills)
     }
 
     /**
      * Get visible exits for player (filters hidden exits by Perception)
      */
-    fun getVisibleExits(player: PlayerState): List<ExitData> =
+    fun getVisibleExits(player: PlayerState, playerSkills: SkillComponent): List<ExitData> =
         exits.filter { exit ->
-            !exit.isHidden || canSeeHiddenExit(player, exit)
+            !exit.isHidden || canSeeHiddenExit(player, playerSkills, exit)
         }
 
     /**

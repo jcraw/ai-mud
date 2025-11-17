@@ -1,6 +1,7 @@
 package com.jcraw.mud.core.world
 
 import com.jcraw.mud.core.PlayerState
+import com.jcraw.mud.core.SkillComponent
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -27,13 +28,15 @@ data class TrapData(
     /**
      * Attempt to avoid or disarm trap with skill check
      * D20 + Perception vs difficulty DC
+     * @param playerSkills Player's V2 skill component for Perception check
      */
-    fun roll(player: PlayerState): TrapResult {
+    fun roll(playerSkills: SkillComponent): TrapResult {
         if (triggered) {
             return TrapResult.Failure("Trap already triggered")
         }
 
-        val perceptionLevel = player.getSkillLevel("Perception")
+        // Use V2 skill system
+        val perceptionLevel = playerSkills.getEffectiveLevel("Perception")
 
         // D20 + skill level vs DC
         val roll = Random.nextInt(1, 21)

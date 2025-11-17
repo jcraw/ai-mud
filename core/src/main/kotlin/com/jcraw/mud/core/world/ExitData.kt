@@ -1,6 +1,7 @@
 package com.jcraw.mud.core.world
 
 import com.jcraw.mud.core.PlayerState
+import com.jcraw.mud.core.SkillComponent
 import kotlinx.serialization.Serializable
 
 /**
@@ -11,8 +12,10 @@ import kotlinx.serialization.Serializable
 sealed class Condition {
     /**
      * Check if player meets this condition
+     * @param player PlayerState for inventory/item checks
+     * @param playerSkills V2 skill component for skill checks
      */
-    abstract fun meetsCondition(player: PlayerState): Boolean
+    abstract fun meetsCondition(player: PlayerState, playerSkills: SkillComponent): Boolean
 
     /**
      * Describe the condition in natural language
@@ -27,8 +30,9 @@ sealed class Condition {
         val skill: String,
         val difficulty: Int
     ) : Condition() {
-        override fun meetsCondition(player: PlayerState): Boolean {
-            val skillLevel = player.getSkillLevel(skill)
+        override fun meetsCondition(player: PlayerState, playerSkills: SkillComponent): Boolean {
+            // Use V2 skill system
+            val skillLevel = playerSkills.getEffectiveLevel(skill)
             return skillLevel >= difficulty
         }
 
@@ -40,7 +44,7 @@ sealed class Condition {
      */
     @Serializable
     data class ItemRequired(val itemTag: String) : Condition() {
-        override fun meetsCondition(player: PlayerState): Boolean {
+        override fun meetsCondition(player: PlayerState, playerSkills: SkillComponent): Boolean {
             // Check if player has any item (basic implementation)
             // TODO: Check actual item tags when ItemRepository integration is complete
             return player.inventory.isNotEmpty() ||
@@ -66,17 +70,21 @@ data class ExitData(
 ) {
     /**
      * Check if player meets all conditions to use this exit
+     * @param player PlayerState for inventory/item checks
+     * @param playerSkills V2 skill component for skill checks
      */
-    fun meetsConditions(player: PlayerState): Boolean =
-        conditions.all { it.meetsCondition(player) }
+    fun meetsConditions(player: PlayerState, playerSkills: SkillComponent): Boolean =
+        conditions.all { it.meetsCondition(player, playerSkills) }
 
     /**
      * Describe exit with condition hints
+     * @param player PlayerState for inventory/item checks
+     * @param playerSkills V2 skill component for skill checks
      */
-    fun describeWithConditions(player: PlayerState): String {
-        val meetsAll = meetsConditions(player)
+    fun describeWithConditions(player: PlayerState, playerSkills: SkillComponent): String {
+        val meetsAll = meetsConditions(player, playerSkills)
         val conditionText = if (conditions.isNotEmpty() && !meetsAll) {
-            val failed = conditions.filter { !it.meetsCondition(player) }
+            val failed = conditions.filter { !it.meetsCondition(player, playerSkills) }
             " (${failed.joinToString(", ") { it.describe() }})"
         } else ""
         return description + conditionText

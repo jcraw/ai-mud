@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning.combat
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.reasoning.skill.SkillManager
 import kotlin.random.Random
 
 /**
@@ -26,6 +27,7 @@ class AttackResolver(
      * @param defenderId ID of defending entity
      * @param action Description of the attack action (for skill classification)
      * @param worldState Current world state
+     * @param skillManager SkillManager for accessing V2 skill components
      * @param attackerEquipped Attacker's equipped items (for weapon damage/bonuses)
      * @param defenderEquipped Defender's equipped items (for armor defense)
      * @param templates Map of item templates for property lookup
@@ -36,6 +38,7 @@ class AttackResolver(
         defenderId: String,
         action: String,
         worldState: WorldState,
+        skillManager: SkillManager,
         attackerEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
         defenderEquipped: Map<EquipSlot, ItemInstance> = emptyMap(),
         templates: Map<String, ItemTemplate> = emptyMap()
@@ -48,10 +51,10 @@ class AttackResolver(
             return AttackResult.failure("Invalid attacker or defender")
         }
 
-        // Get components
-        val attackerSkills = attacker.getComponent<SkillComponent>(ComponentType.SKILL)
-        val defenderSkills = defender.getComponent<SkillComponent>(ComponentType.SKILL)
-        val defenderCombat = defender.getComponent<CombatComponent>(ComponentType.COMBAT)
+        // Get components (using SkillManager for players, component storage for NPCs)
+        val attackerSkills = attacker.getComponent<SkillComponent>(ComponentType.SKILL, worldState, skillManager)
+        val defenderSkills = defender.getComponent<SkillComponent>(ComponentType.SKILL, worldState, skillManager)
+        val defenderCombat = defender.getComponent<CombatComponent>(ComponentType.COMBAT, worldState, skillManager)
 
         if (attackerSkills == null || defenderCombat == null) {
             return AttackResult.failure("Missing required components")
@@ -285,15 +288,31 @@ private fun WorldState.findEntity(entityId: String): Entity? {
 
 /**
  * Helper to get component from entity
- * This is a temporary helper until Entity has proper component support
+ * For players: Converts PlayerState data to components via SkillManager
+ * For NPCs: Uses entity's component storage
  */
-private inline fun <reified T : Component> Entity.getComponent(type: ComponentType): T? {
+private inline fun <reified T : Component> Entity.getComponent(
+    type: ComponentType,
+    worldState: WorldState,
+    skillManager: SkillManager
+): T? {
     return when (this) {
         is Entity.Player -> {
-            // Components come from PlayerState in WorldState
-            // This is a limitation of current architecture
-            // For now, return null and handle in caller
-            null
+            // Bridge V1 PlayerState to V2 components
+            when (type) {
+                ComponentType.SKILL -> {
+                    // Fetch from SkillManager (V2)
+                    skillManager.getSkillComponent(this.id) as? T
+                }
+                ComponentType.COMBAT -> {
+                    // Create CombatComponent from PlayerState health
+                    CombatComponent(
+                        currentHp = worldState.player.health,
+                        maxHp = worldState.player.maxHealth
+                    ) as? T
+                }
+                else -> null
+            }
         }
         is Entity.NPC -> {
             components[type] as? T
