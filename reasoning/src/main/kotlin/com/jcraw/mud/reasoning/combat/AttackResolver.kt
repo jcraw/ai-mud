@@ -56,6 +56,19 @@ class AttackResolver(
         val defenderSkills = defender.getComponent<SkillComponent>(ComponentType.SKILL, worldState, skillManager)
         val defenderCombat = defender.getComponent<CombatComponent>(ComponentType.COMBAT, worldState, skillManager)
 
+        // Debug logging
+        println("[COMBAT DEBUG] Attacker: ${attacker.name} (${attacker.javaClass.simpleName})")
+        println("[COMBAT DEBUG]   - SkillComponent: ${if (attackerSkills != null) "FOUND" else "MISSING"}")
+        if (attacker is Entity.NPC) {
+            println("[COMBAT DEBUG]   - NPC components: ${attacker.components.keys}")
+        }
+        println("[COMBAT DEBUG] Defender: ${defender.name} (${defender.javaClass.simpleName})")
+        println("[COMBAT DEBUG]   - CombatComponent: ${if (defenderCombat != null) "FOUND" else "MISSING"}")
+        println("[COMBAT DEBUG]   - SkillComponent: ${if (defenderSkills != null) "FOUND" else "MISSING"}")
+        if (defender is Entity.NPC) {
+            println("[COMBAT DEBUG]   - NPC components: ${defender.components.keys}")
+        }
+
         if (attackerSkills == null || defenderCombat == null) {
             return AttackResult.failure("Missing required components")
         }

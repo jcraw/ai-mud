@@ -74,6 +74,10 @@ object CombatHandlers {
         }.toMap()
 
         // Resolve attack using AttackResolver (Phase 3)
+        println("[ATTACK HANDLER DEBUG] Initiating attack: ${game.worldState.player.name} -> ${npc.name}")
+        println("[ATTACK HANDLER DEBUG] AttackResolver available: ${game.attackResolver != null}")
+        println("[ATTACK HANDLER DEBUG] SkillManager available: ${game.skillManager != null}")
+
         val attackResult = if (game.attackResolver != null && game.skillManager != null) {
             try {
                 runBlocking {
@@ -91,6 +95,7 @@ object CombatHandlers {
             } catch (e: Exception) {
                 // Fallback to simple attack if resolver fails
                 println("Debug: AttackResolver failed: ${e.message}, using fallback")
+                e.printStackTrace()
                 null
             }
         } else {

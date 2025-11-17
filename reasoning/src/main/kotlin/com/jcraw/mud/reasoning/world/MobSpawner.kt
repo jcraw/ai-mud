@@ -1,8 +1,7 @@
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.config.GameConfig
-import com.jcraw.mud.core.Entity
-import com.jcraw.mud.core.Stats
+import com.jcraw.mud.core.*
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -36,6 +35,52 @@ open class MobSpawner(
     private val lootTableGenerator: LootTableGenerator? = null
 ) {
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
+    /**
+     * Create V2 combat components for NPC
+     * Adds CombatComponent and SkillComponent required for V2 combat system
+     */
+    private fun createCombatComponents(
+        health: Int,
+        maxHealth: Int,
+        difficulty: Int
+    ): Map<ComponentType, Component> {
+        // Create CombatComponent
+        val combatComponent = CombatComponent(
+            currentHp = health,
+            maxHp = maxHealth
+        )
+
+        // Create SkillComponent with basic combat skills scaled to difficulty
+        // Difficulty 1-20 maps to skill levels 1-20
+        val skillLevel = difficulty.coerceIn(1, 20)
+        val skills = mapOf(
+            "Melee Combat" to SkillState(
+                level = skillLevel,
+                xp = 0L,
+                unlocked = true,
+                tags = listOf("combat", "weapon", "melee")
+            ),
+            "Dodge" to SkillState(
+                level = (skillLevel * 0.8).toInt().coerceAtLeast(1),
+                xp = 0L,
+                unlocked = true,
+                tags = listOf("combat", "defense")
+            ),
+            "Parry" to SkillState(
+                level = (skillLevel * 0.6).toInt().coerceAtLeast(1),
+                xp = 0L,
+                unlocked = true,
+                tags = listOf("combat", "defense")
+            )
+        )
+        val skillComponent = SkillComponent(skills = skills)
+
+        return mapOf(
+            ComponentType.COMBAT to combatComponent,
+            ComponentType.SKILL to skillComponent
+        )
+    }
 
     /**
      * Spawn entities for a space.
@@ -138,13 +183,19 @@ open class MobSpawner(
                     "${theme.lowercase().replace(" ", "_")}_$difficulty"
                 }
 
-                Entity.NPC(
+                val health = mobData.health.coerceAtLeast(1)
+                val maxHealth = mobData.health.coerceAtLeast(1)
+
+                // Create V2 combat components
+                val components = createCombatComponents(health, maxHealth, difficulty)
+
+                val npc = Entity.NPC(
                     id = "npc_${UUID.randomUUID()}",
                     name = mobData.name,
                     description = mobData.description,
                     isHostile = mobData.isHostile,
-                    health = mobData.health.coerceAtLeast(1),
-                    maxHealth = mobData.health.coerceAtLeast(1),
+                    health = health,
+                    maxHealth = maxHealth,
                     stats = Stats(
                         strength = mobData.strength.coerceIn(3, 20),
                         dexterity = mobData.dexterity.coerceIn(3, 20),
@@ -154,8 +205,11 @@ open class MobSpawner(
                         charisma = mobData.charisma.coerceIn(3, 20)
                     ),
                     lootTableId = lootTableId,
-                    goldDrop = mobData.goldDrop.coerceAtLeast(0)
+                    goldDrop = mobData.goldDrop.coerceAtLeast(0),
+                    components = components
                 )
+                println("[MOB SPAWN DEBUG] Created NPC: ${npc.name} (health=${npc.health}/${npc.maxHealth}, components=${npc.components.keys})")
+                npc
             }
         } catch (e: Exception) {
             // Fallback on LLM failure or parse error
@@ -184,7 +238,10 @@ open class MobSpawner(
             val healthBase = (difficulty * 10 + kotlin.random.Random.nextInt(-10, 20)).coerceAtLeast(1)
             val maxHealthBase = (difficulty * 10 + kotlin.random.Random.nextInt(-10, 20)).coerceAtLeast(1)
 
-            Entity.NPC(
+            // Create V2 combat components
+            val components = createCombatComponents(healthBase, maxHealthBase, difficulty)
+
+            val npc = Entity.NPC(
                 id = "npc_${UUID.randomUUID()}",
                 name = "$archetype #$index",
                 description = "A $archetype from the $theme.",
@@ -200,8 +257,11 @@ open class MobSpawner(
                     charisma = statBase + kotlin.random.Random.nextInt(-2, 3)
                 ),
                 lootTableId = lootTableId,
-                goldDrop = difficulty * 5 + kotlin.random.Random.nextInt(-5, 10)
+                goldDrop = difficulty * 5 + kotlin.random.Random.nextInt(-5, 10),
+                components = components
             )
+            println("[MOB SPAWN DEBUG] Created NPC (fallback): ${npc.name} (health=${npc.health}/${npc.maxHealth}, components=${npc.components.keys})")
+            npc
         }
     }
 
