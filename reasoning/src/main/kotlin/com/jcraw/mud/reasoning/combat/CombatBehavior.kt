@@ -125,6 +125,7 @@ object CombatBehavior {
 
         // Add to queue with current game time + action cost
         val timerEnd = worldState.gameTime + actionCost
+        println("[TURN QUEUE DEBUG] Adding ${npc.name} to queue: gameTime=${worldState.gameTime}, actionCost=$actionCost, timerEnd=$timerEnd")
         turnQueue.enqueue(npc.id, timerEnd)
     }
 

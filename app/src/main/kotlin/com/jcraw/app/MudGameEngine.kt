@@ -435,16 +435,22 @@ class MudGame(
      * This should be called before processing player input.
      */
     private fun processNPCTurns() {
+        println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")
         val queue = turnQueue ?: return
         val aiHandler = monsterAIHandler ?: return
 
         // Process all NPCs whose turn has come
         while (true) {
             val currentTime = worldState.gameTime
-            val nextEntry = queue.peek() ?: break
+            val nextEntry = queue.peek()
+
+            println("[PROCESS NPC DEBUG] currentTime=$currentTime, queueSize=${queue.size()}, nextEntry=$nextEntry")
+
+            if (nextEntry == null) break
 
             // Check if it's time for this entity to act
             if (nextEntry.second > currentTime) {
+                println("[PROCESS NPC DEBUG] NPC not ready yet: timerEnd=${nextEntry.second} > currentTime=$currentTime")
                 break // No more entities ready to act
             }
 

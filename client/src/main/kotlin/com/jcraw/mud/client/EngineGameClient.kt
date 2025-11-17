@@ -324,6 +324,9 @@ class EngineGameClient(
 
         if (!running) return
 
+        // Process NPC turns before player input (Combat V2)
+        processNPCTurns()
+
         // Parse intent - V3 uses space-based context
         val space = worldState.getCurrentSpace()
         val spaceContext = space?.description
@@ -334,6 +337,12 @@ class EngineGameClient(
 
         // Process intent
         processIntent(intent)
+
+        // Advance game time after player action (Combat V2)
+        val speedLevel = skillManager.getSkillComponent(worldState.player.id)?.getEffectiveLevel("Speed") ?: 0
+        val baseCost = getBaseCostForIntent(intent)
+        val actionCost = com.jcraw.mud.reasoning.combat.ActionCosts.calculateCost(baseCost, speedLevel)
+        worldState = worldState.advanceTime(actionCost)
     }
 
     override fun observeEvents(): Flow<GameEvent> = _events.asSharedFlow()
@@ -902,6 +911,193 @@ class EngineGameClient(
                     describeCurrentRoom()
                 }
             }
+        }
+    }
+
+    /**
+     * Process NPC turns (Combat V2)
+     * Handles NPC actions whose turn has come based on action timer
+     */
+    private fun processNPCTurns() {
+        println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")
+        val queue = turnQueue ?: return
+        val aiHandler = monsterAIHandler ?: return
+
+        // Process all NPCs whose turn has come
+        while (true) {
+            val currentTime = worldState.gameTime
+            val nextEntry = queue.peek()
+
+            println("[PROCESS NPC DEBUG] currentTime=$currentTime, queueSize=${queue.size()}, nextEntry=$nextEntry")
+
+            if (nextEntry == null) break
+
+            // Check if it's time for this entity to act
+            if (nextEntry.second > currentTime) {
+                println("[PROCESS NPC DEBUG] NPC not ready yet: timerEnd=${nextEntry.second} > currentTime=$currentTime")
+                break // No more entities ready to act
+            }
+
+            // Dequeue the entity
+            val entityId = queue.dequeue(currentTime) ?: break
+
+            val spaceId = worldState.findSpaceContainingEntity(entityId)
+            val npc = worldState.getEntity(entityId) as? com.jcraw.mud.core.Entity.NPC
+
+            if (npc == null || spaceId == null) {
+                // NPC not found (died or fled), skip
+                continue
+            }
+
+            val playerSpaceId = worldState.player.currentRoomId
+            if (spaceId != playerSpaceId) {
+                // NPC not in player's room, re-enqueue for later
+                val skillComponent = npc.components[com.jcraw.mud.core.ComponentType.SKILL] as? com.jcraw.mud.core.SkillComponent
+                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
+                val cost = com.jcraw.mud.reasoning.combat.SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
+                queue.enqueue(entityId, currentTime + cost)
+                continue
+            }
+
+            // Get AI decision
+            val decision = runBlocking {
+                aiHandler.decideAction(entityId, worldState)
+            }
+
+            // Execute the decision
+            executeNPCDecision(npc, decision)
+
+            // Re-enqueue the NPC for next turn (if not dead)
+            val combatComponent = npc.components[com.jcraw.mud.core.ComponentType.COMBAT] as? com.jcraw.mud.core.CombatComponent
+            if (combatComponent == null || !combatComponent.isDead()) {
+                val skillComponent = npc.components[com.jcraw.mud.core.ComponentType.SKILL] as? com.jcraw.mud.core.SkillComponent
+                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
+                val cost = com.jcraw.mud.reasoning.combat.SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
+                queue.enqueue(entityId, currentTime + cost)
+            }
+        }
+    }
+
+    /**
+     * Execute an NPC's AI decision
+     */
+    private fun executeNPCDecision(npc: com.jcraw.mud.core.Entity.NPC, decision: com.jcraw.mud.reasoning.combat.AIDecision) {
+        when (decision) {
+            is com.jcraw.mud.reasoning.combat.AIDecision.Attack -> {
+                emitEvent(GameEvent.Combat("\n${npc.name} attacks you!"))
+                executeNPCAttack(npc)
+            }
+            is com.jcraw.mud.reasoning.combat.AIDecision.Defend -> {
+                emitEvent(GameEvent.Combat("\n${npc.name} takes a defensive stance."))
+            }
+            is com.jcraw.mud.reasoning.combat.AIDecision.UseItem -> {
+                emitEvent(GameEvent.Combat("\n${npc.name} attempts to use an item."))
+            }
+            is com.jcraw.mud.reasoning.combat.AIDecision.Flee -> {
+                emitEvent(GameEvent.Combat("\n${npc.name} attempts to flee!"))
+            }
+            is com.jcraw.mud.reasoning.combat.AIDecision.Wait -> {
+                emitEvent(GameEvent.Combat("\n${npc.name} waits, watching carefully."))
+            }
+            is com.jcraw.mud.reasoning.combat.AIDecision.Error -> {
+                // Silent error, NPC does nothing
+            }
+        }
+    }
+
+    /**
+     * Execute NPC attack on player
+     */
+    private fun executeNPCAttack(npc: com.jcraw.mud.core.Entity.NPC) {
+        val resolver = attackResolver
+        if (resolver != null) {
+            val result = runBlocking {
+                resolver.resolveAttack(
+                    attackerId = npc.id,
+                    defenderId = worldState.player.id,
+                    action = "${npc.name} attacks",
+                    worldState = worldState,
+                    skillManager = skillManager
+                )
+            }
+
+            when (result) {
+                is com.jcraw.mud.reasoning.combat.AttackResult.Hit -> {
+                    // Apply damage to player
+                    val newPlayer = worldState.player.takeDamage(result.damage)
+                    worldState = worldState.updatePlayer(newPlayer)
+
+                    // Generate narrative
+                    val npcWeapon = "weapon"
+                    val narrative = if (combatNarrator != null) {
+                        runBlocking {
+                            combatNarrator.narrateAction(
+                                weapon = npcWeapon,
+                                damage = result.damage,
+                                maxHp = worldState.player.maxHealth,
+                                isHit = true,
+                                isCritical = false,
+                                isDeath = newPlayer.isDead(),
+                                isSpell = false,
+                                targetName = worldState.player.name
+                            )
+                        }
+                    } else {
+                        "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
+                    }
+                    emitEvent(GameEvent.Combat(narrative))
+
+                    // Check if player died
+                    if (newPlayer.isDead()) {
+                        handlePlayerDeath()
+                    }
+                }
+                is com.jcraw.mud.reasoning.combat.AttackResult.Miss -> {
+                    val narrative = if (result.wasDodged) {
+                        "You dodge ${npc.name}'s attack!"
+                    } else {
+                        "${npc.name} misses you!"
+                    }
+                    emitEvent(GameEvent.Combat(narrative))
+                }
+                is com.jcraw.mud.reasoning.combat.AttackResult.Failure -> {
+                    // Silent failure, fall back to simple damage
+                    val damage = (1..6).random()
+                    val newPlayer = worldState.player.takeDamage(damage)
+                    worldState = worldState.updatePlayer(newPlayer)
+                    emitEvent(GameEvent.Combat("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"))
+
+                    if (newPlayer.isDead()) {
+                        handlePlayerDeath()
+                    }
+                }
+            }
+        } else {
+            // Fallback to simple damage
+            val damage = (1..6).random()
+            val newPlayer = worldState.player.takeDamage(damage)
+            worldState = worldState.updatePlayer(newPlayer)
+            emitEvent(GameEvent.Combat("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"))
+
+            if (newPlayer.isDead()) {
+                handlePlayerDeath()
+            }
+        }
+    }
+
+    /**
+     * Determine the base action cost for an intent type (Combat V2)
+     */
+    private fun getBaseCostForIntent(intent: Intent): Int {
+        return when (intent) {
+            is Intent.Attack -> com.jcraw.mud.reasoning.combat.ActionCosts.MELEE_ATTACK
+            is Intent.Move, is Intent.Travel -> com.jcraw.mud.reasoning.combat.ActionCosts.MOVE
+            is Intent.Use, is Intent.UseItem -> com.jcraw.mud.reasoning.combat.ActionCosts.ITEM_USE
+            is Intent.Talk, is Intent.Say, is Intent.Persuade, is Intent.Intimidate -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
+            is Intent.Check -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
+            is Intent.Pickpocket -> com.jcraw.mud.reasoning.combat.ActionCosts.HIDE
+            // Most other actions are relatively quick
+            else -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
         }
     }
 
