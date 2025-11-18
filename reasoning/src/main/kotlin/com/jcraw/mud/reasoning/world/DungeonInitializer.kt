@@ -95,15 +95,13 @@ class DungeonInitializer(
                 ),
                 parentChunkId = worldId,
                 level = ChunkLevel.REGION,
-                direction = "down"
+                direction = "down",
+                biomeTheme = regionSpec.theme // Pass theme through context
             )
             val (regionChunk, regionId) = worldGenerator.generateChunk(regionContext).getOrElse { return Result.failure(it) }
 
-            // Override difficulty and theme for region spec
-            val adjustedRegion = regionChunk.copy(
-                difficultyLevel = regionSpec.difficulty,
-                biomeTheme = regionSpec.theme ?: regionChunk.biomeTheme
-            )
+            // Override difficulty (theme already set via context)
+            val adjustedRegion = regionChunk.copy(difficultyLevel = regionSpec.difficulty)
             chunkRepo.save(adjustedRegion, regionId).getOrElse { return Result.failure(it) }
             regionIds.add(regionId)
         }
@@ -237,16 +235,14 @@ class DungeonInitializer(
                 ),
                 parentChunkId = worldId,
                 level = ChunkLevel.REGION,
-                direction = "down"
+                direction = "down",
+                biomeTheme = regionSpec.theme // Pass theme through context
             )
             val (regionChunk, regionId) = worldGenerator.generateChunk(regionContext)
                 .getOrElse { return Result.failure(it) }
 
-            // Override difficulty and theme for region spec
-            val adjustedRegion = regionChunk.copy(
-                difficultyLevel = regionSpec.difficulty,
-                biomeTheme = regionSpec.theme ?: regionChunk.biomeTheme
-            )
+            // Override difficulty (theme already set via context)
+            val adjustedRegion = regionChunk.copy(difficultyLevel = regionSpec.difficulty)
             chunkRepo.save(adjustedRegion, regionId).getOrElse { return Result.failure(it) }
             regionMap[regionSpec.name] = regionId
 

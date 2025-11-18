@@ -14,6 +14,7 @@ import com.jcraw.mud.core.WorldChunkComponent
  * @property parentChunkId Parent chunk entity ID for hierarchical ID generation (null for WORLD level)
  * @property level Chunk level being generated (WORLD, REGION, ZONE, SUBZONE, SPACE)
  * @property direction Optional spatial hint relative to parent ("north", "down", etc.)
+ * @property biomeTheme Optional biome theme override (overrides parent inheritance)
  */
 data class GenerationContext(
     val seed: String,
@@ -21,5 +22,6 @@ data class GenerationContext(
     val parentChunk: WorldChunkComponent?,
     val parentChunkId: String?,
     val level: ChunkLevel,
-    val direction: String? = null
+    val direction: String? = null,
+    val biomeTheme: String? = null
 )

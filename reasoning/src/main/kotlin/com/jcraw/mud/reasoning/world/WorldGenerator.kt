@@ -448,6 +448,7 @@ class WorldGenerator(
 
         val newTheme = when {
             breakout -> "surface_wilderness"
+            !context.biomeTheme.isNullOrBlank() -> context.biomeTheme!! // Explicit override from context (safe: null check above)
             parentTheme.isNotBlank() -> parentTheme
             requestedTheme.isNotBlank() -> requestedTheme
             else -> ROOT_BIOME
