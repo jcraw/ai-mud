@@ -253,11 +253,11 @@ class DungeonInitializer(
                 .getOrElse { return Result.failure(it) }
         }
 
-        // Generate town in Upper Depths (Zone 1, Subzone 1)
+        // Generate town in Training Grounds (starter area with easy mobs)
         val townSpaceId = generateTownInUpperDepths(
             seed,
             globalLore,
-            regionMap["Upper Depths"] ?: return Result.failure(Exception("Upper Depths region not found"))
+            regionMap["Training Grounds"] ?: return Result.failure(Exception("Training Grounds region not found"))
         ).getOrElse { return Result.failure(it) }
 
         // Generate boss lair in Abyssal Core

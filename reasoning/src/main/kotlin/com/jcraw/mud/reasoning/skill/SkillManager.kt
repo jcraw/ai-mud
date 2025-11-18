@@ -1,5 +1,6 @@
 package com.jcraw.mud.reasoning.skill
 
+import com.jcraw.mud.config.GameConfig
 import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.core.SkillEvent
 import com.jcraw.mud.core.SkillState
@@ -47,8 +48,9 @@ class SkillManager(
                 return Result.failure(IllegalStateException("Skill '$skillName' is not unlocked for entity $entityId"))
             }
 
-            // Calculate XP (full if success, 20% if failure)
-            val xpToGrant = if (success) baseXp else (baseXp * 0.2).toLong()
+            // Calculate XP (full if success, 20% if failure) with config multiplier
+            val baseAmount = if (success) baseXp else (baseXp * 0.2).toLong()
+            val xpToGrant = (baseAmount.toFloat() * GameConfig.skillXpMultiplier).toLong()
 
             // Record old level
             val oldLevel = currentSkill.level

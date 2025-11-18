@@ -47,4 +47,23 @@ object GameConfig {
      * Default: false
      */
     var logLLMCalls: Boolean = false
+
+    /**
+     * Multiplier for skill experience (XP) gain rate.
+     *
+     * ## Keywords
+     * skill progression, xp multiplier, experience rate, skill testing, fast leveling
+     *
+     * ## What This Affects
+     * All skill XP gains from any source (successful and failed attempts)
+     *
+     * ## Examples
+     * - `1.0f` - Normal progression (default)
+     * - `10.0f` - 10x faster for testing
+     * - `100.0f` - 100x faster for rapid testing
+     * - `0.5f` - Half speed for challenge runs
+     *
+     * Default: 1.0f (normal progression)
+     */
+    var skillXpMultiplier: Float = 1.0f
 }
