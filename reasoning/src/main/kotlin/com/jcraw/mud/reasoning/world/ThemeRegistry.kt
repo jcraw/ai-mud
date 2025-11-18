@@ -64,6 +64,12 @@ object ThemeRegistry {
             resources = listOf("cave fish", "luminous algae", "water crystal", "wet stone"),
             mobArchetypes = listOf("aquatic horror", "cave fisher", "water elemental", "giant eel"),
             ambiance = "damp, echoing, bioluminescent"
+        ),
+        "training grounds" to ThemeProfile(
+            traps = listOf("practice dummy", "training obstacle", "wooden barrier", "rope swing"),
+            resources = listOf("training equipment", "practice weapon", "rope", "wooden shield"),
+            mobArchetypes = listOf("giant rat", "practice dummy", "weak goblin", "training skeleton"),
+            ambiance = "well-lit, organized, safe for beginners"
         )
     )
 
@@ -91,6 +97,8 @@ object ThemeRegistry {
 
         // Keyword matching for common variations
         return when {
+            "training" in normalized || "practice" in normalized || "beginner" in normalized || "starter" in normalized ->
+                profiles["training grounds"]
             "forest" in normalized || "wood" in normalized || "tree" in normalized ->
                 profiles["dark forest"]
             "lava" in normalized || "magma" in normalized || "volcano" in normalized || "fire" in normalized ->

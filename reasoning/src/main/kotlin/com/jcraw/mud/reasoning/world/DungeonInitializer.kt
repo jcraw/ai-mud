@@ -79,7 +79,7 @@ class DungeonInitializer(
 
         // Generate 4 REGION levels (Training Grounds, Upper/Mid/Lower Depths)
         val regions = listOf(
-            RegionSpec("Training Grounds", "entrance level", 2), // Starter area for skill training
+            RegionSpec("Training Grounds", "entrance level", 2, "training grounds"), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 11-50", 12),
             RegionSpec("Lower Depths", "floors 51-100+", 18)
@@ -99,8 +99,11 @@ class DungeonInitializer(
             )
             val (regionChunk, regionId) = worldGenerator.generateChunk(regionContext).getOrElse { return Result.failure(it) }
 
-            // Override difficulty for region spec
-            val adjustedRegion = regionChunk.copy(difficultyLevel = regionSpec.difficulty)
+            // Override difficulty and theme for region spec
+            val adjustedRegion = regionChunk.copy(
+                difficultyLevel = regionSpec.difficulty,
+                biomeTheme = regionSpec.theme ?: regionChunk.biomeTheme
+            )
             chunkRepo.save(adjustedRegion, regionId).getOrElse { return Result.failure(it) }
             regionIds.add(regionId)
         }
@@ -179,7 +182,8 @@ class DungeonInitializer(
     private data class RegionSpec(
         val name: String,
         val description: String,
-        val difficulty: Int
+        val difficulty: Int,
+        val theme: String? = null // Optional biome theme override
     )
 
     /**
@@ -215,7 +219,7 @@ class DungeonInitializer(
 
         // Generate 5 REGION levels (Training Grounds, Upper/Mid/Lower Depths, Abyssal Core)
         val regions = listOf(
-            RegionSpec("Training Grounds", "entrance level", 2), // Starter area for skill training
+            RegionSpec("Training Grounds", "entrance level", 2, "training grounds"), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 10-30", 15),
             RegionSpec("Lower Depths", "floors 30-60", 40),
@@ -238,8 +242,11 @@ class DungeonInitializer(
             val (regionChunk, regionId) = worldGenerator.generateChunk(regionContext)
                 .getOrElse { return Result.failure(it) }
 
-            // Override difficulty for region spec
-            val adjustedRegion = regionChunk.copy(difficultyLevel = regionSpec.difficulty)
+            // Override difficulty and theme for region spec
+            val adjustedRegion = regionChunk.copy(
+                difficultyLevel = regionSpec.difficulty,
+                biomeTheme = regionSpec.theme ?: regionChunk.biomeTheme
+            )
             chunkRepo.save(adjustedRegion, regionId).getOrElse { return Result.failure(it) }
             regionMap[regionSpec.name] = regionId
 
