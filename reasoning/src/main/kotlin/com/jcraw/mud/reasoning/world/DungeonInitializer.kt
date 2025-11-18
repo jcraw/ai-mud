@@ -77,8 +77,9 @@ class DungeonInitializer(
         val (worldChunk, worldId) = worldGenerator.generateChunk(worldContext).getOrElse { return Result.failure(it) }
         chunkRepo.save(worldChunk, worldId).getOrElse { return Result.failure(it) }
 
-        // Generate 3 REGION levels (Upper, Mid, Lower Depths)
+        // Generate 4 REGION levels (Training Grounds, Upper/Mid/Lower Depths)
         val regions = listOf(
+            RegionSpec("Training Grounds", "entrance level", 2), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 11-50", 12),
             RegionSpec("Lower Depths", "floors 51-100+", 18)
@@ -212,8 +213,9 @@ class DungeonInitializer(
             .getOrElse { return Result.failure(it) }
         chunkRepo.save(worldChunk, worldId).getOrElse { return Result.failure(it) }
 
-        // Generate 4 REGION levels (Upper, Mid, Lower Depths, Abyssal Core)
+        // Generate 5 REGION levels (Training Grounds, Upper/Mid/Lower Depths, Abyssal Core)
         val regions = listOf(
+            RegionSpec("Training Grounds", "entrance level", 2), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 10-30", 15),
             RegionSpec("Lower Depths", "floors 30-60", 40),

@@ -38,7 +38,7 @@ class DamageCalculator(
             "dagger" to 6,
             "bow" to 8,
             "staff" to 7,
-            "fist" to 4, // Unarmed
+            "fist" to 8, // Unarmed (doubled for more lethal combat)
             "spell" to 15 // Generic spell
         )
 
