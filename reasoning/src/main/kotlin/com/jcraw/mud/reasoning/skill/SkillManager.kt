@@ -43,21 +43,22 @@ class SkillManager(
             val component = getSkillComponent(entityId)
             val currentSkill = component.getSkill(skillName) ?: SkillState()
 
-            // Check if skill is unlocked
-            if (!currentSkill.unlocked) {
-                return Result.failure(IllegalStateException("Skill '$skillName' is not unlocked for entity $entityId"))
-            }
-
             // Calculate XP (full if success, 20% if failure) with config multiplier
             val baseAmount = if (success) baseXp else (baseXp * 0.2).toLong()
             val xpToGrant = (baseAmount.toFloat() * GameConfig.skillXpMultiplier).toLong()
 
-            // Record old level
+            // Record old level and unlock status
             val oldLevel = currentSkill.level
+            val wasUnlocked = currentSkill.unlocked
 
             // Add XP and check for level-up
-            val updatedSkill = currentSkill.addXp(xpToGrant)
+            var updatedSkill = currentSkill.addXp(xpToGrant)
             val newLevel = updatedSkill.level
+
+            // Auto-unlock skill if it reaches level 1 or higher through use-based progression
+            if (!wasUnlocked && updatedSkill.level >= 1) {
+                updatedSkill = updatedSkill.unlock()
+            }
 
             // Update component
             val newComponent = component.updateSkill(skillName, updatedSkill)
@@ -89,6 +90,27 @@ class SkillManager(
                         "Practiced $skillName: $outcome (+${xpToGrant} XP, level ${updatedSkill.level})",
                         metadata = mapOf("skill" to skillName, "event_type" to "xp_gained")
                     )
+                }
+            }
+
+            // Generate SkillUnlocked event if skill was auto-unlocked through use
+            if (!wasUnlocked && updatedSkill.unlocked) {
+                val unlockEvent = SkillEvent.SkillUnlocked(
+                    entityId = entityId,
+                    skillName = skillName,
+                    unlockMethod = "use-based progression"
+                )
+                events.add(unlockEvent)
+                skillRepo.logEvent(unlockEvent).getOrThrow()
+
+                // Log to memory for RAG
+                memoryManager?.let { mm ->
+                    runBlocking {
+                        mm.remember(
+                            "Unlocked $skillName through use-based progression!",
+                            metadata = mapOf("skill" to skillName, "event_type" to "skill_unlocked")
+                        )
+                    }
                 }
             }
 
@@ -141,9 +163,9 @@ class SkillManager(
             // Process unlock based on method
             val (unlocked, updatedSkill) = when (method) {
                 is UnlockMethod.Attempt -> {
-                    // d100 < 5% success chance
+                    // d100 <= 15% success chance
                     val roll = rng.nextInt(1, 101)
-                    if (roll <= 5) {
+                    if (roll <= 15) {
                         true to currentSkill.unlock()
                     } else {
                         false to currentSkill

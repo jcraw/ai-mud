@@ -65,5 +65,5 @@ object GameConfig {
      *
      * Default: 1.0f (normal progression)
      */
-    var skillXpMultiplier: Float = 1.0f
+    var skillXpMultiplier: Float = 10.0f
 }

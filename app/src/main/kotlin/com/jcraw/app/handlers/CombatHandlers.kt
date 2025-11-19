@@ -73,6 +73,16 @@ object CombatHandlers {
             game.itemRepository.findTemplateById(templateId).getOrNull()?.let { template -> template.id to template }
         }.toMap()
 
+        // Get weapon name for skill classification
+        val weaponInstance = attackerEquipped[com.jcraw.mud.core.EquipSlot.HANDS_MAIN]
+            ?: attackerEquipped[com.jcraw.mud.core.EquipSlot.HANDS_OFF]
+            ?: attackerEquipped[com.jcraw.mud.core.EquipSlot.HANDS_BOTH]
+        val weaponName = if (weaponInstance != null) {
+            templates[weaponInstance.templateId]?.name ?: "weapon"
+        } else {
+            "bare fists"
+        }
+
         // Resolve attack using AttackResolver (Phase 3)
         println("[ATTACK HANDLER DEBUG] Initiating attack: ${game.worldState.player.name} -> ${npc.name}")
         println("[ATTACK HANDLER DEBUG] AttackResolver available: ${game.attackResolver != null}")
@@ -84,7 +94,7 @@ object CombatHandlers {
                     game.attackResolver.resolveAttack(
                         attackerId = game.worldState.player.id,
                         defenderId = npc.id,
-                        action = "attack ${npc.name}",
+                        action = "attack ${npc.name} with $weaponName",
                         worldState = game.worldState,
                         skillManager = game.skillManager,
                         attackerEquipped = attackerEquipped,
@@ -304,24 +314,53 @@ object CombatHandlers {
                     if (unlockEvent != null) {
                         println("🎉 Through combat, you've discovered $skillName!")
                     } else {
-                        // Unlock failed - grant 1 XP so player can eventually progress
-                        game.skillManager.grantXp(
+                        // Unlock failed - grant 5 XP so player can eventually progress via use-based unlocking
+                        val xpResult = game.skillManager.grantXp(
                             entityId = playerId,
                             skillName = skillName,
-                            baseXp = 1L,
-                            success = success
+                            baseXp = 5L,
+                            success = true  // Always true - we're already adjusting baseXp
                         )
+                        // Display unlocks and level-ups from use-based progression
+                        xpResult.onSuccess { events ->
+                            displaySkillEvents(events, skillName)
+                        }
                     }
                 }
             } else {
-                // Skill already unlocked - grant XP
-                val xpAmount = if (success) 10L else 2L  // Less XP on miss
-                game.skillManager.grantXp(
+                // Skill already unlocked - grant XP (reduced on miss)
+                val xpAmount = if (success) 10L else 2L
+                val xpResult = game.skillManager.grantXp(
                     entityId = playerId,
                     skillName = skillName,
                     baseXp = xpAmount,
-                    success = success
+                    success = true  // Always true - we're already adjusting baseXp
                 )
+                // Display XP gains and level-ups
+                xpResult.onSuccess { events ->
+                    displaySkillEvents(events, skillName)
+                }
+            }
+        }
+    }
+
+    /**
+     * Display skill events (unlocks, level-ups) from combat
+     * XP gains are silent to avoid spam - check 'skills' command for progress
+     */
+    private fun displaySkillEvents(events: List<com.jcraw.mud.core.SkillEvent>, skillName: String) {
+        events.forEach { event ->
+            when (event) {
+                is com.jcraw.mud.core.SkillEvent.SkillUnlocked -> {
+                    println("🎉 Unlocked $skillName through use-based progression!")
+                }
+                is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                    println("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}")
+                    if (event.isAtPerkMilestone) {
+                        println("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.")
+                    }
+                }
+                else -> {} // Silently accumulate XP
             }
         }
     }

@@ -63,6 +63,16 @@ object ClientCombatHandlers {
             game.itemRepository.findTemplateById(templateId).getOrNull()?.let { template -> template.id to template }
         }.toMap()
 
+        // Get weapon name for skill classification
+        val weaponInstance = attackerEquipped[EquipSlot.HANDS_MAIN]
+            ?: attackerEquipped[EquipSlot.HANDS_OFF]
+            ?: attackerEquipped[EquipSlot.HANDS_BOTH]
+        val weaponName = if (weaponInstance != null) {
+            templates[weaponInstance.templateId]?.name ?: "weapon"
+        } else {
+            "bare fists"
+        }
+
         // Resolve attack using AttackResolver (V2 Combat System)
         val attackResult = if (game.attackResolver != null && game.skillManager != null) {
             try {
@@ -70,7 +80,7 @@ object ClientCombatHandlers {
                     game.attackResolver.resolveAttack(
                         attackerId = game.worldState.player.id,
                         defenderId = npc.id,
-                        action = "attack ${npc.name}",
+                        action = "attack ${npc.name} with $weaponName",
                         worldState = game.worldState,
                         skillManager = game.skillManager,
                         attackerEquipped = attackerEquipped,
@@ -126,6 +136,9 @@ object ClientCombatHandlers {
                 }
                 game.emitEvent(GameEvent.Combat(narrative))
 
+                // Grant skill XP for skills used in the attack
+                attemptSkillUnlocks(game, attackResult.skillsUsed, success = true)
+
                 // Check if NPC died
                 if (attackResult.wasKilled) {
                     game.emitEvent(GameEvent.Combat("\nVictory! ${npc.name} has been defeated!"))
@@ -162,6 +175,9 @@ object ClientCombatHandlers {
                 }
                 game.emitEvent(GameEvent.Combat(narrative))
 
+                // Grant skill XP for skills used in the attack (reduced XP on miss)
+                attemptSkillUnlocks(game, attackResult.skillsUsed, success = false)
+
                 // Trigger counter-attack even on miss
                 if (game.turnQueue != null) {
                     game.worldState = CombatBehavior.triggerCounterAttack(
@@ -178,6 +194,91 @@ object ClientCombatHandlers {
             null -> {
                 // Fallback: AttackResolver not available (no LLM client)
                 game.emitEvent(GameEvent.System("Combat system not available (requires API key)", GameEvent.MessageLevel.WARNING))
+            }
+        }
+    }
+
+    /**
+     * Attempt to unlock skills used in combat
+     * Also grants XP to already-unlocked skills
+     */
+    private fun attemptSkillUnlocks(game: EngineGameClient, skillsUsed: List<String>, success: Boolean) {
+        if (game.skillManager == null) return
+
+        val playerId = game.worldState.player.id
+        val playerSkills = game.skillManager.getSkillComponent(playerId)
+
+        skillsUsed.forEach { skillName ->
+            val skill = playerSkills.getSkill(skillName)
+
+            if (skill == null || !skill.unlocked) {
+                // Skill not unlocked - attempt to unlock via Attempt method
+                val unlockResult = game.skillManager.unlockSkill(
+                    entityId = playerId,
+                    skillName = skillName,
+                    method = com.jcraw.mud.reasoning.skill.UnlockMethod.Attempt
+                )
+
+                unlockResult.onSuccess { unlockEvent ->
+                    if (unlockEvent != null) {
+                        game.emitEvent(GameEvent.System("🎉 Through combat, you've discovered $skillName!", GameEvent.MessageLevel.INFO))
+                    } else {
+                        // Unlock failed - grant 5 XP so player can eventually progress via use-based unlocking
+                        val xpResult = game.skillManager.grantXp(
+                            entityId = playerId,
+                            skillName = skillName,
+                            baseXp = 5L,
+                            success = true  // Always true - we're already adjusting baseXp
+                        )
+                        // Display unlocks and level-ups from use-based progression
+                        xpResult.onSuccess { events ->
+                            displaySkillEvents(game, events, skillName)
+                        }
+                    }
+                }
+            } else {
+                // Skill already unlocked - grant XP (reduced on miss)
+                val xpAmount = if (success) 10L else 2L
+                val xpResult = game.skillManager.grantXp(
+                    entityId = playerId,
+                    skillName = skillName,
+                    baseXp = xpAmount,
+                    success = true  // Always true - we're already adjusting baseXp
+                )
+                // Display XP gains and level-ups
+                xpResult.onSuccess { events ->
+                    displaySkillEvents(game, events, skillName)
+                }
+            }
+        }
+    }
+
+    /**
+     * Display skill events (unlocks, level-ups) from combat
+     * XP gains are silent to avoid spam - check 'skills' command for progress
+     */
+    private fun displaySkillEvents(game: EngineGameClient, events: List<SkillEvent>, skillName: String) {
+        events.forEach { event ->
+            when (event) {
+                is SkillEvent.SkillUnlocked -> {
+                    game.emitEvent(GameEvent.System(
+                        "🎉 Unlocked $skillName through use-based progression!",
+                        GameEvent.MessageLevel.INFO
+                    ))
+                }
+                is SkillEvent.LevelUp -> {
+                    game.emitEvent(GameEvent.System(
+                        "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                        GameEvent.MessageLevel.INFO
+                    ))
+                    if (event.isAtPerkMilestone) {
+                        game.emitEvent(GameEvent.System(
+                            "⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.",
+                            GameEvent.MessageLevel.INFO
+                        ))
+                    }
+                }
+                else -> {} // Silently accumulate XP
             }
         }
     }

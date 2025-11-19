@@ -7,7 +7,7 @@ package com.jcraw.mud.reasoning.skill
 sealed class UnlockMethod {
     /**
      * Attempt unlock through trial and error
-     * - Low success chance (d100 < 5%)
+     * - 15% success chance (d100 <= 15)
      * - No prerequisites
      * - No initial buffs
      */
