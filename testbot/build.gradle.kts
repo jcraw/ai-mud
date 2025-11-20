@@ -15,6 +15,7 @@ tasks.named<JavaExec>("run") {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":config"))
     implementation(project(":llm"))
     implementation(project(":perception"))
     implementation(project(":reasoning"))

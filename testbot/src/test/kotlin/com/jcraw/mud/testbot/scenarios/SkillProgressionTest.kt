@@ -59,6 +59,9 @@ class SkillProgressionTest {
         val worldState = SampleDungeon.createInitialWorldState()
         val llmClient = OpenAIClient(apiKey!!)
 
+        // Initialize SkillManager with in-memory database for testing
+        val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(":memory:")
+
         try {
             // Initialize LLM components
             val memoryManager = MemoryManager(llmClient)
@@ -66,10 +69,9 @@ class SkillProgressionTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            // TODO: Initialize SkillManager for full skill progression testing
-            // Currently disabled due to repository initialization complexity
-            // The test will validate bot reasoning and gameplay report generation
-            val skillManager: SkillManager? = null
+            val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
+            val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
+            val skillManager = SkillManager(skillRepo, skillComponentRepo, memoryManager)
 
             // Create game engine with all dependencies
             val gameEngine = InMemoryGameEngine(
@@ -92,11 +94,20 @@ class SkillProgressionTest {
                 scenario = scenario
             )
 
+            // Get initial Dodge skill level (should be 0 or not unlocked)
+            val initialSkillComponent = skillManager.getSkillComponent(worldState.player.id)
+            val initialDodgeLevel = initialSkillComponent.getSkill("Dodge")?.level ?: 0
+
             println("\n========================================")
             println("  Running: Skill Progression Test")
             println("========================================")
+            println("  Initial Dodge Level: $initialDodgeLevel")
 
             val report = testBot.run()
+
+            // Get final Dodge skill level
+            val finalSkillComponent = skillManager.getSkillComponent(worldState.player.id)
+            val finalDodgeLevel = finalSkillComponent.getSkill("Dodge")?.level ?: 0
 
             // ASSERT: Verify completion
             assertTrue(
@@ -104,8 +115,11 @@ class SkillProgressionTest {
                 "Test should complete (actual: ${report.finalStatus})"
             )
 
-            // NOTE: SkillManager disabled for now - test validates bot reasoning and report generation
-            // Future: Enable SkillManager initialization to test actual skill progression
+            // ASSERT: Verify Dodge skill actually progressed
+            assertTrue(
+                finalDodgeLevel > initialDodgeLevel,
+                "Dodge skill should have progressed (initial: $initialDodgeLevel, final: $finalDodgeLevel)"
+            )
 
             // ASSERT: Verify reasoning was logged
             val reasoningSteps = report.steps.count { it.reasoning != null }
@@ -118,11 +132,13 @@ class SkillProgressionTest {
             println("  - Total Steps: ${report.totalSteps}")
             println("  - Reasoning Steps: $reasoningSteps / ${report.totalSteps}")
             println("  - Combat Rounds: ${report.combatRounds}")
+            println("  - Dodge Skill: $initialDodgeLevel → $finalDodgeLevel (gained ${finalDodgeLevel - initialDodgeLevel} levels)")
             println("  - Duration: ${report.duration / 1000.0}s")
             println("  - Status: ${report.finalStatus}")
 
         } finally {
             llmClient.close()
+            skillDatabase.close()
         }
     }
 
