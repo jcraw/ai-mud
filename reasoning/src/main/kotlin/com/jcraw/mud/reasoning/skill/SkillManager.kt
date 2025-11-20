@@ -8,6 +8,8 @@ import com.jcraw.mud.core.repository.SkillComponentRepository
 import com.jcraw.mud.core.repository.SkillRepository
 import com.jcraw.mud.memory.MemoryManager
 import kotlinx.coroutines.runBlocking
+import kotlin.math.floor
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -142,6 +144,117 @@ class SkillManager(
     }
 
     /**
+     * Attempt skill progression using dual-path system
+     *
+     * 1. Roll for lucky progression (chance-based instant level-up)
+     * 2. If lucky roll fails, grant XP (accumulation-based)
+     *
+     * Works for any skill: combat (attack/defend), crafting, gathering, social, etc.
+     *
+     * @param entityId Entity attempting progression
+     * @param skillName Skill being used
+     * @param baseXp Base XP to grant if lucky roll fails
+     * @param success Whether the skill use was successful
+     * @return List of SkillEvents (SkillUnlocked, LevelUp, XpGained)
+     */
+    fun attemptSkillProgress(
+        entityId: String,
+        skillName: String,
+        baseXp: Long,
+        success: Boolean
+    ): Result<List<SkillEvent>> {
+        return runCatching {
+            val component = getSkillComponent(entityId)
+            val currentSkill = component.getSkill(skillName) ?: SkillState()
+
+            val events = mutableListOf<SkillEvent>()
+
+            // Check if lucky progression is enabled
+            if (!GameConfig.enableLuckyProgression) {
+                // Lucky progression disabled, use XP-only path
+                val xpEvents = grantXp(entityId, skillName, baseXp, success).getOrThrow()
+                events.addAll(xpEvents)
+                return Result.success(events)
+            }
+
+            // Path 1: Lucky progression (chance-based)
+            val targetLevel = if (!currentSkill.unlocked) 1 else currentSkill.level + 1
+            val luckyChance = calculateLuckyChance(targetLevel)
+            val roll = rng.nextInt(1, 101)
+
+            if (roll <= luckyChance) {
+                // Lucky progression!
+                val updatedSkill = if (!currentSkill.unlocked) {
+                    currentSkill.unlock().copy(level = 1)
+                } else {
+                    currentSkill.copy(level = currentSkill.level + 1)
+                }
+
+                // Update component and save
+                val newComponent = component.updateSkill(skillName, updatedSkill)
+                updateSkillComponent(entityId, newComponent).getOrThrow()
+                skillRepo.save(entityId, skillName, updatedSkill).getOrThrow()
+
+                // Generate events
+                if (!currentSkill.unlocked) {
+                    events.add(SkillEvent.SkillUnlocked(
+                        entityId = entityId,
+                        skillName = skillName,
+                        unlockMethod = "lucky progression"
+                    ))
+                    skillRepo.logEvent(events.last()).getOrThrow()
+
+                    // Log to memory for RAG
+                    memoryManager?.let { mm ->
+                        runBlocking {
+                            mm.remember(
+                                "Unlocked $skillName through lucky progression!",
+                                metadata = mapOf("skill" to skillName, "event_type" to "skill_unlocked")
+                            )
+                        }
+                    }
+                }
+
+                events.add(SkillEvent.LevelUp(
+                    entityId = entityId,
+                    skillName = skillName,
+                    oldLevel = currentSkill.level,
+                    newLevel = updatedSkill.level,
+                    isAtPerkMilestone = updatedSkill.isAtPerkMilestone()
+                ))
+                skillRepo.logEvent(events.last()).getOrThrow()
+
+                // Log to memory for RAG
+                memoryManager?.let { mm ->
+                    runBlocking {
+                        mm.remember(
+                            "$skillName leveled up from ${currentSkill.level} to ${updatedSkill.level} (lucky progression)!",
+                            metadata = mapOf("skill" to skillName, "event_type" to "level_up_lucky")
+                        )
+                    }
+                }
+
+                return Result.success(events)
+            }
+
+            // Path 2: Lucky roll failed, grant XP instead
+            val xpEvents = grantXp(entityId, skillName, baseXp, success).getOrThrow()
+            events.addAll(xpEvents)
+
+            events
+        }
+    }
+
+    /**
+     * Calculate lucky progression chance for target level
+     * Formula: floor(15 / sqrt(targetLevel + 1))
+     */
+    private fun calculateLuckyChance(targetLevel: Int): Int {
+        val baseChance = GameConfig.baseLuckyChance.toDouble()
+        return floor(baseChance / sqrt(targetLevel + 1.0)).toInt()
+    }
+
+    /**
      * Attempt to unlock a skill using the specified method
      * Returns SkillEvent.SkillUnlocked on success, null on failure
      */
@@ -166,7 +279,8 @@ class SkillManager(
                     // d100 <= 15% success chance
                     val roll = rng.nextInt(1, 101)
                     if (roll <= 15) {
-                        true to currentSkill.unlock()
+                        // Unlock at level 1 (consistent with use-based unlocking)
+                        true to currentSkill.unlock().copy(level = 1)
                     } else {
                         false to currentSkill
                     }

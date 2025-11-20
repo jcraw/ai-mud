@@ -137,7 +137,7 @@ object ClientCombatHandlers {
                 game.emitEvent(GameEvent.Combat(narrative))
 
                 // Grant skill XP for skills used in the attack
-                attemptSkillUnlocks(game, attackResult.skillsUsed, success = true)
+                attemptSkillUnlocks(game, attackResult.attackerSkillsUsed, success = true)
 
                 // Check if NPC died
                 if (attackResult.wasKilled) {
@@ -176,7 +176,7 @@ object ClientCombatHandlers {
                 game.emitEvent(GameEvent.Combat(narrative))
 
                 // Grant skill XP for skills used in the attack (reduced XP on miss)
-                attemptSkillUnlocks(game, attackResult.skillsUsed, success = false)
+                attemptSkillUnlocks(game, attackResult.attackerSkillsUsed, success = false)
 
                 // Trigger counter-attack even on miss
                 if (game.turnQueue != null) {

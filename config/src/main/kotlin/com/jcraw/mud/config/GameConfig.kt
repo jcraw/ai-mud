@@ -66,4 +66,51 @@ object GameConfig {
      * Default: 1.0f (normal progression)
      */
     var skillXpMultiplier: Float = 10.0f
+
+    /**
+     * Base chance percentage for lucky skill progression.
+     *
+     * ## Keywords
+     * lucky progression, chance-based leveling, skill progression, instant level-up
+     *
+     * ## Formula
+     * Actual chance = floor(baseLuckyChance / sqrt(targetLevel + 1))
+     *
+     * ## Examples (baseLuckyChance = 15)
+     * - Level 0→1: 15% chance
+     * - Level 1→2: 11% chance
+     * - Level 10→11: 5% chance
+     * - Level 99→100: 1.5% chance
+     *
+     * Default: 15
+     */
+    var baseLuckyChance: Int = 15
+
+    /**
+     * Enable/disable lucky progression (chance-based level-ups).
+     *
+     * ## Keywords
+     * lucky progression, disable lucky, xp-only progression
+     *
+     * ## What This Affects
+     * When enabled: Skills can level up via lucky chance OR XP accumulation
+     * When disabled: All progression uses XP-only path
+     *
+     * Default: true
+     */
+    var enableLuckyProgression: Boolean = true
+
+    /**
+     * Enable lucky progression for NPCs.
+     *
+     * ## Keywords
+     * npc progression, npc leveling, disable npc lucky
+     *
+     * ## Rationale
+     * NPCs have preset skill levels. Random level-ups during combat
+     * could make encounters unpredictable and difficult to balance.
+     *
+     * Default: false
+     */
+    var enableNPCLuckyProgression: Boolean = false
 }

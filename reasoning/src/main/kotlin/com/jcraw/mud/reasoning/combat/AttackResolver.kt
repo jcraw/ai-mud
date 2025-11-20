@@ -95,17 +95,40 @@ class AttackResolver(
         val attackRoll = rollD20() + attackModifier
 
         // 4. Calculate defense: d20 + (Dodge*0.6 + Parry*0.4)
+        val defenderSkillsUsed = mutableListOf<String>()
+        val dodgeLevel: Int
+        val parryLevel: Int
+
         val defenseModifier = if (defenderSkills != null) {
-            val dodgeLevel = defenderSkills.getEffectiveLevel("Dodge")
-            val parryLevel = defenderSkills.getEffectiveLevel("Parry")
+            dodgeLevel = defenderSkills.getEffectiveLevel("Dodge")
+            parryLevel = defenderSkills.getEffectiveLevel("Parry")
+            if (dodgeLevel > 0) defenderSkillsUsed.add("Dodge")
+            if (parryLevel > 0) defenderSkillsUsed.add("Parry")
             (dodgeLevel * 0.6 + parryLevel * 0.4).toInt()
         } else {
+            dodgeLevel = 0
+            parryLevel = 0
             0
         }
         val defenseRoll = rollD20() + defenseModifier
 
         // 5. Determine hit
         val isHit = attackRoll > defenseRoll
+
+        // 6. Calculate defense outcome
+        val defenseOutcome = if (!isHit) {
+            // Attack missed - which skill saved them?
+            val dodgeContribution = dodgeLevel * 0.6
+            val parryContribution = parryLevel * 0.4
+            when {
+                dodgeContribution > parryContribution * 1.5 -> DefenseOutcome.DODGED
+                parryContribution > dodgeContribution * 1.5 -> DefenseOutcome.PARRIED
+                dodgeContribution > 0 || parryContribution > 0 -> DefenseOutcome.BLOCKED
+                else -> DefenseOutcome.DODGED // Pure luck dodge (no skills)
+            }
+        } else {
+            DefenseOutcome.OVERWHELMED
+        }
 
         if (!isHit) {
             // Attack missed
@@ -114,12 +137,14 @@ class AttackResolver(
                 defenderId = defenderId,
                 attackRoll = attackRoll,
                 defenseRoll = defenseRoll,
-                skillsUsed = skillWeights.map { it.skill },
+                attackerSkillsUsed = skillWeights.map { it.skill },
+                defenderSkillsUsed = defenderSkillsUsed,
+                defenseOutcome = defenseOutcome,
                 wasDodged = defenseRoll > attackRoll
             )
         }
 
-        // 6. Calculate damage
+        // 7. Calculate damage
         val damageContext = DamageContext(
             attackerId = attackerId,
             defenderId = defenderId,
@@ -139,17 +164,17 @@ class AttackResolver(
             templates
         )
 
-        // 7. Apply damage to defender's CombatComponent
+        // 8. Apply damage to defender's CombatComponent
         val updatedDefenderCombat = defenderCombat.applyDamage(
             damageResult.finalDamage,
             damageResult.damageType
         )
 
-        // 8. Check for status effects (from weapon or ability)
+        // 9. Check for status effects (from weapon or ability)
         // V1: No status effects on basic attacks, will be added in later phases
         val statusEffects = emptyList<StatusEffect>()
 
-        // 9. Return result
+        // 10. Return result
         return AttackResult.hit(
             attackerId = attackerId,
             defenderId = defenderId,
@@ -157,7 +182,9 @@ class AttackResolver(
             damageType = damageResult.damageType,
             attackRoll = attackRoll,
             defenseRoll = defenseRoll,
-            skillsUsed = skillWeights.map { it.skill },
+            attackerSkillsUsed = skillWeights.map { it.skill },
+            defenderSkillsUsed = defenderSkillsUsed,
+            defenseOutcome = defenseOutcome,
             updatedDefenderCombat = updatedDefenderCombat,
             statusEffects = statusEffects,
             wasKilled = updatedDefenderCombat.isDead()
@@ -179,7 +206,8 @@ class AttackResolver(
 sealed class AttackResult {
     abstract val attackerId: String
     abstract val defenderId: String
-    abstract val skillsUsed: List<String>
+    abstract val attackerSkillsUsed: List<String>
+    abstract val defenderSkillsUsed: List<String>
 
     /**
      * Attack hit successfully
@@ -191,7 +219,9 @@ sealed class AttackResult {
         val damageType: DamageType,
         val attackRoll: Int,
         val defenseRoll: Int,
-        override val skillsUsed: List<String>,
+        override val attackerSkillsUsed: List<String>,
+        override val defenderSkillsUsed: List<String>,
+        val defenseOutcome: DefenseOutcome,
         val updatedDefenderCombat: CombatComponent,
         val statusEffects: List<StatusEffect>,
         val wasKilled: Boolean
@@ -207,7 +237,9 @@ sealed class AttackResult {
         override val defenderId: String,
         val attackRoll: Int,
         val defenseRoll: Int,
-        override val skillsUsed: List<String>,
+        override val attackerSkillsUsed: List<String>,
+        override val defenderSkillsUsed: List<String>,
+        val defenseOutcome: DefenseOutcome,
         val wasDodged: Boolean
     ) : AttackResult() {
         val isSuccess = false
@@ -221,7 +253,8 @@ sealed class AttackResult {
     ) : AttackResult() {
         override val attackerId: String = ""
         override val defenderId: String = ""
-        override val skillsUsed: List<String> = emptyList()
+        override val attackerSkillsUsed: List<String> = emptyList()
+        override val defenderSkillsUsed: List<String> = emptyList()
         val isSuccess = false
     }
 
@@ -233,13 +266,16 @@ sealed class AttackResult {
             damageType: DamageType,
             attackRoll: Int,
             defenseRoll: Int,
-            skillsUsed: List<String>,
+            attackerSkillsUsed: List<String>,
+            defenderSkillsUsed: List<String>,
+            defenseOutcome: DefenseOutcome,
             updatedDefenderCombat: CombatComponent,
             statusEffects: List<StatusEffect> = emptyList(),
             wasKilled: Boolean = false
         ) = Hit(
             attackerId, defenderId, damage, damageType, attackRoll, defenseRoll,
-            skillsUsed, updatedDefenderCombat, statusEffects, wasKilled
+            attackerSkillsUsed, defenderSkillsUsed, defenseOutcome,
+            updatedDefenderCombat, statusEffects, wasKilled
         )
 
         fun miss(
@@ -247,12 +283,25 @@ sealed class AttackResult {
             defenderId: String,
             attackRoll: Int,
             defenseRoll: Int,
-            skillsUsed: List<String>,
+            attackerSkillsUsed: List<String>,
+            defenderSkillsUsed: List<String>,
+            defenseOutcome: DefenseOutcome,
             wasDodged: Boolean
-        ) = Miss(attackerId, defenderId, attackRoll, defenseRoll, skillsUsed, wasDodged)
+        ) = Miss(attackerId, defenderId, attackRoll, defenseRoll,
+                 attackerSkillsUsed, defenderSkillsUsed, defenseOutcome, wasDodged)
 
         fun failure(reason: String) = Failure(reason)
     }
+}
+
+/**
+ * Defense outcome - how the defender's skills contributed to the result
+ */
+enum class DefenseOutcome {
+    DODGED,      // Dodge skill was primary contributor
+    PARRIED,     // Parry skill was primary contributor
+    BLOCKED,     // Both contributed equally
+    OVERWHELMED  // Defense attempted but attacker won
 }
 
 /**

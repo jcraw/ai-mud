@@ -98,10 +98,10 @@ object SkillQuestHandlers {
             if (!result.success) {
                 println("❌ You failed to harvest the resource properly.")
 
-                // Award 20% XP on failure
+                // Attempt skill progression on failure (dual-path: lucky chance OR XP)
                 val skillName = challenge.statType.name
                 val baseXp = 25L // Lower than success
-                val xpEvents = game.skillManager.grantXp(
+                val xpEvents = game.skillManager.attemptSkillProgress(
                     entityId = game.worldState.player.id,
                     skillName = skillName,
                     baseXp = baseXp,
@@ -158,11 +158,11 @@ object SkillQuestHandlers {
             }
         }
 
-        // Award XP for gathering skill based on feature's skill requirement
+        // Attempt skill progression for gathering (dual-path: lucky chance OR XP)
         if (feature.skillChallenge != null && skillCheckResult != null) {
             val skillName = feature.skillChallenge!!.statType.name
             val baseXp = 50L // Full XP for successful harvest
-            val xpEvents = game.skillManager.grantXp(
+            val xpEvents = game.skillManager.attemptSkillProgress(
                 entityId = game.worldState.player.id,
                 skillName = skillName,
                 baseXp = baseXp,
@@ -299,9 +299,9 @@ object SkillQuestHandlers {
             return
         }
 
-        // Grant XP based on success/failure (base 50 XP)
+        // Attempt skill progression (dual-path: lucky chance OR XP)
         val baseXp = 50L
-        val xpEvents = game.skillManager.grantXp(
+        val xpEvents = game.skillManager.attemptSkillProgress(
             entityId = game.worldState.player.id,
             skillName = skillName,
             baseXp = baseXp,
@@ -431,9 +431,9 @@ object SkillQuestHandlers {
                 // For now, just track for quests
                 game.trackQuests(QuestAction.CollectedItem(result.craftedItem.id))
 
-                // Award XP to crafting skill (full XP on success)
+                // Attempt skill progression for crafting (dual-path: lucky chance OR XP)
                 val baseXp = 50L + (recipe.difficulty * 5L) // Scale with difficulty
-                val xpEvents = game.skillManager.grantXp(
+                val xpEvents = game.skillManager.attemptSkillProgress(
                     entityId = game.worldState.player.id,
                     skillName = recipe.requiredSkill,
                     baseXp = baseXp,
@@ -466,9 +466,9 @@ object SkillQuestHandlers {
                     }
                 }
 
-                // Award 20% XP on failure
+                // Attempt skill progression on failure (dual-path: lucky chance OR XP)
                 val baseXp = 10L + (recipe.difficulty * 1L) // Lower than success
-                val xpEvents = game.skillManager.grantXp(
+                val xpEvents = game.skillManager.attemptSkillProgress(
                     entityId = game.worldState.player.id,
                     skillName = recipe.requiredSkill,
                     baseXp = baseXp,

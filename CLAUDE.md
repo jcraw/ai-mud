@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: ⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, and Core/Testbot Tests are now V3-only. Main code compiles successfully. 4 reasoning module test files need API updates. See `docs/V2_REMOVAL_PLAN.md` for status.
+**Current State: ✅ TESTS FIXED** - V2 Removal Phase 1-5 complete. WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, and Core/Testbot Tests are now V3-only. Main code compiles successfully. All 4 reasoning module test files fixed and passing. See `docs/V2_REMOVAL_PLAN.md` for status.
 
 **Previous State**: Fully functional AI-powered MUD engine with all features complete. Temporarily broken during V2 code removal to enforce V3-only architecture per project guidelines ("no backward compatibility needed").
 
@@ -32,7 +32,7 @@ For complete documentation, see:
 ### Game Features ✅
 - **Combat System V2**: Turn-based with STR modifiers, equipment bonuses, boss mechanics, safe zones
 - **Item System V2**: 53 item templates across 10 types, inventory management (weight-based), equipment (12 slots), gathering, crafting (24 recipes), trading, pickpocketing
-- **Skill System V2**: Use-based progression with infinite growth, perk system, resource costs (stamina/mana/focus), social integration
+- **Skill System V2**: Use-based progression with infinite growth, dual-path progression (lucky chance OR XP grind), defensive skill tracking, perk system, resource costs (stamina/mana/focus), social integration
 - **Social System**: Emotes, persuasion, intimidation, NPC dialogue with disposition tracking and knowledge system
 - **Quest System**: Procedurally generated with 6 objective types and automatic progress tracking
 - **World Generation V2**: Hierarchical procedural generation with exit resolution, content placement, themed dungeons
@@ -61,12 +61,12 @@ For complete documentation, see:
 - **Feature Parity**: Gathering (interact/harvest) and crafting now available in GUI
 - **Unified Codebase**: GUI and console clients share identical game logic
 
-### Testing ⚠️
+### Testing ✅
 - **Main code compiles successfully** - Application and client build and run
-- **Test issues**: Reasoning module has compilation errors in 4 test files (RespawnManagerTest, SpacePopulatorTest, StateChangeHandlerTest, TurnQueueManagerTest) due to API signature changes from V3 refactoring
-  - Repository interfaces now require `suspend` functions with updated return types
-  - Entity.NPC constructor signature changed
-  - Tests need updating to match new API contracts
+- **All reasoning tests passing** - 4 test files fixed for V3 API (TurnQueueManagerTest, RespawnManagerTest, SpacePopulatorTest, StateChangeHandlerTest)
+  - Updated WorldState constructor calls to use V3 API (entities map instead of rooms)
+  - Removed Room class usage (deprecated in V3)
+  - All tests now use V3 component-based architecture
 - **Core tests passing**: Core, perception, action, memory modules tests pass
 - **V3 integration tests**: 20 tests in WorldSystemV3IntegrationTest.kt verify graph navigation
 - **Test bot**: Automated LLM-powered testing with 11 scenarios
@@ -75,7 +75,27 @@ For complete documentation, see:
 
 ## In Progress Features 🚧
 
-None - All planned V2 features complete.
+### Generic Skill Progression System 🚧 (Phases 1-3/5 COMPLETE)
+Dual-path skill progression system (lucky chance OR XP grind) for consistent progression across all skill types.
+
+**Status**: Console implementation complete (Phases 1-3), GUI client and testing remaining (Phases 4-5)
+
+**Completed**:
+- ✅ **Phase 1: Core Enhancement** - DefenseOutcome enum, AttackResult refactored (attackerSkillsUsed/defenderSkillsUsed/defenseOutcome), `attemptSkillProgress()` in SkillManager, GameConfig flags (baseLuckyChance, enableLuckyProgression, enableNPCLuckyProgression)
+- ✅ **Phase 2: Combat Integration** - AttackResolver tracks defender skills, CombatHandlers refactored to `processSkillProgression()` handling both attacker and defender
+- ✅ **Phase 3: Generic Application** - Crafting, gathering, and skill checks now use `attemptSkillProgress()`
+
+**Remaining**:
+- ⏸️ **Phase 4: Client Sync** - Update GUI client handlers (ClientCombatHandlers.kt, ClientSkillQuestHandlers.kt)
+- ⏸️ **Phase 5: Testing** - Unit tests for lucky chance calculation, integration tests for defensive skills
+
+**Features**:
+- Dual progression: 15% lucky chance (scales with `floor(15 / sqrt(targetLevel + 1))`) OR XP accumulation
+- Defensive skills (Dodge, Parry) now gain XP when used in combat
+- Generic method works for all skill types (combat, crafting, gathering, social)
+- Configurable via GameConfig (can disable lucky progression, tune base chance %)
+
+See `docs/requirements/V2/FEATURE_PLAN_generic_skill_progression.md` for complete plan.
 
 ### Treasure Room System ✅ (COMPLETE - All 8 chunks)
 Brogue-inspired treasure room system with playstyle-defining item selection.

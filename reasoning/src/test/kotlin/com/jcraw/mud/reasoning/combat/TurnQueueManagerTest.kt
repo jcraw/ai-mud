@@ -164,7 +164,7 @@ class TurnQueueManagerTest {
 
     @Test
     fun `rebuild from empty WorldState creates empty queue`() {
-        val worldState = WorldState(emptyMap(), emptyMap())
+        val worldState = WorldState(players = emptyMap())
         queue.rebuild(worldState)
 
         assertEquals(0, queue.size())
@@ -199,15 +199,8 @@ class TurnQueueManagerTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Test Room",
-            traits = listOf("dungeon", "dark"),
-            entities = listOf(goblin1, goblin2)
-        )
-
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            entities = mapOf("goblin1" to goblin1, "goblin2" to goblin2),
             players = emptyMap()
         )
 
@@ -229,15 +222,8 @@ class TurnQueueManagerTest {
             components = emptyMap() // No combat component
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Test Room",
-            traits = listOf("town", "safe"),
-            entities = listOf(npc)
-        )
-
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            entities = mapOf("merchant" to npc),
             players = emptyMap()
         )
 
@@ -261,15 +247,8 @@ class TurnQueueManagerTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Test Room",
-            traits = listOf("dungeon"),
-            entities = listOf(goblin)
-        )
-
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            entities = mapOf("goblin1" to goblin),
             players = emptyMap()
         )
 
@@ -283,7 +262,7 @@ class TurnQueueManagerTest {
         queue.enqueue("old1", 10L)
         queue.enqueue("old2", 20L)
 
-        val worldState = WorldState(emptyMap(), emptyMap())
+        val worldState = WorldState(players = emptyMap())
         queue.rebuild(worldState)
 
         assertEquals(0, queue.size())

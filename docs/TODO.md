@@ -1,8 +1,8 @@
 # AI-MUD Development TODO
 
-Last updated: 2025-11-07 - V2 Removal Phase 4 Complete
+Last updated: 2025-11-19 - V2 Removal Phase 5 Complete
 
-**Status**: Phase 1-4 of V2 removal complete - WorldState, Console Handlers, Reasoning Module, GUI Client, and Infrastructure are now V3-only. Main code compiles successfully. Tests broken (Phase 5). See docs/V2_REMOVAL_PLAN.md for remaining phases.
+**Status**: Phase 1-5 of V2 removal complete - WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, and Tests are now V3-only. Main code compiles successfully. All 4 reasoning module test files fixed and passing. See docs/V2_REMOVAL_PLAN.md for status.
 
 ## Current Status
 
@@ -18,10 +18,43 @@ All core systems are implemented and integrated:
 - ✅ Quest System (fully integrated)
 - ✅ GUI Client (Compose Multiplatform with real engine integration)
 - ✅ Multi-user architecture (GameServer + PlayerSession)
-- ⚠️ Testing: Main code compiles successfully, core tests pass, reasoning module has 4 broken test files needing API updates after V3 refactoring
+- ✅ Testing: Main code compiles successfully, all tests pass, 4 reasoning module test files fixed for V3 API
 - ✅ Code quality check complete (all files under 1000 lines, largest is 910 lines)
 
 ## Next Actions
+
+**✅ Generic Skill Progression System - Phases 1-3 COMPLETE** (Est. 2-3h remaining)
+
+Dual-path skill progression system (lucky chance OR XP grind) implemented for console game. See `docs/requirements/V2/FEATURE_PLAN_generic_skill_progression.md` for complete plan.
+
+**Completed Features**:
+- ✅ Dual progression paths: 15% lucky chance (scales down) OR XP accumulation
+- ✅ Defensive skills (Dodge, Parry) now gain XP when used in combat
+- ✅ Generic `attemptSkillProgress()` works for combat, crafting, gathering, skill checks
+- ✅ Scaling difficulty: `floor(15 / sqrt(targetLevel + 1))` - gets grindier at high levels
+- ✅ DefenseOutcome tracking for attack resolution
+- ✅ AttackResult now tracks both attacker and defender skills
+- ✅ ConfigureGameConfig with `baseLuckyChance`, `enableLuckyProgression`, `enableNPCLuckyProgression`
+
+**Implementation Status**:
+1. ✅ Phase 1: Core Enhancement - Added `DefenseOutcome`, updated `AttackResult`, added `attemptSkillProgress()` to SkillManager
+2. ✅ Phase 2: Combat Integration - Defender skills tracked, CombatHandlers refactored to use `processSkillProgression()`
+3. ✅ Phase 3: Generic Application - Crafting, gathering, skill checks now use `attemptSkillProgress()`
+4. ⏸️ Phase 4: Client Sync - Deferred (GUI client needs similar changes)
+5. ⏸️ Phase 5: Testing - Deferred (unit + integration tests)
+
+**Files Changed**:
+- `config/src/main/kotlin/com/jcraw/mud/config/GameConfig.kt` - Added 3 config flags
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/AttackResolver.kt` - Added DefenseOutcome enum, updated AttackResult, tracks defender skills
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt` - Added `attemptSkillProgress()` and `calculateLuckyChance()`
+- `app/src/main/kotlin/com/jcraw/app/handlers/CombatHandlers.kt` - Refactored to `processSkillProgression()` for both attacker/defender
+- `app/src/main/kotlin/com/jcraw/app/handlers/SkillQuestHandlers.kt` - 5 handlers updated to use `attemptSkillProgress()`
+
+**Remaining Work**:
+- Phase 4: Update GUI client handlers (ClientCombatHandlers.kt, ClientSkillQuestHandlers.kt)
+- Phase 5: Unit tests for `calculateLuckyChance()` and `attemptSkillProgress()`, integration tests for defensive skills
+
+---
 
 **🚧 In Progress: World System V3 - Graph-Based Navigation**
 
@@ -234,17 +267,16 @@ Starting implementation of V3 upgrade to world generation system. See `docs/requ
    - All Room-based methods removed from infrastructure
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 4 completion report
 
-6. **Phase 5 - Tests** (Est. 2-3h) - ✅ **PARTIAL COMPLETION**
+6. **Phase 5 - Tests** - ✅ **COMPLETE**
    - ✅ Fixed QuestSystemTest.kt V2 reference
    - ✅ Fixed WorldStateTest.kt (complete rewrite, 470→298 lines, V3-focused)
    - ✅ Fixed InMemoryGameEngine.kt (50 V2 method calls converted to V3)
-   - ⚠️ Remaining: 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
+   - ✅ Fixed TurnQueueManagerTest.kt - Updated WorldState constructor calls, removed Room usage
+   - ✅ Fixed remaining 3 test files (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest) - All now compile and pass
    - See `docs/V2_REMOVAL_PLAN.md` for detailed Phase 5 completion report
 
 7. **Phase 6-7** - Dependencies, Documentation (Est. 1.5h)
    - See `docs/V2_REMOVAL_PLAN.md` for complete plan
-
-8. **Fix reasoning module tests** - Update 4 test files to match new API signatures after V3 refactoring
 
 9. **Test V3 thoroughly** - Play through multi-chunk worlds to verify frontier traversal
 

@@ -8,10 +8,11 @@ Multi-module Gradle project with 9 modules:
 
 ### Core Modules
 
-- **core** - World model (Room, WorldState, PlayerState, Entity, Direction, Quest, SocialComponent)
+- **core** - World model (WorldState, PlayerState, Entity, Direction, Quest, GraphNodeComponent, SpacePropertiesComponent)
   - Immutable data models
-  - Game state management
+  - Game state management (V3: ECS component-based architecture)
   - Component system for extensible entity behaviors
+  - Graph-based navigation system
   - No external dependencies except kotlinx.serialization
 
 - **perception** - Input parsing and intent recognition
@@ -21,10 +22,10 @@ Multi-module Gradle project with 9 modules:
 
 - **reasoning** - LLM-powered content generation and game logic
   - Depends on: core, llm, memory
-  - Room description generation
+  - Space description generation (V3: graph-based with lazy-fill)
   - NPC dialogue generation (disposition-aware)
   - Combat narration
-  - Procedural dungeon generation
+  - Procedural world generation (V3: graph topology with hierarchical chunks)
   - Quest generation
   - Skill check resolution
   - Social system logic (disposition tracking, emotes, knowledge management)
@@ -80,9 +81,10 @@ Clean separation following SOLID principles:
 ### Layer Responsibilities
 
 1. **Core** - Immutable data models and world state
-   - All game entities (Room, Player, NPC, Item, Feature)
+   - All game entities (GraphNodeComponent, SpacePropertiesComponent, Player, NPC, Item, Feature)
    - State transitions are pure functions
    - No I/O or side effects
+   - ECS component-based architecture
 
 2. **Perception** - Input parsing and LLM-based intent recognition
    - Converts raw text to structured Intent objects
@@ -143,9 +145,12 @@ Memory (store for RAG)
 
 ## Component Details
 
-### World State Management
+### World State Management (V3: ECS Component-Based)
 - `WorldState` - Top-level game state
-  - Map of rooms
+  - Map of graph nodes (topology)
+  - Map of spaces (content)
+  - Map of chunks (hierarchical world structure)
+  - Map of entities (global entity storage)
   - Map of players (multi-user support)
   - Available quests
   - Game properties
@@ -155,10 +160,14 @@ Memory (store for RAG)
   - Active combat
   - Active quests
   - Experience and gold
-- `Room` - Location data
-  - Name, description, traits
-  - Entities (NPCs, items, features, players)
-  - Exits to other rooms
+  - Current space ID
+- `GraphNodeComponent` - Navigation topology
+  - Node type, position, edges with directions
+  - Hidden exit tracking
+- `SpacePropertiesComponent` - Location content
+  - Name, description, terrain
+  - Entities, items, traps, resources
+  - State flags
 
 ### Combat System
 - Turn-based with d20 mechanics
@@ -311,17 +320,19 @@ Memory (store for RAG)
   - `CombatHandlers.kt` - Combat system (~138 lines)
 
 ### Multi-User Architecture
-- `core/src/main/kotlin/com/jcraw/mud/core/Room.kt` - PlayerId type alias
-- `core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt` - Multi-player world state
+- `core/src/main/kotlin/com/jcraw/mud/core/GraphNodeComponent.kt` - V3 navigation topology
+- `core/src/main/kotlin/com/jcraw/mud/core/SpacePropertiesComponent.kt` - V3 location content
+- `core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt` - Multi-player world state (V3: ECS)
 - `core/src/main/kotlin/com/jcraw/mud/core/PlayerState.kt` - Per-player state
 - `app/src/main/kotlin/com/jcraw/app/GameServer.kt` - Thread-safe game server
 - `app/src/main/kotlin/com/jcraw/app/PlayerSession.kt` - Player I/O handling
 - `app/src/main/kotlin/com/jcraw/app/GameEvent.kt` - Event broadcasting
 
 ### LLM Generators (RAG-enhanced)
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/RoomDescriptionGenerator.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/SpaceDescriptionGenerator.kt` - V3 space descriptions
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCInteractionGenerator.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/SceneryDescriptionGenerator.kt` - V3 scenery descriptions
 
 ### Memory/RAG System
 - `memory/src/main/kotlin/com/jcraw/mud/memory/MemoryManager.kt`
@@ -348,13 +359,15 @@ Memory (store for RAG)
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/QuestGenerator.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/QuestTracker.kt`
 
-### Procedural Generation
+### Procedural Generation (V3: Graph-Based)
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/WorldGenerator.kt` - V3 hierarchical chunk generation
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/GraphGenerator.kt` - V3 graph topology generation
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/GraphValidator.kt` - V3 graph validation
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/SpacePopulator.kt` - V3 space content population
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonTheme.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/RoomGenerator.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` - Creates NPCs with SocialComponents
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ItemGenerator.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonLayoutGenerator.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralDungeonBuilder.kt`
+- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralDungeonBuilder.kt` - V3-compatible
 
 ### Social System
 - `core/src/main/kotlin/com/jcraw/mud/core/Component.kt` - Component system foundation
@@ -408,7 +421,7 @@ Memory (store for RAG)
 - **Intents** (`perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt`)
   - Craft, Trade, Pickpocket, UseItem intents
 
-### World Generation System V2/V3 (Chunks 1-6 Complete, V3 Chunk 3 Complete)
+### World Generation System V3 (Graph-Based Architecture)
 - **Component-based architecture** for hierarchical world generation (5 levels)
   - `WorldChunkComponent` - Chunk hierarchy (WORLD → REGION → ZONE → SUBZONE → SPACE) with lore inheritance (`core`)
   - `SpacePropertiesComponent` - Space details (description, exits, traps, resources, entities, state flags) (`core`)
@@ -433,19 +446,7 @@ Memory (store for RAG)
       - `fillSpaceContent()` (lines 264-287) - On-demand LLM generation when player enters space for first time
       - `generateNodeDescription()` (lines 293-341) - LLM generates description using node type, neighbors, chunk lore
       - `determineNodeProperties()` (lines 343-360) - Node type-based brightness/terrain (Hub=bright/safe, Frontier=dark/difficult)
-    - **V2 Methods (Still Active)**:
-      - `generateSpace()` (lines 139-200) - V2 immediate generation for existing dungeons
-      - Supports both V2 (immediate content) and V3 (graph-first lazy-fill) modes in parallel
-    - **Integration Status**: Generation layer complete, movement handler integration pending (see TODO.md)
-  - `GraphToRoomAdapter.kt` - **V3 Chunk 5 Adapter Layer (Option B: Parallel Systems)**
-    - Converts V3 components (GraphNodeComponent + SpacePropertiesComponent) to V2 Room format
-    - `toRoom()` - Single space conversion with name extraction, trait building, exit mapping
-    - `toRooms()` - Batch conversion for chunk-level operations
-    - Cardinal direction mapping (Direction enum), non-cardinal exits stored in properties
-    - Trait generation from brightness, terrain, node type, features (traps/resources/safe zones)
-    - Properties map preserves V3 metadata for potential future use
-    - Tested with 16 comprehensive tests covering edge cases and data integrity
-    - **Design Philosophy**: KISS principle - additive, non-disruptive, allows gradual ECS migration
+    - **Integration Status**: V3 generation complete, all handlers using V3-only architecture
   - `LoreInheritanceEngine.kt` - Lore variation and theme blending
   - `DungeonInitializer.kt` - Deep dungeon MVP starter (3 regions: Upper/Mid/Lower Depths)
   - `ChunkIdGenerator.kt` - Hierarchical ID generation (level_parent_uuid format)
@@ -480,8 +481,8 @@ Memory (store for RAG)
   - `RespawnManager.kt` - Mob regeneration preserving player changes
   - `AutosaveManager.kt` - Periodic autosave (every 5 moves or 2 minutes)
   - `GenerationCache.kt` - LRU cache (1000 chunks) for performance
-- **Testing** - 576+ unit/integration tests across V2 chunks 1-6, comprehensive tests for V3 GraphGenerator and GraphLayout
-- **Status** - V2 foundation complete, V3 graph generation (Chunk 3) complete
+- **Testing** - 600+ unit/integration tests, comprehensive V3 tests for GraphGenerator, GraphLayout, GraphValidator, and all reasoning modules
+- **Status** - V3 architecture complete, all modules using ECS component-based system
 - See [World Generation Documentation](./WORLD_GENERATION.md) for complete details
 
 ### Sample Content
