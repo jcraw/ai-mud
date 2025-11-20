@@ -41,6 +41,22 @@ object SampleDungeon {
                     successDescription = "The Old Guard smiles warmly. 'Ah, a polite adventurer! Let me tell you - there's a hidden passage in the secret chamber beyond the throne room. Look for the stone door and you'll find ancient treasures beyond!'",
                     failureDescription = "The Old Guard shakes his head. 'Sorry, friend. Can't help you with that. Orders are orders.'"
                 )
+            ),
+            Entity.NPC(
+                id = "shambling_zombie",
+                name = "Shambling Zombie",
+                description = "A rotting corpse lurching slowly through the entrance hall",
+                isHostile = true,
+                health = 18,
+                maxHealth = 18,
+                stats = Stats(
+                    strength = 10,      // Decent strength
+                    dexterity = 6,      // Very slow
+                    constitution = 12,  // Undead toughness
+                    intelligence = 3,   // Mindless
+                    wisdom = 6,         // Poor perception
+                    charisma = 4        // Horrifying
+                )
             )
         )
     )
@@ -62,6 +78,38 @@ object SampleDungeon {
             Direction.NORTH to "throne_room"
         ),
         entities = listOf(
+            Entity.NPC(
+                id = "giant_rat_1",
+                name = "Giant Rat",
+                description = "A mangy rat the size of a small dog, with yellowed teeth and beady eyes",
+                isHostile = true,
+                health = 15,
+                maxHealth = 15,
+                stats = Stats(
+                    strength = 8,       // Weak attacker
+                    dexterity = 12,     // Quick and nimble
+                    constitution = 8,   // Fragile
+                    intelligence = 4,   // Animal intelligence
+                    wisdom = 10,        // Alert
+                    charisma = 4        // Ugly vermin
+                )
+            ),
+            Entity.NPC(
+                id = "giant_rat_2",
+                name = "Giant Rat",
+                description = "Another diseased rat skittering along the walls",
+                isHostile = true,
+                health = 15,
+                maxHealth = 15,
+                stats = Stats(
+                    strength = 8,
+                    dexterity = 12,
+                    constitution = 8,
+                    intelligence = 4,
+                    wisdom = 10,
+                    charisma = 4
+                )
+            ),
             Entity.Feature(
                 id = "loose_stone",
                 name = "Suspicious Loose Stone",
@@ -133,6 +181,22 @@ object SampleDungeon {
         ),
         exits = mapOf(Direction.EAST to "corridor"),
         entities = listOf(
+            Entity.NPC(
+                id = "goblin_scout",
+                name = "Goblin Scout",
+                description = "A small, green-skinned creature with crude leather armor and a rusty dagger",
+                isHostile = true,
+                health = 20,
+                maxHealth = 20,
+                stats = Stats(
+                    strength = 9,       // Slightly stronger than rats
+                    dexterity = 13,     // Nimble
+                    constitution = 10,  // Tougher than rats
+                    intelligence = 8,   // Cunning
+                    wisdom = 9,         // Alert
+                    charisma = 6        // Ugly and mean
+                )
+            ),
             Entity.Item(
                 id = "iron_sword",
                 name = "Rusty Iron Sword",
