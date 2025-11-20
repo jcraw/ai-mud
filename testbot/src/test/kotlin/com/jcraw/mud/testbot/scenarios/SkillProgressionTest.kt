@@ -56,6 +56,9 @@ class SkillProgressionTest {
         // ARRANGE: Set up game with enemies and skill progression enabled
         GameConfig.enableMobGeneration = true  // Ensure enemies spawn
 
+        // TODO: Use Ancient Abyss dungeon (same as console/GUI) instead of SampleDungeon
+        // Requires complex setup with WorldDatabase + 6 repositories + 5 generators
+        // SampleDungeon is simpler for testing skill progression mechanics
         val worldState = SampleDungeon.createInitialWorldState()
         val llmClient = OpenAIClient(apiKey!!)
 

@@ -124,6 +124,9 @@ class TestBotRunner(
             println("   💭 Reasoning: ${generatedInput.reasoning}")
         }
 
+        // Print the command the bot is executing
+        println("   🎮 Command: ${generatedInput.input}")
+
         // 3. ACT: Submit input to game engine
         val gmResponse = try {
             gameEngine.processInput(generatedInput.input)
@@ -139,6 +142,13 @@ class TestBotRunner(
                 reason = "Game engine error: ${e.message}"
             )
         }
+
+        // Print the game response (what the bot sees)
+        println("   📜 Response:")
+        gmResponse.lines().forEach { line ->
+            println("      $line")
+        }
+        println()
 
         // 4. OBSERVE: Validate the output
         val validationResult = try {
