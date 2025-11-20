@@ -70,6 +70,23 @@ class TestBotRunner(
 
         printSummary(report)
 
+        // Generate gameplay report for scenarios that benefit from detailed analysis
+        if (scenario is TestScenario.SkillProgression) {
+            println("\n🎮 Generating gameplay analysis report...")
+            try {
+                val reportGenerator = GameplayReportGenerator(llmClient)
+                val gameplayReport = reportGenerator.generateReport(report)
+
+                // Print to console
+                println(gameplayReport.formatForConsole())
+
+                // Save to file
+                logger.logGameplayReport(sessionId, gameplayReport)
+            } catch (e: Exception) {
+                println("⚠️  Failed to generate gameplay report: ${e.message}")
+            }
+        }
+
         return report
     }
 
@@ -100,6 +117,11 @@ class TestBotRunner(
                 passed = false,
                 reason = "Input generation error: ${e.message}"
             )
+        }
+
+        // Print reasoning to console if present
+        if (generatedInput.reasoning.isNotBlank()) {
+            println("   💭 Reasoning: ${generatedInput.reasoning}")
         }
 
         // 3. ACT: Submit input to game engine
@@ -140,7 +162,8 @@ class TestBotRunner(
         val step = TestStep(
             playerInput = generatedInput.input,
             gmResponse = gmResponse,
-            validationResult = validationResult
+            validationResult = validationResult,
+            reasoning = generatedInput.reasoning.takeIf { it.isNotBlank() }
         )
 
         // Log the step
@@ -319,6 +342,17 @@ class TestBotRunner(
                     it.playerInput.contains("skeleton", ignoreCase = true)
                 }
                 reachedSecretChamber || bossDefeated
+            }
+            is TestScenario.SkillProgression -> {
+                // Complete when Dodge skill reaches target level (10)
+                // Check response for skill level messages or query current level
+                val dodgeLevelReached = state.steps.any {
+                    it.gmResponse.contains("Dodge", ignoreCase = true) &&
+                    (it.gmResponse.contains("level 10", ignoreCase = true) ||
+                     it.gmResponse.contains("Level: 10", ignoreCase = true) ||
+                     Regex("Dodge.*level\\s+1[0-9]").find(it.gmResponse) != null)
+                }
+                dodgeLevelReached
             }
             else -> false // Other scenarios run to maxSteps
         }

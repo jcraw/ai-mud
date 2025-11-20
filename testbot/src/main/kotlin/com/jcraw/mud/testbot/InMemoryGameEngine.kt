@@ -16,6 +16,10 @@ import kotlinx.coroutines.runBlocking
 /**
  * In-memory game engine implementation for testing.
  * Processes intents without stdio, suitable for automated testing.
+ *
+ * **SkillManager Requirement**: For SkillProgression test scenarios,
+ * skillManager must be provided to enable skill leveling mechanics (Dodge 0→10).
+ * Without skillManager, skill-related commands will not function.
  */
 class InMemoryGameEngine(
     private val initialWorldState: WorldState,

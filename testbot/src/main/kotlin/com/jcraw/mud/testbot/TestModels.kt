@@ -11,7 +11,8 @@ data class TestStep(
     val timestamp: String = Instant.now().toString(),
     val playerInput: String,
     val gmResponse: String,
-    val validationResult: ValidationResult? = null
+    val validationResult: ValidationResult? = null,
+    val reasoning: String? = null  // Bot's thought process before action
 )
 
 /**

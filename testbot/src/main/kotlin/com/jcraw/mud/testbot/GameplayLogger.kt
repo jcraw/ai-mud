@@ -55,6 +55,14 @@ class GameplayLogger(
     }
 
     /**
+     * Log a gameplay analysis report.
+     */
+    fun logGameplayReport(sessionId: String, gameplayReport: GameplayReport) {
+        val reportFile = getGameplayReportFile(sessionId)
+        reportFile.writeText(gameplayReport.formatForConsole())
+    }
+
+    /**
      * Get the session ID for a test run (timestamp-based).
      */
     fun generateSessionId(scenario: TestScenario): String {
@@ -78,6 +86,10 @@ class GameplayLogger(
         return Paths.get(outputDir, "${sessionId}_summary.txt").toFile()
     }
 
+    private fun getGameplayReportFile(sessionId: String): File {
+        return Paths.get(outputDir, "${sessionId}_gameplay_report.txt").toFile()
+    }
+
     private fun appendJsonStep(file: File, step: TestStep) {
         synchronized(this) {
             val jsonLine = compactJson.encodeToString(step)
@@ -93,6 +105,13 @@ class GameplayLogger(
     }
 
     private fun buildTextBlock(step: TestStep): String {
+        val reasoning = step.reasoning?.let { reason ->
+            """
+            Reasoning: $reason
+
+            """.trimIndent()
+        } ?: ""
+
         val validation = step.validationResult?.let { result ->
             """
             Validation: ${if (result.pass) "PASS" else "FAIL"}
@@ -104,7 +123,7 @@ class GameplayLogger(
         ================================================================================
         [${step.timestamp}]
 
-        Player: ${step.playerInput}
+        ${reasoning}Player: ${step.playerInput}
 
         Game Master:
         ${step.gmResponse}

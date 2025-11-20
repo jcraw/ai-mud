@@ -61,6 +61,7 @@ class InputGenerator(
 
             Respond with JSON in this format:
             {
+                "reasoning": "your thought process before choosing this action (2-3 sentences explaining why this action makes sense given the current situation and goal)",
                 "input": "the player command",
                 "intent": "what you're trying to test",
                 "expected": "what you expect to happen"
@@ -526,6 +527,73 @@ class InputGenerator(
                 Target: ~20-30 actions (social interactions + skill checks)
                 """.trimIndent()
             }
+            is TestScenario.SkillProgression -> {
+                // Extract current Dodge level from game context
+                val dodgeLevel = currentContext.lines()
+                    .find { it.contains("Dodge", ignoreCase = true) && it.contains("level", ignoreCase = true) }
+                    ?.let { line ->
+                        Regex("level\\s+(\\d+)").find(line)?.groupValues?.get(1)?.toIntOrNull()
+                    } ?: 0
+
+                val objectives = mapOf(
+                    "check_current_skills" to actionsTaken.any { it.contains("skills") || it.contains("skill") },
+                    "look_for_enemies" to actionsTaken.any { it == "look" },
+                    "explore_for_combat" to actionsTaken.any { it.matches(Regex("[nsew]|north|south|east|west")) },
+                    "engage_in_combat" to actionsTaken.any { it.contains("attack") },
+                    "maintain_combat" to (actionsTaken.count { it.contains("attack") } >= 5),
+                    "check_progress" to (actionsTaken.count { it.contains("skills") } >= 2),
+                    "reach_level_5" to (dodgeLevel >= 5),
+                    "reach_level_10" to (dodgeLevel >= 10)
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                GOAL: Level the Dodge skill from 0 to 10 through combat
+
+                CURRENT PROGRESS:
+                - Dodge Level: $dodgeLevel / 10 ${if (dodgeLevel >= 10) "✅ COMPLETE!" else ""}
+                - Actions taken: ${actionsTaken.size}
+
+                MANDATORY OBJECTIVES:
+                ✓ Completed (${completed.size}/8): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/8): ${remaining.joinToString(", ")}
+
+                STRATEGY FOR LEVELING DODGE:
+                1. check_current_skills - Use 'skills' command to see current Dodge level and XP
+                2. look_for_enemies - Use 'look' to find hostile NPCs in current room
+                3. explore_for_combat - Move to different rooms to find more enemies
+                4. engage_in_combat - Attack enemies to trigger combat (enemies counter-attack, using your Dodge)
+                5. maintain_combat - Continue fighting - each enemy attack gives Dodge XP
+                6. check_progress - Periodically use 'skills' to see progress toward level 10
+                7. reach_level_5 - Halfway milestone
+                8. reach_level_10 - Final goal achieved!
+
+                HOW DODGE SKILL PROGRESSION WORKS:
+                - Every time an enemy attacks you, your Dodge skill is used for defense
+                - Dual progression: 15% lucky chance for instant level OR XP accumulation
+                - XP increases quadratically: Level 9→10 requires 10,000 XP
+                - Keep fighting enemies to accumulate XP and trigger lucky progression
+                - Combat feedback shows: "Dodge +350 XP (800/900 total)"
+
+                CRITICAL RULES:
+                - FOCUS on combat - this is how you level Dodge (getting attacked)
+                - DO NOT waste actions on non-combat activities (unless exploring for enemies)
+                - Check 'skills' occasionally to track progress (not every turn)
+                - If room has no enemies, move to find more combat
+                - Each combat round = 1 chance for Dodge XP + lucky progression
+
+                REASONING GUIDANCE:
+                Before each action, think about:
+                - What's my current Dodge level and XP?
+                - Do I need to find more enemies or continue fighting?
+                - How much progress am I making toward level 10?
+                - Is this action helping me level Dodge?
+
+                Target: ~80-120 actions (estimated based on combat rounds needed)
+                """.trimIndent()
+            }
         }
 
         return """
@@ -596,5 +664,6 @@ class InputGenerator(
 data class GeneratedInput(
     val input: String,
     val intent: String,
-    val expected: String
+    val expected: String,
+    val reasoning: String = ""  // Bot's thought process before action
 )

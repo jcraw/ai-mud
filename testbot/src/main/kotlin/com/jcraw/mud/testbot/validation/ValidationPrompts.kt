@@ -148,6 +148,7 @@ object ValidationPrompts {
             is TestScenario.BadPlaythrough -> buildBadPlaythroughCriteria()
             is TestScenario.BruteForcePlaythrough -> buildBruteForcePlaythroughCriteria()
             is TestScenario.SmartPlaythrough -> buildSmartPlaythroughCriteria()
+            is TestScenario.SkillProgression -> buildSkillProgressionCriteria()
         }
     }
 
@@ -451,6 +452,26 @@ object ValidationPrompts {
         - Crashes or errors
 
         This validates MULTIPLE SOLUTION PATHS and non-combat gameplay.
+    """.trimIndent()
+
+    private fun buildSkillProgressionCriteria() = """
+        Check that:
+        - Response doesn't contain errors or crashes
+        - Combat/skill actions are processed correctly
+        - Skill XP or level-up messages appear when appropriate
+        - Commands are recognized and produce valid output
+
+        **PASS Criteria:**
+        - Valid response to command (combat, movement, skills check, etc.)
+        - No error messages or crashes
+        - Progression feedback is clear (XP gains, level-ups, etc.)
+
+        **FAIL Criteria:**
+        - Crashes or errors
+        - Invalid command responses
+        - Complete silence/no feedback for valid actions
+
+        This is a long-running test focused on skill leveling, so minor issues are acceptable.
     """.trimIndent()
 
 }

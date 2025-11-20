@@ -53,7 +53,8 @@ fun main() = runBlocking {
     println("  9. Bad Playthrough (${TestScenario.BadPlaythrough().maxSteps} steps) - die to boss")
     println("  10. Brute Force Playthrough (${TestScenario.BruteForcePlaythrough().maxSteps} steps) - gear + combat")
     println("  11. Smart Playthrough (${TestScenario.SmartPlaythrough().maxSteps} steps) - social + skills")
-    print("\nEnter choice (1-11) [default: 1]: ")
+    println("  12. Skill Progression (${TestScenario.SkillProgression().maxSteps} steps) - AI levels Dodge 0→10 with reasoning")
+    print("\nEnter choice (1-12) [default: 1]: ")
 
     val scenarioChoice = readLine()?.trim() ?: "1"
     val scenario = when (scenarioChoice) {
@@ -67,6 +68,7 @@ fun main() = runBlocking {
         "9" -> TestScenario.BadPlaythrough()
         "10" -> TestScenario.BruteForcePlaythrough()
         "11" -> TestScenario.SmartPlaythrough()
+        "12" -> TestScenario.SkillProgression()
         else -> TestScenario.Exploration()
     }
 
@@ -126,6 +128,15 @@ fun main() = runBlocking {
     val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
     println("✅ LLM components initialized")
+
+    // Note: SkillProgression scenario requires SkillManager initialization
+    // For interactive testing, use the JUnit test (SkillProgressionTest.kt) instead
+    if (scenario is TestScenario.SkillProgression) {
+        println("\n⚠️  WARNING: SkillProgression scenario selected")
+        println("   This scenario requires SkillManager initialization.")
+        println("   To run this test, use: ./gradlew :testbot:test --tests SkillProgressionTest")
+        println("   Proceeding without SkillManager - commands will be limited.")
+    }
 
     // Create game engine
     val gameEngine = InMemoryGameEngine(
