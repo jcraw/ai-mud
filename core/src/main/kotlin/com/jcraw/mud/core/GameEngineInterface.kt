@@ -1,6 +1,4 @@
-package com.jcraw.mud.testbot
-
-import com.jcraw.mud.core.WorldState
+package com.jcraw.mud.core
 
 /**
  * Interface for interacting with the game engine in a test environment.

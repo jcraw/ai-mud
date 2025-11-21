@@ -1,5 +1,8 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
+
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
@@ -69,7 +72,7 @@ class SmartPlaythroughTest {
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
             // Create game engine
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -77,6 +80,8 @@ class SmartPlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             // Create test scenario
             val scenario = TestScenario.SmartPlaythrough(
@@ -154,7 +159,7 @@ class SmartPlaythroughTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -162,6 +167,8 @@ class SmartPlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             val scenario = TestScenario.SmartPlaythrough(maxSteps = 50)
             val testBot = TestBotRunner(llmClient, gameEngine, scenario)
@@ -204,7 +211,7 @@ class SmartPlaythroughTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -212,6 +219,8 @@ class SmartPlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             val scenario = TestScenario.SmartPlaythrough(maxSteps = 50)
             val testBot = TestBotRunner(llmClient, gameEngine, scenario)

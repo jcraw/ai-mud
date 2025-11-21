@@ -1,5 +1,8 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
+
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
@@ -69,7 +72,7 @@ class BruteForcePlaythroughTest {
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
             // Create game engine
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -77,6 +80,8 @@ class BruteForcePlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             // Create test scenario
             val scenario = TestScenario.BruteForcePlaythrough(
@@ -158,7 +163,7 @@ class BruteForcePlaythroughTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -166,6 +171,8 @@ class BruteForcePlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             val scenario = TestScenario.BruteForcePlaythrough(maxSteps = 50)
             val testBot = TestBotRunner(llmClient, gameEngine, scenario)
@@ -208,7 +215,7 @@ class BruteForcePlaythroughTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            val gameEngine = InMemoryGameEngine(
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
@@ -216,6 +223,8 @@ class BruteForcePlaythroughTest {
                 memoryManager = memoryManager,
                 llmClient = llmClient
             )
+
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
             val scenario = TestScenario.BruteForcePlaythrough(maxSteps = 50)
             val testBot = TestBotRunner(llmClient, gameEngine, scenario)

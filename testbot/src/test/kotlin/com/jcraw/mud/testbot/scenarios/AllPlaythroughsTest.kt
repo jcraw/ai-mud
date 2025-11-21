@@ -1,5 +1,7 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
@@ -226,8 +228,8 @@ class AllPlaythroughsTest {
         val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
         val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-        // Create game engine
-        val gameEngine = InMemoryGameEngine(
+        // Create real game engine (same as console/GUI clients)
+        val mudGame = MudGame(
             initialWorldState = worldState,
             descriptionGenerator = descriptionGenerator,
             npcInteractionGenerator = npcInteractionGenerator,
@@ -235,6 +237,9 @@ class AllPlaythroughsTest {
             memoryManager = memoryManager,
             llmClient = llmClient
         )
+
+        // Wrap in adapter for testbot (captures stdout)
+        val gameEngine = RealGameEngineAdapter(mudGame)
 
         // Create test bot
         val testBot = TestBotRunner(

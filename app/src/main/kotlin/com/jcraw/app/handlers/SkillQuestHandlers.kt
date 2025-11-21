@@ -770,7 +770,7 @@ object SkillQuestHandlers {
         println("Are you sure you want to quit? (y/n)")
         val confirm = readLine()?.trim()?.lowercase()
         if (confirm == "y" || confirm == "yes") {
-            game.setRunning(false)
+            game.running = false
         }
     }
 

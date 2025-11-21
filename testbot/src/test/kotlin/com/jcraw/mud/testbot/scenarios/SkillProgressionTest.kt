@@ -1,5 +1,7 @@
 package com.jcraw.mud.testbot.scenarios
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
 import com.jcraw.mud.config.GameConfig
 import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.core.SkillState
@@ -69,9 +71,6 @@ class SkillProgressionTest {
         val worldState = abyssWorld.worldState
         val llmClient = abyssWorld.llmClient
 
-        // Initialize SkillManager with in-memory database for testing
-        val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(":memory:")
-
         try {
             // Initialize LLM components
             val memoryManager = MemoryManager(llmClient)
@@ -79,20 +78,18 @@ class SkillProgressionTest {
             val npcInteractionGenerator = NPCInteractionGenerator(llmClient, memoryManager)
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
-            val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
-            val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
-            val skillManager = SkillManager(skillRepo, skillComponentRepo, memoryManager)
-
-            // Create game engine with all dependencies
-            val gameEngine = InMemoryGameEngine(
+            // Create real game engine (same as console/GUI clients)
+            val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
                 combatNarrator = combatNarrator,
                 memoryManager = memoryManager,
-                llmClient = llmClient,
-                skillManager = skillManager
+                llmClient = llmClient
             )
+
+            // Wrap in adapter for testbot (captures stdout)
+            val gameEngine = RealGameEngineAdapter(mudGame)
 
             // Create test scenario
             val scenario = TestScenario.SkillProgression(maxSteps = 120)
@@ -105,6 +102,7 @@ class SkillProgressionTest {
             )
 
             // Get initial Dodge skill level (should be 0 or not unlocked)
+            val skillManager = gameEngine.getSkillManager()
             val initialSkillComponent = skillManager.getSkillComponent(worldState.player.id)
             val initialDodgeLevel = initialSkillComponent.getSkill("Dodge")?.level ?: 0
 
@@ -148,7 +146,6 @@ class SkillProgressionTest {
 
         } finally {
             llmClient.close()
-            skillDatabase.close()
             abyssWorld.worldDatabase.close()
         }
     }

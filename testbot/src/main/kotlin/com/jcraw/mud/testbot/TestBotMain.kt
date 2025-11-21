@@ -1,5 +1,7 @@
 package com.jcraw.mud.testbot
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
 import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
@@ -138,8 +140,8 @@ fun main() = runBlocking {
         println("   Proceeding without SkillManager - commands will be limited.")
     }
 
-    // Create game engine
-    val gameEngine = InMemoryGameEngine(
+    // Create real game engine (same as console/GUI clients)
+    val mudGame = MudGame(
         initialWorldState = worldState,
         descriptionGenerator = descriptionGenerator,
         npcInteractionGenerator = npcInteractionGenerator,
@@ -147,6 +149,9 @@ fun main() = runBlocking {
         memoryManager = memoryManager,
         llmClient = llmClient
     )
+
+    // Wrap in adapter for testbot (captures stdout)
+    val gameEngine = RealGameEngineAdapter(mudGame)
 
     // Create test bot runner
     val testBot = TestBotRunner(

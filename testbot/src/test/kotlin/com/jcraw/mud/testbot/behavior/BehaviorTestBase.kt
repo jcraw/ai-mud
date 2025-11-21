@@ -1,10 +1,11 @@
 package com.jcraw.mud.testbot.behavior
 
+import com.jcraw.app.MudGame
+import com.jcraw.app.RealGameEngineAdapter
 import com.jcraw.mud.core.*
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.*
 import com.jcraw.mud.reasoning.skill.SkillManager
-import com.jcraw.mud.testbot.InMemoryGameEngine
 import com.jcraw.sophia.llm.LLMClient
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 /**
  * Base class for manual BDD-style behavior tests.
  *
- * Provides easy setup of InMemoryGameEngine with optional LLM integration.
+ * Provides easy setup of real MudGame with optional LLM integration.
  * Reuses all real game logic - no mocks unless you want them.
  *
  * Example usage:
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.BeforeEach
  */
 abstract class BehaviorTestBase {
 
-    protected lateinit var engine: InMemoryGameEngine
+    protected lateinit var engine: GameEngineInterface
     protected var lastOutput: String = ""
     protected var apiKey: String? = null
     protected var llmClient: LLMClient? = null
@@ -78,15 +79,17 @@ abstract class BehaviorTestBase {
         engine = createEngine()
     }
 
-    protected open fun createEngine(): InMemoryGameEngine {
+    protected open fun createEngine(): GameEngineInterface {
         val worldState = createInitialWorldState()
 
-        // Simple setup - InMemoryGameEngine works without optional components
-        // LLM components are optional and will be used if available
-        return InMemoryGameEngine(
+        // Create real game engine (same as console/GUI clients)
+        val mudGame = MudGame(
             initialWorldState = worldState,
-            llmClient = llmClient
+            llmClient = llmClient as? OpenAIClient
         )
+
+        // Wrap in adapter for testbot (captures stdout)
+        return RealGameEngineAdapter(mudGame)
     }
 
     // ====================

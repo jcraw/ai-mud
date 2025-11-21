@@ -1,5 +1,6 @@
 package com.jcraw.mud.testbot
 
+import com.jcraw.mud.core.GameEngineInterface
 import com.jcraw.sophia.llm.LLMClient
 import kotlinx.coroutines.delay
 import java.time.Instant

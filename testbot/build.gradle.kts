@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":reasoning"))
     implementation(project(":action"))
     implementation(project(":memory"))
+    implementation(project(":app"))
     implementation(libs.bundles.kotlinxEcosystem)
 
     testImplementation(kotlin("test"))

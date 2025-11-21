@@ -57,12 +57,12 @@ class MudGame(
     private val llmClient: OpenAIClient? = null
 ) {
     internal var worldState: WorldState = initialWorldState
-    private var running = true
+    internal var running = true
     private var respawnState: RespawnState? = null
     internal val combatResolver = CombatResolver()
     internal val skillCheckResolver = SkillCheckResolver()
     internal val persistenceManager = PersistenceManager()
-    private val intentRecognizer = IntentRecognizer(llmClient)
+    internal val intentRecognizer = IntentRecognizer(llmClient)
     internal val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
     internal var lastConversationNpcId: String? = null
 
@@ -208,13 +208,6 @@ class MudGame(
     }
 
     /**
-     * Set running state (used by quit handler).
-     */
-    internal fun setRunning(value: Boolean) {
-        running = value
-    }
-
-    /**
      * Print welcome message.
      */
     internal fun printWelcome() {
@@ -333,7 +326,7 @@ class MudGame(
     /**
      * Process a parsed intent by dispatching to appropriate handler.
      */
-    private fun processIntent(intent: Intent) {
+    internal fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> com.jcraw.app.handlers.MovementHandlers.handleMove(this, intent.direction)
             is Intent.Scout -> com.jcraw.app.handlers.MovementHandlers.handleScout(this, intent.direction)
@@ -436,7 +429,7 @@ class MudGame(
      * Executes all NPC actions whose actionTimerEnd <= current game time.
      * This should be called before processing player input.
      */
-    private fun processNPCTurns() {
+    internal fun processNPCTurns() {
         println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")
         val queue = turnQueue ?: return
         val aiHandler = monsterAIHandler ?: return
@@ -708,7 +701,7 @@ class MudGame(
     /**
      * Build a map of exits with their destination names for navigation parsing.
      */
-    private fun buildExitsWithNames(node: GraphNodeComponent): Map<Direction, String> {
+    internal fun buildExitsWithNames(node: GraphNodeComponent): Map<Direction, String> {
         return node.neighbors.mapNotNull { edge ->
             val direction = Direction.fromString(edge.direction) ?: return@mapNotNull null
             val targetName = worldState.getSpace(edge.targetId)?.name ?: edge.targetId
@@ -720,7 +713,7 @@ class MudGame(
      * Determine the base action cost for an intent type.
      * Maps intent types to ActionCosts constants.
      */
-    private fun getBaseCostForIntent(intent: Intent): Int {
+    internal fun getBaseCostForIntent(intent: Intent): Int {
         return when (intent) {
             is Intent.Attack -> ActionCosts.MELEE_ATTACK
             is Intent.Move, is Intent.Travel -> ActionCosts.MOVE
