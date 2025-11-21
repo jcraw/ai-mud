@@ -163,7 +163,7 @@ fun main() = runBlocking {
     val report = testBot.run()
 
     // Show where logs were saved
-    println("\n📁 Test logs saved to: test-logs/")
+    println("\n📁 Test logs saved to: test-logs/${scenario.name}/")
     println("   - Gameplay log: ${scenario.name}_*.txt")
     println("   - Test report: ${scenario.name}_*_report.json")
     println("   - Test summary: ${scenario.name}_*_summary.txt")

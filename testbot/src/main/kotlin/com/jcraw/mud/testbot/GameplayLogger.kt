@@ -30,6 +30,7 @@ class GameplayLogger(
      * Log a single step to both JSON and text files.
      */
     fun logStep(sessionId: String, step: TestStep) {
+        ensureScenarioDirExists(sessionId)
         val jsonFile = getJsonFile(sessionId)
         val textFile = getTextFile(sessionId)
 
@@ -44,6 +45,7 @@ class GameplayLogger(
      * Log a complete test report at the end of a session.
      */
     fun logReport(sessionId: String, report: TestReport) {
+        ensureScenarioDirExists(sessionId)
         val reportFile = getReportFile(sessionId)
         val jsonText = json.encodeToString(report)
         reportFile.writeText(jsonText)
@@ -58,6 +60,7 @@ class GameplayLogger(
      * Log a gameplay analysis report.
      */
     fun logGameplayReport(sessionId: String, gameplayReport: GameplayReport) {
+        ensureScenarioDirExists(sessionId)
         val reportFile = getGameplayReportFile(sessionId)
         reportFile.writeText(gameplayReport.formatForConsole())
     }
@@ -70,24 +73,52 @@ class GameplayLogger(
         return "${scenario.name}_$timestamp"
     }
 
+    /**
+     * Extract scenario name from sessionId.
+     * SessionId format: {scenario_name}_{timestamp}
+     */
+    private fun getScenarioName(sessionId: String): String {
+        // Find the last underscore (before timestamp) and take everything before it
+        val lastUnderscoreIndex = sessionId.lastIndexOf('_')
+        return if (lastUnderscoreIndex > 0) {
+            sessionId.substring(0, lastUnderscoreIndex)
+        } else {
+            sessionId // Fallback if no underscore found
+        }
+    }
+
+    /**
+     * Ensure scenario subdirectory exists.
+     */
+    private fun ensureScenarioDirExists(sessionId: String) {
+        val scenarioName = getScenarioName(sessionId)
+        val scenarioDir = File(outputDir, scenarioName)
+        scenarioDir.mkdirs()
+    }
+
     private fun getJsonFile(sessionId: String): File {
-        return Paths.get(outputDir, "$sessionId.json").toFile()
+        val scenarioName = getScenarioName(sessionId)
+        return Paths.get(outputDir, scenarioName, "$sessionId.json").toFile()
     }
 
     private fun getTextFile(sessionId: String): File {
-        return Paths.get(outputDir, "$sessionId.txt").toFile()
+        val scenarioName = getScenarioName(sessionId)
+        return Paths.get(outputDir, scenarioName, "$sessionId.txt").toFile()
     }
 
     private fun getReportFile(sessionId: String): File {
-        return Paths.get(outputDir, "${sessionId}_report.json").toFile()
+        val scenarioName = getScenarioName(sessionId)
+        return Paths.get(outputDir, scenarioName, "${sessionId}_report.json").toFile()
     }
 
     private fun getSummaryFile(sessionId: String): File {
-        return Paths.get(outputDir, "${sessionId}_summary.txt").toFile()
+        val scenarioName = getScenarioName(sessionId)
+        return Paths.get(outputDir, scenarioName, "${sessionId}_summary.txt").toFile()
     }
 
     private fun getGameplayReportFile(sessionId: String): File {
-        return Paths.get(outputDir, "${sessionId}_gameplay_report.txt").toFile()
+        val scenarioName = getScenarioName(sessionId)
+        return Paths.get(outputDir, scenarioName, "${sessionId}_gameplay_report.txt").toFile()
     }
 
     private fun appendJsonStep(file: File, step: TestStep) {
