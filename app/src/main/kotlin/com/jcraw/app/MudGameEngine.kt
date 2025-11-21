@@ -356,6 +356,7 @@ class MudGame(
             is Intent.Talk -> com.jcraw.app.handlers.SocialHandlers.handleTalk(this, intent.target)
             is Intent.Say -> com.jcraw.app.handlers.SocialHandlers.handleSay(this, intent.message, intent.npcTarget)
             is Intent.Attack -> com.jcraw.app.handlers.CombatHandlers.handleAttack(this, intent.target)
+            is Intent.Flee -> com.jcraw.app.handlers.MovementHandlers.handleMove(this, intent.direction)
             is Intent.Equip -> com.jcraw.app.handlers.ItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
             is Intent.LootCorpse -> {

@@ -7,8 +7,13 @@ import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.TreasureRoomComponent
+import com.jcraw.mud.core.ComponentType
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomExitLogic
+import com.jcraw.mud.reasoning.combat.FleeResolver
+import com.jcraw.mud.reasoning.combat.FleeResult
+import com.jcraw.mud.reasoning.combat.AttackResult
+import com.jcraw.mud.reasoning.skill.SkillManager
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -17,9 +22,21 @@ import kotlinx.coroutines.runBlocking
 object MovementHandlers {
 
     fun handleMove(game: MudGame, direction: Direction) {
-        // V2 combat is emergent - no modal combat state, so movement is always allowed
-        // Hostile NPCs in turn queue will get their attacks when their timer expires
+        // Check for hostile entities in current room
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val hostiles = getHostileEntitiesInRoom(game, currentSpaceId)
 
+        if (hostiles.isNotEmpty()) {
+            // Attempt to flee instead of free movement
+            handleFlee(game, direction, hostiles)
+            return
+        }
+
+        // No hostiles - normal movement
+        performMove(game, direction)
+    }
+
+    private fun performMove(game: MudGame, direction: Direction) {
         // V3: Graph-based navigation
         val previousSpaceId = game.worldState.player.currentRoomId
         val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
@@ -35,6 +52,113 @@ object MovementHandlers {
         // Treasure room exit finalization disabled - players can return and swap anytime
         // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
         postMove(game, direction.displayName, null)
+    }
+
+    private fun handleFlee(game: MudGame, direction: Direction, hostiles: List<String>) = runBlocking {
+        println("\n⚠️  Hostile creatures block your path! You attempt to flee...")
+
+        // Create FleeResolver
+        val attackResolver = game.attackResolver
+        if (attackResolver == null) {
+            println("Flee system unavailable. Allowing movement.")
+            performMove(game, direction)
+            return@runBlocking
+        }
+
+        val fleeResolver = FleeResolver(attackResolver)
+
+        // Resolve flee attempt
+        val result = fleeResolver.resolveFlee(
+            fleeingEntityId = game.worldState.player.id,
+            pursuers = hostiles,
+            targetDirection = direction,
+            worldState = game.worldState,
+            skillManager = game.skillManager
+        )
+
+        // Process skill progression
+        processFleeSkillProgression(game, result)
+
+        // Handle result
+        when (result) {
+            is FleeResult.Success -> {
+                println("\n✅ Flee SUCCESS! You escape to safety.")
+                performMove(game, direction)
+            }
+            is FleeResult.Failure -> {
+                println("\n❌ Flee FAILED! You are intercepted!")
+
+                // Narrate free attacks
+                result.freeAttacks.forEach { attack ->
+                    when (attack) {
+                        is AttackResult.Hit -> {
+                            val attacker = game.worldState.getEntity(attack.attackerId)
+                            println("\nThe ${attacker?.name ?: "enemy"} strikes you for ${attack.damage} damage!")
+
+                            // Update player health
+                            game.worldState = game.worldState.updatePlayer(
+                                game.worldState.player.copy(
+                                    health = game.worldState.player.health - attack.damage
+                                )
+                            )
+                        }
+                        is AttackResult.Miss -> {
+                            val attacker = game.worldState.getEntity(attack.attackerId)
+                            println("\nThe ${attacker?.name ?: "enemy"} swings at you but misses!")
+                        }
+                        else -> {}
+                    }
+                }
+
+                // Check for player death
+                if (game.worldState.player.health <= 0) {
+                    println("\n💀 You have been slain!")
+                    // TODO: Trigger player death/respawn logic
+                }
+            }
+            is FleeResult.Error -> {
+                println("\nFlee attempt failed: ${result.reason}")
+                println("Allowing movement as fallback.")
+                performMove(game, direction)
+            }
+        }
+    }
+
+    private fun getHostileEntitiesInRoom(game: MudGame, spaceId: String): List<String> {
+        val turnQueue = game.turnQueue ?: return emptyList()
+        val entitiesInRoom = game.worldState.getEntitiesInSpace(spaceId)
+
+        // Any NPC in the turn queue is considered actively engaged in combat
+        return entitiesInRoom
+            .filterIsInstance<Entity.NPC>()
+            .filter { npc -> turnQueue.contains(npc.id) }
+            .map { it.id }
+    }
+
+    private fun processFleeSkillProgression(game: MudGame, result: FleeResult) {
+        val skillManager = game.skillManager
+
+        // Flee entity gains Escape XP
+        if (result.escapeSkillUsed) {
+            skillManager.attemptSkillProgress(
+                entityId = result.fleeingEntityId,
+                skillName = "Escape",
+                baseXp = 10L,
+                success = result is FleeResult.Success
+            )
+        }
+
+        // Pursuers gain Pursuit XP
+        result.pursuitSkillsUsed.forEach { (pursuerId, pursuitLevel) ->
+            if (pursuitLevel > 0) {
+                skillManager.attemptSkillProgress(
+                    entityId = pursuerId,
+                    skillName = "Pursuit",
+                    baseXp = 10L,
+                    success = result is FleeResult.Failure
+                )
+            }
+        }
     }
 
     fun handleLook(game: MudGame, target: String?) {

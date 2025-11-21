@@ -19,6 +19,7 @@ if (localPropertiesFile.exists()) {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":config"))
     implementation(project(":perception"))
     implementation(project(":reasoning"))
     implementation(project(":memory"))

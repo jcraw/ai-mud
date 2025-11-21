@@ -4,6 +4,9 @@ import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomExitLogic
+import com.jcraw.mud.reasoning.combat.FleeResolver
+import com.jcraw.mud.reasoning.combat.FleeResult
+import com.jcraw.mud.reasoning.combat.AttackResult
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -12,6 +15,21 @@ import kotlinx.coroutines.runBlocking
 object ClientMovementHandlers {
 
     fun handleMove(game: EngineGameClient, direction: Direction) {
+        // Check for hostile entities in current room
+        val currentSpaceId = game.worldState.player.currentRoomId
+        val hostiles = getHostileEntitiesInRoom(game, currentSpaceId)
+
+        if (hostiles.isNotEmpty()) {
+            // Attempt to flee instead of free movement
+            handleFlee(game, direction, hostiles)
+            return
+        }
+
+        // No hostiles - normal movement
+        performMove(game, direction)
+    }
+
+    private fun performMove(game: EngineGameClient, direction: Direction) {
         val previousSpaceId = game.worldState.player.currentRoomId
         val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
@@ -24,6 +42,113 @@ object ClientMovementHandlers {
         // Treasure room exit finalization disabled - players can return and swap anytime
         // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
         game.handlePlayerMovement(direction.displayName, null)
+    }
+
+    private fun handleFlee(game: EngineGameClient, direction: Direction, hostiles: List<String>) = runBlocking {
+        game.emitEvent(GameEvent.Combat("⚠️  Hostile creatures block your path! You attempt to flee..."))
+
+        // Create FleeResolver
+        val attackResolver = game.attackResolver
+        if (attackResolver == null) {
+            game.emitEvent(GameEvent.System("Flee system unavailable. Allowing movement.", GameEvent.MessageLevel.WARNING))
+            performMove(game, direction)
+            return@runBlocking
+        }
+
+        val fleeResolver = FleeResolver(attackResolver)
+
+        // Resolve flee attempt
+        val result = fleeResolver.resolveFlee(
+            fleeingEntityId = game.worldState.player.id,
+            pursuers = hostiles,
+            targetDirection = direction,
+            worldState = game.worldState,
+            skillManager = game.skillManager
+        )
+
+        // Process skill progression
+        processFleeSkillProgression(game, result)
+
+        // Handle result
+        when (result) {
+            is FleeResult.Success -> {
+                game.emitEvent(GameEvent.Combat("✅ Flee SUCCESS! You escape to safety."))
+                performMove(game, direction)
+            }
+            is FleeResult.Failure -> {
+                game.emitEvent(GameEvent.Combat("❌ Flee FAILED! You are intercepted!"))
+
+                // Narrate free attacks
+                result.freeAttacks.forEach { attack ->
+                    when (attack) {
+                        is AttackResult.Hit -> {
+                            val attacker = game.worldState.getEntity(attack.attackerId)
+                            game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} strikes you for ${attack.damage} damage!", attack.damage))
+
+                            // Update player health
+                            game.worldState = game.worldState.updatePlayer(
+                                game.worldState.player.copy(
+                                    health = game.worldState.player.health - attack.damage
+                                )
+                            )
+                        }
+                        is AttackResult.Miss -> {
+                            val attacker = game.worldState.getEntity(attack.attackerId)
+                            game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} swings at you but misses!"))
+                        }
+                        else -> {}
+                    }
+                }
+
+                // Check for player death
+                if (game.worldState.player.health <= 0) {
+                    game.emitEvent(GameEvent.Combat("💀 You have been slain!"))
+                    // TODO: Trigger player death/respawn logic
+                }
+            }
+            is FleeResult.Error -> {
+                game.emitEvent(GameEvent.System("Flee attempt failed: ${result.reason}", GameEvent.MessageLevel.ERROR))
+                game.emitEvent(GameEvent.System("Allowing movement as fallback.", GameEvent.MessageLevel.INFO))
+                performMove(game, direction)
+            }
+        }
+    }
+
+    private fun getHostileEntitiesInRoom(game: EngineGameClient, spaceId: String): List<String> {
+        val turnQueue = game.turnQueue ?: return emptyList()
+        val entitiesInRoom = game.worldState.getEntitiesInSpace(spaceId)
+
+        // Any NPC in the turn queue is considered actively engaged in combat
+        return entitiesInRoom
+            .filterIsInstance<Entity.NPC>()
+            .filter { npc -> turnQueue.contains(npc.id) }
+            .map { it.id }
+    }
+
+    private fun processFleeSkillProgression(game: EngineGameClient, result: FleeResult) {
+        val skillManager = game.skillManager
+
+        // Flee entity gains Escape XP
+        if (result.escapeSkillUsed) {
+            skillManager.attemptSkillProgress(
+                entityId = result.fleeingEntityId,
+                skillName = "Escape",
+                baseXp = 10L,
+                success = result is FleeResult.Success
+            )
+        }
+
+        // Pursuers gain Pursuit XP
+        result.pursuitSkillsUsed.forEach { (pursuerId, pursuitLevel) ->
+            if (pursuitLevel > 0) {
+                skillManager.attemptSkillProgress(
+                    entityId = pursuerId,
+                    skillName = "Pursuit",
+                    baseXp = 10L,
+                    success = result is FleeResult.Failure
+                )
+            }
+        }
     }
 
     fun handleLook(game: EngineGameClient, target: String?) {

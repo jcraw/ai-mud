@@ -212,6 +212,7 @@ class GameServer(
             is Intent.Trade -> Triple("Trading not yet supported in multi-user mode", worldState, null)
             is Intent.UseItem -> Triple("Advanced item use not yet supported in multi-user mode", worldState, null)
             is Intent.Attack -> handleAttack(playerId, playerState, intent.target)
+            is Intent.Flee -> Triple("Flee not yet supported in multi-user mode", worldState, null)
             is Intent.Talk -> handleTalk(playerId, playerState, intent.target)
             is Intent.TakeTreasure -> Triple("Treasure rooms not yet supported in multi-user mode", worldState, null)
             is Intent.ReturnTreasure -> Triple("Treasure rooms not yet supported in multi-user mode", worldState, null)

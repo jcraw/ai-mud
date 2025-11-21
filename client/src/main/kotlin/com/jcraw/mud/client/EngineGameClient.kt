@@ -788,6 +788,7 @@ class EngineGameClient(
             is Intent.Talk -> ClientSocialHandlers.handleTalk(this, intent.target)
             is Intent.Say -> ClientSocialHandlers.handleSay(this, intent.message, intent.npcTarget)
             is Intent.Attack -> ClientCombatHandlers.handleAttack(this, intent.target)
+            is Intent.Flee -> ClientMovementHandlers.handleMove(this, intent.direction)
             is Intent.Equip -> ClientItemHandlers.handleEquip(this, intent.target)
             is Intent.Use -> ClientItemHandlers.handleUse(this, intent.target)
             is Intent.Check -> ClientSocialHandlers.handleCheck(this, intent.target)

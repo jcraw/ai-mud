@@ -2,6 +2,7 @@ package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.*
+import com.jcraw.mud.config.GameConfig
 import com.jcraw.mud.reasoning.combat.AttackResolver
 import com.jcraw.mud.reasoning.combat.AttackResult
 import com.jcraw.mud.reasoning.combat.CombatBehavior
@@ -326,7 +327,7 @@ object CombatHandlers {
 
         // Process defender skills (NPC) - only if player entity
         // NPCs don't gain XP unless enableNPCLuckyProgression is true
-        if (com.jcraw.mud.config.GameConfig.enableNPCLuckyProgression) {
+        if (GameConfig.enableNPCLuckyProgression) {
             val defenderId = attackResult.defenderId
             attackResult.defenderSkillsUsed.forEach { skillName ->
                 val result = game.skillManager.attemptSkillProgress(

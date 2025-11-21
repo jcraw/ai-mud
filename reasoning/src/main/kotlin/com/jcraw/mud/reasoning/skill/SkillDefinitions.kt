@@ -149,6 +149,18 @@ object SkillDefinitions {
             description = "Fighting without weapons using fists, kicks, and grapples. Damage scales with Strength.",
             tags = listOf("combat", "weapon", "melee", "unarmed"),
             baseUnlockChance = 8
+        ),
+        SkillDefinition(
+            name = "Escape",
+            description = "Fleeing from combat and evading pursuit. Increases success chance when retreating from battle.",
+            tags = listOf("combat", "mobility", "evasion"),
+            baseUnlockChance = 5
+        ),
+        SkillDefinition(
+            name = "Pursuit",
+            description = "Chasing and intercepting fleeing targets. Prevents enemies from escaping combat.",
+            tags = listOf("combat", "mobility", "tracking"),
+            baseUnlockChance = 5
         )
     )
 

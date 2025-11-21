@@ -132,6 +132,13 @@ sealed class Intent {
     data class Attack(val target: String? = null) : Intent()
 
     /**
+     * Flee from combat in a specified direction
+     * @param direction The direction to flee towards
+     */
+    @Serializable
+    data class Flee(val direction: Direction) : Intent()
+
+    /**
      * Equip a weapon or armor from inventory
      * @param target The name/identifier of the item to equip
      */
