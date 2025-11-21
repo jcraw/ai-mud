@@ -1,7 +1,6 @@
 package com.jcraw.mud.testbot.scenarios
 
 import com.jcraw.mud.config.GameConfig
-import com.jcraw.mud.core.SampleDungeon
 import com.jcraw.mud.core.SkillComponent
 import com.jcraw.mud.core.SkillState
 import com.jcraw.mud.memory.MemoryManager
@@ -12,6 +11,7 @@ import com.jcraw.mud.reasoning.NPCInteractionGenerator
 import com.jcraw.mud.reasoning.NPCKnowledgeManager
 import com.jcraw.mud.reasoning.RoomDescriptionGenerator
 import com.jcraw.mud.reasoning.skill.SkillManager
+import com.jcraw.mud.reasoning.world.initializeAncientAbyssWorld
 import com.jcraw.mud.testbot.*
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -56,11 +56,18 @@ class SkillProgressionTest {
         // ARRANGE: Set up game with enemies and skill progression enabled
         GameConfig.enableMobGeneration = true  // Ensure enemies spawn
 
-        // TODO: Use Ancient Abyss dungeon (same as console/GUI) instead of SampleDungeon
-        // Requires complex setup with WorldDatabase + 6 repositories + 5 generators
-        // SampleDungeon is simpler for testing skill progression mechanics
-        val worldState = SampleDungeon.createInitialWorldState()
-        val llmClient = OpenAIClient(apiKey!!)
+        // Initialize Ancient Abyss world (same as console/GUI clients)
+        // Use in-memory database for test isolation
+        val abyssWorld = initializeAncientAbyssWorld(
+            apiKey = apiKey!!,
+            playerId = "test_player",
+            playerName = "Test Adventurer",
+            dbPath = ":memory:",  // In-memory database for testing
+            includeQuests = true
+        ).getOrThrow()
+
+        val worldState = abyssWorld.worldState
+        val llmClient = abyssWorld.llmClient
 
         // Initialize SkillManager with in-memory database for testing
         val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(":memory:")
@@ -142,6 +149,7 @@ class SkillProgressionTest {
         } finally {
             llmClient.close()
             skillDatabase.close()
+            abyssWorld.worldDatabase.close()
         }
     }
 

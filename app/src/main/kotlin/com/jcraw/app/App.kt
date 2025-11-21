@@ -47,108 +47,25 @@ fun main() {
 
     println("Initializing the Ancient Abyss (graph-based mega-dungeon)...")
     println("(This may take a moment on first run while the world is generated.)")
-    val llmClient = OpenAIClient(apiKey)
-    val worldDatabase = com.jcraw.mud.memory.world.WorldDatabase(com.jcraw.mud.core.DatabaseConfig.WORLD_DB)
-    val worldSeedRepository = com.jcraw.mud.memory.world.SQLiteWorldSeedRepository(worldDatabase)
-    val worldChunkRepository = com.jcraw.mud.memory.world.SQLiteWorldChunkRepository(worldDatabase)
-    val spacePropertiesRepository = com.jcraw.mud.memory.world.SQLiteSpacePropertiesRepository(worldDatabase)
-    val treasureRoomRepository = com.jcraw.mud.memory.world.SQLiteTreasureRoomRepository(worldDatabase)
-    val graphNodeRepository = com.jcraw.mud.memory.world.SQLiteGraphNodeRepository(worldDatabase)
-    val spaceEntityRepository = com.jcraw.mud.memory.world.SQLiteSpaceEntityRepository(worldDatabase)
 
-    val loreEngine = com.jcraw.mud.reasoning.world.LoreInheritanceEngine(llmClient)
-    val graphGenerator = com.jcraw.mud.reasoning.worldgen.GraphGenerator(
-        rng = kotlin.random.Random.Default,
-        difficultyLevel = 1
-    )
-    val graphValidator = com.jcraw.mud.reasoning.worldgen.GraphValidator()
-    val worldGenerator = com.jcraw.mud.reasoning.world.WorldGenerator(
-        llmClient = llmClient,
-        loreEngine = loreEngine,
-        graphGenerator = graphGenerator,
-        graphValidator = graphValidator,
-        memoryManager = MemoryManager(llmClient)
-    )
-
-    val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(
-        worldGenerator,
-        worldChunkRepository,
-        spacePropertiesRepository,
-        spaceEntityRepository,
-        treasureRoomRepository,
-        graphNodeRepository
-    )
-    val bossGenerator = com.jcraw.mud.reasoning.world.BossGenerator(worldGenerator, spacePropertiesRepository)
-    val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(
-        worldGenerator,
-        worldChunkRepository,
-        spacePropertiesRepository
-    )
-    val dungeonInitializer = com.jcraw.mud.reasoning.world.DungeonInitializer(
-        worldGenerator,
-        worldSeedRepository,
-        worldChunkRepository,
-        spacePropertiesRepository,
-        townGenerator,
-        bossGenerator,
-        hiddenExitPlacer,
-        graphNodeRepository,
-        treasureRoomRepository
-    )
-    val abyssStarter = com.jcraw.mud.reasoning.world.AncientAbyssStarter(
-        worldSeedRepository,
-        worldChunkRepository,
-        dungeonInitializer
-    )
-    val worldStateSeeder = com.jcraw.mud.reasoning.world.WorldStateSeeder(
-        worldChunkRepository,
-        graphNodeRepository,
-        spacePropertiesRepository,
-        treasureRoomRepository,
-        worldGenerator
-    )
-
-    val abyssStart = kotlinx.coroutines.runBlocking {
-        abyssStarter.ensureAncientAbyss().getOrElse {
+    // Initialize Ancient Abyss world using shared helper
+    val abyssWorld = kotlinx.coroutines.runBlocking {
+        com.jcraw.mud.reasoning.world.initializeAncientAbyssWorld(
+            apiKey = apiKey,
+            playerId = "player_cli",
+            playerName = "Adventurer",
+            includeQuests = true
+        ).getOrElse {
             println("⚠️  Failed to prepare the Ancient Abyss: ${it.message}")
             return@runBlocking null
         }
     } ?: return
-    val navigationState = abyssStart.navigationState
 
-    val player = com.jcraw.mud.core.PlayerState(
-        id = "player_cli",
-        name = "Adventurer",
-        currentRoomId = abyssStart.startingSpaceId,
-        inventoryComponent = InventoryComponent(
-            items = emptyList(),
-            equipped = emptyMap(),
-            gold = 0,
-            capacityWeight = 50.0
-        )
-    )
-
-    var worldState: WorldState = WorldState(
-        players = mapOf(player.id to player)
-    )
-    worldState = worldState.copy(
-        gameProperties = worldState.gameProperties + ("starting_space" to abyssStart.startingSpaceId)
-    )
-    worldState = worldStateSeeder.seedWorldState(
-        worldState,
-        abyssStart.startingSpaceId,
-        onWarning = { println("⚠️  $it") },
-        onError = { println("⚠️  $it") }
-    )
-    val dungeonTheme = DungeonTheme.CRYPT
-
-    // Generate initial quests
-    val questGenerator = QuestGenerator()
-    val initialQuests = questGenerator.generateQuestPool(worldState, dungeonTheme, count = 3)
-    var worldStateWithQuests = worldState
-    initialQuests.forEach { quest ->
-        worldStateWithQuests = worldStateWithQuests.addAvailableQuest(quest)
-    }
+    val llmClient = abyssWorld.llmClient
+    val worldGenerator = abyssWorld.worldGenerator
+    var worldStateWithQuests = abyssWorld.worldState
+    val dungeonTheme = abyssWorld.dungeonTheme
+    val navigationState = abyssWorld.navigationState
 
     println()
     println("✅ Using LLM-powered descriptions, NPC dialogue, combat narration, and RAG memory\n")
