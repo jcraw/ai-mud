@@ -419,8 +419,11 @@ class InMemoryGameEngine(
             return "$attackNarrative\nVictory! ${npc.name} has been defeated!" + questNotifications
         }
 
+        // Show enemy health status (classic MUD style)
+        val npcHealthStatus = getHealthDescriptor(npcHealth, npc.health, npc.name)
+
         // NPC counter-attacks
-        val counterNarrative = "\n${npc.name} strikes back for $npcDamage damage!"
+        val counterNarrative = "${npc.name} strikes back for $npcDamage damage!"
 
         // Apply damage to player
         val updatedPlayer = worldState.player.takeDamage(npcDamage)
@@ -429,10 +432,13 @@ class InMemoryGameEngine(
         // Check if player died
         if (updatedPlayer.isDead()) {
             running = false
-            return "$attackNarrative$counterNarrative\nYou have been defeated! Game over."
+            return "$attackNarrative\n$npcHealthStatus\n$counterNarrative\nYou have been defeated! Game over."
         }
 
-        return "$attackNarrative$counterNarrative"
+        // Show player health after taking damage
+        val playerHealthStatus = "(HP: ${updatedPlayer.health}/${updatedPlayer.maxHealth})"
+
+        return "$attackNarrative\n$npcHealthStatus\n$counterNarrative $playerHealthStatus"
     }
 
     private fun handleEquip(target: String): String {
@@ -936,5 +942,26 @@ class InMemoryGameEngine(
         }
 
         return notifications.joinToString("")
+    }
+
+    /**
+     * Get descriptive health status for an entity (classic MUD style).
+     * Provides vague health indicators without exact HP numbers.
+     */
+    private fun getHealthDescriptor(currentHp: Int, maxHp: Int, entityName: String): String {
+        val healthPercent = (currentHp.toDouble() / maxHp.toDouble() * 100).toInt()
+
+        val descriptor = when {
+            healthPercent >= 100 -> "is in perfect health"
+            healthPercent >= 90 -> "has a few scratches"
+            healthPercent >= 75 -> "has some small wounds"
+            healthPercent >= 50 -> "has quite a few wounds"
+            healthPercent >= 30 -> "is bleeding badly"
+            healthPercent >= 15 -> "looks pretty hurt"
+            healthPercent >= 5 -> "is in awful condition"
+            else -> "is nearly dead"
+        }
+
+        return "The $entityName $descriptor."
     }
 }

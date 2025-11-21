@@ -152,6 +152,14 @@ object CombatHandlers {
                 }
                 println("\n$narrative")
 
+                // Show enemy health status (classic MUD style)
+                val npcHealthStatus = getHealthDescriptor(
+                    currentHp = attackResult.updatedDefenderCombat.currentHp,
+                    maxHp = attackResult.updatedDefenderCombat.maxHp,
+                    entityName = npc.name
+                )
+                println(npcHealthStatus)
+
                 // Process skill progression for both attacker and defender
                 processSkillProgression(game, attackResult)
 
@@ -361,5 +369,26 @@ object CombatHandlers {
                 else -> {} // Silently accumulate XP
             }
         }
+    }
+
+    /**
+     * Get descriptive health status for an entity (classic MUD style).
+     * Provides vague health indicators without exact HP numbers.
+     */
+    private fun getHealthDescriptor(currentHp: Int, maxHp: Int, entityName: String): String {
+        val healthPercent = (currentHp.toDouble() / maxHp.toDouble() * 100).toInt()
+
+        val descriptor = when {
+            healthPercent >= 100 -> "is in perfect health"
+            healthPercent >= 90 -> "has a few scratches"
+            healthPercent >= 75 -> "has some small wounds"
+            healthPercent >= 50 -> "has quite a few wounds"
+            healthPercent >= 30 -> "is bleeding badly"
+            healthPercent >= 15 -> "looks pretty hurt"
+            healthPercent >= 5 -> "is in awful condition"
+            else -> "is nearly dead"
+        }
+
+        return "The $entityName $descriptor."
     }
 }
