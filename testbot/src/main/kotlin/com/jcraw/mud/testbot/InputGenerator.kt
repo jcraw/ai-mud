@@ -535,63 +535,41 @@ class InputGenerator(
                         Regex("level\\s+(\\d+)").find(line)?.groupValues?.get(1)?.toIntOrNull()
                     } ?: 0
 
-                val objectives = mapOf(
-                    "check_current_skills" to actionsTaken.any { it.contains("skills") || it.contains("skill") },
-                    "look_for_enemies" to actionsTaken.any { it == "look" },
-                    "explore_for_combat" to actionsTaken.any { it.matches(Regex("[nsew]|north|south|east|west")) },
-                    "engage_in_combat" to actionsTaken.any { it.contains("attack") },
-                    "maintain_combat" to (actionsTaken.count { it.contains("attack") } >= 5),
-                    "check_progress" to (actionsTaken.count { it.contains("skills") } >= 2),
-                    "reach_level_5" to (dodgeLevel >= 5),
-                    "reach_level_10" to (dodgeLevel >= 10)
-                )
-
-                val completed = objectives.filter { it.value }.keys
-                val remaining = objectives.filter { !it.value }.keys
-
                 """
-                GOAL: Level the Dodge skill from 0 to 10 through combat
+                YOUR GOAL: Level your Dodge skill from 0 to 10
 
-                CURRENT PROGRESS:
+                CURRENT STATUS:
                 - Dodge Level: $dodgeLevel / 10 ${if (dodgeLevel >= 10) "✅ COMPLETE!" else ""}
                 - Actions taken: ${actionsTaken.size}
 
-                MANDATORY OBJECTIVES:
-                ✓ Completed (${completed.size}/8): ${completed.joinToString(", ")}
-                ✗ Remaining (${remaining.size}/8): ${remaining.joinToString(", ")}
+                HOW DODGE SKILL WORKS:
+                - Dodge is a defensive skill that activates when enemies attack you in combat
+                - Each time you're attacked, you gain Dodge XP (amount varies by enemy difficulty)
+                - Dual progression: 15% lucky chance for instant level-up OR gradual XP accumulation
+                - Higher levels require more XP (quadratic scaling)
+                - To level Dodge, you need to GET INTO COMBAT and let enemies attack you
 
-                STRATEGY FOR LEVELING DODGE:
-                1. check_current_skills - Use 'skills' command to see current Dodge level and XP
-                2. look_for_enemies - Use 'look' to find hostile NPCs in current room
-                3. explore_for_combat - Move to different rooms to find more enemies
-                4. engage_in_combat - Attack enemies to trigger combat (enemies counter-attack, using your Dodge)
-                5. maintain_combat - Continue fighting - each enemy attack gives Dodge XP
-                6. check_progress - Periodically use 'skills' to see progress toward level 10
-                7. reach_level_5 - Halfway milestone
-                8. reach_level_10 - Final goal achieved!
+                WHAT YOU NEED TO DO:
+                - Find hostile NPCs/enemies in the dungeon
+                - Engage them in combat (attack them)
+                - Survive their counter-attacks (this trains Dodge)
+                - Repeat until Dodge reaches level 10
 
-                HOW DODGE SKILL PROGRESSION WORKS:
-                - Every time an enemy attacks you, your Dodge skill is used for defense
-                - Dual progression: 15% lucky chance for instant level OR XP accumulation
-                - XP increases quadratically: Level 9→10 requires 10,000 XP
-                - Keep fighting enemies to accumulate XP and trigger lucky progression
-                - Combat feedback shows: "Dodge +350 XP (800/900 total)"
+                NAVIGATION TIPS:
+                - Read room descriptions carefully - they show available exits
+                - Try different exits to explore and find enemies
+                - Safe zones (like towns) won't have hostile creatures
+                - Combat areas will have enemies to fight
 
-                CRITICAL RULES:
-                - FOCUS on combat - this is how you level Dodge (getting attacked)
-                - DO NOT waste actions on non-combat activities (unless exploring for enemies)
-                - Check 'skills' occasionally to track progress (not every turn)
-                - If room has no enemies, move to find more combat
-                - Each combat round = 1 chance for Dodge XP + lucky progression
+                THINK LIKE A PLAYER:
+                - Where would enemies be located?
+                - Which areas have I not explored yet?
+                - Am I making progress toward the goal?
+                - Should I check my skills to see XP progress?
 
-                REASONING GUIDANCE:
-                Before each action, think about:
-                - What's my current Dodge level and XP?
-                - Do I need to find more enemies or continue fighting?
-                - How much progress am I making toward level 10?
-                - Is this action helping me level Dodge?
+                Play naturally and reason through the problem. Use the 'skills' command to track progress.
 
-                Target: ~80-120 actions (estimated based on combat rounds needed)
+                Target: Complete within 120 actions
                 """.trimIndent()
             }
         }

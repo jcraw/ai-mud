@@ -1,0 +1,507 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 120
+        - Passed: 103
+        - Failed: 17
+        - Pass Rate: 85%
+
+        Timing:
+        - Start: 2025-11-21T20:39:14.494299814Z
+        - End: 2025-11-21T20:46:43.156428772Z
+        - Duration: 448.66s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✗ FAIL
+Input: skills
+Reason: The response does not provide the current Dodge level or any associated XP, which is expected when the player checks their skills.
+
+Step 2: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 5: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, but the available exits only include west. This violates the game's movement mechanics.
+
+Step 6: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 10: ✗ FAIL
+Input: go east
+Reason: The response indicates the player moves east, but there is no valid exit in that direction.
+
+Step 11: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: go west
+Reason: The response indicates that the player can move west, but the expected outcome suggests that the player should encounter enemies for combat, which is not addressed in the response.
+
+Step 15: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 18: ✗ FAIL
+Input: go east
+Reason: The response to the player's command to move east is incorrect as the player cannot go that way based on the available exits.
+
+Step 19: ✗ FAIL
+Input: go west
+Reason: The response indicates movement to the west, but there is no description of the room or any enemies, which is expected in this context.
+
+Step 20: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 25: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 26: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 27: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 28: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 29: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 30: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 31: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 32: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 33: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 34: ✗ FAIL
+Input: go east
+Reason: The response to the player's input of 'go east' is invalid as there is no exit in that direction.
+
+Step 35: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 38: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 39: ✗ FAIL
+Input: go west
+Reason: The response indicates that the player can move west, but the game state does not support this direction as an available exit.
+
+Step 40: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 41: ✓ PASS
+Input: attack the nearest enemy
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 43: ✗ FAIL
+Input: go east
+Reason: The response indicates movement in a direction that is not valid based on the current game state.
+
+Step 44: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 45: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 46: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 47: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 48: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 49: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 50: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 51: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 52: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 53: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 54: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, which is not a valid exit from the current location.
+
+Step 55: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 56: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 57: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 58: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 59: ✗ FAIL
+Input: go east
+Reason: The response indicates that the player moved east, but the room description does not match the expected outcome of moving to a new room with potential combat opportunities.
+
+Step 60: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 61: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 62: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 63: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 64: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 65: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 66: ✗ FAIL
+Input: go east
+Reason: The response to the player's command to go east is invalid as there is no exit in that direction.
+
+Step 67: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 68: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 69: ✗ FAIL
+Input: go east
+Reason: Moving east should lead to a new location with hostile NPCs for combat, but the response does not reflect that expectation.
+
+Step 70: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 71: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 72: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 73: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 74: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 75: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 76: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 77: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 78: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 79: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 80: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 81: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 82: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 83: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 84: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 85: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 86: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 87: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 88: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 89: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 90: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 91: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 92: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 93: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 94: ✗ FAIL
+Input: go east
+Reason: The response to the player's command to go east is invalid as there is no exit in that direction.
+
+Step 95: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 96: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 97: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 98: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 99: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 100: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 101: ✗ FAIL
+Input: go east
+Reason: The response to the player's command to go east is invalid as there is no exit in that direction.
+
+Step 102: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 103: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 104: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 105: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 106: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 107: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 108: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 109: ✗ FAIL
+Input: go east
+Reason: The response indicates that the player moved east, but the game state shows that the only available exit is west. This creates a contradiction.
+
+Step 110: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 111: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 112: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 113: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 114: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 115: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 116: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 117: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 118: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 119: ✗ FAIL
+Input: look
+Reason: The response does not provide information on any visible enemies or combat opportunities, which is necessary for leveling the Dodge skill.
+
+Step 120: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
