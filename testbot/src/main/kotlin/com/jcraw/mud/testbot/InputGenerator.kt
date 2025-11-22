@@ -83,7 +83,7 @@ class InputGenerator(
             // Show ALL actions taken (condensed) + last 3 detailed
             val allActions = "Actions taken so far (${recentHistory.size}): ${actionsTaken.joinToString(", ")}"
             val recentDetailed = recentHistory.takeLast(3).joinToString("\n") { step ->
-                "Player: ${step.playerInput}\nGM: ${step.gmResponse.take(200)}"
+                "Player: ${step.playerInput}\nGM: ${step.gmResponse.take(600)}"
             }
             "$allActions\n\nRecent details:\n$recentDetailed"
         }

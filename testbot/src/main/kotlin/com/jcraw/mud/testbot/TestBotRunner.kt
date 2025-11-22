@@ -221,7 +221,13 @@ class TestBotRunner(
             ""
         }
 
+        // Include the last GM response so the bot can see room descriptions and exits
+        val lastGMResponse = state.steps.lastOrNull()?.gmResponse ?: "No previous game output"
+
         return """
+            Last game output:
+            $lastGMResponse
+
             Current space: ${currentSpace?.name ?: "Unknown"}
             Player health: ${player.health}/${player.maxHealth}
             Inventory: ${player.inventory.joinToString { it.name }}
