@@ -120,6 +120,7 @@ suspend fun initializeAncientAbyssWorld(
         graphNodeRepository,
         spacePropertiesRepository,
         treasureRoomRepository,
+        spaceEntityRepository,
         worldGenerator
     )
 

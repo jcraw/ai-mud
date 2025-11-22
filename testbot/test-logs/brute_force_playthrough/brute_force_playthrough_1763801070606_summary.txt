@@ -1,0 +1,227 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 50
+        - Passed: 44
+        - Failed: 6
+        - Pass Rate: 88%
+
+        Timing:
+        - Start: 2025-11-22T08:44:30.606387218Z
+        - End: 2025-11-22T08:48:26.907534968Z
+        - Duration: 236.30s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✗ FAIL
+Input: go east
+Reason: [CODE] Invalid rejection: exit EAST existed but game rejected movement
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: take Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 5: ✗ FAIL
+Input: go west
+Reason: Player cannot move west from the Dark Corridor to the Forgotten Armory as the exit is only east.
+
+Step 6: ✓ PASS
+Input: take Heavy Chainmail
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: equip rusty iron sword
+Reason: Player cannot equip the Rusty Iron Sword despite it being in the room.
+
+Step 8: ✗ FAIL
+Input: equip rusty iron sword
+Reason: Player cannot equip the Rusty Iron Sword despite it being in the room.
+
+Step 9: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: equip heavy chainmail
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: equip iron sword
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: take health potion
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: take red health potion
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: take heavy gold pouch
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: equip heavy chainmail
+Reason: The game incorrectly states that the player does not have the Heavy Chainmail in their inventory, despite it being a recent action.
+
+Step 18: ✓ PASS
+Input: take heavy chainmail
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: take heavy chainmail
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: take heavy chainmail
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 25: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 26: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 27: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 28: ✗ FAIL
+Input: check chainmail
+Reason: The game did not provide information about the chainmail's availability when it should have.
+
+Step 29: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 30: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 31: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 32: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 33: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 34: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 35: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 38: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 39: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 40: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 41: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 43: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 44: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 45: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 46: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 47: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 48: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+Step 49: ✓ PASS
+Input: take heavy chainmail
+Reason: Step completed successfully
+
+Step 50: ✓ PASS
+Input: take chainmail
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

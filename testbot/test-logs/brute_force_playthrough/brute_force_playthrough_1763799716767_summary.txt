@@ -1,0 +1,227 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 50
+        - Passed: 39
+        - Failed: 11
+        - Pass Rate: 78%
+
+        Timing:
+        - Start: 2025-11-22T08:21:56.767223395Z
+        - End: 2025-11-22T08:25:45.896775041Z
+        - Duration: 229.13s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: take Heavy Chainmail
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: take Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: equip Rusty Iron Sword
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: take red health potion
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: go east
+Reason: Player cannot go east from the Ancient Treasury, as the only exit is west.
+
+Step 14: ✓ PASS
+Input: take heavy gold pouch
+Reason: Step completed successfully
+
+Step 15: ✗ FAIL
+Input: equip rusty iron sword
+Reason: The game incorrectly states that the player does not have the Rusty Iron Sword in their inventory when they should have been able to equip it.
+
+Step 16: ✗ FAIL
+Input: equip rusty iron sword
+Reason: The game incorrectly states that the player does not have the Rusty Iron Sword in their inventory, which contradicts the expected outcome of equipping it for combat.
+
+Step 17: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 21: ✗ FAIL
+Input: equip rusty iron sword
+Reason: Player cannot equip the Rusty Iron Sword because it is not in their inventory, which contradicts the expected behavior of collecting and equipping items.
+
+Step 22: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 25: ✗ FAIL
+Input: go west
+Reason: Player cannot move west from the Dark Corridor into the Forgotten Armory as it contradicts the current game state.
+
+Step 26: ✓ PASS
+Input: take Sharp Steel Dagger
+Reason: Step completed successfully
+
+Step 27: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 28: ✓ PASS
+Input: take Worn Leather Armor
+Reason: Step completed successfully
+
+Step 29: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 30: ✗ FAIL
+Input: go east
+Reason: The player is not able to see the health potion in the Ancient Treasury as expected.
+
+Step 31: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 32: ✗ FAIL
+Input: go west
+Reason: Player cannot move west from the Dark Corridor to the Forgotten Armory, as the current game state indicates the player is in the Forgotten Armory and the only exit is east.
+
+Step 33: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 34: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 35: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 38: ✗ FAIL
+Input: look
+Reason: The response does not provide any items available for taking, specifically the Iron Sword, which is expected in the Forgotten Armory.
+
+Step 39: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 40: ✗ FAIL
+Input: equip rusty iron sword
+Reason: Player cannot equip the Rusty Iron Sword because it was not successfully taken from the room.
+
+Step 41: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: take rusty iron sword
+Reason: Step completed successfully
+
+Step 43: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 44: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 45: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 46: ✗ FAIL
+Input: equip rusty iron sword
+Reason: Player cannot equip the Rusty Iron Sword because it is not in their inventory.
+
+Step 47: ✗ FAIL
+Input: equip sharp steel dagger
+Reason: The game response indicates that the player equipped the Sharp Steel Dagger, but the player does not have that item in their inventory, leading to a contradiction.
+
+Step 48: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 49: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+Step 50: ✓ PASS
+Input: take iron sword
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

@@ -1,0 +1,147 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: bad_playthrough
+        Description: Play poorly: skip gear, rush combat, die to boss (validates difficulty)
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 30
+        - Passed: 30
+        - Failed: 0
+        - Pass Rate: 100%
+
+        Timing:
+        - Start: 2025-11-22T08:20:02.030017496Z
+        - End: 2025-11-22T08:21:56.763401633Z
+        - Duration: 114.73s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: attack Skeleton King
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 25: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 26: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 27: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 28: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 29: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+Step 30: ✓ PASS
+Input: attack skeleton king
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

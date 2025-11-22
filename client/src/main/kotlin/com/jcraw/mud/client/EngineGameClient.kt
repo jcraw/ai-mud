@@ -212,6 +212,7 @@ class EngineGameClient(
                 graphNodeRepository,
                 spacePropertiesRepository,
                 treasureRoomRepository,
+                spaceEntityRepository,
                 it
             )
         }

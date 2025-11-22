@@ -1,0 +1,507 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 120
+        - Passed: 89
+        - Failed: 31
+        - Pass Rate: 74%
+
+        Timing:
+        - Start: 2025-11-22T07:54:24.802945350Z
+        - End: 2025-11-22T08:13:41.308156789Z
+        - Duration: 1156.51s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: go northwest
+Reason: Population failed error indicates a critical issue with NPC spawning.
+
+Step 5: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 8: ✗ FAIL
+Input: go southeast
+Reason: The response indicates a failure in spawning NPCs due to a missing path, which suggests a critical error in the game state.
+
+Step 9: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 12: ✗ FAIL
+Input: go north
+Reason: Population failed error indicates a problem with loading necessary game data.
+
+Step 13: ✗ FAIL
+Input: go north
+Reason: Encountered an error related to NPC population due to missing database path.
+
+Step 14: ✗ FAIL
+Input: go south
+Reason: The response contains a critical error message regarding NPC population failure, which indicates a problem with the game state.
+
+Step 15: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 16: ✗ FAIL
+Input: go northeast
+Reason: The response indicates a failed population due to a missing database path, which suggests a critical error in the game state.
+
+Step 17: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: attack training skeleton #1
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 24: ✗ FAIL
+Input: go southwest
+Reason: The response indicates movement southwest, which is not a valid exit from the current location.
+
+Step 25: ✗ FAIL
+Input: go northeast
+Reason: Encountered a population failure due to missing data path, which affects game state.
+
+Step 26: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 27: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 28: ✗ FAIL
+Input: go southwest
+Reason: The response indicates a movement to a direction (southwest) that is not listed in the available exits, which violates game mechanics.
+
+Step 29: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 30: ✓ PASS
+Input: attack giant rat alpha
+Reason: Step completed successfully
+
+Step 31: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 32: ✓ PASS
+Input: look north
+Reason: Step completed successfully
+
+Step 33: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 34: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 35: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 37: ✗ FAIL
+Input: go northeast
+Reason: The response indicates a failure to spawn NPCs due to a missing database path, which is a critical error.
+
+Step 38: ✗ FAIL
+Input: go southwest
+Reason: Population failed error indicates a critical issue with the game state.
+
+Step 39: ✓ PASS
+Input: attack giant rat #1
+Reason: Step completed successfully
+
+Step 40: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 41: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 43: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 44: ✗ FAIL
+Input: go north
+Reason: Population failed error indicates a critical issue with the game state, preventing further actions.
+
+Step 45: ✓ PASS
+Input: attack training skeleton #1
+Reason: Step completed successfully
+
+Step 46: ✗ FAIL
+Input: go northeast
+Reason: The response indicates a failure in population due to a missing database path, which suggests a critical error in loading game entities.
+
+Step 47: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 48: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 49: ✗ FAIL
+Input: go north
+Reason: Population failed error indicates a critical issue with the game state.
+
+Step 50: ✓ PASS
+Input: attack giant rat swarm
+Reason: Step completed successfully
+
+Step 51: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 52: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 53: ✗ FAIL
+Input: go south
+Reason: NPC spawn failed due to missing path, which affects the expected combat encounter.
+
+Step 54: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 55: ✗ FAIL
+Input: go northeast
+Reason: Encountered a population failure due to a missing database path, which prevents the game from processing NPCs correctly.
+
+Step 56: ✗ FAIL
+Input: go northwest
+Reason: The response contains an error message indicating a failed population due to a missing database path.
+
+Step 57: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 58: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 59: ✓ PASS
+Input: attack training skeleton #2
+Reason: Step completed successfully
+
+Step 60: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 61: ✓ PASS
+Input: attack training skeleton #1
+Reason: Step completed successfully
+
+Step 62: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 63: ✓ PASS
+Input: look south
+Reason: Step completed successfully
+
+Step 64: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 65: ✓ PASS
+Input: attack giant rat #1
+Reason: Step completed successfully
+
+Step 66: ✗ FAIL
+Input: go south
+Reason: The response indicates that the player cannot attack the Giant Rat #1, which is present in the game state but not recognized by the system.
+
+Step 67: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 68: ✓ PASS
+Input: attack giant rat #1
+Reason: Step completed successfully
+
+Step 69: ✗ FAIL
+Input: go north
+Reason: The response contains an error message regarding a failed population of NPCs due to a missing database path, which indicates a critical issue.
+
+Step 70: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 71: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 72: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 73: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 74: ✓ PASS
+Input: attack giant rat king
+Reason: Step completed successfully
+
+Step 75: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 76: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 77: ✗ FAIL
+Input: skills
+Reason: Response does not provide information about the Dodge skill or experience, which is expected.
+
+Step 78: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 79: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 80: ✓ PASS
+Input: attack training skeleton #1
+Reason: Step completed successfully
+
+Step 81: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 82: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 83: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 84: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 85: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 86: ✗ FAIL
+Input: skills
+Reason: The response does not provide any information about the Dodge skill progress, which is expected given the context of the scenario.
+
+Step 87: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 88: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 89: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 90: ✗ FAIL
+Input: go north
+Reason: Population failed error indicates a critical issue with accessing game data, which could prevent further gameplay.
+
+Step 91: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 92: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 93: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 94: ✓ PASS
+Input: attack training skeleton #3
+Reason: Step completed successfully
+
+Step 95: ✓ PASS
+Input: look south
+Reason: Step completed successfully
+
+Step 96: ✗ FAIL
+Input: skills
+Reason: The response does not provide the expected detailed view of skills, specifically the Dodge skill, which is critical for the player's understanding of their progression.
+
+Step 97: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 98: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 99: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 100: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 101: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 102: ✗ FAIL
+Input: go northeast
+Reason: The response indicates a movement to a direction (northeast) that is not available in the current game state, and there is an error message related to NPC spawning.
+
+Step 103: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 104: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 105: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 106: ✓ PASS
+Input: attack giant rat #1
+Reason: Step completed successfully
+
+Step 107: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 108: ✗ FAIL
+Input: go east
+Reason: The response indicates a failure in NPC population due to a missing path, which suggests a critical issue in the game state.
+
+Step 109: ✗ FAIL
+Input: go south
+Reason: Encountered a population failure error indicating a missing database path.
+
+Step 110: ✓ PASS
+Input: attack training skeleton #1
+Reason: Step completed successfully
+
+Step 111: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 112: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 113: ✗ FAIL
+Input: go south
+Reason: The response contains a critical error message indicating a failure to access the game data, which suggests a potential crash or inability to proceed.
+
+Step 114: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 115: ✗ FAIL
+Input: go south
+Reason: Encountered a population failure due to a missing database path, which prevents the game from spawning NPCs correctly.
+
+Step 116: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 117: ✗ FAIL
+Input: go north
+Reason: Population failed error indicates a critical issue with the game state.
+
+Step 118: ✗ FAIL
+Input: go southeast
+Reason: Encountered a population failure due to a missing database path, which affects game functionality.
+
+Step 119: ✗ FAIL
+Input: skills
+Reason: The response does not provide any information about the Dodge skill, which is expected when the player checks their skills.
+
+Step 120: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

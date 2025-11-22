@@ -1,0 +1,147 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: bad_playthrough
+        Description: Play poorly: skip gear, rush combat, die to boss (validates difficulty)
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 30
+        - Passed: 2
+        - Failed: 28
+        - Pass Rate: 6%
+
+        Timing:
+        - Start: 2025-11-22T08:29:38.757284319Z
+        - End: 2025-11-22T08:31:52.993263313Z
+        - Duration: 134.24s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 3: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 4: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 5: ✗ FAIL
+Input: attack Skeleton King
+Reason: [CODE] Bug: NPC 'Skeleton King' in room but combat didn't start
+
+Step 6: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 7: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 8: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 9: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 10: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 11: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 12: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 13: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 14: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 15: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 16: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 17: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 18: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 19: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 20: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 21: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 22: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 23: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 24: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 25: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 26: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 27: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 28: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 29: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+Step 30: ✗ FAIL
+Input: attack skeleton king
+Reason: [CODE] Bug: NPC 'skeleton king' in room but combat didn't start
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

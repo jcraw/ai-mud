@@ -1,0 +1,55 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: smart_playthrough
+        Description: Use persuasion/intimidation/skills to avoid difficult combat
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 7
+        - Passed: 7
+        - Failed: 0
+        - Pass Rate: 100%
+
+        Timing:
+        - Start: 2025-11-22T08:19:33.926231696Z
+        - End: 2025-11-22T08:20:02.024851363Z
+        - Duration: 28.10s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: talk to old guard
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: persuade old guard
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: intimidate Skeleton King
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

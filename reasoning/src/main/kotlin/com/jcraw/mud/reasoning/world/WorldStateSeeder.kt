@@ -4,13 +4,15 @@ import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.core.SpacePropertiesComponent
 import com.jcraw.mud.core.WorldChunkComponent
 import com.jcraw.mud.core.WorldState
+import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.repository.GraphNodeRepository
 import com.jcraw.mud.core.repository.SpacePropertiesRepository
 import com.jcraw.mud.core.repository.WorldChunkRepository
 import com.jcraw.mud.core.repository.TreasureRoomRepository
+import com.jcraw.mud.core.repository.SpaceEntityRepository
 
 /**
- * Loads persisted graph nodes/spaces/chunks into an in-memory WorldState.
+ * Loads persisted graph nodes/spaces/chunks/entities into an in-memory WorldState.
  * Shared by console + GUI so both hydrate the world the same way.
  */
 class WorldStateSeeder(
@@ -18,6 +20,7 @@ class WorldStateSeeder(
     private val graphNodeRepository: GraphNodeRepository,
     private val spacePropertiesRepository: SpacePropertiesRepository,
     private val treasureRoomRepository: TreasureRoomRepository,
+    private val spaceEntityRepository: SpaceEntityRepository,
     private val worldGenerator: WorldGenerator?
 ) {
     fun seedWorldState(
@@ -75,11 +78,28 @@ class WorldStateSeeder(
             emptyList()
         }.toMap()
 
+        // Load entities from spaces
+        val loadedEntities = mutableMapOf<String, Entity>()
+        loadedSpaces.forEach { (spaceId, space) ->
+            space.entities.forEach { entityId ->
+                spaceEntityRepository.findById(entityId).onSuccess { entity ->
+                    if (entity != null) {
+                        loadedEntities[entityId] = entity
+                    } else {
+                        onWarning("Entity $entityId from space $spaceId is null")
+                    }
+                }.onFailure {
+                    onWarning("Failed to load entity $entityId from space $spaceId: ${it.message}")
+                }
+            }
+        }
+
         return baseState.copy(
             graphNodes = loadedNodes,
             spaces = loadedSpaces,
             chunks = loadedChunks,
-            treasureRooms = baseState.treasureRooms + treasureRooms
+            treasureRooms = baseState.treasureRooms + treasureRooms,
+            entities = loadedEntities
         )
     }
 
