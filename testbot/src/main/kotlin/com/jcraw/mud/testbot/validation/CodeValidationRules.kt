@@ -20,6 +20,20 @@ object CodeValidationRules {
     ): ValidationResult? {
         if (worldState == null) return null
 
+        // Check for player death - this is a critical failure state
+        if (worldState.player.health <= 0) {
+            return ValidationResult(
+                pass = false,
+                reason = "Player died (HP: ${worldState.player.health}/${worldState.player.maxHealth}) - test should end",
+                details = mapOf(
+                    "validation_type" to "code",
+                    "health" to worldState.player.health.toString(),
+                    "max_health" to worldState.player.maxHealth.toString(),
+                    "death_detected" to "true"
+                )
+            )
+        }
+
         // Extract previous room ID from history
         val previousRoomId = if (recentHistory.isNotEmpty()) {
             worldState.player.currentRoomId // This is the room AFTER the last action

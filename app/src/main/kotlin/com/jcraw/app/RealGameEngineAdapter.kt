@@ -68,7 +68,17 @@ class RealGameEngineAdapter(
     }
 
     override fun isRunning(): Boolean {
-        return running
+        // Check adapter's running flag, mudGame's running flag, and player health
+        if (!running) return false
+        if (!mudGame.running) {
+            running = false
+            return false
+        }
+        if (mudGame.worldState.player.health <= 0) {
+            running = false
+            return false
+        }
+        return true
     }
 
     /**

@@ -361,6 +361,17 @@ class TestBotRunner(
                 reachedSecretChamber || bossDefeated
             }
             is TestScenario.SkillProgression -> {
+                // Complete if player dies (test should end, report current skill level)
+                val playerDied = worldState.player.health <= 0 || state.steps.any {
+                    it.gmResponse.contains("You have died", ignoreCase = true) ||
+                    it.gmResponse.contains("You have been slain", ignoreCase = true) ||
+                    it.gmResponse.contains("been defeated", ignoreCase = true) ||
+                    it.validationResult?.reason?.contains("Player died", ignoreCase = true) == true
+                }
+                if (playerDied) {
+                    return true
+                }
+
                 // Complete when Dodge skill reaches target level (10)
                 // Check response for skill level messages or query current level
                 val dodgeLevelReached = state.steps.any {
