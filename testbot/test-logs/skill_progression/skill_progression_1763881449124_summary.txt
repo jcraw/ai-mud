@@ -1,0 +1,171 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 36
+        - Passed: 11
+        - Failed: 25
+        - Pass Rate: 30%
+
+        Timing:
+        - Start: 2025-11-23T07:04:09.125526028Z
+        - End: 2025-11-23T07:11:02.626110280Z
+        - Duration: 413.50s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✗ FAIL
+Input: go north
+Reason: [CODE] Invalid rejection: exit NORTH existed but game rejected movement
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response to the player's command to move east is invalid, as the player is currently in the Vault of Beginnings where the only available exit is west.
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: go down
+Reason: The response contains multiple error messages related to NPC registration and data persistence, which indicate a failure in the game mechanics.
+
+Step 5: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 6: ✗ FAIL
+Input: attack weak goblin scout
+Reason: [CODE] Bug: NPC 'weak goblin scout' in room but combat didn't start
+
+Step 7: ✗ FAIL
+Input: attack weak goblin scout
+Reason: [CODE] Bug: NPC 'weak goblin scout' in room but combat didn't start
+
+Step 8: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 9: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 10: ✗ FAIL
+Input: wait for the Weak Goblin Scout to attack
+Reason: The response indicates an unknown command for a valid action, which should have been processed correctly.
+
+Step 11: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 12: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 14: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 15: ✗ FAIL
+Input: wait for the Weak Goblin Scout to attack
+Reason: The response indicates an unknown command instead of processing the player's intention to wait for the goblin to attack.
+
+Step 16: ✓ PASS
+Input: wait for the Weak Goblin Scout to attack
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 18: ✗ FAIL
+Input: dodge
+Reason: The command 'dodge' was not recognized, which is a clear error as it should be a valid action in combat.
+
+Step 19: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 20: ✗ FAIL
+Input: attack Weak Goblin Scout
+Reason: [CODE] Bug: NPC 'Weak Goblin Scout' in room but combat didn't start
+
+Step 21: ✗ FAIL
+Input: wait for the Weak Goblin Scout to attack
+Reason: The response indicates an unknown command instead of processing the wait action correctly.
+
+Step 22: ✓ PASS
+Input: defend
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 24: ✗ FAIL
+Input: wait for the Weak Goblin Scout to attack
+Reason: The command 'wait for the Weak Goblin Scout to attack' is not recognized, which prevents the expected combat interaction from occurring.
+
+Step 25: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 26: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 27: ✓ PASS
+Input: look for Giant Rat #1
+Reason: Step completed successfully
+
+Step 28: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 29: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 30: ✗ FAIL
+Input: wait for Training Skeleton #1 to attack
+Reason: The response indicates an unknown command for a valid action, which should have been processed as waiting for the NPC's attack.
+
+Step 31: ✓ PASS
+Input: wait for Training Skeleton #1 to attack
+Reason: Step completed successfully
+
+Step 32: ✗ FAIL
+Input: wait for Training Skeleton #1 to attack
+Reason: The command 'wait for Training Skeleton #1 to attack' is not recognized, preventing the expected combat interaction and skill progression.
+
+Step 33: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 34: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 35: ✗ FAIL
+Input: wait for Training Skeleton #1 to attack
+Reason: The response indicates an unknown command when the player attempts to wait for the Training Skeleton #1 to attack, which is not a valid response in this context.
+
+Step 36: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
