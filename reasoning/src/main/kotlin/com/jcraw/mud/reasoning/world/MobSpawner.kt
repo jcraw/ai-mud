@@ -302,22 +302,16 @@ open class MobSpawner(
         // Spawn entities using existing logic
         val entities = spawnEntities(theme, mobDensity, difficulty, spaceSize)
 
-        // Register each entity for respawn
-        val registrationResults = entities.map { entity ->
+        // Register each entity for respawn (non-fatal - log failures but continue)
+        entities.forEach { entity ->
             respawnChecker.registerRespawn(
                 entity = entity,
                 spaceId = spaceId,
                 respawnTurns = 0L // Use config-based scaling
-            )
-        }
-
-        // Check if any registrations failed
-        val firstFailure = registrationResults.firstOrNull { it.isFailure }
-        if (firstFailure != null) {
-            return Result.failure(
-                firstFailure.exceptionOrNull()
-                    ?: Exception("Failed to register respawn for entities")
-            )
+            ).onFailure { error ->
+                // Log warning but don't fail the whole operation
+                println("[MOB SPAWN DEBUG] Warning: Failed to register respawn for ${entity.name}: ${error.message}")
+            }
         }
 
         return Result.success(entities)
