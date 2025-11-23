@@ -1,0 +1,259 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 58
+        - Passed: 39
+        - Failed: 19
+        - Pass Rate: 67%
+
+        Timing:
+        - Start: 2025-11-23T05:38:53.582423224Z
+        - End: 2025-11-23T05:47:18.932177697Z
+        - Duration: 505.35s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the only available exit is west. This is an invalid command.
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 19: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 20: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 21: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: [CODE] Bug: NPC 'Giant Rat #1' in room but combat didn't start
+
+Step 22: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: [CODE] Bug: NPC 'Giant Rat #1' in room but combat didn't start
+
+Step 23: ✗ FAIL
+Input: skills
+Reason: The response indicates that the player has no unlocked skills, which contradicts the expectation of displaying the Dodge skill and its progress.
+
+Step 24: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 25: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 26: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 27: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 28: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 29: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 30: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 31: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 32: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 33: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 34: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 35: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 36: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 38: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 39: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 40: ✗ FAIL
+Input: attack weak goblin #1
+Reason: [CODE] Bug: NPC 'weak goblin #1' in room but combat didn't start
+
+Step 41: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 43: ✗ FAIL
+Input: attack weak goblin #1
+Reason: [CODE] Bug: NPC 'weak goblin #1' in room but combat didn't start
+
+Step 44: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 45: ✗ FAIL
+Input: wait for Weak Goblin #1 to attack
+Reason: The command 'wait for Weak Goblin #1 to attack' is not recognized, preventing the expected combat action from occurring.
+
+Step 46: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 47: ✗ FAIL
+Input: wait for Weak Goblin #1 to attack
+Reason: The command 'wait for Weak Goblin #1 to attack' is not recognized, which is a clear error for a valid action in combat.
+
+Step 48: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 49: ✗ FAIL
+Input: attack giant rat #1
+Reason: [CODE] Bug: NPC 'giant rat #1' in room but combat didn't start
+
+Step 50: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 51: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 52: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 53: ✗ FAIL
+Input: attack training skeleton #1
+Reason: [CODE] Bug: NPC 'training skeleton #1' in room but combat didn't start
+
+Step 54: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 55: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 56: ✓ PASS
+Input: skills
+Reason: Step completed successfully
+
+Step 57: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 58: ✗ FAIL
+Input: go south
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
