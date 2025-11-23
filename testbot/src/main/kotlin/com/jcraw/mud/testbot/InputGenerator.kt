@@ -80,10 +80,10 @@ class InputGenerator(
         val historyText = if (recentHistory.isEmpty()) {
             "No previous actions yet."
         } else {
-            // Show ALL actions taken (condensed) + last 3 detailed
+            // Show ALL actions taken (condensed) + last 10 detailed
             val allActions = "Actions taken so far (${recentHistory.size}): ${actionsTaken.joinToString(", ")}"
-            val recentDetailed = recentHistory.takeLast(3).joinToString("\n") { step ->
-                "Player: ${step.playerInput}\nGM: ${step.gmResponse.take(600)}"
+            val recentDetailed = recentHistory.takeLast(10).joinToString("\n") { step ->
+                "Player: ${step.playerInput}\nGM: ${step.gmResponse.take(1200)}"
             }
             "$allActions\n\nRecent details:\n$recentDetailed"
         }
@@ -556,8 +556,10 @@ class InputGenerator(
                 - Repeat until Dodge reaches level 10
 
                 NAVIGATION TIPS:
-                - Read room descriptions carefully - they show available exits
-                - Try different exits to explore and find enemies
+                - You have detailed history of all your previous room visits below
+                - When you visited a room before, you saw which exits it has - use that history!
+                - Only try exits that are shown for your CURRENT room (not exits from other rooms)
+                - If you tried "go down" and got "You can't go that way", don't try it again from that same room
                 - Safe zones (like towns) won't have hostile creatures
                 - Combat areas will have enemies to fight
 
