@@ -102,8 +102,10 @@ class AttackResolver(
         val defenseModifier = if (defenderSkills != null) {
             dodgeLevel = defenderSkills.getEffectiveLevel("Dodge")
             parryLevel = defenderSkills.getEffectiveLevel("Parry")
-            if (dodgeLevel > 0) defenderSkillsUsed.add("Dodge")
-            if (parryLevel > 0) defenderSkillsUsed.add("Parry")
+            // Always track defensive skills (even at level 0) for XP progression
+            // Level-0 skills can unlock via dual-path: lucky chance OR XP accumulation
+            defenderSkillsUsed.add("Dodge")
+            defenderSkillsUsed.add("Parry")
             (dodgeLevel * 0.6 + parryLevel * 0.4).toInt()
         } else {
             dodgeLevel = 0
