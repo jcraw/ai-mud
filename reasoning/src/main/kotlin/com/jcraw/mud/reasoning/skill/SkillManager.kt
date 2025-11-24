@@ -57,6 +57,11 @@ class SkillManager(
             var updatedSkill = currentSkill.addXp(xpToGrant)
             val newLevel = updatedSkill.level
 
+            // Log Dodge XP awards for testbot debugging
+            if (skillName.equals("Dodge", ignoreCase = true)) {
+                println("DODGE XP AWARD: +$xpToGrant XP (now ${updatedSkill.xp}/${updatedSkill.xpToNext})")
+            }
+
             // Auto-unlock skill if it reaches level 1 or higher through use-based progression
             if (!wasUnlocked && updatedSkill.level >= 1) {
                 updatedSkill = updatedSkill.unlock()
@@ -127,6 +132,11 @@ class SkillManager(
                 )
                 events.add(levelUpEvent)
                 skillRepo.logEvent(levelUpEvent).getOrThrow()
+
+                // Log Dodge XP-based level-ups for testbot debugging
+                if (skillName.equals("Dodge", ignoreCase = true)) {
+                    println("DODGE XP LEVEL-UP: ${oldLevel} → ${newLevel} (accumulated XP)")
+                }
 
                 // Log to memory for RAG
                 memoryManager?.let { mm ->
@@ -223,6 +233,11 @@ class SkillManager(
                     isAtPerkMilestone = updatedSkill.isAtPerkMilestone()
                 ))
                 skillRepo.logEvent(events.last()).getOrThrow()
+
+                // Log Dodge lucky level-ups for testbot debugging
+                if (skillName.equals("Dodge", ignoreCase = true)) {
+                    println("DODGE LUCKY LEVEL-UP: ${currentSkill.level} → ${updatedSkill.level} (${luckyChance}% chance)")
+                }
 
                 // Log to memory for RAG
                 memoryManager?.let { mm ->

@@ -1,0 +1,87 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 15
+        - Passed: 4
+        - Failed: 11
+        - Pass Rate: 26%
+
+        Timing:
+        - Start: 2025-11-24T05:26:18.140493566Z
+        - End: 2025-11-24T05:29:27.339644246Z
+        - Duration: 189.20s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the only available exit is west. The response does not reflect the valid game mechanics.
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: go west
+Reason: The response indicates a movement to the west, which is not a valid exit based on the current game state.
+
+Step 7: ✗ FAIL
+Input: go down
+Reason: The response indicates movement down, but the player cannot go down based on the previous context.
+
+Step 8: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 9: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 10: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 11: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: [CODE] Bug: NPC 'Giant Rat #1' in room but combat didn't start
+
+Step 12: ✗ FAIL
+Input: attack Practice Dummy #1
+Reason: [CODE] Bug: NPC 'Practice Dummy #1' in room but combat didn't start
+
+Step 13: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 14: ✗ FAIL
+Input: skills
+Reason: The response incorrectly states that the player has no unlocked skills, despite the context suggesting that the Dodge skill should be progressing.
+
+Step 15: ✗ FAIL
+Input: attack Practice Dummy #1
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
