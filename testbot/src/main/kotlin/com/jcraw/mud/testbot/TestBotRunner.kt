@@ -129,7 +129,7 @@ class TestBotRunner(
         println("   🎮 Command: ${generatedInput.input}")
 
         // 3. ACT: Submit input to game engine
-        val gmResponse = try {
+        val rawGmResponse = try {
             gameEngine.processInput(generatedInput.input)
         } catch (e: Exception) {
             println("   ❌ Game engine error: ${e.message}")
@@ -144,19 +144,22 @@ class TestBotRunner(
             )
         }
 
-        // Print the game response (what the bot sees)
-        println("   📜 Response:")
-        gmResponse.lines().forEach { line ->
+        // Filter debug output for bot/validator (but keep raw for logs)
+        val cleanGmResponse = filterDebugOutput(rawGmResponse)
+
+        // Print the RAW game response (including debug output for troubleshooting)
+        println("   📜 Raw Response:")
+        rawGmResponse.lines().forEach { line ->
             println("      $line")
         }
         println()
 
-        // 4. OBSERVE: Validate the output
+        // 4. OBSERVE: Validate the output (using CLEAN response)
         val validationResult = try {
             outputValidator.validate(
                 scenario = scenario,
                 playerInput = generatedInput.input,
-                gmResponse = gmResponse,
+                gmResponse = cleanGmResponse,
                 recentHistory = state.steps.takeLast(2),
                 expectedOutcome = generatedInput.expected,
                 worldState = gameEngine.getWorldState()
@@ -169,10 +172,10 @@ class TestBotRunner(
             )
         }
 
-        // Create the test step
+        // Create the test step (using CLEAN response for bot's future context)
         val step = TestStep(
             playerInput = generatedInput.input,
-            gmResponse = gmResponse,
+            gmResponse = cleanGmResponse,
             validationResult = validationResult,
             reasoning = generatedInput.reasoning.takeIf { it.isNotBlank() }
         )
@@ -181,7 +184,7 @@ class TestBotRunner(
         logger.logStep(sessionId, step)
 
         // Determine if step passed
-        val passed = validationResult.pass && !gmResponse.contains("ERROR", ignoreCase = true)
+        val passed = validationResult.pass && !cleanGmResponse.contains("ERROR", ignoreCase = true)
         val reason = if (passed) {
             "Step completed successfully"
         } else {
@@ -384,5 +387,24 @@ class TestBotRunner(
             }
             else -> false // Other scenarios run to maxSteps
         }
+    }
+
+    /**
+     * Filter debug output from game responses.
+     * Removes debug lines while keeping actual game narrative.
+     */
+    private fun filterDebugOutput(text: String): String {
+        return text.lines()
+            .filterNot { line ->
+                val trimmed = line.trim()
+                // Filter out debug lines
+                trimmed.startsWith("[") ||
+                trimmed.startsWith("💾") ||
+                trimmed.startsWith("⚠️") ||
+                trimmed.contains("DEBUG]") ||
+                trimmed.contains("Warning: Failed to")
+            }
+            .joinToString("\n")
+            .trim()
     }
 }
