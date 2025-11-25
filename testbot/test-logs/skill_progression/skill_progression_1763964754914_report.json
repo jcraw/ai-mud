@@ -1,0 +1,655 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.SkillProgression"
+    },
+    "totalSteps": 18,
+    "passedSteps": 3,
+    "failedSteps": 15,
+    "finalStatus": "PASSED",
+    "startTime": "2025-11-24T06:12:34.915296262Z",
+    "endTime": "2025-11-24T06:16:15.116967440Z",
+    "duration": 220201,
+    "steps": [
+        {
+            "timestamp": "2025-11-24T06:12:41.503791683Z",
+            "playerInput": "look",
+            "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent description of the player's surroundings, including available exits and entities present, which aligns with MUD conventions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I have not yet engaged in any combat or explored any locations, my first step should be to look for an exit or area where I might encounter hostile NPCs. I will use the 'look' command to gather more information about my surroundings and identify a possible route to find enemies."
+        },
+        {
+            "timestamp": "2025-11-24T06:12:48.534362834Z",
+            "playerInput": "go east",
+            "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response indicates movement to the east, but there is no exit in that direction from the Vault of Beginnings.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "Since my goal is to level up my Dodge skill, I need to engage in combat with hostile enemies. The only exit available from the Town is to the east, which leads to the Vault of Beginnings. This area is likely to have enemies I can fight, so moving east makes sense to initiate combat and start working on my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-24T06:12:54.260239557Z",
+            "playerInput": "go west",
+            "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response correctly indicates that the player has moved west and returns them to the Town, providing a coherent description of the location and available actions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "I am in the Vault of Beginnings, which appears to be a safe area without any enemies. To progress towards leveling my Dodge skill, I need to find combat. Since the only exit from this area leads back to the Town, I need to return there and explore further. I should check if there are any other locations to investigate or if there's a way to find enemies in the Town or beyond, as I need to engage in combat to level my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-24T06:13:21.407331132Z",
+            "playerInput": "go down",
+            "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.377] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_ddd6c851_5c59670...\nYou find yourself enveloped within the Whispering Halls, where shadows waltz playfully with the shimmering crystals embedded in the walls, casting an otherworldly glow that dances across your surroundings. The air is alive with a gentle hum, resonating the whispers of countless warriors who have tread this path before you, their presence palpable yet unseen. As you move deeper into this sanctuary, the coolness of the stone beneath your fingertips sends shivers down your spine, while the distant echoes remind you of the vigilant Watchers that keep a watchful eye on all who gather here.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Razorfang Giant Rat (neutral)\n  - Wooden Practice Dummy (neutral)\n  - Craven Goblin Scout (neutral)\n  - Training Skeleton #1 (neutral)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response to the player's command to go down does not lead to a valid location and contains nonsensical text about retrieved memories.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I need to find hostile NPCs or enemies to engage in combat and level my Dodge skill, my next logical step is to explore the area further. The 'down' exit leads to an 'Unknown Location' which may contain enemies, as the current town area is safe and has no hostile creatures. By moving down, I can hopefully find combat opportunities."
+        },
+        {
+            "timestamp": "2025-11-24T06:13:31.159574610Z",
+            "playerInput": "attack Craven Goblin Scout",
+            "gmResponse": "Fists collide with flesh, bone crunching under the impact, leaving a bruised imprint behind.\nThe Craven Goblin Scout has a few scratches.\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Craven Goblin Scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "I need to engage in combat to start leveling my Dodge skill, which is currently at 0. In the current location, I see a Craven Goblin Scout and a Training Skeleton #1, both of which are neutral but likely hostile. I will attack the Craven Goblin Scout, as it may provide a good opportunity for combat and a chance to dodge its attacks, thus gaining Dodge XP."
+        },
+        {
+            "timestamp": "2025-11-24T06:13:40.530410161Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "I need to engage with the Craven Goblin Scout again to increase my chances of being attacked, which in turn will help me gain Dodge XP. Since I just attacked it, it is still present, and continuing combat will give me opportunities to dodge its attacks, thus progressing my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-24T06:13:47.829278252Z",
+            "playerInput": "wait for Craven Goblin Scout to attack",
+            "gmResponse": "Unknown command: wait for Craven Goblin Scout to attack. Type 'help' for available commands.",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response indicates an unknown command instead of processing the wait action correctly.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "Since I am currently in a combat area with hostile creatures like the Craven Goblin Scout, I should continue to engage in combat to allow myself to be attacked and gain Dodge skill experience. I already attacked the Craven Goblin Scout, so I will focus on letting it attack me again to train my Dodge skill further."
+        },
+        {
+            "timestamp": "2025-11-24T06:13:59.045729321Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "With a swift motion, your fist connects, bone cracking against flesh, sending the foe reeling.\nThe Craven Goblin Scout has some small wounds.\n\nCraven Goblin Scout attacks you!\nWith a gleeful screech, the Craven Goblin Scout lunges, plunging its jagged dagger into your side\nCraven Goblin Scout hits you for 7 damage! (HP: 93/100)",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "Since I have already engaged in combat with the Craven Goblin Scout and am currently in a combat situation, it's essential to continue attacking to trigger more counter-attacks from the enemy. This will help in leveling my Dodge skill. I’ll attack the Craven Goblin Scout again to provoke another attack and potentially gain Dodge XP."
+        },
+        {
+            "timestamp": "2025-11-24T06:14:07.811445402Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "I need to engage in combat with the Craven Goblin Scout again to allow it to attack me, which will help level my Dodge skill. Since I've already attacked it and it has been wounded, it should still be available for combat. This makes sense to continue pushing my progression towards Dodge skill leveling."
+        },
+        {
+            "timestamp": "2025-11-24T06:14:15.330621412Z",
+            "playerInput": "defend",
+            "gmResponse": "Unknown command: defend. Type 'help' for available commands.",
+            "validationResult": {
+                "pass": false,
+                "reason": "The command 'defend' is not recognized, which is inconsistent with expected combat mechanics.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "I need to engage with the Craven Goblin Scout again to allow it to attack me, which will help me gain Dodge XP. Since I have already attacked it several times, I will focus on letting it attack me without attacking back, thereby maximizing the chances of leveling up my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-24T06:14:23.523603064Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "Since I've engaged in combat with the Craven Goblin Scout and have been dodging its attacks, I should continue to engage with it to gain more Dodge experience. Attacking the goblin again gives me another chance to trigger an enemy attack, which is crucial for leveling my Dodge skill. I will attack it again to keep the combat going."
+        },
+        {
+            "timestamp": "2025-11-24T06:14:36.162004002Z",
+            "playerInput": "attack Razorfang Giant Rat",
+            "gmResponse": "Razorfang Giant Rat dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Razorfang Giant Rat' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                }
+            },
+            "reasoning": "In the current room, I see a Razorfang Giant Rat and a Training Skeleton #1, both of which could be potential targets for combat. Engaging in combat with these enemies will allow me to be attacked in return, which is essential for leveling up my Dodge skill. I will choose to attack the Razorfang Giant Rat as it is an enemy I haven't engaged with yet."
+        },
+        {
+            "timestamp": "2025-11-24T06:14:50.750564376Z",
+            "playerInput": "attack Wooden Practice Dummy",
+            "gmResponse": "With a swift, brutal punch, your knuckles crush against the foe's jaw, bone cracking.\nThe Wooden Practice Dummy has a few scratches.\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nWooden Practice Dummy attacks you!\nThe Wooden Practice Dummy swings its splintered limb, striking with a brutal crack against your torso\nWooden Practice Dummy hits you for 16 damage! (HP: 77/100)\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Wooden Practice Dummy' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Training Skeleton #1, Craven Goblin Scout, Wooden Practice Dummy"
+                }
+            },
+            "reasoning": "I need to engage with enemies to gain Dodge XP, as I have already attacked the Craven Goblin Scout and Razorfang Giant Rat without waiting for them to attack me. Since I am in a combat area and there are multiple hostile NPCs, I will attack the Wooden Practice Dummy. This will not yield XP, but it will allow me to see if I can provoke a combat response from the Training Skeleton #1, which might be a better target for leveling my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-24T06:15:08.516101495Z",
+            "playerInput": "attack Training Skeleton #1",
+            "gmResponse": "With a swift motion, your fist connects, shattering the foe’s jaw, sending blood spattering.\nThe Training Skeleton #1 has a few scratches.\n\nWooden Practice Dummy attacks you!\nThe Wooden Practice Dummy lunges forward, its splintered fist slamming into your gut with jarring force\nWooden Practice Dummy hits you for 15 damage! (HP: 62/100)\n\nTraining Skeleton #1 attacks you!\nYou dodge Training Skeleton #1's attack!\n\nCraven Goblin Scout attacks you!\nWith a wicked grin, the Craven Goblin Scout lunges, dagger glinting, slicing through flesh like butter\nCraven Goblin Scout hits you for 7 damage! (HP: 55/100)\n\nRazorfang Giant Rat attacks you!\nRazorfang Giant Rat misses you!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                }
+            },
+            "reasoning": "Since I've already attacked multiple enemies and I need to level my Dodge skill by allowing more attacks against me, I should engage a new enemy that I have not yet interacted with. The Training Skeleton #1 is a neutral creature that I can attack, and it is likely to engage me in combat afterwards, giving me the opportunity to dodge its attacks and gain Dodge XP."
+        },
+        {
+            "timestamp": "2025-11-24T06:15:28.115796229Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nWith a feral snarl, the Razorfang Giant Rat lunges, its jagged teeth sinking deep into flesh\nRazorfang Giant Rat hits you for 7 damage! (HP: 48/100)\n\nWooden Practice Dummy attacks you!\nThe wooden practice dummy lunges forward, its splintered arm swinging fiercely, striking with bone-jarring impact\nWooden Practice Dummy hits you for 16 damage! (HP: 32/100)\n\nTraining Skeleton #1 attacks you!\nWith a bone-chilling clatter, Training Skeleton #1 lunges forward, its jagged ribcage thrusting into your side\nTraining Skeleton #1 hits you for 8 damage! (HP: 24/100)",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                }
+            },
+            "reasoning": "Since I need to increase my Dodge skill, I should allow myself to be attacked more often. Given that I am currently in combat with multiple enemies, I will focus on letting the Craven Goblin Scout attack me again. This will provide an opportunity to dodge its attack, helping me gain Dodge XP. Engaging with this enemy again makes sense as it has already dealt damage, which indicates it is a suitable opponent for training."
+        },
+        {
+            "timestamp": "2025-11-24T06:15:34.586339417Z",
+            "playerInput": "look",
+            "gmResponse": "Unknown Location\n----------------\nYou find yourself enveloped within the Whispering Halls, where shadows waltz playfully with the shimmering crystals embedded in the walls, casting an otherworldly glow that dances across your surroundings. The air is alive with a gentle hum, resonating the whispers of countless warriors who have tread this path before you, their presence palpable yet unseen. As you move deeper into this sanctuary, the coolness of the stone beneath your fingertips sends shivers down your spine, while the distant echoes remind you of the vigilant Watchers that keep a watchful eye on all who gather here.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Razorfang Giant Rat ⚔️  (hostile - glares at you!)\n  - Craven Goblin Scout ⚔️  (hostile - glares at you!)\n  - Wooden Practice Dummy ⚔️  (hostile - glares at you!)\n  - Training Skeleton #1 ⚔️  (hostile - glares at you!)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent and immersive description of the area, including the presence of multiple hostile entities, which aligns with the player's expectation to engage in combat.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "To effectively level my Dodge skill, I need to expose myself to more attacks by engaging with enemies. Since I've already attacked various foes without allowing them to attack me in return, I should focus on finding additional hostile creatures. I will use the 'look' command to survey the area for any remaining enemies I haven't encountered yet, as this will help me identify potential targets for combat."
+        },
+        {
+            "timestamp": "2025-11-24T06:15:51.313885997Z",
+            "playerInput": "attack wooden practice dummy",
+            "gmResponse": "Wooden Practice Dummy dodges your attack!\n\nWooden Practice Dummy attacks you!\nYou dodge Wooden Practice Dummy's attack!\n\nTraining Skeleton #1 attacks you!\nYou dodge Training Skeleton #1's attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+            "validationResult": {
+                "pass": false,
+                "reason": "[CODE] Bug: NPC 'wooden practice dummy' in room but combat didn't start",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "failed_to_initiate",
+                    "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                }
+            },
+            "reasoning": "Since my goal is to level up my Dodge skill, I need to ensure that I am attacked by enemies. The Wooden Practice Dummy is currently the most accessible target that can attack me; therefore, I will focus on it. Engaging it in combat should provide opportunities for me to train my Dodge skill as it attacks."
+        },
+        {
+            "timestamp": "2025-11-24T06:16:15.116438360Z",
+            "playerInput": "attack craven goblin scout",
+            "gmResponse": "With a swift jab, your fist crashes into the foe’s jaw, bone splintering under the impact.\nThe Craven Goblin Scout has quite a few wounds.\n\nCraven Goblin Scout attacks you!\nWith a feral grin, the Craven Goblin Scout lunges, dagger glinting as it slices deep\nCraven Goblin Scout hits you for 9 damage! (HP: 15/100)\n\nRazorfang Giant Rat attacks you!\nWith a feral snarl, the Razorfang Giant Rat lunges, sinking its jagged teeth into your flesh\nRazorfang Giant Rat hits you for 9 damage! (HP: 6/100)\n\nWooden Practice Dummy attacks you!\nWith a swift, splintering swing, the wooden arm crashes into you, splintering bone and hope\nWooden Practice Dummy hits you for 15 damage! (HP: 0/100)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist\n\nTraining Skeleton #1 attacks you!\nTraining Skeleton #1 misses you!",
+            "validationResult": {
+                "pass": false,
+                "reason": "Player died (HP: 0/100) - test should end",
+                "details": {
+                    "validation_type": "code",
+                    "health": "0",
+                    "max_health": "100",
+                    "death_detected": "true"
+                }
+            },
+            "reasoning": "Since I have already attacked the enemies multiple times and need to focus on getting hit to level up my Dodge skill, I should let the enemies attack me without attacking them. I will try to engage with the Craven Goblin Scout again since it is still hostile and already has some wounds, possibly making it easier to survive its attacks while I focus on dodging."
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-11-24T06:12:41.503791683Z",
+                "playerInput": "look",
+                "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent description of the player's surroundings, including available exits and entities present, which aligns with MUD conventions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I have not yet engaged in any combat or explored any locations, my first step should be to look for an exit or area where I might encounter hostile NPCs. I will use the 'look' command to gather more information about my surroundings and identify a possible route to find enemies."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-11-24T06:12:48.534362834Z",
+                "playerInput": "go east",
+                "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response indicates movement to the east, but there is no exit in that direction from the Vault of Beginnings.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "Since my goal is to level up my Dodge skill, I need to engage in combat with hostile enemies. The only exit available from the Town is to the east, which leads to the Vault of Beginnings. This area is likely to have enemies I can fight, so moving east makes sense to initiate combat and start working on my Dodge skill."
+            },
+            "passed": false,
+            "reason": "The response indicates movement to the east, but there is no exit in that direction from the Vault of Beginnings."
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-11-24T06:12:54.260239557Z",
+                "playerInput": "go west",
+                "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response correctly indicates that the player has moved west and returns them to the Town, providing a coherent description of the location and available actions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "I am in the Vault of Beginnings, which appears to be a safe area without any enemies. To progress towards leveling my Dodge skill, I need to find combat. Since the only exit from this area leads back to the Town, I need to return there and explore further. I should check if there are any other locations to investigate or if there's a way to find enemies in the Town or beyond, as I need to engage in combat to level my Dodge skill."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-11-24T06:13:21.407331132Z",
+                "playerInput": "go down",
+                "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.377] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_ddd6c851_5c59670...\nYou find yourself enveloped within the Whispering Halls, where shadows waltz playfully with the shimmering crystals embedded in the walls, casting an otherworldly glow that dances across your surroundings. The air is alive with a gentle hum, resonating the whispers of countless warriors who have tread this path before you, their presence palpable yet unseen. As you move deeper into this sanctuary, the coolness of the stone beneath your fingertips sends shivers down your spine, while the distant echoes remind you of the vigilant Watchers that keep a watchful eye on all who gather here.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Razorfang Giant Rat (neutral)\n  - Wooden Practice Dummy (neutral)\n  - Craven Goblin Scout (neutral)\n  - Training Skeleton #1 (neutral)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response to the player's command to go down does not lead to a valid location and contains nonsensical text about retrieved memories.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I need to find hostile NPCs or enemies to engage in combat and level my Dodge skill, my next logical step is to explore the area further. The 'down' exit leads to an 'Unknown Location' which may contain enemies, as the current town area is safe and has no hostile creatures. By moving down, I can hopefully find combat opportunities."
+            },
+            "passed": false,
+            "reason": "The response to the player's command to go down does not lead to a valid location and contains nonsensical text about retrieved memories."
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-11-24T06:13:31.159574610Z",
+                "playerInput": "attack Craven Goblin Scout",
+                "gmResponse": "Fists collide with flesh, bone crunching under the impact, leaving a bruised imprint behind.\nThe Craven Goblin Scout has a few scratches.\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Craven Goblin Scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "I need to engage in combat to start leveling my Dodge skill, which is currently at 0. In the current location, I see a Craven Goblin Scout and a Training Skeleton #1, both of which are neutral but likely hostile. I will attack the Craven Goblin Scout, as it may provide a good opportunity for combat and a chance to dodge its attacks, thus gaining Dodge XP."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Craven Goblin Scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-11-24T06:13:40.530410161Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "I need to engage with the Craven Goblin Scout again to increase my chances of being attacked, which in turn will help me gain Dodge XP. Since I just attacked it, it is still present, and continuing combat will give me opportunities to dodge its attacks, thus progressing my Dodge skill."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-11-24T06:13:47.829278252Z",
+                "playerInput": "wait for Craven Goblin Scout to attack",
+                "gmResponse": "Unknown command: wait for Craven Goblin Scout to attack. Type 'help' for available commands.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response indicates an unknown command instead of processing the wait action correctly.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "Since I am currently in a combat area with hostile creatures like the Craven Goblin Scout, I should continue to engage in combat to allow myself to be attacked and gain Dodge skill experience. I already attacked the Craven Goblin Scout, so I will focus on letting it attack me again to train my Dodge skill further."
+            },
+            "passed": false,
+            "reason": "The response indicates an unknown command instead of processing the wait action correctly."
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-11-24T06:13:59.045729321Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "With a swift motion, your fist connects, bone cracking against flesh, sending the foe reeling.\nThe Craven Goblin Scout has some small wounds.\n\nCraven Goblin Scout attacks you!\nWith a gleeful screech, the Craven Goblin Scout lunges, plunging its jagged dagger into your side\nCraven Goblin Scout hits you for 7 damage! (HP: 93/100)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "Since I have already engaged in combat with the Craven Goblin Scout and am currently in a combat situation, it's essential to continue attacking to trigger more counter-attacks from the enemy. This will help in leveling my Dodge skill. I’ll attack the Craven Goblin Scout again to provoke another attack and potentially gain Dodge XP."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-11-24T06:14:07.811445402Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "I need to engage in combat with the Craven Goblin Scout again to allow it to attack me, which will help level my Dodge skill. Since I've already attacked it and it has been wounded, it should still be available for combat. This makes sense to continue pushing my progression towards Dodge skill leveling."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-11-24T06:14:15.330621412Z",
+                "playerInput": "defend",
+                "gmResponse": "Unknown command: defend. Type 'help' for available commands.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The command 'defend' is not recognized, which is inconsistent with expected combat mechanics.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "I need to engage with the Craven Goblin Scout again to allow it to attack me, which will help me gain Dodge XP. Since I have already attacked it several times, I will focus on letting it attack me without attacking back, thereby maximizing the chances of leveling up my Dodge skill."
+            },
+            "passed": false,
+            "reason": "The command 'defend' is not recognized, which is inconsistent with expected combat mechanics."
+        },
+        {
+            "stepNumber": 11,
+            "step": {
+                "timestamp": "2025-11-24T06:14:23.523603064Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "Since I've engaged in combat with the Craven Goblin Scout and have been dodging its attacks, I should continue to engage with it to gain more Dodge experience. Attacking the goblin again gives me another chance to trigger an enemy attack, which is crucial for leveling my Dodge skill. I will attack it again to keep the combat going."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 12,
+            "step": {
+                "timestamp": "2025-11-24T06:14:36.162004002Z",
+                "playerInput": "attack Razorfang Giant Rat",
+                "gmResponse": "Razorfang Giant Rat dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Razorfang Giant Rat' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Wooden Practice Dummy, Training Skeleton #1, Craven Goblin Scout"
+                    }
+                },
+                "reasoning": "In the current room, I see a Razorfang Giant Rat and a Training Skeleton #1, both of which could be potential targets for combat. Engaging in combat with these enemies will allow me to be attacked in return, which is essential for leveling up my Dodge skill. I will choose to attack the Razorfang Giant Rat as it is an enemy I haven't engaged with yet."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Razorfang Giant Rat' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 13,
+            "step": {
+                "timestamp": "2025-11-24T06:14:50.750564376Z",
+                "playerInput": "attack Wooden Practice Dummy",
+                "gmResponse": "With a swift, brutal punch, your knuckles crush against the foe's jaw, bone cracking.\nThe Wooden Practice Dummy has a few scratches.\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nWooden Practice Dummy attacks you!\nThe Wooden Practice Dummy swings its splintered limb, striking with a brutal crack against your torso\nWooden Practice Dummy hits you for 16 damage! (HP: 77/100)\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Wooden Practice Dummy' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Training Skeleton #1, Craven Goblin Scout, Wooden Practice Dummy"
+                    }
+                },
+                "reasoning": "I need to engage with enemies to gain Dodge XP, as I have already attacked the Craven Goblin Scout and Razorfang Giant Rat without waiting for them to attack me. Since I am in a combat area and there are multiple hostile NPCs, I will attack the Wooden Practice Dummy. This will not yield XP, but it will allow me to see if I can provoke a combat response from the Training Skeleton #1, which might be a better target for leveling my Dodge skill."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Wooden Practice Dummy' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 14,
+            "step": {
+                "timestamp": "2025-11-24T06:15:08.516101495Z",
+                "playerInput": "attack Training Skeleton #1",
+                "gmResponse": "With a swift motion, your fist connects, shattering the foe’s jaw, sending blood spattering.\nThe Training Skeleton #1 has a few scratches.\n\nWooden Practice Dummy attacks you!\nThe Wooden Practice Dummy lunges forward, its splintered fist slamming into your gut with jarring force\nWooden Practice Dummy hits you for 15 damage! (HP: 62/100)\n\nTraining Skeleton #1 attacks you!\nYou dodge Training Skeleton #1's attack!\n\nCraven Goblin Scout attacks you!\nWith a wicked grin, the Craven Goblin Scout lunges, dagger glinting, slicing through flesh like butter\nCraven Goblin Scout hits you for 7 damage! (HP: 55/100)\n\nRazorfang Giant Rat attacks you!\nRazorfang Giant Rat misses you!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                    }
+                },
+                "reasoning": "Since I've already attacked multiple enemies and I need to level my Dodge skill by allowing more attacks against me, I should engage a new enemy that I have not yet interacted with. The Training Skeleton #1 is a neutral creature that I can attack, and it is likely to engage me in combat afterwards, giving me the opportunity to dodge its attacks and gain Dodge XP."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 15,
+            "step": {
+                "timestamp": "2025-11-24T06:15:28.115796229Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "Craven Goblin Scout dodges your attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nWith a feral snarl, the Razorfang Giant Rat lunges, its jagged teeth sinking deep into flesh\nRazorfang Giant Rat hits you for 7 damage! (HP: 48/100)\n\nWooden Practice Dummy attacks you!\nThe wooden practice dummy lunges forward, its splintered arm swinging fiercely, striking with bone-jarring impact\nWooden Practice Dummy hits you for 16 damage! (HP: 32/100)\n\nTraining Skeleton #1 attacks you!\nWith a bone-chilling clatter, Training Skeleton #1 lunges forward, its jagged ribcage thrusting into your side\nTraining Skeleton #1 hits you for 8 damage! (HP: 24/100)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                    }
+                },
+                "reasoning": "Since I need to increase my Dodge skill, I should allow myself to be attacked more often. Given that I am currently in combat with multiple enemies, I will focus on letting the Craven Goblin Scout attack me again. This will provide an opportunity to dodge its attack, helping me gain Dodge XP. Engaging with this enemy again makes sense as it has already dealt damage, which indicates it is a suitable opponent for training."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 16,
+            "step": {
+                "timestamp": "2025-11-24T06:15:34.586339417Z",
+                "playerInput": "look",
+                "gmResponse": "Unknown Location\n----------------\nYou find yourself enveloped within the Whispering Halls, where shadows waltz playfully with the shimmering crystals embedded in the walls, casting an otherworldly glow that dances across your surroundings. The air is alive with a gentle hum, resonating the whispers of countless warriors who have tread this path before you, their presence palpable yet unseen. As you move deeper into this sanctuary, the coolness of the stone beneath your fingertips sends shivers down your spine, while the distant echoes remind you of the vigilant Watchers that keep a watchful eye on all who gather here.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Razorfang Giant Rat ⚔️  (hostile - glares at you!)\n  - Craven Goblin Scout ⚔️  (hostile - glares at you!)\n  - Wooden Practice Dummy ⚔️  (hostile - glares at you!)\n  - Training Skeleton #1 ⚔️  (hostile - glares at you!)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent and immersive description of the area, including the presence of multiple hostile entities, which aligns with the player's expectation to engage in combat.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "To effectively level my Dodge skill, I need to expose myself to more attacks by engaging with enemies. Since I've already attacked various foes without allowing them to attack me in return, I should focus on finding additional hostile creatures. I will use the 'look' command to survey the area for any remaining enemies I haven't encountered yet, as this will help me identify potential targets for combat."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 17,
+            "step": {
+                "timestamp": "2025-11-24T06:15:51.313885997Z",
+                "playerInput": "attack wooden practice dummy",
+                "gmResponse": "Wooden Practice Dummy dodges your attack!\n\nWooden Practice Dummy attacks you!\nYou dodge Wooden Practice Dummy's attack!\n\nTraining Skeleton #1 attacks you!\nYou dodge Training Skeleton #1's attack!\n\nCraven Goblin Scout attacks you!\nYou dodge Craven Goblin Scout's attack!\n\nRazorfang Giant Rat attacks you!\nYou dodge Razorfang Giant Rat's attack!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "[CODE] Bug: NPC 'wooden practice dummy' in room but combat didn't start",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "failed_to_initiate",
+                        "npcs_in_room": "Razorfang Giant Rat, Craven Goblin Scout, Wooden Practice Dummy, Training Skeleton #1"
+                    }
+                },
+                "reasoning": "Since my goal is to level up my Dodge skill, I need to ensure that I am attacked by enemies. The Wooden Practice Dummy is currently the most accessible target that can attack me; therefore, I will focus on it. Engaging it in combat should provide opportunities for me to train my Dodge skill as it attacks."
+            },
+            "passed": false,
+            "reason": "[CODE] Bug: NPC 'wooden practice dummy' in room but combat didn't start"
+        },
+        {
+            "stepNumber": 18,
+            "step": {
+                "timestamp": "2025-11-24T06:16:15.116438360Z",
+                "playerInput": "attack craven goblin scout",
+                "gmResponse": "With a swift jab, your fist crashes into the foe’s jaw, bone splintering under the impact.\nThe Craven Goblin Scout has quite a few wounds.\n\nCraven Goblin Scout attacks you!\nWith a feral grin, the Craven Goblin Scout lunges, dagger glinting as it slices deep\nCraven Goblin Scout hits you for 9 damage! (HP: 15/100)\n\nRazorfang Giant Rat attacks you!\nWith a feral snarl, the Razorfang Giant Rat lunges, sinking its jagged teeth into your flesh\nRazorfang Giant Rat hits you for 9 damage! (HP: 6/100)\n\nWooden Practice Dummy attacks you!\nWith a swift, splintering swing, the wooden arm crashes into you, splintering bone and hope\nWooden Practice Dummy hits you for 15 damage! (HP: 0/100)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist\n\nTraining Skeleton #1 attacks you!\nTraining Skeleton #1 misses you!",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "Player died (HP: 0/100) - test should end",
+                    "details": {
+                        "validation_type": "code",
+                        "health": "0",
+                        "max_health": "100",
+                        "death_detected": "true"
+                    }
+                },
+                "reasoning": "Since I have already attacked the enemies multiple times and need to focus on getting hit to level up my Dodge skill, I should let the enemies attack me without attacking them. I will try to engage with the Craven Goblin Scout again since it is still hostile and already has some wounds, possibly making it easier to survive its attacks while I focus on dodging."
+            },
+            "passed": false,
+            "reason": "Player died (HP: 0/100) - test should end"
+        }
+    ],
+    "uniqueRoomsVisited": 2,
+    "roomNames": [
+        "Unknown Location",
+        "Vault of Beginnings"
+    ],
+    "combatRounds": 12,
+    "playerDied": true
+}

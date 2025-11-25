@@ -1,0 +1,99 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 18
+        - Passed: 3
+        - Failed: 15
+        - Pass Rate: 16%
+
+        Timing:
+        - Start: 2025-11-24T06:12:34.915296262Z
+        - End: 2025-11-24T06:16:15.116967440Z
+        - Duration: 220.20s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, but there is no exit in that direction from the Vault of Beginnings.
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: go down
+Reason: The response to the player's command to go down does not lead to a valid location and contains nonsensical text about retrieved memories.
+
+Step 5: ✗ FAIL
+Input: attack Craven Goblin Scout
+Reason: [CODE] Bug: NPC 'Craven Goblin Scout' in room but combat didn't start
+
+Step 6: ✗ FAIL
+Input: attack craven goblin scout
+Reason: [CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start
+
+Step 7: ✗ FAIL
+Input: wait for Craven Goblin Scout to attack
+Reason: The response indicates an unknown command instead of processing the wait action correctly.
+
+Step 8: ✗ FAIL
+Input: attack craven goblin scout
+Reason: [CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start
+
+Step 9: ✗ FAIL
+Input: attack craven goblin scout
+Reason: [CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start
+
+Step 10: ✗ FAIL
+Input: defend
+Reason: The command 'defend' is not recognized, which is inconsistent with expected combat mechanics.
+
+Step 11: ✗ FAIL
+Input: attack craven goblin scout
+Reason: [CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start
+
+Step 12: ✗ FAIL
+Input: attack Razorfang Giant Rat
+Reason: [CODE] Bug: NPC 'Razorfang Giant Rat' in room but combat didn't start
+
+Step 13: ✗ FAIL
+Input: attack Wooden Practice Dummy
+Reason: [CODE] Bug: NPC 'Wooden Practice Dummy' in room but combat didn't start
+
+Step 14: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 15: ✗ FAIL
+Input: attack craven goblin scout
+Reason: [CODE] Bug: NPC 'craven goblin scout' in room but combat didn't start
+
+Step 16: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: attack wooden practice dummy
+Reason: [CODE] Bug: NPC 'wooden practice dummy' in room but combat didn't start
+
+Step 18: ✗ FAIL
+Input: attack craven goblin scout
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
