@@ -813,6 +813,29 @@ class EngineGameClient(
             is Intent.LootCorpse -> emitEvent(GameEvent.System("Corpse looting not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Invalid -> emitEvent(GameEvent.System(intent.message, GameEvent.MessageLevel.WARNING))
         }
+
+        // Sync player max HP after every action (handles skill level-ups)
+        syncPlayerMaxHp()
+    }
+
+    /**
+     * Synchronize player max HP with current skill levels.
+     * Updates max HP based on Vitality, Endurance, and Constitution skills.
+     * Preserves current HP percentage when max HP changes.
+     */
+    private suspend fun syncPlayerMaxHp() {
+        val player = worldState.player
+        val skillComponent = skillManager.getSkillComponent(player.id)
+        val correctMaxHp = player.calculateMaxHp(skillComponent)
+
+        if (player.maxHealth != correctMaxHp) {
+            val updatedPlayer = player.updateMaxHp(correctMaxHp)
+            worldState = worldState.updatePlayer(updatedPlayer)
+            emitEvent(GameEvent.System(
+                "Your maximum health has changed: ${player.maxHealth} → $correctMaxHp HP",
+                GameEvent.MessageLevel.INFO
+            ))
+        }
     }
 
     internal fun trackQuests(action: QuestAction) {

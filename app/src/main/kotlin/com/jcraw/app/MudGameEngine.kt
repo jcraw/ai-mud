@@ -385,6 +385,26 @@ class MudGame(
             is Intent.Quit -> com.jcraw.app.handlers.SkillQuestHandlers.handleQuit(this)
             is Intent.Invalid -> println(intent.message)
         }
+
+        // Sync player max HP after every action (handles skill level-ups)
+        syncPlayerMaxHp()
+    }
+
+    /**
+     * Synchronize player max HP with current skill levels.
+     * Updates max HP based on Vitality, Endurance, and Constitution skills.
+     * Preserves current HP percentage when max HP changes.
+     */
+    private fun syncPlayerMaxHp() {
+        val player = worldState.player
+        val skillComponent = skillManager.getSkillComponent(player.id)
+        val correctMaxHp = player.calculateMaxHp(skillComponent)
+
+        if (player.maxHealth != correctMaxHp) {
+            val updatedPlayer = player.updateMaxHp(correctMaxHp)
+            worldState = worldState.updatePlayer(updatedPlayer)
+            println("\n💪 Your maximum health has changed: ${player.maxHealth} → $correctMaxHp HP")
+        }
     }
 
     /**

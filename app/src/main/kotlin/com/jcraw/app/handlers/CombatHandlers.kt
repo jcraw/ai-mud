@@ -333,10 +333,12 @@ object CombatHandlers {
             }
         }
 
-        // Process defender skills (NPC) - only if player entity
-        // NPCs don't gain XP unless enableNPCLuckyProgression is true
-        if (GameConfig.enableNPCLuckyProgression) {
-            val defenderId = attackResult.defenderId
+        // Process defender skills (player or NPC)
+        // Player always gains defense XP, NPCs only if enableNPCLuckyProgression is true
+        val defenderId = attackResult.defenderId
+        val isPlayerDefending = defenderId == game.worldState.player.id
+
+        if (isPlayerDefending || GameConfig.enableNPCLuckyProgression) {
             attackResult.defenderSkillsUsed.forEach { skillName ->
                 val result = game.skillManager.attemptSkillProgress(
                     entityId = defenderId,
@@ -344,7 +346,12 @@ object CombatHandlers {
                     baseXp = 10L,
                     success = defenderSuccess
                 )
-                // Don't display NPC skill events to player
+                // Only display skill events for player
+                if (isPlayerDefending) {
+                    result.onSuccess { events ->
+                        displaySkillEvents(events, skillName)
+                    }
+                }
             }
         }
     }

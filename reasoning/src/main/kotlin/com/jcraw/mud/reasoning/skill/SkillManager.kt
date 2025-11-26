@@ -198,11 +198,11 @@ class SkillManager(
             val roll = rng.nextInt(1, 101)
 
             if (roll <= luckyChance) {
-                // Lucky progression!
+                // Lucky progression! Preserve accumulated XP toward next level
                 val updatedSkill = if (!currentSkill.unlocked) {
-                    currentSkill.unlock().copy(level = 1)
+                    currentSkill.unlock().copy(level = 1, xp = currentSkill.xp)
                 } else {
-                    currentSkill.copy(level = currentSkill.level + 1)
+                    currentSkill.copy(level = currentSkill.level + 1, xp = currentSkill.xp)
                 }
 
                 // Update component and save

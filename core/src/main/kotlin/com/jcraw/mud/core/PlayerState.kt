@@ -39,6 +39,39 @@ data class PlayerState(
     fun isDead(): Boolean = health <= 0
 
     /**
+     * Calculate max HP from skills using the same formula as CombatComponent.
+     * Formula: 10 + (Vitality*5) + (Endurance*3) + (Constitution*2)
+     *
+     * @param skillComponent The player's skill component
+     * @return Calculated maximum HP (minimum 10)
+     */
+    fun calculateMaxHp(skillComponent: SkillComponent): Int {
+        val vitality = skillComponent.getEffectiveLevel("Vitality")
+        val endurance = skillComponent.getEffectiveLevel("Endurance")
+        val constitution = skillComponent.getEffectiveLevel("Constitution")
+
+        val baseHp = 10
+        val skillHp = (vitality * 5) + (endurance * 3) + (constitution * 2)
+
+        return (baseHp + skillHp).coerceAtLeast(10)
+    }
+
+    /**
+     * Update max HP while preserving current HP percentage.
+     * If current HP is 60/100 (60%) and max HP becomes 120, current HP becomes 72/120 (60%).
+     *
+     * @param newMaxHp The new maximum HP value
+     * @return Updated player state with new max HP and proportional current HP
+     */
+    fun updateMaxHp(newMaxHp: Int): PlayerState {
+        val currentPercent = if (maxHealth > 0) health.toFloat() / maxHealth else 1f
+        return copy(
+            maxHealth = newMaxHp,
+            health = (newMaxHp * currentPercent).toInt().coerceIn(0, newMaxHp)
+        )
+    }
+
+    /**
      * Get skill level from legacy V1 skills map.
      *
      * @deprecated This method uses legacy V1 skills system. Use SkillManager.getSkillComponent()
