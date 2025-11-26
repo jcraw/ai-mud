@@ -275,11 +275,14 @@ object CodeValidationRules {
             if (direction != null && currentRoom != null) {
                 // Check if the direction was valid in the previous room
                 val hadValidExit = recentHistory.lastOrNull()?.let { lastStep ->
-                    // Extract exits from last response
-                    val exitsMatch = Regex("Exits: ([\\w, ]+)").find(lastStep.gmResponse)
-                    exitsMatch?.groupValues?.get(1)?.split(", ")?.any { exit ->
-                        exit.equals(direction.displayName, ignoreCase = true) ||
-                        exit.equals(directionStr, ignoreCase = true)
+                    // Extract exits from last response (format: "Exits: east (Room Name), down (Another Room)")
+                    // Use a more flexible regex that captures everything after "Exits: "
+                    val exitsMatch = Regex("Exits: ([^\\n]+)", RegexOption.IGNORE_CASE).find(lastStep.gmResponse)
+                    exitsMatch?.groupValues?.get(1)?.split(", ")?.any { exitStr ->
+                        // Extract just the direction word (first word before any parentheses)
+                        val exitDirection = exitStr.trim().split(" ")[0].lowercase()
+                        exitDirection == direction.displayName.lowercase() ||
+                        exitDirection == directionStr.lowercase()
                     } ?: false
                 } ?: true // If no history, assume valid
 
@@ -362,7 +365,13 @@ object CodeValidationRules {
             }
 
             // Combat V2: No modal combat state, combat is emergent
-            val inCombatNow = false
+            // Check for emergent combat indicators in the response
+            val hasCombatMessages = gmResponse.contains("attack", ignoreCase = true) ||
+                                   gmResponse.contains("dodge", ignoreCase = true) ||
+                                   gmResponse.contains("damage", ignoreCase = true) ||
+                                   gmResponse.contains("HP:", ignoreCase = false) ||
+                                   gmResponse.contains("hit", ignoreCase = true) ||
+                                   gmResponse.contains("miss", ignoreCase = true)
 
             // Check if NPC exists in room NOW (after action)
             val npcStillInRoom = currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
@@ -379,54 +388,51 @@ object CodeValidationRules {
                 )
             }
 
-            if (inCombatNow) {
-                // Still in combat after attack = combat progressing normally
+            // Check if NPC exists in room - this tells us if combat happened
+            val npcInRoom = if (targetName.isNotBlank()) {
+                currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
+                    it.name.lowercase().contains(targetName.lowercase()) ||
+                    targetName.lowercase().contains(it.name.lowercase())
+                } ?: false
+            } else {
+                false
+            }
+
+            // If NPC is in room AND we see combat messages, combat is working correctly
+            if (npcInRoom && hasCombatMessages) {
                 return ValidationResult(
                     pass = true,
-                    reason = "[CODE] Combat ongoing",
+                    reason = "[CODE] Combat ongoing - attack/dodge/damage messages present",
                     details = mapOf("validation_type" to "code", "combat" to "ongoing")
                 )
-            } else {
-                // Not in combat after attack command
-                // Either: combat just started, NPC not found, or missing target
-
-                // Check if NPC exists in room - this tells us if it's a bug
-                val npcInRoom = if (targetName.isNotBlank()) {
-                    currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()?.any {
-                        it.name.lowercase().contains(targetName.lowercase()) ||
-                        targetName.lowercase().contains(it.name.lowercase())
-                    } ?: false
-                } else {
-                    false
-                }
-
-                // If NPC is in room but we're not in combat, that's a bug (should have started combat)
-                if (npcInRoom) {
-                    return ValidationResult(
-                        pass = false,
-                        reason = "[CODE] Bug: NPC '$targetName' in room but combat didn't start",
-                        details = mapOf(
-                            "validation_type" to "code",
-                            "combat" to "failed_to_initiate",
-                            "npcs_in_room" to (currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
-                                ?.joinToString { it.name } ?: "")
-                        )
-                    )
-                }
-
-                // NPC not in room = correct rejection or missing target
-                // Check world state to see if NPC was removed (means it was killed)
-                if (!npcStillInRoom && targetName.isNotBlank()) {
-                    return ValidationResult(
-                        pass = true,
-                        reason = "[CODE] NPC not in room - correctly rejected (likely killed previously)",
-                        details = mapOf("validation_type" to "code", "combat" to "npc_not_present")
-                    )
-                }
-
-                // Let LLM validate other cases
-                return null
             }
+
+            // If NPC is in room but NO combat messages, that's a bug
+            if (npcInRoom && !hasCombatMessages) {
+                return ValidationResult(
+                    pass = false,
+                    reason = "[CODE] Bug: NPC '$targetName' in room but combat didn't start",
+                    details = mapOf(
+                        "validation_type" to "code",
+                        "combat" to "failed_to_initiate",
+                        "npcs_in_room" to (currentRoom?.entities?.filterIsInstance<com.jcraw.mud.core.Entity.NPC>()
+                            ?.joinToString { it.name } ?: "")
+                    )
+                )
+            }
+
+            // NPC not in room = correct rejection or missing target
+            // Check world state to see if NPC was removed (means it was killed)
+            if (!npcStillInRoom && targetName.isNotBlank()) {
+                return ValidationResult(
+                    pass = true,
+                    reason = "[CODE] NPC not in room - correctly rejected (likely killed previously)",
+                    details = mapOf("validation_type" to "code", "combat" to "npc_not_present")
+                )
+            }
+
+            // Let LLM validate other cases
+            return null
         }
 
         // Parse "use" commands (consumables in combat)

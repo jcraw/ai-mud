@@ -1040,6 +1040,9 @@ class EngineGameClient(
                     val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
                     emitEvent(GameEvent.Combat("$flavorText\n$damageLine"))
 
+                    // Process skill progression for defender (player) - they failed to defend
+                    processNPCAttackSkillProgression(result, defenderSuccess = false)
+
                     // Check if player died
                     if (newPlayer.isDead()) {
                         handlePlayerDeath()
@@ -1052,6 +1055,9 @@ class EngineGameClient(
                         "${npc.name} misses you!"
                     }
                     emitEvent(GameEvent.Combat(narrative))
+
+                    // Process skill progression for defender (player) - they succeeded in defending!
+                    processNPCAttackSkillProgression(result, defenderSuccess = true)
                 }
                 is com.jcraw.mud.reasoning.combat.AttackResult.Failure -> {
                     // Silent failure, fall back to simple damage
@@ -1076,6 +1082,58 @@ class EngineGameClient(
                 handlePlayerDeath()
             }
         }
+    }
+
+    /**
+     * Process skill progression when NPC attacks player
+     * Similar to MudGameEngine.processNPCAttackSkillProgression
+     */
+    private fun processNPCAttackSkillProgression(
+        attackResult: com.jcraw.mud.reasoning.combat.AttackResult,
+        defenderSuccess: Boolean
+    ) {
+        val playerId = worldState.player.id
+        val skillMgr = skillManager ?: return
+
+        // Process defender skills (PLAYER) - grant XP for defensive skills used
+        attackResult.defenderSkillsUsed.forEach { skillName ->
+            val result = skillMgr.attemptSkillProgress(
+                entityId = playerId,
+                skillName = skillName,
+                baseXp = 10L,
+                success = defenderSuccess
+            )
+
+            // Display skill events (unlocks, level-ups) to player
+            result.onSuccess { events ->
+                events.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.SkillUnlocked -> {
+                            emitEvent(GameEvent.System("🎉 Unlocked $skillName (lucky progression)!", GameEvent.MessageLevel.INFO))
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
+                            emitEvent(GameEvent.System("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method", GameEvent.MessageLevel.INFO))
+                            if (event.isAtPerkMilestone) {
+                                emitEvent(GameEvent.System("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.", GameEvent.MessageLevel.INFO))
+                            }
+                        }
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            // Silent - reduces spam, player can check 'skills' command for XP
+                        }
+                        is com.jcraw.mud.core.SkillEvent.PerkUnlocked -> {
+                            emitEvent(GameEvent.System("⚡ Applied perk: ${event.perk.name}", GameEvent.MessageLevel.INFO))
+                        }
+                        is com.jcraw.mud.core.SkillEvent.SkillCheckAttempt -> {
+                            // Not relevant for combat skill progression
+                        }
+                    }
+                }
+            }
+        }
+
+        // Note: We don't process NPC attacker skills unless enableNPCLuckyProgression is true
+        // This matches the console behavior
     }
 
     /**

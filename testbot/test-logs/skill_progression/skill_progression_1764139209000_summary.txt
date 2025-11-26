@@ -1,0 +1,127 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 25
+        - Passed: 17
+        - Failed: 8
+        - Pass Rate: 68%
+
+        Timing:
+        - Start: 2025-11-26T06:40:09.001481302Z
+        - End: 2025-11-26T06:44:15.117577542Z
+        - Duration: 246.12s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, which is not a valid exit from the current location.
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 7: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 8: ✗ FAIL
+Input: wait
+Reason: The response indicates an unknown command for 'wait', which is not consistent with the expected behavior of the game allowing players to wait or take a defensive action in combat.
+
+Step 9: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: look for enemies
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go southeast
+Reason: Step completed successfully
+
+Step 12: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 13: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: attack Giant Rat Swarm
+Reason: [CODE] Bug: NPC 'Giant Rat Swarm' in room but combat didn't start
+
+Step 15: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 17: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: [CODE] Bug: NPC 'Giant Rat #1' in room but combat didn't start
+
+Step 18: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: go northwest
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: go southwest
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 25: ✗ FAIL
+Input: go northeast
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
