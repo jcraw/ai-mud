@@ -41,9 +41,29 @@ object MovementHandlers {
         val previousSpaceId = game.worldState.player.currentRoomId
         val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
         val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
+
+        // DEBUG: Log movement attempt details
+        val currentNode = game.worldState.graphNodes[previousSpaceId]
+        if (com.jcraw.mud.config.GameConfig.logLLMCalls) {
+            println("[MOVE DEBUG] Attempting to move ${direction.displayName}")
+            println("[MOVE DEBUG] Current space: $previousSpaceId")
+            println("[MOVE DEBUG] Current node edges: ${currentNode?.neighbors?.map { "${it.direction} -> ${it.targetId}" }}")
+            println("[MOVE DEBUG] Current node position: ${currentNode?.position}")
+            println("[MOVE DEBUG] Target spaces in WorldState: ${game.worldState.spaces.keys.take(5)}")
+        }
+
         val newState = game.worldState.movePlayerV3(direction, playerSkills)
 
         if (newState == null) {
+            if (com.jcraw.mud.config.GameConfig.logLLMCalls) {
+                val edge = currentNode?.neighbors?.find { it.direction.equals(direction.displayName, ignoreCase = true) }
+                if (edge != null) {
+                    val targetExists = game.worldState.spaces.containsKey(edge.targetId)
+                    println("[MOVE DEBUG] Move failed! Edge found: ${edge.direction} -> ${edge.targetId}, Target space exists: $targetExists")
+                } else {
+                    println("[MOVE DEBUG] Move failed! No matching edge found for direction: ${direction.displayName}")
+                }
+            }
             println("You can't go that way.")
             return
         }

@@ -1,0 +1,223 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 49
+        - Passed: 37
+        - Failed: 12
+        - Pass Rate: 75%
+
+        Timing:
+        - Start: 2025-11-25T23:13:22.217234773Z
+        - End: 2025-11-25T23:19:11.179630905Z
+        - Duration: 348.96s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response to the player's input of 'go east' is invalid as there is no exit to the east from the Vault of Beginnings.
+
+Step 3: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: go east
+Reason: The response indicates a movement to a location where the player is already present, which is nonsensical.
+
+Step 7: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: talk to Thoren Ironfist
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 15: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 16: ✗ FAIL
+Input: go west
+Reason: The response indicates movement to the west, but the available exits do not include west, which is inconsistent with the game state.
+
+Step 17: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, but the game state shows that the only available exit is west. This is a contradiction.
+
+Step 18: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 20: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 21: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 22: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 25: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 26: ✗ FAIL
+Input: go west
+Reason: The response to 'go west' is invalid as the player cannot move west from the current location.
+
+Step 27: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, but the only available exit is west. This is an invalid command.
+
+Step 28: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 29: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 30: ✗ FAIL
+Input: go down
+Reason: The response indicates a movement down, but there was no prior confirmation that moving down is a valid action from the current location. The player was previously informed they can't go down.
+
+Step 31: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: [CODE] Bug: NPC 'Weak Goblin #1' in room but combat didn't start
+
+Step 32: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 33: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 34: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 35: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 38: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: [CODE] Bug: NPC 'Giant Rat #1' in room but combat didn't start
+
+Step 39: ✓ PASS
+Input: let giant rat #1 attack me
+Reason: Step completed successfully
+
+Step 40: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 41: ✓ PASS
+Input: let giant rat #1 attack me
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: let weak goblin #1 attack me
+Reason: Step completed successfully
+
+Step 43: ✓ PASS
+Input: let giant rat #1 attack me
+Reason: Step completed successfully
+
+Step 44: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 45: ✗ FAIL
+Input: attack weak goblin #1
+Reason: [CODE] Bug: NPC 'weak goblin #1' in room but combat didn't start
+
+Step 46: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 47: ✓ PASS
+Input: let Weak Goblin #1 attack me
+Reason: Step completed successfully
+
+Step 48: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: [CODE] Bug: NPC 'Training Skeleton #1' in room but combat didn't start
+
+Step 49: ✗ FAIL
+Input: let training skeleton #1 attack me
+Reason: Player died (HP: 0/100) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
