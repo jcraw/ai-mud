@@ -46,7 +46,7 @@ object GameConfig {
      *
      * Default: false
      */
-    var logLLMCalls: Boolean = true
+    var logLLMCalls: Boolean = false
 
     /**
      * Multiplier for skill experience (XP) gain rate.

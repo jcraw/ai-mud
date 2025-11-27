@@ -1,0 +1,67 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 10
+        - Passed: 6
+        - Failed: 4
+        - Pass Rate: 60%
+
+        Timing:
+        - Start: 2025-11-26T23:11:55.916444046Z
+        - End: 2025-11-26T23:13:21.314639224Z
+        - Duration: 85.40s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response to the player's input to go east is incorrect, as there is no exit to the east from the Vault of Beginnings.
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: go down
+Reason: The response indicates movement down, but the player is already in an 'Unknown Location' and there are no valid exits leading down. This creates confusion about the game state.
+
+Step 5: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: wait
+Reason: The command 'wait' is not recognized, and the expected outcome of the Weak Goblin #1 attacking the player is not fulfilled.
+
+Step 8: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 10: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: Player died (HP: 0/10) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

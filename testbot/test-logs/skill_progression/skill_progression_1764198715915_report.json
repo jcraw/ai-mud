@@ -1,0 +1,369 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.SkillProgression"
+    },
+    "totalSteps": 10,
+    "passedSteps": 6,
+    "failedSteps": 4,
+    "finalStatus": "PASSED",
+    "startTime": "2025-11-26T23:11:55.916444046Z",
+    "endTime": "2025-11-26T23:13:21.314639224Z",
+    "duration": 85398,
+    "steps": [
+        {
+            "timestamp": "2025-11-26T23:12:00.895996863Z",
+            "playerInput": "look",
+            "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)\n\n💪 Your maximum health has changed: 100 → 10 HP",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent and detailed description of the location, including the environment and available exits, which aligns with MUD conventions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I need to level my Dodge skill and there are no actions taken yet, the best first step is to explore the surroundings to find a hostile NPC or enemy. I'll use the 'look' command to gather information about my current location and potential exits, which will help me decide where to go next to encounter enemies."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:05.654972507Z",
+            "playerInput": "go east",
+            "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response to the player's input to go east is incorrect, as there is no exit to the east from the Vault of Beginnings.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "To begin leveling my Dodge skill, I need to find hostile NPCs or enemies to engage in combat. The only exit available from my current location is east to the Vault of Beginnings, which is likely to contain enemies since it is not a safe zone. Moving there is the logical next step to initiate combat and start gaining Dodge experience."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:10.501151862Z",
+            "playerInput": "go west",
+            "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response is coherent and follows MUD conventions, allowing for exploration and potential combat.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I am currently in the Vault of Beginnings, which appears to be a safe zone with no enemies or hostile NPCs, I need to find a way to engage in combat to begin training my Dodge skill. The only exit available is back to the Town, which I have previously explored, so I will go back and check for possible enemies there where I might engage in combat. Although it is a place of respite, there might be a way to encounter NPCs that can be provoked into a fight."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:32.970116091Z",
+            "playerInput": "go down",
+            "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.407] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_2427ff95_8bb4600...\nYou find yourself enveloped in the embrace of the Mistral Tunnels, where the air is thick with a palpable sense of history. Bioluminescent fungi cling to the rough stone walls, their soft, ethereal glow illuminating the twisting paths that weave deeper into the darkness. The gentle hum of distant water echoes, mingling with the whispers of those who have sought refuge here, creating a haunting melody of solace amidst uncertainty.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Giant Rat #1 (neutral)\n  - Training Skeleton #1 (neutral)\n  - Weak Goblin #1 (neutral)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response indicates movement down, but the player is already in an 'Unknown Location' and there are no valid exits leading down. This creates confusion about the game state.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "I need to find hostile NPCs or enemies to engage in combat, as this is the only way to increase my Dodge skill. The only exit available from the current location is down, and I haven't explored that area yet. It makes sense to go down to potentially find combat encounters."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:40.897401951Z",
+            "playerInput": "attack Weak Goblin #1",
+            "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "ongoing"
+                }
+            },
+            "reasoning": "Currently, I am in the Mistral Tunnels where I can see a few neutral creatures, but I need to engage one in combat to start leveling my Dodge skill. The Weak Goblin looks like a suitable target for this purpose since it's likely to attack back, allowing me to gain XP for Dodge. Engaging in combat with it is my next logical step to fulfill my goal."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:48.167425994Z",
+            "playerInput": "attack Weak Goblin #1",
+            "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "ongoing"
+                }
+            },
+            "reasoning": "To progress my Dodge skill, I need to find enemies that can attack me, thus allowing me to accumulate Dodge XP. Since I've already encountered the Weak Goblin #1 and have engaged in combat, I should continue to focus on it to maximize my training. Attacking the Weak Goblin #1 again will ensure that it will retaliate, giving me another chance to level up my Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-26T23:12:53.603403939Z",
+            "playerInput": "wait",
+            "gmResponse": "Unknown command: wait. Type 'help' for available commands.",
+            "validationResult": {
+                "pass": false,
+                "reason": "The command 'wait' is not recognized, and the expected outcome of the Weak Goblin #1 attacking the player is not fulfilled.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "I've already engaged in combat with Weak Goblin #1 and continued to face it, but I've reached a point where I need to ensure my Dodge skill is leveled up effectively. Since I've already seen that the Weak Goblin is present, I will focus on letting it continue attacking me without attacking back. This way, I can accumulate more Dodge XP, which is essential for my progression toward leveling the Dodge skill."
+        },
+        {
+            "timestamp": "2025-11-26T23:13:01.548040636Z",
+            "playerInput": "attack Weak Goblin #1",
+            "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nWeak Goblin #1 misses you!",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                "details": {
+                    "validation_type": "code",
+                    "combat": "ongoing"
+                }
+            },
+            "reasoning": "Since I am currently in a combat area with a Weak Goblin that has already attacked and missed me, it makes sense to attack it again. This will allow me to continue to gain Dodge XP as it attacks back, helping me level up my Dodge skill. I need to maintain engagement and ensure that I keep getting attacked to accumulate the necessary experience points."
+        },
+        {
+            "timestamp": "2025-11-26T23:13:08.865231044Z",
+            "playerInput": "go south",
+            "gmResponse": "❌ Flee FAILED! You are intercepted!\n\nThe Weak Goblin #1 swings at you but misses!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response correctly processes the player's input and provides appropriate feedback regarding combat and skill progression.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I'm in an area with multiple exits, I want to explore the other possible paths to encounter more enemies and continue leveling my Dodge skill. The Mistral Tunnels likely have hostile creatures, and I haven't explored the exits to the east and south yet. Moving south could lead to new challenges."
+        },
+        {
+            "timestamp": "2025-11-26T23:13:21.314186734Z",
+            "playerInput": "attack Training Skeleton #1",
+            "gmResponse": "Training Skeleton #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nWith a snarling grin, the goblin lunges, dagger glinting as it slices across your arm\nWeak Goblin #1 hits you for 9 damage! (HP: 1/10)\nDODGE XP AWARD: +20 XP (now 20/100, level 0)\n\nTraining Skeleton #1 attacks you!\nWith a swift, bone-rattling swing, the skeletal warrior's rusted sword cleaves through flesh, silencing life\nTraining Skeleton #1 hits you for 9 damage! (HP: 0/10)\nDODGE XP AWARD: +20 XP (now 20/100, level 0)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist",
+            "validationResult": {
+                "pass": false,
+                "reason": "Player died (HP: 0/10) - test should end",
+                "details": {
+                    "validation_type": "code",
+                    "health": "0",
+                    "max_health": "10",
+                    "death_detected": "true"
+                }
+            },
+            "reasoning": "I need to engage more enemies to gain additional Dodge XP, as I am currently stuck in a cycle of attacking the same Weak Goblin. The current area has a Giant Rat and a Training Skeleton that I haven't engaged with yet. Since the Training Skeleton is a combat-oriented NPC, attacking it will allow me to potentially gain Dodge XP as well as see how my character performs against a different enemy type."
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-11-26T23:12:00.895996863Z",
+                "playerInput": "look",
+                "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)\n\n💪 Your maximum health has changed: 100 → 10 HP",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent and detailed description of the location, including the environment and available exits, which aligns with MUD conventions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I need to level my Dodge skill and there are no actions taken yet, the best first step is to explore the surroundings to find a hostile NPC or enemy. I'll use the 'look' command to gather information about my current location and potential exits, which will help me decide where to go next to encounter enemies."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-11-26T23:12:05.654972507Z",
+                "playerInput": "go east",
+                "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response to the player's input to go east is incorrect, as there is no exit to the east from the Vault of Beginnings.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "To begin leveling my Dodge skill, I need to find hostile NPCs or enemies to engage in combat. The only exit available from my current location is east to the Vault of Beginnings, which is likely to contain enemies since it is not a safe zone. Moving there is the logical next step to initiate combat and start gaining Dodge experience."
+            },
+            "passed": false,
+            "reason": "The response to the player's input to go east is incorrect, as there is no exit to the east from the Vault of Beginnings."
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-11-26T23:12:10.501151862Z",
+                "playerInput": "go west",
+                "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response is coherent and follows MUD conventions, allowing for exploration and potential combat.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I am currently in the Vault of Beginnings, which appears to be a safe zone with no enemies or hostile NPCs, I need to find a way to engage in combat to begin training my Dodge skill. The only exit available is back to the Town, which I have previously explored, so I will go back and check for possible enemies there where I might engage in combat. Although it is a place of respite, there might be a way to encounter NPCs that can be provoked into a fight."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-11-26T23:12:32.970116091Z",
+                "playerInput": "go down",
+                "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.407] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_2427ff95_8bb4600...\nYou find yourself enveloped in the embrace of the Mistral Tunnels, where the air is thick with a palpable sense of history. Bioluminescent fungi cling to the rough stone walls, their soft, ethereal glow illuminating the twisting paths that weave deeper into the darkness. The gentle hum of distant water echoes, mingling with the whispers of those who have sought refuge here, creating a haunting melody of solace amidst uncertainty.\n\nExits: east (Unknown Location), south (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Giant Rat #1 (neutral)\n  - Training Skeleton #1 (neutral)\n  - Weak Goblin #1 (neutral)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response indicates movement down, but the player is already in an 'Unknown Location' and there are no valid exits leading down. This creates confusion about the game state.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "I need to find hostile NPCs or enemies to engage in combat, as this is the only way to increase my Dodge skill. The only exit available from the current location is down, and I haven't explored that area yet. It makes sense to go down to potentially find combat encounters."
+            },
+            "passed": false,
+            "reason": "The response indicates movement down, but the player is already in an 'Unknown Location' and there are no valid exits leading down. This creates confusion about the game state."
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-11-26T23:12:40.897401951Z",
+                "playerInput": "attack Weak Goblin #1",
+                "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "ongoing"
+                    }
+                },
+                "reasoning": "Currently, I am in the Mistral Tunnels where I can see a few neutral creatures, but I need to engage one in combat to start leveling my Dodge skill. The Weak Goblin looks like a suitable target for this purpose since it's likely to attack back, allowing me to gain XP for Dodge. Engaging in combat with it is my next logical step to fulfill my goal."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-11-26T23:12:48.167425994Z",
+                "playerInput": "attack Weak Goblin #1",
+                "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "ongoing"
+                    }
+                },
+                "reasoning": "To progress my Dodge skill, I need to find enemies that can attack me, thus allowing me to accumulate Dodge XP. Since I've already encountered the Weak Goblin #1 and have engaged in combat, I should continue to focus on it to maximize my training. Attacking the Weak Goblin #1 again will ensure that it will retaliate, giving me another chance to level up my Dodge skill."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-11-26T23:12:53.603403939Z",
+                "playerInput": "wait",
+                "gmResponse": "Unknown command: wait. Type 'help' for available commands.",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The command 'wait' is not recognized, and the expected outcome of the Weak Goblin #1 attacking the player is not fulfilled.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "I've already engaged in combat with Weak Goblin #1 and continued to face it, but I've reached a point where I need to ensure my Dodge skill is leveled up effectively. Since I've already seen that the Weak Goblin is present, I will focus on letting it continue attacking me without attacking back. This way, I can accumulate more Dodge XP, which is essential for my progression toward leveling the Dodge skill."
+            },
+            "passed": false,
+            "reason": "The command 'wait' is not recognized, and the expected outcome of the Weak Goblin #1 attacking the player is not fulfilled."
+        },
+        {
+            "stepNumber": 8,
+            "step": {
+                "timestamp": "2025-11-26T23:13:01.548040636Z",
+                "playerInput": "attack Weak Goblin #1",
+                "gmResponse": "Weak Goblin #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nWeak Goblin #1 misses you!",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Combat ongoing - attack/dodge/damage messages present",
+                    "details": {
+                        "validation_type": "code",
+                        "combat": "ongoing"
+                    }
+                },
+                "reasoning": "Since I am currently in a combat area with a Weak Goblin that has already attacked and missed me, it makes sense to attack it again. This will allow me to continue to gain Dodge XP as it attacks back, helping me level up my Dodge skill. I need to maintain engagement and ensure that I keep getting attacked to accumulate the necessary experience points."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 9,
+            "step": {
+                "timestamp": "2025-11-26T23:13:08.865231044Z",
+                "playerInput": "go south",
+                "gmResponse": "❌ Flee FAILED! You are intercepted!\n\nThe Weak Goblin #1 swings at you but misses!\n\nWeak Goblin #1 attacks you!\nYou dodge Weak Goblin #1's attack!\nDODGE XP AWARD: +100 XP (now 0/400, level 1)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response correctly processes the player's input and provides appropriate feedback regarding combat and skill progression.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I'm in an area with multiple exits, I want to explore the other possible paths to encounter more enemies and continue leveling my Dodge skill. The Mistral Tunnels likely have hostile creatures, and I haven't explored the exits to the east and south yet. Moving south could lead to new challenges."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 10,
+            "step": {
+                "timestamp": "2025-11-26T23:13:21.314186734Z",
+                "playerInput": "attack Training Skeleton #1",
+                "gmResponse": "Training Skeleton #1 dodges your attack!\n\nWeak Goblin #1 attacks you!\nWith a snarling grin, the goblin lunges, dagger glinting as it slices across your arm\nWeak Goblin #1 hits you for 9 damage! (HP: 1/10)\nDODGE XP AWARD: +20 XP (now 20/100, level 0)\n\nTraining Skeleton #1 attacks you!\nWith a swift, bone-rattling swing, the skeletal warrior's rusted sword cleaves through flesh, silencing life\nTraining Skeleton #1 hits you for 9 damage! (HP: 0/10)\nDODGE XP AWARD: +20 XP (now 20/100, level 0)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "Player died (HP: 0/10) - test should end",
+                    "details": {
+                        "validation_type": "code",
+                        "health": "0",
+                        "max_health": "10",
+                        "death_detected": "true"
+                    }
+                },
+                "reasoning": "I need to engage more enemies to gain additional Dodge XP, as I am currently stuck in a cycle of attacking the same Weak Goblin. The current area has a Giant Rat and a Training Skeleton that I haven't engaged with yet. Since the Training Skeleton is a combat-oriented NPC, attacking it will allow me to potentially gain Dodge XP as well as see how my character performs against a different enemy type."
+            },
+            "passed": false,
+            "reason": "Player died (HP: 0/10) - test should end"
+        }
+    ],
+    "uniqueRoomsVisited": 2,
+    "roomNames": [
+        "Unknown Location",
+        "Vault of Beginnings"
+    ],
+    "combatRounds": 4,
+    "playerDied": true
+}

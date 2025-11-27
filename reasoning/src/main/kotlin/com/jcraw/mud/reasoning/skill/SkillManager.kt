@@ -59,7 +59,7 @@ class SkillManager(
 
             // Log Dodge XP awards for testbot debugging
             if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE XP AWARD: +$xpToGrant XP (now ${updatedSkill.xp}/${updatedSkill.xpToNext}, level ${updatedSkill.level})")
+                println("DODGE XP AWARD [$entityId]: +$xpToGrant XP (now ${updatedSkill.xp}/${updatedSkill.xpToNext}, level ${updatedSkill.level})")
             }
 
             // Auto-unlock skill if it reaches level 1 or higher through use-based progression
@@ -76,7 +76,7 @@ class SkillManager(
 
             // DEBUG: Verify skill was saved correctly
             if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE SAVED TO DB: level=${updatedSkill.level}, xp=${updatedSkill.xp}/${updatedSkill.xpToNext}")
+                println("DODGE SAVED TO DB [$entityId]: level=${updatedSkill.level}, xp=${updatedSkill.xp}/${updatedSkill.xpToNext}")
             }
 
             // Generate events
@@ -241,7 +241,7 @@ class SkillManager(
 
                 // Log Dodge lucky level-ups for testbot debugging
                 if (skillName.equals("Dodge", ignoreCase = true)) {
-                    println("DODGE LUCKY LEVEL-UP: ${currentSkill.level} → ${updatedSkill.level} (${luckyChance}% chance)")
+                    println("DODGE LUCKY LEVEL-UP [$entityId]: ${currentSkill.level} → ${updatedSkill.level} (${luckyChance}% chance)")
                 }
 
                 // Log to memory for RAG
@@ -554,7 +554,7 @@ class SkillManager(
         // DEBUG: Log loaded Dodge skill
         val dodgeSkill = component.getSkill("Dodge")
         if (dodgeSkill != null) {
-            println("DODGE LOADED FROM DB: level=${dodgeSkill.level}, xp=${dodgeSkill.xp}/${dodgeSkill.xpToNext}")
+            println("DODGE LOADED FROM DB [$entityId]: level=${dodgeSkill.level}, xp=${dodgeSkill.xp}/${dodgeSkill.xpToNext}")
         }
 
         return component
