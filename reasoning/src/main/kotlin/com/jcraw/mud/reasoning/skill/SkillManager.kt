@@ -41,9 +41,19 @@ class SkillManager(
         return runCatching {
             require(baseXp >= 0) { "Base XP must be non-negative" }
 
+            // DEBUG: Log entry into grantXp
+            if (skillName.equals("Dodge", ignoreCase = true)) {
+                println("DODGE grantXp() CALLED [$entityId]: baseXp=$baseXp, success=$success")
+            }
+
             // Get current component
             val component = getSkillComponent(entityId)
             val currentSkill = component.getSkill(skillName) ?: SkillState()
+
+            // DEBUG: Log loaded skill state
+            if (skillName.equals("Dodge", ignoreCase = true)) {
+                println("DODGE CURRENT STATE [$entityId]: level=${currentSkill.level}, xp=${currentSkill.xp}/${currentSkill.xpToNext}")
+            }
 
             // Calculate XP (full if success, 20% if failure) with config multiplier
             val baseAmount = if (success) baseXp else (baseXp * 0.2).toLong()
