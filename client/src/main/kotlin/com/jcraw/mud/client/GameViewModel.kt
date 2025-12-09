@@ -44,9 +44,7 @@ class GameViewModel(
         // Create real game client with default character
         try {
             gameClient = EngineGameClient(
-                apiKey = apiKey,
-                dungeonTheme = DungeonTheme.CRYPT, // Could be made selectable
-                roomCount = 10
+                apiKey = apiKey
             )
 
             // Subscribe to new client's events

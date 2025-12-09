@@ -472,10 +472,10 @@ object ClientSkillQuestHandlers {
             if (!result.success) {
                 game.emitEvent(GameEvent.System("❌ You failed to harvest the resource properly.", GameEvent.MessageLevel.WARNING))
 
-                // Award 20% XP on failure
+                // Attempt skill progression on failure (dual-path: lucky chance OR XP)
                 val skillName = challenge.statType.name
-                val baseXp = 25L
-                val xpEvents = game.skillManager.grantXp(
+                val baseXp = 25L // Lower than success
+                val xpEvents = game.skillManager.attemptSkillProgress(
                     entityId = game.worldState.player.id,
                     skillName = skillName,
                     baseXp = baseXp,
@@ -491,8 +491,9 @@ object ClientSkillQuestHandlers {
                             ))
                         }
                         is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
                             game.emitEvent(GameEvent.System(
-                                "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                                "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method",
                                 GameEvent.MessageLevel.INFO
                             ))
                         }
@@ -552,16 +553,16 @@ object ClientSkillQuestHandlers {
             game.emitEvent(GameEvent.System(harvestText.trim(), GameEvent.MessageLevel.INFO))
         }
 
-        // Award XP for gathering skill based on feature's skill requirement
+        // Attempt skill progression for gathering (dual-path: lucky chance OR XP)
         if (feature.skillChallenge != null && skillCheckResult != null) {
             val skillName = feature.skillChallenge!!.statType.name
-            val baseXp = 50L
+            val baseXp = 50L // Full XP for successful harvest
 
-            val xpEvents = game.skillManager.grantXp(
+            val xpEvents = game.skillManager.attemptSkillProgress(
                 entityId = game.worldState.player.id,
                 skillName = skillName,
                 baseXp = baseXp,
-                success = true
+                success = skillCheckResult.success
             ).getOrNull() ?: emptyList()
 
             xpEvents.forEach { event ->
@@ -573,8 +574,9 @@ object ClientSkillQuestHandlers {
                         ))
                     }
                     is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                        val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
                         game.emitEvent(GameEvent.System(
-                            "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                            "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method",
                             GameEvent.MessageLevel.INFO
                         ))
                     }
@@ -640,6 +642,40 @@ object ClientSkillQuestHandlers {
 
                 // Track for quests (use CollectedItem since crafted items count as collected)
                 game.trackQuests(com.jcraw.mud.reasoning.QuestAction.CollectedItem(result.craftedItem.id))
+
+                // Attempt skill progression for crafting (dual-path: lucky chance OR XP)
+                val baseXp = 50L + (recipe.difficulty * 5L) // Scale with difficulty
+                val xpEvents = game.skillManager.attemptSkillProgress(
+                    entityId = game.worldState.player.id,
+                    skillName = recipe.requiredSkill,
+                    baseXp = baseXp,
+                    success = true
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            game.emitEvent(GameEvent.System(
+                                "+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
+                            game.emitEvent(GameEvent.System(
+                                "🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel} $method",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                            if (event.isAtPerkMilestone) {
+                                game.emitEvent(GameEvent.System(
+                                    "⚡ Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk.",
+                                    GameEvent.MessageLevel.INFO
+                                ))
+                            }
+                        }
+                        else -> {}
+                    }
+                }
             }
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Failure -> {
                 // craft() already mutated inventory (consumed some materials)
@@ -647,6 +683,34 @@ object ClientSkillQuestHandlers {
                 game.worldState = game.worldState.updatePlayer(updatedPlayer)
 
                 game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+
+                // Attempt skill progression on failure (dual-path: lucky chance OR XP)
+                val baseXp = 10L + (recipe.difficulty * 1L) // Lower than success
+                val xpEvents = game.skillManager.attemptSkillProgress(
+                    entityId = game.worldState.player.id,
+                    skillName = recipe.requiredSkill,
+                    baseXp = baseXp,
+                    success = false
+                ).getOrNull() ?: emptyList()
+
+                xpEvents.forEach { event ->
+                    when (event) {
+                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
+                            game.emitEvent(GameEvent.System(
+                                "+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                        }
+                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
+                            val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
+                            game.emitEvent(GameEvent.System(
+                                "🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel} $method",
+                                GameEvent.MessageLevel.INFO
+                            ))
+                        }
+                        else -> {}
+                    }
+                }
             }
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Invalid -> {
                 game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))

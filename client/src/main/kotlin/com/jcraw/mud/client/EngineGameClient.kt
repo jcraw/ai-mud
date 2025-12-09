@@ -6,9 +6,8 @@ import com.jcraw.mud.client.SpaceEntitySupport
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.*
-import com.jcraw.mud.reasoning.procedural.ProceduralDungeonBuilder
-import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.reasoning.procedural.QuestGenerator
+import com.jcraw.mud.reasoning.procedural.DungeonTheme
 import com.jcraw.mud.reasoning.death.PlayerRespawnService
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.PersistenceManager
@@ -32,9 +31,7 @@ import java.nio.file.Paths
  * Integrates with the existing MudGame logic but exposes it through the GameClient interface.
  */
 class EngineGameClient(
-    private val apiKey: String? = null,
-    private val dungeonTheme: DungeonTheme = DungeonTheme.CRYPT,
-    private val roomCount: Int = 10
+    private val apiKey: String? = null
 ) : GameClient {
 
     private val _events = MutableSharedFlow<GameEvent>(replay = 10)
@@ -302,8 +299,8 @@ class EngineGameClient(
             throw IllegalArgumentException("API key required for GUI client - Ancient Abyss generation needs LLM")
         }
 
-        // Generate and add quests
-        val initialQuests = questGenerator.generateQuestPool(worldState, dungeonTheme, count = 3)
+        // Generate and add quests (using CRYPT theme as default for V3)
+        val initialQuests = questGenerator.generateQuestPool(worldState, DungeonTheme.CRYPT, count = 3)
         initialQuests.forEach { quest ->
             worldState = worldState.addAvailableQuest(quest)
         }

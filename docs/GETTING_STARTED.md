@@ -155,6 +155,20 @@ For complete details, see [World Generation Documentation](./WORLD_GENERATION.md
 - `sell <item> to <merchant>` - Sell to a specific merchant
 - `list stock` - View merchant inventory and prices (affected by disposition)
 
+### Treasure Rooms
+- `examine pedestals` or `examine altars` - View all items on pedestals and their states
+- `take treasure <item>` - Claim an item from a pedestal (locks other pedestals)
+- `return treasure <item>` - Return the item to unlock all pedestals for swapping
+- **Note**: You can swap items freely while in the room, but leaving with an item finalizes your choice
+
+**Treasure Room Mechanics**:
+- Found early in dungeons (first 2-3 rooms from start)
+- Contains 5 playstyle-defining RARE items on themed pedestals
+- Take one item to try it - barriers lock the others
+- Return it to unlock all pedestals and swap for a different item
+- Once you leave the room with an item, your choice is final and the room becomes empty
+- Treasure rooms are safe zones (no combat or traps)
+
 ### Pickpocketing
 - `pickpocket <npc>` - Attempt to steal from an NPC
 - `steal <item> from <npc>` - Steal a specific item
@@ -266,6 +280,16 @@ For complete details, see [World Generation Documentation](./WORLD_GENERATION.md
 - NPCs with varied stats and personalities
 - Distributed loot (weapons, armor, consumables, gold)
 
+**Treasure Room System**
+- **Brogue-inspired choice mechanic**: Take one item, barriers lock others, return to swap
+- **5 starter pedestals**: Combat (Flamebrand Longsword), Rogue (Shadowweave Cloak), Magic (Stormcaller Staff), Utility (Titan's Band), Hybrid (Arcane Blade)
+- **Unlimited swaps**: Return item to unlock all pedestals, swap freely until leaving room
+- **One-time access**: Leaving with item finalizes choice, pedestals emptied
+- **Early placement**: Spawns in first 2-3 rooms for playstyle definition
+- **Biome theming**: Altars adapt to dungeon (stone, obsidian, ice, bone) with LLM-generated atmospheric descriptions
+- **Safe zone**: No combat spawns, deliberate choice without pressure
+- See [Treasure Rooms Documentation](./TREASURE_ROOMS.md) for details
+
 **Persistence**
 - Save and load game state to/from JSON files
 - Preserves all state: player stats, inventory, equipment, combat, world
@@ -311,6 +335,7 @@ For more details, see:
 - [Social System Documentation](./SOCIAL_SYSTEM.md)
 - [Items and Crafting Documentation](./ITEMS_AND_CRAFTING.md)
 - [World Generation Documentation](./WORLD_GENERATION.md)
+- [Treasure Rooms Documentation](./TREASURE_ROOMS.md)
 - [Multi-User Details](./MULTI_USER.md)
 - [Testing Strategy](./TESTING.md)
 - [Implementation Log](./IMPLEMENTATION_LOG.md)

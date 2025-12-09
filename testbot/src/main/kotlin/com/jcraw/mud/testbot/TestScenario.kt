@@ -104,4 +104,12 @@ sealed class TestScenario {
         val targetSkill: String = "Dodge",
         val targetLevel: Int = 10
     ) : TestScenario()
+
+    @Serializable
+    data class TreasureRoomPlaythrough(
+        override val name: String = "treasure_room",
+        override val description: String = "Test treasure room system: find room, examine pedestals, take/return/swap items, finalize choice",
+        override val maxSteps: Int = 40,
+        val expectTreasureRoom: Boolean = true
+    ) : TestScenario()
 }

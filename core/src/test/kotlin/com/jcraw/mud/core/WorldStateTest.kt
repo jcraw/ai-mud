@@ -18,6 +18,9 @@ import kotlin.test.assertNotNull
  */
 class WorldStateTest {
 
+    private fun toSkillComponent(player: PlayerState): SkillComponent =
+        SkillComponent(player.skills.mapValues { SkillState(level = it.value, unlocked = true) })
+
     // Test fixtures
     private val player1 = PlayerState(
         id = "player1",
@@ -304,8 +307,9 @@ class WorldStateTest {
     @Test
     fun `hidden exit cannot be used until discovered`() {
         val world = hiddenExitWorld()
+        val playerSkills = toSkillComponent(world.player)
 
-        val result = world.movePlayerV3(Direction.SOUTH)
+        val result = world.movePlayerV3(Direction.SOUTH, playerSkills)
 
         assertNull(result, "Movement should fail when exit remains hidden")
     }
@@ -313,8 +317,9 @@ class WorldStateTest {
     @Test
     fun `revealed hidden exit allows traversal`() {
         val world = hiddenExitWorld(revealed = true)
+        val playerSkills = toSkillComponent(world.player)
 
-        val result = world.movePlayerV3(Direction.SOUTH)
+        val result = world.movePlayerV3(Direction.SOUTH, playerSkills)
 
         assertNotNull(result)
         assertEquals("space2", result.player.currentRoomId)
@@ -323,8 +328,9 @@ class WorldStateTest {
     @Test
     fun `perception skill auto reveals hidden exit`() {
         val world = hiddenExitWorld(perceptionSkill = 25, difficulty = 15)
+        val playerSkills = toSkillComponent(world.player)
 
-        val result = world.movePlayerV3(Direction.SOUTH)
+        val result = world.movePlayerV3(Direction.SOUTH, playerSkills)
 
         assertNotNull(result)
         assertEquals("space2", result.player.currentRoomId)
@@ -334,8 +340,9 @@ class WorldStateTest {
     @Test
     fun `movePlayerByExit also respects hidden gating`() {
         val world = hiddenExitWorld()
+        val playerSkills = toSkillComponent(world.player)
 
-        val result = world.movePlayerByExit("player1", "south")
+        val result = world.movePlayerByExit("player1", "south", playerSkills)
 
         assertNull(result, "movePlayerByExit should block unrevealed hidden exits")
     }

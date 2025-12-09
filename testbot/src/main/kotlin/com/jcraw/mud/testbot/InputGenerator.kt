@@ -574,6 +574,42 @@ class InputGenerator(
                 Target: Complete within 120 actions
                 """.trimIndent()
             }
+            is TestScenario.TreasureRoomPlaythrough -> {
+                val objectives = mapOf(
+                    "find_treasure_room" to actionsTaken.any { it == "look" },
+                    "examine_pedestals" to actionsTaken.any { it.contains("examine") && (it.contains("pedestal") || it.contains("altar")) },
+                    "take_treasure" to actionsTaken.any { it.contains("take treasure") },
+                    "return_treasure" to actionsTaken.any { it.contains("return treasure") },
+                    "swap_items" to (actionsTaken.count { it.contains("take treasure") } >= 2),
+                    "finalize_choice" to actionsTaken.any { it.matches(Regex("[nsew]|north|south|east|west")) }
+                )
+
+                val completed = objectives.filter { it.value }.keys
+                val remaining = objectives.filter { !it.value }.keys
+
+                """
+                GOAL: Test treasure room system mechanics
+
+                MANDATORY TEST OBJECTIVES:
+                ✓ Completed (${completed.size}/6): ${completed.joinToString(", ")}
+                ✗ Remaining (${remaining.size}/6): ${remaining.joinToString(", ")}
+
+                Test plan:
+                1. find_treasure_room - Navigate to find the treasure room
+                2. examine_pedestals - Use 'examine pedestals' or 'examine altars' to see available items
+                3. take_treasure - Use 'take treasure <item>' to claim an item
+                4. return_treasure - Use 'return treasure <item>' to put it back
+                5. swap_items - Take a different item to test swap mechanic
+                6. finalize_choice - Leave the room to finalize your choice
+
+                CRITICAL RULES:
+                - You can swap items freely while in the room
+                - Once you leave with an item, the choice is final
+                - Test both take and return mechanics
+
+                Target: ~40 actions
+                """.trimIndent()
+            }
         }
 
         return """

@@ -3,7 +3,7 @@ package com.jcraw.mud.testbot.scenarios
 import com.jcraw.app.MudGame
 import com.jcraw.app.RealGameEngineAdapter
 
-import com.jcraw.mud.core.SampleDungeon
+// SampleDungeon replaced with V3TestWorldHelper
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
@@ -62,7 +62,7 @@ class BruteForcePlaythroughTest {
         @DisplayName("Bot completes brute force playthrough by collecting gear and defeating boss")
         fun `bot completes brute force playthrough successfully`() = runBlocking {
             // ARRANGE: Create SampleDungeon (designed for gear collection testing)
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
 
             // Initialize LLM components
             val llmClient = OpenAIClient(apiKey!!)
@@ -156,7 +156,7 @@ class BruteForcePlaythroughTest {
         @DisplayName("Bot explores multiple rooms during brute force playthrough")
         fun `bot explores multiple rooms looking for gear`() = runBlocking {
             // ARRANGE
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
@@ -208,7 +208,7 @@ class BruteForcePlaythroughTest {
         @DisplayName("Bot takes damage but survives with proper gear")
         fun `bot takes damage but survives with equipment`() = runBlocking {
             // ARRANGE
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)

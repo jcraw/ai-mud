@@ -3,7 +3,7 @@ package com.jcraw.mud.testbot.scenarios
 import com.jcraw.app.MudGame
 import com.jcraw.app.RealGameEngineAdapter
 
-import com.jcraw.mud.core.SampleDungeon
+// SampleDungeon replaced with V3TestWorldHelper
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
@@ -60,7 +60,7 @@ class BadPlaythroughTest {
         @DisplayName("Bot rushes to boss and dies without gear")
         fun `bot dies to boss without preparation`() = runBlocking {
             // ARRANGE: Create SampleDungeon (designed for testing with/without gear)
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
 
             // Initialize LLM components
             val llmClient = OpenAIClient(apiKey!!)
@@ -143,7 +143,7 @@ class BadPlaythroughTest {
         @DisplayName("Bot reaches boss room quickly without collecting gear")
         fun `bot rushes to boss without gear collection`() = runBlocking {
             // ARRANGE
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)
@@ -201,7 +201,7 @@ class BadPlaythroughTest {
         @DisplayName("Bot takes fatal damage from boss encounter")
         fun `bot takes lethal damage without equipment`() = runBlocking {
             // ARRANGE
-            val worldState = SampleDungeon.createInitialWorldState()
+            val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
             val llmClient = OpenAIClient(apiKey!!)
             val memoryManager = MemoryManager(llmClient)
             val descriptionGenerator = RoomDescriptionGenerator(llmClient, memoryManager)

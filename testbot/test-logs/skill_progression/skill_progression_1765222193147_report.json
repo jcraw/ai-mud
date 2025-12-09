@@ -1,0 +1,272 @@
+{
+    "scenario": {
+        "type": "com.jcraw.mud.testbot.TestScenario.SkillProgression"
+    },
+    "totalSteps": 7,
+    "passedSteps": 4,
+    "failedSteps": 3,
+    "finalStatus": "PASSED",
+    "startTime": "2025-12-08T19:29:53.147735193Z",
+    "endTime": "2025-12-08T19:30:45.216992889Z",
+    "duration": 52069,
+    "steps": [
+        {
+            "timestamp": "2025-12-08T19:29:58.687008012Z",
+            "playerInput": "look",
+            "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)\n\n💪 Your maximum health has changed: 100 → 10 HP",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response provides a coherent description of the current area, including exits and entities present, which aligns with MUD conventions.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I need to find hostile NPCs to engage in combat and train my Dodge skill, I will explore the surrounding areas. Since the current location is unknown, I will first check for exits to see where I can go next. This will allow me to identify potential combat areas and move closer to enemies."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:03.394701296Z",
+            "playerInput": "go east",
+            "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response to the player's input to go east is invalid as there is no east exit available from the Vault of Beginnings.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since the current location is a safe haven with no enemies to engage, I need to explore the exit to the east, which leads to the Vault of Beginnings. This area is likely to have hostile creatures that I can fight to begin leveling my Dodge skill. It's essential to find combat to make progress towards my objective."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:08.781778425Z",
+            "playerInput": "examine pedestals",
+            "gmResponse": "=== Treasure Room ===\nYou may claim one treasure. Choose wisely - the others will be sealed away.\n\n1. ✓ flamebrand_longsword - Available\n   weathered stone altar bearing a warrior's blade\n   A mysterious item\n\n2. ✓ shadowweave_cloak - Available\n   shadowed weathered stone pedestal wreathed in darkness\n   A mysterious item\n\n3. ✓ stormcaller_staff - Available\n   glowing weathered stone shrine pulsing with arcane energy\n   A mysterious item\n\n4. ✓ titans_band - Available\n   sturdy weathered stone stand adorned with fortitude runes\n   A mysterious item\n\n5. ✓ arcane_blade - Available\n   ornate weathered stone dais marked with dual symbols\n   A mysterious item",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Description provided for 'pedestals'",
+                "details": {
+                    "validation_type": "code",
+                    "item": "pedestals",
+                    "description_length": "661"
+                }
+            },
+            "reasoning": "In the Vault of Beginnings, there are no visible enemies to engage in combat, which is essential for leveling the Dodge skill. The next logical step is to explore the area further to find a path that leads to potential combat encounters. Since I cannot go west again, I should examine the pedestals to see if claiming a treasure might lead to combat or provide me with an advantage in future battles."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:11.812018644Z",
+            "playerInput": "go down",
+            "gmResponse": "You can't go that way.",
+            "validationResult": {
+                "pass": true,
+                "reason": "[CODE] Correctly rejected invalid direction: DOWN",
+                "details": {
+                    "validation_type": "code",
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "To progress towards leveling my Dodge skill, I need to find hostile enemies to engage in combat. Since I'm currently in the Vault of Beginnings with no enemies present, the next logical step is to explore more of the dungeon to seek out combat opportunities. The only available exit from my current location is to go down into the Unknown Location, which may lead to an area with potential enemies."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:16.226418855Z",
+            "playerInput": "go west",
+            "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+            "validationResult": {
+                "pass": true,
+                "reason": "The response is coherent and follows MUD conventions, providing a valid description of the player's new location.",
+                "details": {
+                    "coherence": "pass",
+                    "consistency": "pass",
+                    "mechanics": "pass"
+                }
+            },
+            "reasoning": "Since I am currently in the Vault of Beginnings, my next logical step is to explore the exits further and look for hostile NPCs or enemies to engage in combat. The only exit available is back to the Unknown Location. I need to go back in order to find potential enemies to train my Dodge skill."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:35.047279941Z",
+            "playerInput": "go down",
+            "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.372] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_b63bd2ab_f1c21ef...\nYou find yourself enveloped in the tranquil embrace of the Echoing Bastion, a sanctuary carved from the very heart of the Shattered Corridor. Shadows weave through the space, dancing alongside the glimmering quartz embedded in the stone walls, casting an otherworldly glow that flickers like stars in a twilight sky. The air is thick with anticipation, a blend of hope and anxiety that clings to your skin as you take a moment to gather your thoughts before venturing onward into the unknown.\n\nExits: south (Unknown Location), west (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Giant Rat Swarm (neutral)\n  - Skeleton Training Dummy (neutral)",
+            "validationResult": {
+                "pass": false,
+                "reason": "The response indicates movement down, which is not a valid exit based on the current game state.",
+                "details": {
+                    "coherence": "fail",
+                    "consistency": "pass",
+                    "mechanics": "fail"
+                }
+            },
+            "reasoning": "Since I'm currently in a safe zone with no hostile NPCs, I need to explore different areas to find potential enemies to engage in combat. I've already examined the Vault of Beginnings but haven't checked the exit leading down. I will choose to go down to see if it leads to a combat area."
+        },
+        {
+            "timestamp": "2025-12-08T19:30:45.216683969Z",
+            "playerInput": "attack Giant Rat Swarm",
+            "gmResponse": "Giant Rat Swarm dodges your attack!\n\nGiant Rat Swarm attacks you!\nWith a surge of fur and gnashing teeth, the swarm envelops you, tearing flesh and hope\nGiant Rat Swarm hits you for 14 damage! (HP: 0/10)\nDODGE grantXp() CALLED [test_player]: baseXp=10, success=false\nDODGE CURRENT STATE [test_player]: level=0, xp=0/100\nDODGE XP AWARD [test_player]: +20 XP (now 20/100, level 0)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist",
+            "validationResult": {
+                "pass": false,
+                "reason": "Player died (HP: 0/10) - test should end",
+                "details": {
+                    "validation_type": "code",
+                    "health": "0",
+                    "max_health": "10",
+                    "death_detected": "true"
+                }
+            },
+            "reasoning": "In the current location, there is a Giant Rat Swarm, which is a neutral entity that might become hostile if engaged. Since the main objective is to level the Dodge skill from 0 to 10 through combat and the Dodge skill only increases when being attacked, I should attack the Giant Rat Swarm to initiate combat and let it counter-attack, giving me the chance to train my Dodge skill."
+        }
+    ],
+    "results": [
+        {
+            "stepNumber": 1,
+            "step": {
+                "timestamp": "2025-12-08T19:29:58.687008012Z",
+                "playerInput": "look",
+                "gmResponse": "Unknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)\n\n💪 Your maximum health has changed: 100 → 10 HP",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response provides a coherent description of the current area, including exits and entities present, which aligns with MUD conventions.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I need to find hostile NPCs to engage in combat and train my Dodge skill, I will explore the surrounding areas. Since the current location is unknown, I will first check for exits to see where I can go next. This will allow me to identify potential combat areas and move closer to enemies."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 2,
+            "step": {
+                "timestamp": "2025-12-08T19:30:03.394701296Z",
+                "playerInput": "go east",
+                "gmResponse": "You move east.\n\nVault of Beginnings\n-------------------\nAn ancient vault with five ornate pedestals, each displaying a legendary treasure. The air shimmers with protective magic. You may claim one item, but choose wisely - your choice will shape your journey through the Abyss.\n\nFive pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.\n\nExits: west (Unknown Location)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response to the player's input to go east is invalid as there is no east exit available from the Vault of Beginnings.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since the current location is a safe haven with no enemies to engage, I need to explore the exit to the east, which leads to the Vault of Beginnings. This area is likely to have hostile creatures that I can fight to begin leveling my Dodge skill. It's essential to find combat to make progress towards my objective."
+            },
+            "passed": false,
+            "reason": "The response to the player's input to go east is invalid as there is no east exit available from the Vault of Beginnings."
+        },
+        {
+            "stepNumber": 3,
+            "step": {
+                "timestamp": "2025-12-08T19:30:08.781778425Z",
+                "playerInput": "examine pedestals",
+                "gmResponse": "=== Treasure Room ===\nYou may claim one treasure. Choose wisely - the others will be sealed away.\n\n1. ✓ flamebrand_longsword - Available\n   weathered stone altar bearing a warrior's blade\n   A mysterious item\n\n2. ✓ shadowweave_cloak - Available\n   shadowed weathered stone pedestal wreathed in darkness\n   A mysterious item\n\n3. ✓ stormcaller_staff - Available\n   glowing weathered stone shrine pulsing with arcane energy\n   A mysterious item\n\n4. ✓ titans_band - Available\n   sturdy weathered stone stand adorned with fortitude runes\n   A mysterious item\n\n5. ✓ arcane_blade - Available\n   ornate weathered stone dais marked with dual symbols\n   A mysterious item",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Description provided for 'pedestals'",
+                    "details": {
+                        "validation_type": "code",
+                        "item": "pedestals",
+                        "description_length": "661"
+                    }
+                },
+                "reasoning": "In the Vault of Beginnings, there are no visible enemies to engage in combat, which is essential for leveling the Dodge skill. The next logical step is to explore the area further to find a path that leads to potential combat encounters. Since I cannot go west again, I should examine the pedestals to see if claiming a treasure might lead to combat or provide me with an advantage in future battles."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 4,
+            "step": {
+                "timestamp": "2025-12-08T19:30:11.812018644Z",
+                "playerInput": "go down",
+                "gmResponse": "You can't go that way.",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "[CODE] Correctly rejected invalid direction: DOWN",
+                    "details": {
+                        "validation_type": "code",
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "To progress towards leveling my Dodge skill, I need to find hostile enemies to engage in combat. Since I'm currently in the Vault of Beginnings with no enemies present, the next logical step is to explore more of the dungeon to seek out combat opportunities. The only available exit from my current location is to go down into the Unknown Location, which may lead to an area with potential enemies."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 5,
+            "step": {
+                "timestamp": "2025-12-08T19:30:16.226418855Z",
+                "playerInput": "go west",
+                "gmResponse": "You move west.\n\nUnknown Location\n----------------\nYou stand in the Town, a safe haven carved from the dungeon depths.\nTorches flicker on stone walls, casting dancing shadows. Merchants display their wares on\nrickety stalls, calling out to passing adventurers. The air is warm and smells of bread,\nmetal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.\nThis is a place of respite - no danger reaches here.\n\nExits: east (Vault of Beginnings), down (Unknown Location)\n\nYou see:\n  - Alara the Alchemist (neutral)\n  - Thoren Ironfist (neutral)\n  - Gareth the Smith (neutral)\n  - Mira Goodbarrel (neutral)",
+                "validationResult": {
+                    "pass": true,
+                    "reason": "The response is coherent and follows MUD conventions, providing a valid description of the player's new location.",
+                    "details": {
+                        "coherence": "pass",
+                        "consistency": "pass",
+                        "mechanics": "pass"
+                    }
+                },
+                "reasoning": "Since I am currently in the Vault of Beginnings, my next logical step is to explore the exits further and look for hostile NPCs or enemies to engage in combat. The only exit available is back to the Unknown Location. I need to go back in order to find potential enemies to train my Dodge skill."
+            },
+            "passed": true,
+            "reason": "Step completed successfully"
+        },
+        {
+            "stepNumber": 6,
+            "step": {
+                "timestamp": "2025-12-08T19:30:35.047279941Z",
+                "playerInput": "go down",
+                "gmResponse": "You move down.\n\nUnknown Location\n----------------\n🔍 Retrieved 1 relevant memories\n   1. [score=0.372] Space [SPACE_SUBZONE_ZONE_REGION_WORLD_root_b63bd2ab_f1c21ef...\nYou find yourself enveloped in the tranquil embrace of the Echoing Bastion, a sanctuary carved from the very heart of the Shattered Corridor. Shadows weave through the space, dancing alongside the glimmering quartz embedded in the stone walls, casting an otherworldly glow that flickers like stars in a twilight sky. The air is thick with anticipation, a blend of hope and anxiety that clings to your skin as you take a moment to gather your thoughts before venturing onward into the unknown.\n\nExits: south (Unknown Location), west (Unknown Location), up (Unknown Location)\n\nYou see:\n  - Giant Rat Swarm (neutral)\n  - Skeleton Training Dummy (neutral)",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "The response indicates movement down, which is not a valid exit based on the current game state.",
+                    "details": {
+                        "coherence": "fail",
+                        "consistency": "pass",
+                        "mechanics": "fail"
+                    }
+                },
+                "reasoning": "Since I'm currently in a safe zone with no hostile NPCs, I need to explore different areas to find potential enemies to engage in combat. I've already examined the Vault of Beginnings but haven't checked the exit leading down. I will choose to go down to see if it leads to a combat area."
+            },
+            "passed": false,
+            "reason": "The response indicates movement down, which is not a valid exit based on the current game state."
+        },
+        {
+            "stepNumber": 7,
+            "step": {
+                "timestamp": "2025-12-08T19:30:45.216683969Z",
+                "playerInput": "attack Giant Rat Swarm",
+                "gmResponse": "Giant Rat Swarm dodges your attack!\n\nGiant Rat Swarm attacks you!\nWith a surge of fur and gnashing teeth, the swarm envelops you, tearing flesh and hope\nGiant Rat Swarm hits you for 14 damage! (HP: 0/10)\nDODGE grantXp() CALLED [test_player]: baseXp=10, success=false\nDODGE CURRENT STATE [test_player]: level=0, xp=0/100\nDODGE XP AWARD [test_player]: +20 XP (now 20/100, level 0)\n\nFailed to process permadeath: path to 'data/world.db': '/run/media/j/M2MegaStore/Code/claude-code/ai-mud/testbot/data' does not exist",
+                "validationResult": {
+                    "pass": false,
+                    "reason": "Player died (HP: 0/10) - test should end",
+                    "details": {
+                        "validation_type": "code",
+                        "health": "0",
+                        "max_health": "10",
+                        "death_detected": "true"
+                    }
+                },
+                "reasoning": "In the current location, there is a Giant Rat Swarm, which is a neutral entity that might become hostile if engaged. Since the main objective is to level the Dodge skill from 0 to 10 through combat and the Dodge skill only increases when being attacked, I should attack the Giant Rat Swarm to initiate combat and let it counter-attack, giving me the chance to train my Dodge skill."
+            },
+            "passed": false,
+            "reason": "Player died (HP: 0/10) - test should end"
+        }
+    ],
+    "uniqueRoomsVisited": 2,
+    "roomNames": [
+        "Unknown Location",
+        "Vault of Beginnings"
+    ],
+    "combatRounds": 1,
+    "playerDied": true
+}

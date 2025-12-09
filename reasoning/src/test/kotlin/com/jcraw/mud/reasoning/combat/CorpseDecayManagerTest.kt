@@ -21,22 +21,14 @@ class CorpseDecayManagerTest {
             decayTimer = 10
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse)
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", listOf(corpse))
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.getRoomViews()["room1"]
-        assertNotNull(updatedRoom)
-
-        val updatedCorpse = updatedRoom.entities.filterIsInstance<Entity.Corpse>().firstOrNull()
+        val updatedCorpse = result.worldState.getEntitiesInSpace("room1")
+            .filterIsInstance<Entity.Corpse>()
+            .firstOrNull()
         assertNotNull(updatedCorpse)
         assertEquals(9, updatedCorpse.decayTimer)
         assertTrue(result.decayedCorpses.isEmpty())
@@ -52,22 +44,13 @@ class CorpseDecayManagerTest {
             contents = emptyList()
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse)
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", listOf(corpse))
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.getRoomViews()["room1"]
-        assertNotNull(updatedRoom)
-
-        val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
+        val corpses = result.worldState.getEntitiesInSpace("room1")
+            .filterIsInstance<Entity.Corpse>()
         assertTrue(corpses.isEmpty())
         assertEquals(1, result.decayedCorpses.size)
         assertEquals("corpse1", result.decayedCorpses[0].id)
@@ -100,14 +83,7 @@ class CorpseDecayManagerTest {
             goldAmount = 50
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse)
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", listOf(corpse))
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -126,11 +102,9 @@ class CorpseDecayManagerTest {
         // Gold should be tracked by room
         assertEquals(50, result.destroyedGold["room1"])
 
-        val updatedRoom = result.worldState.getRoomViews()["room1"]
-        assertNotNull(updatedRoom)
-
         // Corpse and items should not be in room
-        val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
+        val corpses = result.worldState.getEntitiesInSpace("room1")
+            .filterIsInstance<Entity.Corpse>()
         assertTrue(corpses.isEmpty())
     }
 
@@ -151,22 +125,13 @@ class CorpseDecayManagerTest {
             decayTimer = 1
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Battlefield",
-            traits = listOf("bloody"),
-            entities = listOf(corpse1, corpse2)
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", listOf(corpse1, corpse2))
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
 
-        val updatedRoom = result.worldState.getRoomViews()["room1"]
-        assertNotNull(updatedRoom)
-
-        val corpses = updatedRoom.entities.filterIsInstance<Entity.Corpse>()
+        val corpses = result.worldState.getEntitiesInSpace("room1")
+            .filterIsInstance<Entity.Corpse>()
         assertEquals(1, corpses.size) // Only corpse1 should remain
         assertEquals("corpse1", corpses[0].id)
         assertEquals(4, corpses[0].decayTimer) // Timer should be decremented
@@ -191,21 +156,10 @@ class CorpseDecayManagerTest {
             decayTimer = 1
         )
 
-        val room1 = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse1)
+        val worldState = createMultiRoomWorld(
+            "room1" to listOf(corpse1),
+            "room2" to listOf(corpse2)
         )
-
-        val room2 = Room(
-            id = "room2",
-            name = "Dungeon",
-            traits = listOf("damp"),
-            entities = listOf(corpse2)
-        )
-
-        val worldState = createWorld(room1, room2)
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -214,13 +168,10 @@ class CorpseDecayManagerTest {
         assertEquals(2, result.decayedCorpses.size)
 
         // Both rooms should have no corpses
-        val updatedRoom1 = result.worldState.getRoomViews()["room1"]
-        val updatedRoom2 = result.worldState.getRoomViews()["room2"]
-        assertNotNull(updatedRoom1)
-        assertNotNull(updatedRoom2)
-
-        assertTrue(updatedRoom1.entities.filterIsInstance<Entity.Corpse>().isEmpty())
-        assertTrue(updatedRoom2.entities.filterIsInstance<Entity.Corpse>().isEmpty())
+        assertTrue(result.worldState.getEntitiesInSpace("room1")
+            .filterIsInstance<Entity.Corpse>().isEmpty())
+        assertTrue(result.worldState.getEntitiesInSpace("room2")
+            .filterIsInstance<Entity.Corpse>().isEmpty())
     }
 
     @Test
@@ -231,14 +182,7 @@ class CorpseDecayManagerTest {
             description = "A guard"
         )
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(npc)
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", listOf(npc))
 
         val manager = CorpseDecayManager()
         val result = manager.tickDecay(worldState)
@@ -256,16 +200,9 @@ class CorpseDecayManagerTest {
         val corpse2 = Entity.Corpse(id = "corpse2", name = "Corpse 2", description = "Second")
         val item = Entity.Item(id = "item1", name = "Sword", description = "A sword")
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse1, item, corpse2)
-        )
-
         val manager = CorpseDecayManager()
-        val worldState = createWorld(room)
-        val corpses = manager.getCorpsesInSpace(room.id, worldState)
+        val worldState = createWorld("room1", listOf(corpse1, item, corpse2))
+        val corpses = manager.getCorpsesInSpace("room1", worldState)
 
         assertEquals(2, corpses.size)
         assertTrue(corpses.any { it.id == "corpse1" })
@@ -276,16 +213,9 @@ class CorpseDecayManagerTest {
     fun `getCorpsesInRoom returns empty list when no corpses`() {
         val item = Entity.Item(id = "item1", name = "Sword", description = "A sword")
 
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(item)
-        )
-
         val manager = CorpseDecayManager()
-        val worldState = createWorld(room)
-        val corpses = manager.getCorpsesInSpace(room.id, worldState)
+        val worldState = createWorld("room1", listOf(item))
+        val corpses = manager.getCorpsesInSpace("room1", worldState)
 
         assertTrue(corpses.isEmpty())
     }
@@ -296,28 +226,11 @@ class CorpseDecayManagerTest {
         val corpse2 = Entity.Corpse(id = "corpse2", name = "Corpse 2", description = "Second")
         val corpse3 = Entity.Corpse(id = "corpse3", name = "Corpse 3", description = "Third")
 
-        val room1 = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = listOf(corpse1, corpse2)
+        val worldState = createMultiRoomWorld(
+            "room1" to listOf(corpse1, corpse2),
+            "room2" to listOf(corpse3),
+            "room3" to emptyList()
         )
-
-        val room2 = Room(
-            id = "room2",
-            name = "Dungeon",
-            traits = listOf("damp"),
-            entities = listOf(corpse3)
-        )
-
-        val room3 = Room(
-            id = "room3",
-            name = "Hall",
-            traits = listOf("empty"),
-            entities = emptyList()
-        )
-
-        val worldState = createWorld(room1, room2, room3)
 
         val manager = CorpseDecayManager()
         val totalCorpses = manager.getTotalCorpses(worldState)
@@ -327,14 +240,7 @@ class CorpseDecayManagerTest {
 
     @Test
     fun `getTotalCorpses returns 0 when no corpses exist`() {
-        val room = Room(
-            id = "room1",
-            name = "Cave",
-            traits = listOf("dark"),
-            entities = emptyList()
-        )
-
-        val worldState = createWorld(room)
+        val worldState = createWorld("room1", emptyList())
 
         val manager = CorpseDecayManager()
         val totalCorpses = manager.getTotalCorpses(worldState)
@@ -393,17 +299,51 @@ class CorpseDecayManagerTest {
     }
 }
 
-private fun createWorld(vararg rooms: Room): WorldState {
-    require(rooms.isNotEmpty())
-    val roomMap = rooms.associateBy { it.id }
-    val primaryRoom = rooms.first().id
+/**
+ * Helper function to create a simple world with one space containing entities
+ */
+private fun createWorld(spaceId: String, entities: List<Entity>): WorldState {
+    val space = SpacePropertiesComponent(
+        name = "Test Space",
+        entities = entities.map { it.id }
+    )
+
     val player = PlayerState(
-        id = "player_$primaryRoom",
+        id = "player_test",
+        name = "Tester",
+        currentRoomId = spaceId
+    )
+
+    return WorldState(
+        spaces = mapOf(spaceId to space),
+        entities = entities.associateBy { it.id },
+        players = mapOf(player.id to player)
+    )
+}
+
+/**
+ * Helper function to create a world with multiple spaces
+ */
+private fun createMultiRoomWorld(vararg roomsWithEntities: Pair<String, List<Entity>>): WorldState {
+    val spaces = roomsWithEntities.associate { (roomId, entities) ->
+        roomId to SpacePropertiesComponent(
+            name = "Test Space $roomId",
+            entities = entities.map { it.id }
+        )
+    }
+
+    val allEntities = roomsWithEntities.flatMap { it.second }.associateBy { it.id }
+
+    val primaryRoom = roomsWithEntities.first().first
+    val player = PlayerState(
+        id = "player_test",
         name = "Tester",
         currentRoomId = primaryRoom
     )
+
     return WorldState(
-        rooms = roomMap,
+        spaces = spaces,
+        entities = allEntities,
         players = mapOf(player.id to player)
     )
 }

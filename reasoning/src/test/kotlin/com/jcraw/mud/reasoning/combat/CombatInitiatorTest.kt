@@ -26,15 +26,14 @@ class CombatInitiatorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
+        val space = SpacePropertiesComponent(
             name = "Cave",
-            traits = listOf("dark", "damp"),
-            entities = listOf(hostileNpc)
+            entities = listOf("goblin1")
         )
 
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            spaces = mapOf("room1" to space),
+            entities = mapOf("goblin1" to hostileNpc),
             players = mapOf("player1" to PlayerState(
                 id = "player1",
                 name = "Hero",
@@ -62,15 +61,14 @@ class CombatInitiatorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
+        val space = SpacePropertiesComponent(
             name = "Shop",
-            traits = listOf("bright", "clean"),
-            entities = listOf(friendlyNpc)
+            entities = listOf("merchant1")
         )
 
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            spaces = mapOf("room1" to space),
+            entities = mapOf("merchant1" to friendlyNpc),
             players = mapOf("player1" to PlayerState(
                 id = "player1",
                 name = "Hero",
@@ -109,15 +107,14 @@ class CombatInitiatorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
+        val space = SpacePropertiesComponent(
             name = "Goblin Den",
-            traits = listOf("dark", "smelly"),
-            entities = listOf(goblin1, goblin2)
+            entities = listOf("goblin1", "goblin2")
         )
 
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            spaces = mapOf("room1" to space),
+            entities = mapOf("goblin1" to goblin1, "goblin2" to goblin2),
             players = mapOf("player1" to PlayerState(
                 id = "player1",
                 name = "Hero",
@@ -192,15 +189,14 @@ class CombatInitiatorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
+        val space = SpacePropertiesComponent(
             name = "Forest Path",
-            traits = listOf("trees", "shadows"),
-            entities = listOf(hostileNpc)
+            entities = listOf("bandit1")
         )
 
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            spaces = mapOf("room1" to space),
+            entities = mapOf("bandit1" to hostileNpc),
             players = mapOf("player1" to PlayerState(
                 id = "player1",
                 name = "Hero",
@@ -225,15 +221,14 @@ class CombatInitiatorTest {
             )
         )
 
-        val room = Room(
-            id = "room1",
+        val space = SpacePropertiesComponent(
             name = "Village",
-            traits = listOf("peaceful", "safe"),
-            entities = listOf(friendlyNpc)
+            entities = listOf("villager1")
         )
 
         val worldState = WorldState(
-            rooms = mapOf("room1" to room),
+            spaces = mapOf("room1" to space),
+            entities = mapOf("villager1" to friendlyNpc),
             players = mapOf("player1" to PlayerState(
                 id = "player1",
                 name = "Hero",

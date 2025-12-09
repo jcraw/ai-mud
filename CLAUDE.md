@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Current State: ✅ TESTS FIXED** - V2 Removal Phase 1-5 complete. WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, and Core/Testbot Tests are now V3-only. Main code compiles successfully. All 4 reasoning module test files fixed and passing. See `docs/V2_REMOVAL_PLAN.md` for status.
+**Current State: V3-CENTRIC ARCHITECTURE** - WorldState uses V3 graph-based navigation (graphNodes/spaces/chunks/entities). Main application and client build successfully. However, PlayerState retains legacy V1/V2 fields for compatibility, and ~20 handler TODOs remain for InventoryComponent migration. See `docs/V2_REMOVAL_PLAN.md` for migration status.
 
-**Previous State**: Fully functional AI-powered MUD engine with all features complete. Temporarily broken during V2 code removal to enforce V3-only architecture per project guidelines ("no backward compatibility needed").
+**Known Technical Debt**:
+- PlayerState carries V1 inventory (List), V2 inventoryComponent, V3 revealedExits
+- ~20 TODOs in handlers for InventoryComponent integration
+- 4 deprecated methods in PlayerState not yet removed
+- 12 integration tests need updating for V3 API changes
 
-**Quick Start**: Main app compiles - tests need V3 migration (Phase 5)
+**Quick Start**: Main app compiles and runs successfully
 
 For complete documentation, see:
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Setup, commands, gameplay features
@@ -23,20 +27,22 @@ For complete documentation, see:
 
 ### Core Systems ✅
 - **10 Gradle modules**: core, perception, reasoning, memory, action, llm, app, testbot, client, utils
-- **World model**: Room, WorldState, PlayerState, Entity hierarchy, CombatState, Direction
+- **World model**: WorldState (V3 graph-based), PlayerState, Entity hierarchy, CombatState, Direction
 - **Multi-user architecture**: Multiple concurrent players with thread-safe state management
 - **Intent system**: 25+ intent types for player actions
 - **Working game loop**: Console-based with text parser and LLM integration
-- **ECS Components**: Full component system for game entities and state
+- **ECS Components**: Full component system (GraphNodeComponent, SpacePropertiesComponent, WorldChunkComponent)
 
 ### Game Features ✅
 - **Combat System V2**: Turn-based with STR modifiers, equipment bonuses, boss mechanics, safe zones
 - **Item System V2**: 53 item templates across 10 types, inventory management (weight-based), equipment (12 slots), gathering, crafting (24 recipes), trading, pickpocketing
 - **Skill System V2**: Use-based progression with infinite growth, dual-path progression (lucky chance OR XP grind), defensive skill tracking, perk system, resource costs (stamina/mana/focus), social integration
+- **Generic Skill Progression**: Dual-path system (15% lucky chance scaling with `floor(15 / sqrt(targetLevel + 1))` OR XP grind) works for all skill types (combat, crafting, gathering, social). Defensive skills (Dodge, Parry) gain XP when used. Configurable via GameConfig
 - **Social System**: Emotes, persuasion, intimidation, NPC dialogue with disposition tracking and knowledge system
 - **Quest System**: Procedurally generated with 6 objective types and automatic progress tracking
 - **World Generation V2**: Hierarchical procedural generation with exit resolution, content placement, themed dungeons
 - **Starting Dungeon**: Ancient Abyss with 4-region structure, town safe zone, merchants, mob respawn, boss fight, victory condition
+- **Treasure Room System**: Brogue-inspired choice mechanic with 5 RARE starter items, unlimited swaps, one-time choice, biome theming, early placement (2-3 rooms from start)
 - **Persistence**: JSON-based save/load for complete game state
 
 ### AI/LLM Features ✅
@@ -61,39 +67,31 @@ For complete documentation, see:
 - **Feature Parity**: Gathering (interact/harvest) and crafting now available in GUI
 - **Unified Codebase**: GUI and console clients share identical game logic
 
-### Testing ✅
+### Testing ⚠️
 - **Main code compiles successfully** - Application and client build and run
-- **All reasoning tests passing** - 4 test files fixed for V3 API (TurnQueueManagerTest, RespawnManagerTest, SpacePopulatorTest, StateChangeHandlerTest)
-  - Updated WorldState constructor calls to use V3 API (entities map instead of rooms)
-  - Removed Room class usage (deprecated in V3)
-  - All tests now use V3 component-based architecture
 - **Core tests passing**: Core, perception, action, memory modules tests pass
-- **V3 integration tests**: 20 tests in WorldSystemV3IntegrationTest.kt verify graph navigation
-- **Test bot**: Automated LLM-powered testing with 11 scenarios
-- **InMemoryGameEngine**: Headless engine for automated testing
+- **Reasoning tests**: 456/479 passing (95% pass rate)
+- **Integration tests**: 12 test files exist but need updating for V3 API changes (use old Room class, InMemoryGameEngine moved)
+- **Test bot migrated to V3**: Automated LLM-powered testing with 11 scenarios, uses V3TestWorldHelper with Ancient Abyss generation
 - See [Testing Strategy](docs/TESTING.md) for details
 
 ## In Progress Features 🚧
 
-### Generic Skill Progression System 🚧 (Phases 1-3/5 COMPLETE)
-Dual-path skill progression system (lucky chance OR XP grind) for consistent progression across all skill types.
+_No features currently in progress - all planned V2 systems complete._
 
-**Status**: Console implementation complete (Phases 1-3), GUI client and testing remaining (Phases 4-5)
+See [TODO.md](docs/TODO.md) for optional future enhancements.
 
-**Completed**:
-- ✅ **Phase 1: Core Enhancement** - DefenseOutcome enum, AttackResult refactored (attackerSkillsUsed/defenderSkillsUsed/defenseOutcome), `attemptSkillProgress()` in SkillManager, GameConfig flags (baseLuckyChance, enableLuckyProgression, enableNPCLuckyProgression)
-- ✅ **Phase 2: Combat Integration** - AttackResolver tracks defender skills, CombatHandlers refactored to `processSkillProgression()` handling both attacker and defender
-- ✅ **Phase 3: Generic Application** - Crafting, gathering, and skill checks now use `attemptSkillProgress()`
+## Completed Systems Summary
 
-**Remaining**:
-- ⏸️ **Phase 4: Client Sync** - Update GUI client handlers (ClientCombatHandlers.kt, ClientSkillQuestHandlers.kt)
-- ⏸️ **Phase 5: Testing** - Unit tests for lucky chance calculation, integration tests for defensive skills
+### Generic Skill Progression System ✅ (ALL 5 PHASES COMPLETE)
+Dual-path skill progression system (lucky chance OR XP grind) for consistent progression across all skill types. Fully implemented and tested.
 
-**Features**:
-- Dual progression: 15% lucky chance (scales with `floor(15 / sqrt(targetLevel + 1))`) OR XP accumulation
-- Defensive skills (Dodge, Parry) now gain XP when used in combat
-- Generic method works for all skill types (combat, crafting, gathering, social)
-- Configurable via GameConfig (can disable lucky progression, tune base chance %)
+**Completed Phases**:
+- ✅ **Phase 1: Core Enhancement** - DefenseOutcome enum, AttackResult refactored, `attemptSkillProgress()` in SkillManager, GameConfig flags
+- ✅ **Phase 2: Combat Integration** - AttackResolver tracks defender skills, CombatHandlers refactored to `processSkillProgression()`
+- ✅ **Phase 3: Generic Application** - Crafting, gathering, skill checks now use `attemptSkillProgress()`
+- ✅ **Phase 4: Client Sync** - GUI client handlers updated
+- ✅ **Phase 5: Testing** - 17 new tests in SkillManagerTest.kt (10 unit tests for lucky progression, 7 integration tests for defensive skills)
 
 See `docs/requirements/V2/FEATURE_PLAN_generic_skill_progression.md` for complete plan.
 
@@ -108,7 +106,7 @@ Brogue-inspired treasure room system with playstyle-defining item selection.
 - ✅ **Chunk 5: Biome Theming & LLM Descriptions** (1h) - TreasureRoomDescriptionGenerator (243 lines) with LLM-based atmospheric descriptions, 6 biome themes (ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls), state-aware pedestal descriptions, fallback descriptions for API-less mode
 - ✅ **Chunk 6: World Generation Integration** (3h) - NodeType.TreasureRoom added to GraphTypes, TreasureRoomPlacer (189 lines) with BFS-based placement (distance 2-3 from start), DungeonInitializer integration with selectTreasureRoomNode, SpacePropertiesComponent.isTreasureRoom flag, safe zone marking, biome-aware component creation
 - ✅ **Chunk 7: Leave Room Detection** (2h) - TreasureRoomExitLogic (37 lines) for finalization, MovementHandlers integration (tracks previous room, calls finalizeExit, displays narration), ClientMovementHandlers integration, treasure room status display in both console and GUI
-- ✅ **Chunk 8: Testing & Documentation** (2h) - ClientTreasureRoomHandlers (250 lines) with GUI intent wiring, TreasureRoomPlacerTest (26 unit tests), TreasureRoomIntegrationTest (8 integration tests for exit detection), TreasureRoomWorldGenIntegrationTest (15 integration tests for placement/safe zones), documentation updates
+- ✅ **Chunk 8: Testing & Documentation** (2h) - TREASURE_ROOMS.md system documentation created (400+ lines), CLAUDE.md/ARCHITECTURE.md/GETTING_STARTED.md updated with treasure room sections, testbot scenario added (TreasureRoomPlaythroughTest.kt), all test files validated (119 tests total across 6 test files)
 
 **Design**:
 - 5 pedestals for skill categories: Combat (Flamebrand Longsword), Rogue (Shadowweave Cloak), Magic (Stormcaller Staff), Utility (Titan's Band), Hybrid (Arcane Blade)
@@ -195,7 +193,6 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for complete command refere
   - `handlers/ClientSocialHandlers.kt` (230 lines) - Social interactions
   - `handlers/ClientSkillQuestHandlers.kt` (480 lines) - Skills, quests, persistence, meta-commands
 - **Game server**: `app/src/main/kotlin/com/jcraw/app/GameServer.kt`
-- **Sample dungeon**: `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
 
 See [Architecture Documentation](docs/ARCHITECTURE.md) for complete module details and file locations.
 
@@ -281,9 +278,8 @@ GameConfig.logLLMCalls = true
 - **✅ CLIENT UNIFICATION COMPLETE** - GUI and console clients now use identical V2 combat system (AttackResolver, skill-based damage, V2 inventory bonuses). Gathering and crafting now available in GUI.
 - **✅ V2 INVENTORY BONUSES FIXED** - Combat damage now correctly uses SkillModifierCalculator with V2 inventory and ItemRepository templates in both clients.
 - **✅ PLAYERSTATE.SKILLS DEPRECATED** - PlayerState.skills and related methods are deprecated. Use SkillManager.getSkillComponent() instead. AttackResolver now uses SkillManager bridge pattern. All V3 movement methods require playerSkills parameter.
-- **⚠️ TESTS PARTIALLY FIXED** - V2 Removal Phase 1-5 (partial) complete. Core and testbot tests migrated to V3. Main code compiles successfully.
-- **⚠️ V2 REMOVAL IN PROGRESS** - Phase 1-5 (partial) complete (Core WorldState + Console Handlers + Reasoning Module + GUI Client + Infrastructure + Core/Testbot Tests). Phase 5 (reasoning tests) + Phase 6-7 remaining (est. 2-3h). See `docs/V2_REMOVAL_PLAN.md` for migration plan.
-- **⚠️ Test status** - 4 reasoning module test files need API updates (SpacePopulatorTest, StateChangeHandlerTest, RespawnManagerTest, TurnQueueManagerTest)
+- **⚠️ V2 REMOVAL PARTIAL** - V2 Room class and related generators removed. However, ~20 TODOs remain in handlers for InventoryComponent migration, and PlayerState retains V1/V2 legacy fields. See `docs/V2_REMOVAL_PLAN.md` for details.
+- **✅ TESTBOT V3 MIGRATION COMPLETE** - Testbot now uses V3TestWorldHelper with Ancient Abyss world generation. SampleDungeon fully replaced. All code compiles successfully.
 - **No backward compatibility needed** - Can wipe and restart data between versions
 - **API key optional** - Game works without OpenAI API key (fallback mode)
 - **Java 17 required** - Uses Java 17 toolchain
@@ -312,9 +308,8 @@ GameConfig.logLLMCalls = true
 
 ## Current Status
 
-**⚠️ TESTS PARTIALLY FIXED - V2 REMOVAL IN PROGRESS**
-**Phase 1-5 (partial) COMPLETE** - WorldState, Console Handlers, Reasoning Module, GUI Client, Infrastructure, Core/Testbot Tests are now V3-only
-**Phase 5 (reasoning tests) + Phase 6-7 REMAINING** - 4 reasoning test files, Dependencies, Documentation need work (est. 2-3h)
+**V3-CENTRIC ARCHITECTURE WITH LEGACY COMPATIBILITY**
+WorldState uses V3 graph-based model. PlayerState retains V1/V2 fields. Handler layer has ~20 TODOs for InventoryComponent migration.
 
 All V2 systems fully integrated and tested:
 - ✅ Combat System V2 (7 phases) - Turn-based combat with equipment, boss mechanics, safe zones
@@ -332,18 +327,18 @@ All V2 systems fully integrated and tested:
 - ✅ GUI Client - Compose Multiplatform with real engine integration
   - ✅ **Unified Codebase** - GUI is now a thin wrapper, shares all game logic with console
 - ✅ Multi-User Architecture - Concurrent players with thread-safe state
-- 🚧 World System V3 (Chunks 1-5 complete, all game modes V3-compatible):
+- ✅ World System V3 (Chunks 1-6 complete, V3-only architecture):
   - ✅ Chunk 1-2: GraphNodeComponent ECS component (155 lines, 29 tests), database schema, GraphNodeRepository (219 lines, 29 unit tests)
   - ✅ Chunk 3: Graph generation algorithms - Grid/BSP/FloodFill layouts, Kruskal MST, configurable loop frequency (targets avg degree ~3.0-3.5), node type assignment (34 tests GraphGeneratorTest, 25 tests GraphLayoutTest)
   - ✅ Chunk 4: Graph validation - Reachability (BFS), loop detection (DFS), avg degree >= 3.0, 2+ frontiers (212 lines, 20 tests GraphValidatorTest)
   - ✅ Chunk 5 Generation Layer: WorldGenerator.kt (567 lines) with graph generation at SUBZONE, lazy-fill content system
-  - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces/chunks/entities storage, 22 new V3 methods (movePlayerV3, getCurrentSpace, getChunk, entity CRUD), Room deprecated
+  - ✅ Chunk 5 WorldState V3: Full ECS refactoring - graphNodes/spaces/chunks/entities storage, 22 new V3 methods (movePlayerV3, getCurrentSpace, getChunk, entity CRUD), Room class removed
   - ✅ Chunk 5 Entity Storage: Added entities map (WorldState.kt:19), 7 entity CRUD methods (lines 272-332) - getEntity, updateEntity, removeEntity, getEntitiesInSpace, addEntityToSpace, removeEntityFromSpace, replaceEntityInSpace
   - ✅ Chunk 5 MudGame V3 Dependencies: LoreInheritanceEngine, GraphGenerator, GraphValidator, WorldGenerator added to MudGameEngine.kt (lines 126-142), compiles successfully
   - ✅ Chunk 5 Console Movement Handlers: MovementHandlers.kt updated (handleMove uses movePlayerV3, lazy-fill on empty description with null-safe worldGenerator check, handleLook/handleSearch check getCurrentSpace), compiles successfully (122 lines)
-  - ✅ Chunk 5 Client Movement Handlers: ClientMovementHandlers.kt updated (handleMove uses movePlayerV3 for V3 graph navigation, V2 fallback, lazy-fill TODO added), compiles successfully (35 lines for V3 path)
+  - ✅ Chunk 5 Client Movement Handlers: ClientMovementHandlers.kt migrated to V3-only (handleMove uses movePlayerV3 for V3 graph navigation), compiles successfully (35 lines for V3 path)
   - ✅ Chunk 5 Lazy-fill integration: Chunk storage added to WorldState (chunks map, getChunk/updateChunk/addChunk), lazy-fill integrated in console handler with null-safe worldGenerator check
-  - ✅ Chunk 5 Console Handler Migration: All 4 handler files updated with V3/V2 fallback pattern - ItemHandlers (968 lines), CombatHandlers (263 lines), SocialHandlers (459 lines), SkillQuestHandlers (425 lines), build successful
+  - ✅ Chunk 5 Console Handler Migration: All 4 handler files migrated to V3-only - ItemHandlers (968 lines), CombatHandlers (263 lines), SocialHandlers (459 lines), SkillQuestHandlers (425 lines), build successful
   - ✅ Chunk 5 Frontier traversal: Implemented in MovementHandlers (lines 65-140) - automatic chunk generation when entering frontier nodes
   - ✅ Chunk 5 V3 Initialization: App.kt updated with V3 option - generates single chunk with graph topology, populates WorldState with graphNodes/spaces/chunks, persists to database
   - ✅ Chunk 5 GUI Client V3: EngineGameClient.kt updated (added graphNodeRepository, loreInheritanceEngine, graphGenerator, graphValidator, worldGenerator - lines 86-95, 144-162), build successful
@@ -351,9 +346,12 @@ All V2 systems fully integrated and tested:
   - ✅ Chunk 6: Hidden exit revelation - Added revealedExits field to PlayerState, handleSearch reveals hidden exits via Perception check (DC 15), exit display filters unrevealed hidden exits
   - ❌ Chunks 7-11: Dynamic edges, breakouts, exit resolution, testing, docs
 
-  **Note**: V3 initialization complete. Players can select "World Generation V3" at startup to generate a graph-based world. All game modes (console, multi-user, GUI client) support V3 with V2 fallback. Single-chunk worlds fully playable, multi-chunk frontier traversal implemented and ready for testing. Hidden exit revelation via `search` command now functional.
-- ⚠️ Testing status: Main code compiles, core tests pass, reasoning module has 4 broken test files needing API updates
-  - V3 integration tests working (20 tests in WorldSystemV3IntegrationTest.kt)
+  **Note**: V3 is operational. Players can select "World Generation V3" at startup to generate a graph-based world. Single-chunk worlds playable, multi-chunk frontier traversal implemented. Hidden exit revelation via `search` command functional. PlayerState still has V1/V2 legacy fields.
+- ⚠️ Testing status: Main code compiles successfully
+  - Core/memory/perception/action/llm unit tests pass
+  - Reasoning module: 456/479 tests passing (95% pass rate)
+  - **Integration tests**: 12 test files exist but don't compile (use removed Room class, old API signatures)
+  - Testbot migrated to V3 (V3TestWorldHelper replaces SampleDungeon)
 - ✅ Code quality - All files under 1000 lines (largest is 910 lines)
 
 See detailed implementation plans in `docs/requirements/V2/` and [TODO.md](docs/TODO.md) for optional future enhancements.

@@ -2,7 +2,7 @@ package com.jcraw.mud.testbot.scenarios
 
 import com.jcraw.app.MudGame
 import com.jcraw.app.RealGameEngineAdapter
-import com.jcraw.mud.core.SampleDungeon
+// SampleDungeon replaced with V3TestWorldHelper
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.CombatNarrator
 import com.jcraw.mud.reasoning.NPCInteractionGenerator
@@ -219,7 +219,7 @@ class AllPlaythroughsTest {
         // This matches the expectations in InputGenerator scenario guidance
         // Uses default player stats (STR 10, DEX 8, CON 10, INT 9, WIS 8, CHA 9)
         // which are intentionally weak to ensure proper game balance
-        val worldState = SampleDungeon.createInitialWorldState()
+        val worldState = V3TestWorldHelper.createInitialWorldState(apiKey!!)
 
         // Initialize LLM components
         val llmClient = OpenAIClient(apiKey!!)

@@ -3,6 +3,8 @@ package com.jcraw.mud.core.world
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.PlayerId
 import com.jcraw.mud.core.RoomId
+import com.jcraw.mud.core.SkillComponent
+import com.jcraw.mud.core.SkillState
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 
@@ -10,6 +12,9 @@ import kotlin.test.*
  * Tests for TrapData
  */
 class TrapDataTest {
+
+    private fun toSkillComponent(player: PlayerState): SkillComponent =
+        SkillComponent(player.skills.mapValues { SkillState(level = it.value, unlocked = true) })
 
     private fun createTestPlayer(perceptionLevel: Int = 0): PlayerState {
         return PlayerState(
@@ -40,7 +45,7 @@ class TrapDataTest {
             triggered = true
         )
         val player = createTestPlayer(perceptionLevel = 5)
-        val result = trap.roll(player)
+        val result = trap.roll(toSkillComponent(player))
         assertTrue(result is TrapResult.Failure)
         assertEquals("Trap already triggered", (result as TrapResult.Failure).reason)
     }
@@ -53,7 +58,7 @@ class TrapDataTest {
             difficulty = 5
         )
         val player = createTestPlayer(perceptionLevel = 10)
-        val result = trap.roll(player)
+        val result = trap.roll(toSkillComponent(player))
         assertTrue(result is TrapResult.Success)
     }
 
@@ -69,7 +74,7 @@ class TrapDataTest {
 
         var avoidsCount = 0
         repeat(10) {
-            val result = trap.roll(player)
+            val result = trap.roll(toSkillComponent(player))
             if (result is TrapResult.Success && result.avoided) {
                 avoidsCount++
             }
@@ -90,7 +95,7 @@ class TrapDataTest {
 
         var failsCount = 0
         repeat(10) {
-            val result = trap.roll(player)
+            val result = trap.roll(toSkillComponent(player))
             if (result is TrapResult.Success && !result.avoided) {
                 failsCount++
             }
@@ -110,7 +115,7 @@ class TrapDataTest {
         val player = createTestPlayer(perceptionLevel = 20)
 
         repeat(10) {
-            val result = trap.roll(player)
+            val result = trap.roll(toSkillComponent(player))
             if (result is TrapResult.Success && result.avoided) {
                 assertEquals(0, result.damage)
             }
@@ -127,7 +132,7 @@ class TrapDataTest {
         val player = createTestPlayer(perceptionLevel = 0)
 
         repeat(10) {
-            val result = trap.roll(player)
+            val result = trap.roll(toSkillComponent(player))
             if (result is TrapResult.Success && !result.avoided) {
                 assertTrue(result.damage > 0, "Expected positive damage when trap triggers")
             }
@@ -145,8 +150,8 @@ class TrapDataTest {
         val hardDamages = mutableListOf<Int>()
 
         repeat(20) {
-            val easyResult = easyTrap.roll(player)
-            val hardResult = hardTrap.roll(player)
+            val easyResult = easyTrap.roll(toSkillComponent(player))
+            val hardResult = hardTrap.roll(toSkillComponent(player))
 
             if (easyResult is TrapResult.Success && !easyResult.avoided) {
                 easyDamages.add(easyResult.damage)

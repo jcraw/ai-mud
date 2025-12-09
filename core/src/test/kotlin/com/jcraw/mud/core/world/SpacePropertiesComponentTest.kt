@@ -9,6 +9,9 @@ import kotlin.test.*
  */
 class SpacePropertiesComponentTest {
 
+    private fun toSkillComponent(player: PlayerState): SkillComponent =
+        SkillComponent(player.skills.mapValues { SkillState(level = it.value, unlocked = true) })
+
     private fun createTestPlayer(perceptionLevel: Int = 0): PlayerState {
         return PlayerState(
             id = "test-player",
@@ -42,7 +45,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
-        val resolved = space.resolveExit("north", player)
+        val resolved = space.resolveExit("north", player, toSkillComponent(player))
         assertNotNull(resolved)
         assertEquals("north", resolved.direction)
     }
@@ -53,7 +56,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
-        val resolved = space.resolveExit("NORTH", player)
+        val resolved = space.resolveExit("NORTH", player, toSkillComponent(player))
         assertNotNull(resolved)
         assertEquals("north", resolved.direction)
     }
@@ -70,7 +73,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer(perceptionLevel = 5)
 
-        val resolved = space.resolveExit("secret", player)
+        val resolved = space.resolveExit("secret", player, toSkillComponent(player))
         assertNull(resolved)
     }
 
@@ -86,7 +89,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer(perceptionLevel = 15)
 
-        val resolved = space.resolveExit("secret", player)
+        val resolved = space.resolveExit("secret", player, toSkillComponent(player))
         assertNotNull(resolved)
     }
 
@@ -96,7 +99,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(name = "Test Room", exits = listOf(exit))
         val player = createTestPlayer()
 
-        val resolved = space.resolveExit("ladder", player)
+        val resolved = space.resolveExit("ladder", player, toSkillComponent(player))
         assertNotNull(resolved)
         assertEquals("up", resolved.direction)
     }
@@ -114,7 +117,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(exits = listOf(exit1, exit2))
         val player = createTestPlayer(perceptionLevel = 5)
 
-        val visible = space.getVisibleExits(player)
+        val visible = space.getVisibleExits(player, toSkillComponent(player))
         assertEquals(1, visible.size)
         assertEquals("north", visible[0].direction)
     }
@@ -132,7 +135,7 @@ class SpacePropertiesComponentTest {
         val space = SpacePropertiesComponent(exits = listOf(exit1, exit2))
         val player = createTestPlayer(perceptionLevel = 15)
 
-        val visible = space.getVisibleExits(player)
+        val visible = space.getVisibleExits(player, toSkillComponent(player))
         assertEquals(2, visible.size)
     }
 

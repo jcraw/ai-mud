@@ -149,6 +149,7 @@ object ValidationPrompts {
             is TestScenario.BruteForcePlaythrough -> buildBruteForcePlaythroughCriteria()
             is TestScenario.SmartPlaythrough -> buildSmartPlaythroughCriteria()
             is TestScenario.SkillProgression -> buildSkillProgressionCriteria()
+            is TestScenario.TreasureRoomPlaythrough -> buildTreasureRoomPlaythroughCriteria()
         }
     }
 
@@ -472,6 +473,29 @@ object ValidationPrompts {
         - Complete silence/no feedback for valid actions
 
         This is a long-running test focused on skill leveling, so minor issues are acceptable.
+    """.trimIndent()
+
+    private fun buildTreasureRoomPlaythroughCriteria() = """
+        Check that:
+        - Treasure room mechanics work correctly (examine, take, return, swap)
+        - Pedestal/altar descriptions are clear and accurate
+        - Item swapping works as expected
+        - Finalization when leaving the room functions properly
+        - No errors or crashes during treasure room interactions
+
+        **PASS Criteria:**
+        - Commands are recognized and produce appropriate responses
+        - Treasure room state changes correctly (items taken/returned)
+        - Clear feedback on actions
+        - No error messages
+
+        **FAIL Criteria:**
+        - Crashes or unhandled errors
+        - Commands not recognized
+        - Treasure room mechanics don't work as designed
+        - Invalid state transitions
+
+        This validates the treasure room system mechanics.
     """.trimIndent()
 
 }

@@ -1,0 +1,59 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 8
+        - Passed: 5
+        - Failed: 3
+        - Pass Rate: 62%
+
+        Timing:
+        - Start: 2025-11-27T05:29:44.359606254Z
+        - End: 2025-11-27T05:30:53.895747923Z
+        - Duration: 69.54s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the only available exit is west. The response does not align with the game mechanics.
+
+Step 3: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: go down
+Reason: The response does not provide any indication of entering a new area or encountering enemies, which is necessary for training the Dodge skill.
+
+Step 7: ✓ PASS
+Input: attack Giant Rat King
+Reason: Step completed successfully
+
+Step 8: ✗ FAIL
+Input: attack Wooden Practice Dummy
+Reason: Player died (HP: 0/10) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

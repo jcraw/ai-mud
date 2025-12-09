@@ -6,6 +6,7 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.reasoning.*
 import com.jcraw.mud.reasoning.skill.SkillManager
+import com.jcraw.mud.testbot.V3TestWorldHelper
 import com.jcraw.sophia.llm.LLMClient
 import com.jcraw.sophia.llm.OpenAIClient
 import kotlinx.coroutines.runBlocking
@@ -47,9 +48,13 @@ abstract class BehaviorTestBase {
 
     /**
      * Override to provide custom initial world state.
+     * Requires API key for V3 world generation.
      */
     protected open fun createInitialWorldState(): WorldState {
-        return SampleDungeon.createInitialWorldState()
+        require(apiKey != null && apiKey!!.isNotBlank()) {
+            "V3 world generation requires an OpenAI API key"
+        }
+        return V3TestWorldHelper.createInitialWorldState(apiKey!!)
     }
 
     @BeforeEach

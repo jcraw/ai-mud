@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":memory"))
     implementation(project(":llm"))
     implementation(project(":utils"))
+    implementation(project(":config"))
 
     implementation(project(":action"))
     implementation(libs.bundles.kotlinxEcosystem)

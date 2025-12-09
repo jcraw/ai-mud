@@ -1,6 +1,7 @@
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
+import com.jcraw.mud.config.GameConfig
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.combat.AttackResult
@@ -144,8 +145,8 @@ object ClientCombatHandlers {
                 )
                 game.emitEvent(GameEvent.Combat(npcHealthStatus))
 
-                // Grant skill XP for skills used in the attack
-                attemptSkillUnlocks(game, attackResult.attackerSkillsUsed, success = true)
+                // Process skill progression for both attacker and defender
+                processSkillProgression(game, attackResult)
 
                 // Check if NPC died
                 if (attackResult.wasKilled) {
@@ -183,8 +184,8 @@ object ClientCombatHandlers {
                 }
                 game.emitEvent(GameEvent.Combat(narrative))
 
-                // Grant skill XP for skills used in the attack (reduced XP on miss)
-                attemptSkillUnlocks(game, attackResult.attackerSkillsUsed, success = false)
+                // Process skill progression for both attacker and defender
+                processSkillProgression(game, attackResult)
 
                 // Trigger counter-attack even on miss
                 if (game.turnQueue != null) {
@@ -207,55 +208,58 @@ object ClientCombatHandlers {
     }
 
     /**
-     * Attempt to unlock skills used in combat
-     * Also grants XP to already-unlocked skills
+     * Process skill progression for both attacker and defender
+     * Uses dual-path system (lucky progression OR XP accumulation)
      */
-    private fun attemptSkillUnlocks(game: EngineGameClient, skillsUsed: List<String>, success: Boolean) {
+    private fun processSkillProgression(game: EngineGameClient, attackResult: AttackResult) {
         if (game.skillManager == null) return
 
         val playerId = game.worldState.player.id
-        val playerSkills = game.skillManager.getSkillComponent(playerId)
 
-        skillsUsed.forEach { skillName ->
-            val skill = playerSkills.getSkill(skillName)
+        // Determine success for attacker and defender based on attack outcome
+        val attackerSuccess = when (attackResult) {
+            is AttackResult.Hit -> true   // Hit = attacker succeeded
+            is AttackResult.Miss -> false  // Miss = attacker failed
+            else -> false
+        }
 
-            if (skill == null || !skill.unlocked) {
-                // Skill not unlocked - attempt to unlock via Attempt method
-                val unlockResult = game.skillManager.unlockSkill(
-                    entityId = playerId,
+        val defenderSuccess = when (attackResult) {
+            is AttackResult.Hit -> false  // Hit = defender failed to defend
+            is AttackResult.Miss -> true   // Miss = defender succeeded!
+            else -> false
+        }
+
+        // Process attacker skills (player)
+        attackResult.attackerSkillsUsed.forEach { skillName ->
+            val result = game.skillManager.attemptSkillProgress(
+                entityId = playerId,
+                skillName = skillName,
+                baseXp = 10L,
+                success = attackerSuccess
+            )
+            result.onSuccess { events ->
+                displaySkillEvents(game, events, skillName)
+            }
+        }
+
+        // Process defender skills (player or NPC)
+        // Player always gains defense XP, NPCs only if enableNPCLuckyProgression is true
+        val defenderId = attackResult.defenderId
+        val isPlayerDefending = defenderId == game.worldState.player.id
+
+        if (isPlayerDefending || GameConfig.enableNPCLuckyProgression) {
+            attackResult.defenderSkillsUsed.forEach { skillName ->
+                val result = game.skillManager.attemptSkillProgress(
+                    entityId = defenderId,
                     skillName = skillName,
-                    method = com.jcraw.mud.reasoning.skill.UnlockMethod.Attempt
+                    baseXp = 10L,
+                    success = defenderSuccess
                 )
-
-                unlockResult.onSuccess { unlockEvent ->
-                    if (unlockEvent != null) {
-                        game.emitEvent(GameEvent.System("🎉 Through combat, you've discovered $skillName!", GameEvent.MessageLevel.INFO))
-                    } else {
-                        // Unlock failed - grant 5 XP so player can eventually progress via use-based unlocking
-                        val xpResult = game.skillManager.grantXp(
-                            entityId = playerId,
-                            skillName = skillName,
-                            baseXp = 5L,
-                            success = true  // Always true - we're already adjusting baseXp
-                        )
-                        // Display unlocks and level-ups from use-based progression
-                        xpResult.onSuccess { events ->
-                            displaySkillEvents(game, events, skillName)
-                        }
+                // Only display skill events for player
+                if (isPlayerDefending) {
+                    result.onSuccess { events ->
+                        displaySkillEvents(game, events, skillName)
                     }
-                }
-            } else {
-                // Skill already unlocked - grant XP (reduced on miss)
-                val xpAmount = if (success) 10L else 2L
-                val xpResult = game.skillManager.grantXp(
-                    entityId = playerId,
-                    skillName = skillName,
-                    baseXp = xpAmount,
-                    success = true  // Always true - we're already adjusting baseXp
-                )
-                // Display XP gains and level-ups
-                xpResult.onSuccess { events ->
-                    displaySkillEvents(game, events, skillName)
                 }
             }
         }
@@ -270,13 +274,14 @@ object ClientCombatHandlers {
             when (event) {
                 is SkillEvent.SkillUnlocked -> {
                     game.emitEvent(GameEvent.System(
-                        "🎉 Unlocked $skillName through use-based progression!",
+                        "🎉 Unlocked $skillName (lucky progression)!",
                         GameEvent.MessageLevel.INFO
                     ))
                 }
                 is SkillEvent.LevelUp -> {
+                    val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
                     game.emitEvent(GameEvent.System(
-                        "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}",
+                        "🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method",
                         GameEvent.MessageLevel.INFO
                     ))
                     if (event.isAtPerkMilestone) {

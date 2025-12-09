@@ -3,6 +3,8 @@ package com.jcraw.mud.core.world
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.PlayerId
 import com.jcraw.mud.core.RoomId
+import com.jcraw.mud.core.SkillComponent
+import com.jcraw.mud.core.SkillState
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -12,6 +14,9 @@ import kotlin.test.assertTrue
  * Tests for ExitData and Condition
  */
 class ExitDataTest {
+
+    private fun toSkillComponent(player: PlayerState): SkillComponent =
+        SkillComponent(player.skills.mapValues { SkillState(level = it.value, unlocked = true) })
 
     private fun createTestPlayer(skillLevel: Int = 0, hasItems: Boolean = false): PlayerState {
         val player = PlayerState(
@@ -31,21 +36,21 @@ class ExitDataTest {
     fun `SkillCheck succeeds when player skill meets difficulty`() {
         val condition = Condition.SkillCheck("Perception", 10)
         val player = createTestPlayer(skillLevel = 10)
-        assertTrue(condition.meetsCondition(player))
+        assertTrue(condition.meetsCondition(player, toSkillComponent(player)))
     }
 
     @Test
     fun `SkillCheck succeeds when player skill exceeds difficulty`() {
         val condition = Condition.SkillCheck("Perception", 10)
         val player = createTestPlayer(skillLevel = 15)
-        assertTrue(condition.meetsCondition(player))
+        assertTrue(condition.meetsCondition(player, toSkillComponent(player)))
     }
 
     @Test
     fun `SkillCheck fails when player skill below difficulty`() {
         val condition = Condition.SkillCheck("Perception", 10)
         val player = createTestPlayer(skillLevel = 5)
-        assertFalse(condition.meetsCondition(player))
+        assertFalse(condition.meetsCondition(player, toSkillComponent(player)))
     }
 
     @Test
@@ -58,14 +63,14 @@ class ExitDataTest {
     fun `ItemRequired succeeds when player has items`() {
         val condition = Condition.ItemRequired("climbing_gear")
         val player = createTestPlayer(hasItems = true)
-        assertTrue(condition.meetsCondition(player))
+        assertTrue(condition.meetsCondition(player, toSkillComponent(player)))
     }
 
     @Test
     fun `ItemRequired fails when player has no items`() {
         val condition = Condition.ItemRequired("climbing_gear")
         val player = createTestPlayer(hasItems = false)
-        assertFalse(condition.meetsCondition(player))
+        assertFalse(condition.meetsCondition(player, toSkillComponent(player)))
     }
 
     @Test
@@ -85,7 +90,7 @@ class ExitDataTest {
             )
         )
         val player = createTestPlayer(skillLevel = 10)
-        assertTrue(exit.meetsConditions(player))
+        assertTrue(exit.meetsConditions(player, toSkillComponent(player)))
     }
 
     @Test
@@ -99,7 +104,7 @@ class ExitDataTest {
             )
         )
         val player = createTestPlayer(skillLevel = 5)
-        assertFalse(exit.meetsConditions(player))
+        assertFalse(exit.meetsConditions(player, toSkillComponent(player)))
     }
 
     @Test
@@ -114,7 +119,7 @@ class ExitDataTest {
             )
         )
         val player = createTestPlayer(skillLevel = 10, hasItems = false)
-        assertFalse(exit.meetsConditions(player))
+        assertFalse(exit.meetsConditions(player, toSkillComponent(player)))
     }
 
     @Test
@@ -128,7 +133,7 @@ class ExitDataTest {
             )
         )
         val player = createTestPlayer(skillLevel = 5)
-        val description = exit.describeWithConditions(player)
+        val description = exit.describeWithConditions(player, toSkillComponent(player))
         assertTrue(description.contains("requires Perception 15"))
     }
 
@@ -143,7 +148,7 @@ class ExitDataTest {
             )
         )
         val player = createTestPlayer(skillLevel = 10)
-        val description = exit.describeWithConditions(player)
+        val description = exit.describeWithConditions(player, toSkillComponent(player))
         assertEquals("A passage", description)
     }
 }

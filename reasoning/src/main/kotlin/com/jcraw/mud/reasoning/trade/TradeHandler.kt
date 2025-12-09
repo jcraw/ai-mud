@@ -204,17 +204,4 @@ class TradeHandler(
         )
     }
 
-    /**
-     * Find merchant NPC in room with trading component
-     *
-     * @param room Current room
-     * @param merchantName Optional merchant name (null = any merchant)
-     * @return Merchant NPC or null if not found
-     */
-    fun findMerchant(room: Room, merchantName: String? = null): Entity.NPC? {
-        return room.entities.filterIsInstance<Entity.NPC>().find { npc ->
-            npc.components.containsKey(ComponentType.TRADING) &&
-            (merchantName == null || npc.name.equals(merchantName, ignoreCase = true))
-        }
-    }
 }

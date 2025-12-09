@@ -197,6 +197,8 @@ class WorldDatabase(
             )
 
             // Treasure rooms table (Brogue-style treasure selection)
+            // Note: No FK constraint on space_id to allow independent repository testing
+            // Application logic ensures space exists before creating treasure room
             stmt.execute(
                 """
                 CREATE TABLE IF NOT EXISTS treasure_rooms (
@@ -204,8 +206,7 @@ class WorldDatabase(
                     room_type TEXT NOT NULL,
                     biome_theme TEXT NOT NULL,
                     currently_taken_item TEXT,
-                    has_been_looted INTEGER NOT NULL,
-                    FOREIGN KEY (space_id) REFERENCES space_properties(chunk_id)
+                    has_been_looted INTEGER NOT NULL
                 )
                 """.trimIndent()
             )

@@ -1,0 +1,55 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 7
+        - Passed: 4
+        - Failed: 3
+        - Pass Rate: 57%
+
+        Timing:
+        - Start: 2025-12-08T19:29:53.147735193Z
+        - End: 2025-12-08T19:30:45.216992889Z
+        - Duration: 52.07s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response to the player's input to go east is invalid as there is no east exit available from the Vault of Beginnings.
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: go down
+Reason: The response indicates movement down, which is not a valid exit based on the current game state.
+
+Step 7: ✗ FAIL
+Input: attack Giant Rat Swarm
+Reason: Player died (HP: 0/10) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

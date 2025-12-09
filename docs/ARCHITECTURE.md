@@ -261,6 +261,57 @@ Memory (store for RAG)
   - Quality multiplier affects damage (0.8x to 2.0x for quality 1-10)
 - See [Items and Crafting Documentation](./ITEMS_AND_CRAFTING.md) for complete details
 
+### Treasure Room System
+- **Brogue-inspired choice mechanic** - Take one item, barriers lock others, return to swap freely
+- **Component-based architecture**:
+  - `TreasureRoomComponent` - Room state with pedestals, taken item tracking, loot flag (`core/TreasureRoomComponent.kt`)
+  - `Pedestal` - Data class for individual pedestals (item, state, themed description, index)
+  - `PedestalState` enum - AVAILABLE, LOCKED, EMPTY states
+  - `TreasureRoomType` enum - STARTER, COMBAT, MAGIC, BOSS types
+- **Database schema** - SQLite persistence with 2 tables (`memory/world/TreasureRoomDatabase.kt`)
+  - `treasure_rooms` table - Space ID, room type, biome theme, currently taken item, looted flag
+  - `pedestals` table - Pedestal ID, treasure room FK, item template FK, state, index, themed description
+  - `TreasureRoomRepository` interface and `SQLiteTreasureRoomRepository` implementation
+- **Interaction handlers** (`reasoning/treasureroom/` and `app/handlers/TreasureRoomHandlers.kt`)
+  - `TreasureRoomHandler` - Core take/return/swap logic with state transitions (218 lines)
+  - `TreasureRoomHandlers` (app layer) - Intent handling for TakeTreasure, ReturnTreasure, ExaminePedestal (280 lines)
+  - `ClientTreasureRoomHandlers` (GUI client) - Full GUI support with intent wiring (250 lines)
+  - 3 new Intent types: Intent.TakeTreasure, Intent.ReturnTreasure, Intent.ExaminePedestal
+- **5 RARE starter items** - Skill-category aligned items with bonuses (`memory/resources/item_templates.json`)
+  - **Flamebrand Longsword** (Combat) - 25 damage, STR +3, one-handed
+  - **Shadowweave Cloak** (Rogue) - 8 defense, AGI +4, back slot
+  - **Stormcaller Staff** (Magic) - 20 damage, MAG +3, WIS +2, two-handed
+  - **Titan's Band** (Utility) - END +5, accessory slot
+  - **Arcane Blade** (Hybrid) - 22 damage, STR +2, MAG +3, one-handed
+- **Biome theming** - LLM-generated atmospheric descriptions (`reasoning/treasureroom/TreasureRoomDescriptionGenerator.kt`)
+  - 6 biome themes: ancient_abyss, magma_cave, frozen_depths, bone_crypt, elven_ruins, dwarven_halls
+  - BiomeTheme data class with material, aesthetic, barrier type, atmosphere hints
+  - State-aware descriptions: AVAILABLE (ready to claim), LOCKED (barrier description), EMPTY (bare pedestal)
+  - Fallback descriptions for API-less mode
+- **World generation integration** (`reasoning/treasureroom/TreasureRoomPlacer.kt`)
+  - Early placement: BFS distance 2-3 from start node
+  - Priority: DeadEnd > Linear > Branching node types
+  - NodeType.TreasureRoom added to graph topology
+  - SpacePropertiesComponent.isTreasureRoom flag for room marking
+  - Safe zone marking (no combat, traps, or resource spawns)
+- **Exit detection** - Automatic room finalization (`reasoning/treasureroom/TreasureRoomExitLogic.kt`)
+  - MovementHandlers and ClientMovementHandlers track previous room
+  - Calls finalizeExit() when leaving with item
+  - Displays narration: "As you depart with the [item], the remaining treasures shimmer and fade"
+  - Marks room as looted (hasBeenLooted=true, all pedestals EMPTY)
+- **Swap mechanics**:
+  - Take item → currentlyTakenItem set, other pedestals locked
+  - Return item → currentlyTakenItem cleared, all pedestals unlocked
+  - Leave room with item → room marked looted, choice final
+  - Re-enter looted room → all pedestals empty
+- **Testing** - Comprehensive test coverage
+  - TreasureRoomComponentTest.kt - 30 unit tests for state machine logic
+  - TreasureRoomRepositoryTest.kt - 33 integration tests for database persistence
+  - TreasureRoomPlacerTest.kt - 26 unit tests for placement logic
+  - TreasureRoomExitLogicTest.kt - 8 integration tests for exit detection
+  - TreasureRoomWorldGenIntegrationTest.kt - 15 integration tests for world generation
+- See [Treasure Rooms Documentation](./TREASURE_ROOMS.md) for complete details
+
 ### Combat Narration Caching System
 - **Vector DB caching** for optimized LLM performance
 - **Three-tier approach**:
@@ -367,7 +418,6 @@ Memory (store for RAG)
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/DungeonTheme.kt`
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt` - Creates NPCs with SocialComponents
 - `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ItemGenerator.kt`
-- `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/ProceduralDungeonBuilder.kt` - V3-compatible
 
 ### Social System
 - `core/src/main/kotlin/com/jcraw/mud/core/Component.kt` - Component system foundation
@@ -484,9 +534,6 @@ Memory (store for RAG)
 - **Testing** - 600+ unit/integration tests, comprehensive V3 tests for GraphGenerator, GraphLayout, GraphValidator, and all reasoning modules
 - **Status** - V3 architecture complete, all modules using ECS component-based system
 - See [World Generation Documentation](./WORLD_GENERATION.md) for complete details
-
-### Sample Content
-- `core/src/main/kotlin/com/jcraw/mud/core/SampleDungeon.kt`
 
 ### Intent System
 - `perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt` - 22+ intent types including Emote and AskQuestion
