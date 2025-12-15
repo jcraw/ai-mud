@@ -25,8 +25,8 @@ class MockGameClient : GameClient {
             currentRoomId = "entrance",
             health = 100,
             maxHealth = 100,
-            gold = 50,
-            experiencePoints = 0
+            experiencePoints = 0,
+            inventoryComponent = InventoryComponent(gold = 50)
         )
     }
 

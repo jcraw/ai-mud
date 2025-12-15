@@ -50,6 +50,9 @@ suspend fun initializeAncientAbyssWorld(
     dbPath: String = DatabaseConfig.WORLD_DB,
     includeQuests: Boolean = true
 ): Result<AncientAbyssWorld> = runCatching {
+    // Ensure data directory exists
+    DatabaseConfig.init()
+
     // Initialize LLM and database
     val llmClient = OpenAIClient(apiKey)
     val worldDatabase = WorldDatabase(dbPath)

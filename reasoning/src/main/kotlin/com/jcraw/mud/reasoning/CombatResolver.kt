@@ -88,18 +88,18 @@ class CombatResolver {
 
     /**
      * Calculate damage dealt by player attack.
-     * Base damage + weapon bonus + STR modifier.
+     * Base damage + STR modifier. V2 combat system should use AttackResolver.
      */
     private fun calculatePlayerDamage(player: PlayerState): Int {
         val baseDamage = Random.nextInt(5, 16)
-        val weaponBonus = player.getWeaponDamageBonus()
+        // V1 weapon bonus removed - use V2 AttackResolver for proper equipment bonuses
         val strModifier = player.stats.strModifier()
-        return (baseDamage + weaponBonus + strModifier).coerceAtLeast(1)
+        return (baseDamage + strModifier).coerceAtLeast(1)
     }
 
     /**
      * Calculate damage dealt by NPC attack.
-     * Base damage + STR modifier - player armor defense.
+     * Base damage + STR modifier. V2 combat system should use AttackResolver.
      */
     private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int {
         val space = worldState.getCurrentSpace(player.id) ?: return 0
@@ -107,10 +107,9 @@ class CombatResolver {
             .find { it.id == npcId }
             ?: return 0
 
-        // Base damage 3-12 + STR modifier - armor defense
+        // Base damage 3-12 + STR modifier (V1 armor defense removed - use V2 AttackResolver)
         val baseDamage = Random.nextInt(3, 13)
         val strModifier = npc.stats.strModifier()
-        val armorDefense = player.getArmorDefenseBonus()
-        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
+        return (baseDamage + strModifier).coerceAtLeast(1)
     }
 }

@@ -104,8 +104,10 @@ class QuestTracker(
         playerState: PlayerState
     ): QuestObjective? {
         return if (objective is QuestObjective.CollectItem && objective.targetItemId == itemId) {
-            // Check if player has the item in inventory
-            val hasItem = playerState.inventory.any { it.id == itemId }
+            // Check if player has the item in V2 inventory (by instance id or template id)
+            val hasItem = playerState.inventoryComponent.items.any {
+                it.id == itemId || it.templateId == itemId
+            }
             if (hasItem) {
                 objective.copy(currentQuantity = objective.quantity, isCompleted = true)
             } else null

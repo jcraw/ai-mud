@@ -84,33 +84,18 @@ object CombatHandlers {
             "bare fists"
         }
 
-        // Resolve attack using AttackResolver (Phase 3)
-        println("[ATTACK HANDLER DEBUG] Initiating attack: ${game.worldState.player.name} -> ${npc.name}")
-        println("[ATTACK HANDLER DEBUG] AttackResolver available: ${game.attackResolver != null}")
-        println("[ATTACK HANDLER DEBUG] SkillManager available: ${game.skillManager != null}")
-
-        val attackResult = if (game.attackResolver != null && game.skillManager != null) {
-            try {
-                runBlocking {
-                    game.attackResolver.resolveAttack(
-                        attackerId = game.worldState.player.id,
-                        defenderId = npc.id,
-                        action = "attack ${npc.name} with $weaponName",
-                        worldState = game.worldState,
-                        skillManager = game.skillManager,
-                        attackerEquipped = attackerEquipped,
-                        defenderEquipped = defenderEquipped,
-                        templates = templates
-                    )
-                }
-            } catch (e: Exception) {
-                // Fallback to simple attack if resolver fails
-                println("Debug: AttackResolver failed: ${e.message}, using fallback")
-                e.printStackTrace()
-                null
-            }
-        } else {
-            null
+        // Resolve attack using AttackResolver (V2 combat system)
+        val attackResult = runBlocking {
+            game.attackResolver.resolveAttack(
+                attackerId = game.worldState.player.id,
+                defenderId = npc.id,
+                action = "attack ${npc.name} with $weaponName",
+                worldState = game.worldState,
+                skillManager = game.skillManager,
+                attackerEquipped = attackerEquipped,
+                defenderEquipped = defenderEquipped,
+                templates = templates
+            )
         }
 
         when (attackResult) {
@@ -217,85 +202,6 @@ object CombatHandlers {
             }
             is AttackResult.Failure -> {
                 println("Attack failed: ${attackResult.reason}")
-            }
-            null -> {
-                // Fallback: Use old combat system for backward compatibility
-                handleLegacyAttack(game, npc)
-            }
-        }
-    }
-
-    /**
-     * Legacy attack handler for backward compatibility
-     * Uses the old CombatResolver system
-     *
-     * TODO: Remove this once all combat is migrated to V2
-     */
-    private fun handleLegacyAttack(game: MudGame, npc: Entity.NPC) {
-        // Start combat using old system
-        val result = game.combatResolver.initiateCombat(game.worldState, npc.id)
-        if (result == null) {
-            println("You cannot initiate combat with that target.")
-            return
-        }
-
-        // Generate narrative for combat start
-        val narrative = if (game.combatNarrator != null) {
-            runBlocking {
-                game.combatNarrator.narrateCombatStart(game.worldState, npc)
-            }
-        } else {
-            result.narrative
-        }
-
-        println("\n$narrative")
-
-        // Execute the attack
-        val attackResult = game.combatResolver.executePlayerAttack(game.worldState)
-
-        // Display combat narrative
-        val combatNarrative = if (game.combatNarrator != null && !attackResult.playerDied && !attackResult.npcDied) {
-            val spaceId = game.worldState.player.currentRoomId
-            val combatNpc = game.worldState.getEntitiesInSpace(spaceId)
-                .filterIsInstance<Entity.NPC>()
-                .find { it.id == npc.id }
-
-            if (combatNpc != null) {
-                runBlocking {
-                    game.combatNarrator.narrateCombatRound(
-                        game.worldState, combatNpc, attackResult.playerDamage, attackResult.npcDamage,
-                        attackResult.npcDied, attackResult.playerDied
-                    )
-                }
-            } else {
-                attackResult.narrative
-            }
-        } else {
-            attackResult.narrative
-        }
-
-        println("\n$combatNarrative")
-
-        // Handle combat results
-        when {
-            attackResult.npcDied -> {
-                println("\nVictory! The enemy has been defeated!")
-
-                val spaceId = game.worldState.player.currentRoomId
-                val deathResult = game.deathHandler.handleDeath(npc.id, game.worldState)
-                game.worldState = when (deathResult) {
-                    is DeathHandler.DeathResult.NPCDeath -> deathResult.updatedWorld
-                    else -> game.worldState.removeEntityFromSpace(spaceId, npc.id) ?: game.worldState
-                }
-
-                // Mark entity death for respawn system
-                game.respawnChecker?.markDeath(npc.id, game.worldState.gameTime)
-
-                game.trackQuests(QuestAction.KilledNPC(npc.id))
-            }
-            attackResult.playerDied -> {
-                // Use new permadeath system
-                game.handlePlayerDeath()
             }
         }
     }

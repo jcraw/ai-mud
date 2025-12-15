@@ -69,8 +69,9 @@ class MudGame(
     // Combat System V2 components
     internal val turnQueue: TurnQueueManager? = if (llmClient != null) TurnQueueManager() else null
     internal val monsterAIHandler: MonsterAIHandler? = if (llmClient != null) MonsterAIHandler(llmClient) else null
-    private val skillClassifier: SkillClassifier? = if (llmClient != null) SkillClassifier(llmClient) else null
-    internal val attackResolver: AttackResolver? = if (skillClassifier != null) AttackResolver(skillClassifier) else null
+    // SkillClassifier has fallback classification when LLM is unavailable
+    private val skillClassifier = SkillClassifier(llmClient)
+    internal val attackResolver = AttackResolver(skillClassifier)
     internal val llmService = llmClient
 
     // Item System V2 components
@@ -335,9 +336,32 @@ class MudGame(
             is Intent.Search -> com.jcraw.app.handlers.MovementHandlers.handleSearch(this, intent.target)
             is Intent.Interact -> com.jcraw.app.handlers.SkillQuestHandlers.handleInteract(this, intent.target)
             is Intent.Craft -> com.jcraw.app.handlers.SkillQuestHandlers.handleCraft(this, intent.target)
-            is Intent.Pickpocket -> println("Pickpocketing not yet integrated") // TODO
-            is Intent.Trade -> println("Trading not yet integrated") // TODO
-            is Intent.UseItem -> println("Item use not yet integrated") // TODO
+            is Intent.Pickpocket -> {
+                when (intent.action) {
+                    "place" -> com.jcraw.app.handlers.PickpocketHandlers.handlePlace(
+                        this, intent.npcTarget, intent.itemTarget ?: ""
+                    )
+                    else -> com.jcraw.app.handlers.PickpocketHandlers.handleSteal(
+                        this, intent.action, intent.npcTarget, intent.itemTarget
+                    )
+                }
+            }
+            is Intent.Trade -> {
+                when (intent.action) {
+                    "list" -> com.jcraw.app.handlers.TradeHandlers.handleListStock(this, intent.merchantTarget)
+                    else -> com.jcraw.app.handlers.TradeHandlers.handleTrade(
+                        this, intent.action, intent.target, intent.quantity, intent.merchantTarget
+                    )
+                }
+            }
+            is Intent.UseItem -> {
+                val itemUseHandler = com.jcraw.mud.reasoning.items.ItemUseHandler(itemRepository)
+                val (newWorld, narration) = com.jcraw.app.handlers.handleUseItem(
+                    intent, worldState, worldState.player, itemUseHandler, itemRepository
+                )
+                worldState = newWorld
+                println(narration)
+            }
             is Intent.Inventory -> com.jcraw.app.handlers.ItemHandlers.handleInventory(this)
             is Intent.Take -> com.jcraw.app.handlers.ItemHandlers.handleTake(this, intent.target)
             is Intent.TakeAll -> com.jcraw.app.handlers.ItemHandlers.handleTakeAll(this)
@@ -354,7 +378,7 @@ class MudGame(
             is Intent.Use -> com.jcraw.app.handlers.ItemHandlers.handleUse(this, intent.target)
             is Intent.LootCorpse -> {
                 val (newWorld, narration) = com.jcraw.app.handlers.handleLootCorpse(
-                    intent, worldState, worldState.player, corpseRepository, worldState.gameTime
+                    intent, worldState, worldState.player, corpseRepository, itemRepository, worldState.gameTime
                 )
                 worldState = newWorld
                 println(narration)
@@ -544,76 +568,63 @@ class MudGame(
      * Execute NPC attack on player
      */
     private fun executeNPCAttack(npc: Entity.NPC) {
-        val resolver = attackResolver
-        if (resolver != null) {
-            // Use new attack resolver
-            val result = runBlocking {
-                resolver.resolveAttack(
-                    attackerId = npc.id,
-                    defenderId = worldState.player.id,
-                    action = "${npc.name} attacks",
-                    worldState = worldState,
-                    skillManager = skillManager
-                )
-            }
+        // Use V2 combat system with AttackResolver
+        val result = runBlocking {
+            attackResolver.resolveAttack(
+                attackerId = npc.id,
+                defenderId = worldState.player.id,
+                action = "${npc.name} attacks",
+                worldState = worldState,
+                skillManager = skillManager
+            )
+        }
 
-            when (result) {
-                is AttackResult.Hit -> {
-                    // Apply damage to player
-                    val newPlayer = worldState.player.takeDamage(result.damage)
-                    worldState = worldState.updatePlayer(newPlayer)
+        when (result) {
+            is AttackResult.Hit -> {
+                // Apply damage to player
+                val newPlayer = worldState.player.takeDamage(result.damage)
+                worldState = worldState.updatePlayer(newPlayer)
 
-                    // Generate narrative with LLM flavor text + damage line
-                    val flavorText = if (llmService != null) {
-                        runBlocking {
-                            generateNPCAttackNarration(npc.name, result.damage, newPlayer.isDead())
-                        }
-                    } else {
-                        "${npc.name} strikes with deadly precision!"
+                // Generate narrative with LLM flavor text + damage line
+                val flavorText = if (llmService != null) {
+                    runBlocking {
+                        generateNPCAttackNarration(npc.name, result.damage, newPlayer.isDead())
                     }
-                    val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
-                    println("$flavorText\n$damageLine")
-
-                    // Process skill progression (attacker=NPC, defender=player)
-                    processNPCAttackSkillProgression(result)
-
-                    // Check if player died
-                    if (newPlayer.isDead()) {
-                        handlePlayerDeath()
-                    }
+                } else {
+                    "${npc.name} strikes with deadly precision!"
                 }
-                is AttackResult.Miss -> {
-                    val narrative = if (result.wasDodged) {
-                        "You dodge ${npc.name}'s attack!"
-                    } else {
-                        "${npc.name} misses you!"
-                    }
-                    println(narrative)
+                val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
+                println("$flavorText\n$damageLine")
 
-                    // Process skill progression (attacker=NPC, defender=player)
-                    processNPCAttackSkillProgression(result)
-                }
-                is AttackResult.Failure -> {
-                    // Silent failure, fall back to simple damage
-                    val damage = (1..6).random()
-                    val newPlayer = worldState.player.takeDamage(damage)
-                    worldState = worldState.updatePlayer(newPlayer)
-                    println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
+                // Process skill progression (attacker=NPC, defender=player)
+                processNPCAttackSkillProgression(result)
 
-                    if (newPlayer.isDead()) {
-                        handlePlayerDeath()
-                    }
+                // Check if player died
+                if (newPlayer.isDead()) {
+                    handlePlayerDeath()
                 }
             }
-        } else {
-            // Fallback to simple damage
-            val damage = (1..6).random()
-            val newPlayer = worldState.player.takeDamage(damage)
-            worldState = worldState.updatePlayer(newPlayer)
-            println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
+            is AttackResult.Miss -> {
+                val narrative = if (result.wasDodged) {
+                    "You dodge ${npc.name}'s attack!"
+                } else {
+                    "${npc.name} misses you!"
+                }
+                println(narrative)
 
-            if (newPlayer.isDead()) {
-                handlePlayerDeath()
+                // Process skill progression (attacker=NPC, defender=player)
+                processNPCAttackSkillProgression(result)
+            }
+            is AttackResult.Failure -> {
+                // Silent failure, fall back to simple damage
+                val damage = (1..6).random()
+                val newPlayer = worldState.player.takeDamage(damage)
+                worldState = worldState.updatePlayer(newPlayer)
+                println("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})")
+
+                if (newPlayer.isDead()) {
+                    handlePlayerDeath()
+                }
             }
         }
 

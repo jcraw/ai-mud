@@ -435,8 +435,15 @@ object ClientSkillQuestHandlers {
         // Check tool requirement (if specified in properties)
         val requiredToolTag = feature.properties["required_tool_tag"]
         if (requiredToolTag != null) {
-            // TODO: Check player's InventoryComponent for tool with matching tag
-            // For now, assume player has the tool (will be implemented with InventoryComponent)
+            val playerInventory = game.worldState.player.inventoryComponent
+            val hasTool = playerInventory?.items?.any { instance ->
+                val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
+                template?.tags?.contains(requiredToolTag) == true
+            } ?: false
+            if (!hasTool) {
+                game.emitEvent(GameEvent.System("You need a ${requiredToolTag.replace("_", " ")} to harvest this.", GameEvent.MessageLevel.WARNING))
+                return
+            }
         }
 
         game.emitEvent(GameEvent.System("\nYou attempt to harvest ${feature.name}...", GameEvent.MessageLevel.INFO))

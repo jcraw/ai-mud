@@ -676,14 +676,13 @@ class GameServer(
 
     /**
      * Calculate damage dealt by NPC attack (helper for potion use during combat).
-     * Base damage + STR modifier - player armor defense.
+     * Base damage + STR modifier. V2 combat uses AttackResolver for proper equipment bonuses.
      */
     private fun calculateNpcDamage(npc: Entity.NPC, player: PlayerState): Int {
-        // Base damage 3-12 + STR modifier - armor defense
+        // Base damage 3-12 + STR modifier (V1 armor defense removed - use V2 AttackResolver)
         val baseDamage = kotlin.random.Random.nextInt(3, 13)
         val strModifier = npc.stats.strModifier()
-        val armorDefense = player.getArmorDefenseBonus()
-        return (baseDamage + strModifier - armorDefense).coerceAtLeast(1)
+        return (baseDamage + strModifier).coerceAtLeast(1)
     }
 
     private fun handleCheck(

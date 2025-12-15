@@ -1,6 +1,7 @@
 package com.jcraw.mud.reasoning
 
 import com.jcraw.mud.core.Entity
+import com.jcraw.mud.core.EquipSlot
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.combat.NarrationMatcher
@@ -202,8 +203,11 @@ class CombatNarrator(
             appendLine()
             appendLine("Combatants:")
             appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")
-            appendLine("  - Weapon: ${worldState.player.equippedWeapon?.name ?: "bare fists"}")
-            appendLine("  - Armor: ${worldState.player.equippedArmor?.name ?: "no armor"}")
+            val equippedWeapon = worldState.player.inventoryComponent.getEquipped(EquipSlot.HANDS_MAIN)
+                ?: worldState.player.inventoryComponent.getEquipped(EquipSlot.HANDS_BOTH)
+            val equippedArmor = worldState.player.inventoryComponent.getEquipped(EquipSlot.CHEST)
+            appendLine("  - Weapon: ${equippedWeapon?.templateId ?: "bare fists"}")
+            appendLine("  - Armor: ${equippedArmor?.templateId ?: "no armor"}")
             appendLine("  - STR: ${worldState.player.stats.strength}, DEX: ${worldState.player.stats.dexterity}")
             appendLine("- Enemy (${npc.name}): ${npc.description}")
             appendLine()
@@ -259,7 +263,9 @@ class CombatNarrator(
     suspend fun narrateCombatStart(worldState: WorldState, npc: Entity.NPC): String {
         val space = worldState.getCurrentSpace() ?: return "Combat begins..."
         val player = worldState.player
-        val weapon = player.equippedWeapon?.name ?: "bare fists"
+        val equippedWeaponItem = player.inventoryComponent.getEquipped(EquipSlot.HANDS_MAIN)
+            ?: player.inventoryComponent.getEquipped(EquipSlot.HANDS_BOTH)
+        val weapon = equippedWeaponItem?.templateId ?: "bare fists"
 
         val systemPrompt = """
             You are a dungeon master narrating the start of a combat encounter.

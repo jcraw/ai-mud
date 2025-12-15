@@ -2,6 +2,7 @@ package com.jcraw.mud.reasoning.death
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.CorpseRepository
+import com.jcraw.mud.core.repository.ItemRepository
 
 /**
  * Manages corpse interactions: finding, looting, cleanup.
@@ -56,26 +57,28 @@ fun findPlayerCorpses(
  *
  * Process:
  * 1. Load corpse from database
- * 2. Check weight capacity (V1: simple count check; V2: full weight calculation)
- * 3. Transfer items to player inventory
+ * 2. Check weight capacity for each item
+ * 3. Transfer items to player inventory (skip overweight items)
  * 4. Transfer gold
  * 5. Mark corpse as looted
  * 6. Delete corpse from database
  * 7. Return loot result with updated player
  *
  * Weight handling:
- * - V1: No weight system, transfer all items
- * - V2: Check capacityWeight, reject items if over limit
+ * - Uses V2 InventoryComponent with weight-based capacity
+ * - Items that would exceed capacity are skipped (returned in overweightItems)
  *
  * @param corpseId Corpse identifier
  * @param player Player looting the corpse
  * @param corpseRepository Repository for corpse operations
+ * @param itemRepository Repository for item template lookups (for weight)
  * @return Success with LootResult, or failure
  */
 fun lootCorpse(
     corpseId: String,
     player: PlayerState,
-    corpseRepository: CorpseRepository
+    corpseRepository: CorpseRepository,
+    itemRepository: ItemRepository
 ): Result<LootResult> {
     // Load corpse
     val corpse = corpseRepository.findById(corpseId).getOrElse { error ->
@@ -87,26 +90,54 @@ fun lootCorpse(
         return Result.failure(Exception("This corpse has already been looted"))
     }
 
-    // V1 implementation: Transfer all items (no weight system)
-    // TODO: Implement V2 weight checking when Item System V2 is integrated
+    // Get or initialize player's V2 inventory
+    var updatedInventory = player.inventoryComponent ?: InventoryComponent(
+        items = emptyList(),
+        equipped = emptyMap(),
+        gold = player.gold,
+        capacityWeight = player.stats.strength * 5.0
+    )
 
-    // Convert V2 items back to V1 for now
-    val transferredV1Items = corpse.inventory.items.map { itemInstance ->
-        convertItemInstanceToV1(itemInstance)
+    // Combine all items from corpse (inventory + equipped)
+    val allCorpseItems = corpse.inventory.items + corpse.equipment
+    val transferredItems = mutableListOf<ItemInstance>()
+    val overweightItems = mutableListOf<ItemInstance>()
+
+    // Build template map for weight checking
+    val templates = mutableMapOf<String, ItemTemplate>()
+    for (item in allCorpseItems) {
+        val template = itemRepository.findTemplateById(item.templateId).getOrNull()
+        if (template != null) {
+            templates[item.templateId] = template
+        }
+    }
+    // Also include current inventory templates
+    for (item in updatedInventory.items) {
+        if (!templates.containsKey(item.templateId)) {
+            val template = itemRepository.findTemplateById(item.templateId).getOrNull()
+            if (template != null) {
+                templates[item.templateId] = template
+            }
+        }
     }
 
-    // Transfer equipped items
-    val equippedV1Items = corpse.equipment.map { itemInstance ->
-        convertItemInstanceToV1(itemInstance)
+    // Transfer each item, checking weight
+    for (item in allCorpseItems) {
+        val template = templates[item.templateId]
+        if (template != null && updatedInventory.canAdd(template, item.quantity, templates)) {
+            updatedInventory = updatedInventory.addItem(item)
+            transferredItems.add(item)
+        } else {
+            overweightItems.add(item)
+        }
     }
 
-    // Combine all items
-    val allTransferredItems = transferredV1Items + equippedV1Items
+    // Add gold (gold is weightless)
+    updatedInventory = updatedInventory.addGold(corpse.gold)
 
-    // Update player with transferred items and gold
+    // Update player with V2 inventory
     val updatedPlayer = player.copy(
-        inventory = player.inventory + allTransferredItems,
-        gold = player.gold + corpse.gold
+        inventoryComponent = updatedInventory
     )
 
     // Mark corpse as looted and delete
@@ -120,9 +151,9 @@ fun lootCorpse(
 
     // Return loot result
     val lootResult = LootResult(
-        itemsTransferred = corpse.inventory.items + corpse.equipment,
+        itemsTransferred = transferredItems,
         goldTransferred = corpse.gold,
-        overweightItems = emptyList(), // V1: No weight system
+        overweightItems = overweightItems,
         updatedPlayer = updatedPlayer
     )
 
@@ -224,25 +255,3 @@ fun findCorpsesInSpace(
     return corpseRepository.findBySpaceId(spaceId)
 }
 
-/**
- * Convert V2 ItemInstance to V1 Entity.Item.
- *
- * Temporary converter for V1/V2 bridge.
- * TODO: Remove when Item System V2 is fully integrated
- *
- * @param itemInstance V2 item instance
- * @return V1 Entity.Item
- */
-private fun convertItemInstanceToV1(itemInstance: ItemInstance): Entity.Item {
-    // Create basic V1 item from V2 instance
-    // NOTE: This is a simplified conversion - full conversion would need ItemTemplate lookup
-    return Entity.Item(
-        id = itemInstance.id,
-        name = itemInstance.templateId, // Use templateId as name for now
-        description = "Recovered from corpse",
-        damageBonus = 0,
-        defenseBonus = 0,
-        healAmount = 0,
-        isConsumable = false
-    )
-}

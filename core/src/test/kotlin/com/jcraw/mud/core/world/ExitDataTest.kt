@@ -1,5 +1,8 @@
 package com.jcraw.mud.core.world
 
+import com.jcraw.mud.core.EquipSlot
+import com.jcraw.mud.core.InventoryComponent
+import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.PlayerId
 import com.jcraw.mud.core.RoomId
@@ -19,17 +22,20 @@ class ExitDataTest {
         SkillComponent(player.skills.mapValues { SkillState(level = it.value, unlocked = true) })
 
     private fun createTestPlayer(skillLevel: Int = 0, hasItems: Boolean = false): PlayerState {
-        val player = PlayerState(
+        val baseInventory = InventoryComponent()
+        val inventory = if (hasItems) {
+            val sword = ItemInstance(id = "sword-1", templateId = "sword")
+            baseInventory.addItem(sword).equip(sword, EquipSlot.HANDS_MAIN) ?: baseInventory.addItem(sword)
+        } else {
+            baseInventory
+        }
+        return PlayerState(
             id = "test-player",
             name = "Test Player",
             currentRoomId = "room-1",
-            skills = mapOf("Perception" to skillLevel)
+            skills = mapOf("Perception" to skillLevel),
+            inventoryComponent = inventory
         )
-        return if (hasItems) {
-            player.copy(equippedWeapon = com.jcraw.mud.core.Entity.Item("sword", "Sword", "A sword"))
-        } else {
-            player
-        }
     }
 
     @Test

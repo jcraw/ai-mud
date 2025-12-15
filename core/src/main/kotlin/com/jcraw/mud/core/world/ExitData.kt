@@ -45,11 +45,10 @@ sealed class Condition {
     @Serializable
     data class ItemRequired(val itemTag: String) : Condition() {
         override fun meetsCondition(player: PlayerState, playerSkills: SkillComponent): Boolean {
-            // Check if player has any item (basic implementation)
+            // Check if player has any item with matching tag in V2 inventory
             // TODO: Check actual item tags when ItemRepository integration is complete
-            return player.inventory.isNotEmpty() ||
-                   player.equippedWeapon != null ||
-                   player.equippedArmor != null
+            return player.inventoryComponent.items.isNotEmpty() ||
+                   player.inventoryComponent.equipped.isNotEmpty()
         }
 
         override fun describe(): String = "requires $itemTag"

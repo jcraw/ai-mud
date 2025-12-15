@@ -148,7 +148,7 @@ class QuestSystemTest {
             name = "Hero",
             currentRoomId = "room1",
             experiencePoints = 0,
-            gold = 0
+            inventoryComponent = InventoryComponent(gold = 0)
         )
 
         val rewardItem = Entity.Item(

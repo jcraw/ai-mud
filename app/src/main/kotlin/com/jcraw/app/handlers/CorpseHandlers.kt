@@ -3,6 +3,7 @@ package com.jcraw.app.handlers
 import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.core.repository.CorpseRepository
+import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.death.*
 
@@ -36,6 +37,7 @@ import com.jcraw.mud.reasoning.death.*
  * @param world Current world state
  * @param player Current player state
  * @param corpseRepository Repository for corpse lookups
+ * @param itemRepository Repository for item template lookups
  * @param currentTime Current game time
  * @return Updated world state and narration
  */
@@ -44,6 +46,7 @@ fun handleLootCorpse(
     world: WorldState,
     player: PlayerState,
     corpseRepository: CorpseRepository,
+    itemRepository: ItemRepository,
     currentTime: Long
 ): Pair<WorldState, String> {
     // Determine target corpse ID
@@ -73,7 +76,7 @@ fun handleLootCorpse(
     }
 
     // Attempt to loot corpse
-    val lootResult = lootCorpse(targetCorpseId, player, corpseRepository).getOrElse { error ->
+    val lootResult = lootCorpse(targetCorpseId, player, corpseRepository, itemRepository).getOrElse { error ->
         return world to """
             |Failed to loot corpse: ${error.message}
             |

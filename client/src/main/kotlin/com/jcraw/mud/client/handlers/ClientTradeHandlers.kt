@@ -149,7 +149,7 @@ object ClientTradeHandlers {
         val updatedNpc = merchant.withComponent(updatedTrading)
 
         val purchasedNames = mutableListOf<String>()
-        var updatedPlayer = player.copy(gold = player.gold - totalCost)
+        var updatedPlayer = player.copy(inventoryComponent = player.inventoryComponent.addGold(-totalCost))
 
         repeat(quantityRequested) {
             val instanceForPlayer = ItemInstance(

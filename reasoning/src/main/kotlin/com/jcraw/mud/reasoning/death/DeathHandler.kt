@@ -67,10 +67,16 @@ fun handlePlayerDeath(
     // Create corpse from player state
     val corpseId = UUID.randomUUID().toString()
 
-    // Convert V1 player inventory to V2 InventoryComponent
-    // TODO: Remove this conversion when Item System V2 is fully integrated
-    val inventoryComponent = convertPlayerInventoryToV2(player)
-    val equippedItems = extractEquippedItems(player)
+    // Use V2 InventoryComponent directly if available, otherwise create empty
+    val inventoryComponent = player.inventoryComponent ?: InventoryComponent(
+        items = emptyList(),
+        equipped = emptyMap(),
+        gold = player.gold,
+        capacityWeight = player.stats.strength * 5.0
+    )
+
+    // Extract equipped items as separate list for CorpseData
+    val equippedItems = inventoryComponent.equipped.values.toList()
 
     val corpse = CorpseData(
         id = corpseId,
@@ -78,7 +84,7 @@ fun handlePlayerDeath(
         spaceId = currentSpaceId,
         inventory = inventoryComponent,
         equipment = equippedItems,
-        gold = player.gold,
+        gold = inventoryComponent.gold,
         decayTimer = gameTime + 5000L, // 5000 turns decay time
         looted = false
     )
@@ -89,7 +95,7 @@ fun handlePlayerDeath(
     }
 
     // Generate death narration
-    val narration = createCorpseNarration(player, currentSpaceId, corpseId, gameTime)
+    val narration = createCorpseNarration(player, inventoryComponent, currentSpaceId, corpseId, gameTime)
 
     return Result.success(
         DeathResult(
@@ -106,6 +112,7 @@ fun handlePlayerDeath(
  * Create death and respawn narration.
  *
  * @param oldPlayer Player who died
+ * @param inventory V2 inventory that was lost
  * @param corpseSpaceId Space where corpse lies
  * @param corpseId Corpse identifier
  * @param gameTime Current game time
@@ -113,10 +120,15 @@ fun handlePlayerDeath(
  */
 fun createCorpseNarration(
     oldPlayer: PlayerState,
+    inventory: InventoryComponent,
     corpseSpaceId: String,
     corpseId: String,
     gameTime: Long
 ): String {
+    val itemCount = inventory.items.size
+    val equippedCount = inventory.equipped.size
+    val goldLost = inventory.gold
+
     return """
         |═══════════════════════════════════════════════════════════════
         |
@@ -130,9 +142,9 @@ fun createCorpseNarration(
         |Your corpse lies in space '$corpseSpaceId', awaiting retrieval.
         |Corpse ID: $corpseId
         |
-        |Items lost: ${oldPlayer.inventory.size} inventory items
-        |Gold lost: ${oldPlayer.gold} gold
-        |Equipped gear lost: ${if (oldPlayer.equippedWeapon != null) 1 else 0 + if (oldPlayer.equippedArmor != null) 1 else 0} pieces
+        |Items lost: $itemCount inventory items
+        |Gold lost: $goldLost gold
+        |Equipped gear lost: $equippedCount pieces
         |
         |Corpse will decay in 5000 turns (current time: $gameTime).
         |
@@ -153,7 +165,7 @@ fun createCorpseNarration(
  *
  * Player spawns with:
  * - Level 1 skills
- * - Starter gear (basic dagger, cloth armor)
+ * - Starter gear (basic dagger, cloth armor) via V2 inventory
  * - Empty inventory
  * - 0 gold
  * - Full HP
@@ -168,27 +180,6 @@ private fun createFreshPlayer(
     newCharacterName: String,
     townSpaceId: String
 ): PlayerState {
-    // Starter gear
-    val starterDagger = Entity.Item(
-        id = UUID.randomUUID().toString(),
-        name = "Rusty Dagger",
-        description = "A worn dagger. Better than nothing.",
-        damageBonus = 2,
-        defenseBonus = 0,
-        healAmount = 0,
-        isConsumable = false
-    )
-
-    val starterClothes = Entity.Item(
-        id = UUID.randomUUID().toString(),
-        name = "Tattered Clothes",
-        description = "Barely provides any protection.",
-        damageBonus = 0,
-        defenseBonus = 1,
-        healAmount = 0,
-        isConsumable = false
-    )
-
     // Basic stats (10 in all stats, D&D baseline)
     val baseStats = Stats(
         strength = 10,
@@ -199,6 +190,34 @@ private fun createFreshPlayer(
         charisma = 10
     )
 
+    // Starter gear as V2 ItemInstances (uses starter item template IDs)
+    val starterDagger = ItemInstance(
+        id = UUID.randomUUID().toString(),
+        templateId = "rusty_dagger",
+        quality = 5,
+        quantity = 1,
+        charges = null
+    )
+
+    val starterClothes = ItemInstance(
+        id = UUID.randomUUID().toString(),
+        templateId = "tattered_clothes",
+        quality = 5,
+        quantity = 1,
+        charges = null
+    )
+
+    // Create V2 inventory with starter gear equipped
+    val starterInventory = InventoryComponent(
+        items = listOf(starterDagger, starterClothes),
+        equipped = mapOf(
+            EquipSlot.HANDS_MAIN to starterDagger,
+            EquipSlot.CHEST to starterClothes
+        ),
+        gold = 0,
+        capacityWeight = baseStats.strength * 5.0 // 50kg capacity
+    )
+
     return PlayerState(
         id = playerId,
         name = newCharacterName,
@@ -206,109 +225,10 @@ private fun createFreshPlayer(
         health = 100,
         maxHealth = 100,
         stats = baseStats,
-        inventory = emptyList(), // Empty inventory
-        equippedWeapon = starterDagger,
-        equippedArmor = starterClothes,
-        skills = emptyMap(), // No trained skills
         properties = emptyMap(),
         activeQuests = emptyList(),
         completedQuests = emptyList(),
         experiencePoints = 0,
-        gold = 0
+        inventoryComponent = starterInventory
     )
-}
-
-/**
- * Convert V1 player inventory (List<Entity.Item>) to V2 InventoryComponent.
- *
- * Temporary converter for V1/V2 bridge.
- * TODO: Remove when Item System V2 is fully integrated
- *
- * @param player V1 player state
- * @return V2 InventoryComponent
- */
-private fun convertPlayerInventoryToV2(player: PlayerState): InventoryComponent {
-    // Convert V1 items to V2 ItemInstances
-    val itemInstances = player.inventory.map { v1Item ->
-        ItemInstance(
-            id = v1Item.id,
-            templateId = v1Item.name, // Use name as template ID for now
-            quality = 5, // Default medium quality
-            quantity = 1,
-            charges = null
-        )
-    }
-
-    // Build equipped map
-    val equippedMap = mutableMapOf<EquipSlot, ItemInstance>()
-
-    val weapon = player.equippedWeapon
-    if (weapon != null) {
-        val weaponInstance = ItemInstance(
-            id = weapon.id,
-            templateId = weapon.name,
-            quality = 5,
-            quantity = 1,
-            charges = null
-        )
-        equippedMap[EquipSlot.HANDS_MAIN] = weaponInstance
-    }
-
-    val armor = player.equippedArmor
-    if (armor != null) {
-        val armorInstance = ItemInstance(
-            id = armor.id,
-            templateId = armor.name,
-            quality = 5,
-            quantity = 1,
-            charges = null
-        )
-        equippedMap[EquipSlot.CHEST] = armorInstance
-    }
-
-    // Create InventoryComponent
-    return InventoryComponent(
-        items = itemInstances,
-        equipped = equippedMap,
-        gold = player.gold,
-        capacityWeight = player.stats.strength * 5.0 // Strength-based capacity
-    )
-}
-
-/**
- * Extract equipped items as separate list for CorpseData.
- *
- * @param player V1 player state
- * @return List of equipped items as ItemInstances
- */
-private fun extractEquippedItems(player: PlayerState): List<ItemInstance> {
-    val equipped = mutableListOf<ItemInstance>()
-
-    val weapon = player.equippedWeapon
-    if (weapon != null) {
-        equipped.add(
-            ItemInstance(
-                id = weapon.id,
-                templateId = weapon.name,
-                quality = 5,
-                quantity = 1,
-                charges = null
-            )
-        )
-    }
-
-    val armor = player.equippedArmor
-    if (armor != null) {
-        equipped.add(
-            ItemInstance(
-                id = armor.id,
-                templateId = armor.name,
-                quality = 5,
-                quantity = 1,
-                charges = null
-            )
-        )
-    }
-
-    return equipped
 }

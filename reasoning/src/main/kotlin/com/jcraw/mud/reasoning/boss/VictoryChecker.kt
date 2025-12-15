@@ -20,12 +20,9 @@ class VictoryChecker {
             return VictoryResult.NotYet("Not in a safe zone")
         }
 
-        // Check condition 2: Has Abyss Heart in inventory
-        // NOTE: This checks legacy Entity.Item inventory by name
-        // Once V2 item system is fully integrated, this should use InventoryComponent
-        val hasAbyssHeart = player.inventory.any { item ->
-            item.name.equals("Abyss Heart", ignoreCase = true) ||
-            item.id.equals(BossLootHandler.ABYSS_HEART_TEMPLATE_ID, ignoreCase = true)
+        // Check condition 2: Has Abyss Heart in inventory (V2 InventoryComponent)
+        val hasAbyssHeart = player.inventoryComponent.items.any { item ->
+            item.templateId.equals(BossLootHandler.ABYSS_HEART_TEMPLATE_ID, ignoreCase = true)
         }
 
         if (!hasAbyssHeart) {

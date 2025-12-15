@@ -1,0 +1,227 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: brute_force_playthrough
+        Description: Explore all rooms, collect best gear, defeat boss through superior equipment
+
+        Status: FAILED
+
+        Results:
+        - Total Steps: 50
+        - Passed: 33
+        - Failed: 17
+        - Pass Rate: 66%
+
+        Timing:
+        - Start: 2025-12-13T20:00:49.101268011Z
+        - End: 2025-12-13T20:07:16.810476956Z
+        - Duration: 387.71s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✗ FAIL
+Input: go northeast
+Reason: The response indicates an error with the room transition and does not provide a new area as expected.
+
+Step 6: ✗ FAIL
+Input: go south
+Reason: Repeated 'DODGE LOADED FROM DB' messages indicate a potential issue with room transitions or player actions not being processed correctly.
+
+Step 7: ✗ FAIL
+Input: go north
+Reason: The response contains repeated error messages and does not progress the game state appropriately.
+
+Step 8: ✗ FAIL
+Input: go west
+Reason: The response contains repeated error messages that are not coherent with the player's action of moving west.
+
+Step 9: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: go southwest
+Reason: The response indicates a failure to transition to a new room and provides an unclear state with repeated 'DODGE LOADED FROM DB' messages.
+
+Step 15: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 16: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 17: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 18: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 19: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 20: ✗ FAIL
+Input: go west
+Reason: Player input 'go west' should lead to the Armory, but the response indicates a generic room description instead.
+
+Step 21: ✗ FAIL
+Input: go southwest
+Reason: The response contains repeated and nonsensical text regarding 'DODGE LOADED FROM DB', which does not fit within the context of the player's actions or the game state.
+
+Step 22: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 23: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 24: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 25: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 26: ✗ FAIL
+Input: go south
+Reason: The response contains nonsensical text and repeated 'DODGE LOADED FROM DB' messages that disrupt the coherence of the game narrative.
+
+Step 27: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 28: ✗ FAIL
+Input: go northeast
+Reason: The response contains repeated 'DODGE LOADED FROM DB' messages which are not coherent and suggest a potential error in the game state handling.
+
+Step 29: ✗ FAIL
+Input: go south
+Reason: The response contains repeated 'DODGE LOADED FROM DB' messages which are not coherent with the player's action and indicate a potential error in the game state management.
+
+Step 30: ✗ FAIL
+Input: go west
+Reason: The response contains repeated, nonsensical text and lacks coherence in the context of the player's actions.
+
+Step 31: ✗ FAIL
+Input: go north
+Reason: The response contains repeated and nonsensical text regarding 'DODGE LOADED FROM DB', which does not fit the context of the player's action or the game state.
+
+Step 32: ✗ FAIL
+Input: go north
+Reason: The response indicates the player is still in the Unknown Location despite attempting to move north, which is inconsistent with expected game mechanics.
+
+Step 33: ✗ FAIL
+Input: go west
+Reason: The response contains repeated 'DODGE LOADED FROM DB' messages, which are nonsensical and do not contribute to the gameplay experience.
+
+Step 34: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 35: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 36: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 37: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 38: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 39: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 40: ✗ FAIL
+Input: go west
+Reason: Player cannot go west as expected; instead, they are given a room description that does not match the expected outcome of arriving at the armory.
+
+Step 41: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 42: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 43: ✗ FAIL
+Input: go west
+Reason: The response does not indicate that the player has arrived at the armory or that they can take the Rusty Iron Sword, which is critical for the scenario.
+
+Step 44: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 45: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 46: ✗ FAIL
+Input: go southwest
+Reason: The player input 'go southwest' did not lead to the expected outcome of entering the corridor leading to the armory. Instead, the player remains in the same room with an unclear game state.
+
+Step 47: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 48: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+Step 49: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 50: ✓ PASS
+Input: go north
+Reason: Step completed successfully
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

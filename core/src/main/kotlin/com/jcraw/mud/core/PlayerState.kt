@@ -10,24 +10,31 @@ data class PlayerState(
     val health: Int = 100,
     val maxHealth: Int = 100,
     val stats: Stats = Stats(),
-    val inventory: List<Entity.Item> = emptyList(), // Legacy - use inventoryComponent instead
-    val equippedWeapon: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
-    val equippedArmor: Entity.Item? = null, // Legacy - use inventoryComponent.equipped instead
-    val skills: Map<String, Int> = emptyMap(), // Legacy V1 - use SkillManager.getSkillComponent() instead
+    @Deprecated("Use inventoryComponent.items instead", ReplaceWith("inventoryComponent.items"))
+    val inventory: List<Entity.Item> = emptyList(),
+    @Deprecated("Use inventoryComponent.getEquipped(EquipSlot.HANDS_MAIN) instead")
+    val equippedWeapon: Entity.Item? = null,
+    @Deprecated("Use inventoryComponent.getEquipped(EquipSlot.CHEST) instead")
+    val equippedArmor: Entity.Item? = null,
+    @Deprecated("Use SkillManager.getSkillComponent() instead")
+    val skills: Map<String, Int> = emptyMap(),
     val properties: Map<String, String> = emptyMap(),
     val revealedExits: Set<String> = emptySet(), // V3: Hidden exits revealed by Perception checks
     val activeQuests: List<Quest> = emptyList(),
     val completedQuests: List<QuestId> = emptyList(),
     val experiencePoints: Int = 0,
-    val gold: Int = 0, // Legacy - use inventoryComponent.gold instead
-    val inventoryComponent: InventoryComponent? = null // V2 inventory system
+    val inventoryComponent: InventoryComponent = InventoryComponent() // V2 inventory system (non-nullable)
 ) {
+    @Deprecated("Use inventoryComponent.addItem() instead")
     fun addToInventory(item: Entity.Item): PlayerState = copy(inventory = inventory + item)
 
+    @Deprecated("Use inventoryComponent.removeItem() instead")
     fun removeFromInventory(itemId: String): PlayerState = copy(inventory = inventory.filter { it.id != itemId })
 
+    @Deprecated("Use inventoryComponent.getItem() instead")
     fun getInventoryItem(itemId: String): Entity.Item? = inventory.find { it.id == itemId }
 
+    @Deprecated("Use inventoryComponent.items.any() instead")
     fun hasItem(itemId: String): Boolean = inventory.any { it.id == itemId }
 
     fun moveToRoom(roomId: RoomId): PlayerState = copy(currentRoomId = roomId)
@@ -71,50 +78,20 @@ data class PlayerState(
         )
     }
 
-    /**
-     * Get skill level from legacy V1 skills map.
-     *
-     * @deprecated This method uses legacy V1 skills system. Use SkillManager.getSkillComponent()
-     * to access V2 skills with XP, perks, buffs, and resource pools.
-     */
-    @Deprecated(
-        message = "Use SkillManager.getSkillComponent() for V2 skills instead",
-        replaceWith = ReplaceWith(
-            "skillManager.getSkillComponent(id).getEffectiveLevel(skillName)",
-            "com.jcraw.mud.reasoning.skills.SkillManager"
-        )
-    )
-    fun getSkillLevel(skillName: String): Int = skills[skillName] ?: 0
-
-    /**
-     * Set skill level in legacy V1 skills map.
-     *
-     * @deprecated This method uses legacy V1 skills system. Use SkillManager.addXP()
-     * to update V2 skills with proper progression.
-     */
-    @Deprecated(
-        message = "Use SkillManager.addXP() for V2 skills instead",
-        replaceWith = ReplaceWith(
-            "skillManager.addXP(id, skillName, xpAmount)",
-            "com.jcraw.mud.reasoning.skills.SkillManager"
-        )
-    )
-    fun setSkillLevel(skillName: String, level: Int): PlayerState = copy(skills = skills + (skillName to level))
-
+    @Deprecated("Use inventoryComponent.equip() instead")
     fun equipWeapon(weapon: Entity.Item): PlayerState {
-        // Add old weapon back to inventory if present
         val updatedInventory = if (equippedWeapon != null) {
             inventory + equippedWeapon
         } else {
             inventory
         }
-        // Remove new weapon from inventory and equip it
         return copy(
             equippedWeapon = weapon,
             inventory = updatedInventory.filter { it.id != weapon.id }
         )
     }
 
+    @Deprecated("Use inventoryComponent.unequip() instead")
     fun unequipWeapon(): PlayerState {
         return if (equippedWeapon != null) {
             copy(
@@ -126,36 +103,20 @@ data class PlayerState(
         }
     }
 
-    /**
-     * Get weapon damage bonus from equipped weapon.
-     *
-     * @deprecated This method uses legacy inventory system. For V2 combat, use
-     * `SkillModifierCalculator.getWeaponDamage()` with V2 inventory (inventoryComponent.equipped)
-     * and ItemRepository templates. AttackResolver and DamageCalculator handle this automatically.
-     */
-    @Deprecated(
-        message = "Use SkillModifierCalculator.getWeaponDamage() with V2 inventory instead",
-        replaceWith = ReplaceWith(
-            "skillModifierCalculator.getWeaponDamage(inventoryComponent?.equipped ?: emptyMap(), templates)",
-            "com.jcraw.mud.reasoning.skills.SkillModifierCalculator"
-        )
-    )
-    fun getWeaponDamageBonus(): Int = equippedWeapon?.damageBonus ?: 0
-
+    @Deprecated("Use inventoryComponent.equip() instead")
     fun equipArmor(armor: Entity.Item): PlayerState {
-        // Add old armor back to inventory if present
         val updatedInventory = if (equippedArmor != null) {
             inventory + equippedArmor
         } else {
             inventory
         }
-        // Remove new armor from inventory and equip it
         return copy(
             equippedArmor = armor,
             inventory = updatedInventory.filter { it.id != armor.id }
         )
     }
 
+    @Deprecated("Use inventoryComponent.unequip() instead")
     fun unequipArmor(): PlayerState {
         return if (equippedArmor != null) {
             copy(
@@ -167,22 +128,7 @@ data class PlayerState(
         }
     }
 
-    /**
-     * Get armor defense bonus from equipped armor.
-     *
-     * @deprecated This method uses legacy inventory system. For V2 combat, use
-     * `SkillModifierCalculator.getTotalArmorDefense()` with V2 inventory (inventoryComponent.equipped)
-     * and ItemRepository templates. AttackResolver and DamageCalculator handle this automatically.
-     */
-    @Deprecated(
-        message = "Use SkillModifierCalculator.getTotalArmorDefense() with V2 inventory instead",
-        replaceWith = ReplaceWith(
-            "skillModifierCalculator.getTotalArmorDefense(inventoryComponent?.equipped ?: emptyMap(), templates)",
-            "com.jcraw.mud.reasoning.skills.SkillModifierCalculator"
-        )
-    )
-    fun getArmorDefenseBonus(): Int = equippedArmor?.defenseBonus ?: 0
-
+    @Deprecated("Use inventoryComponent for consumable handling")
     fun useConsumable(item: Entity.Item): PlayerState {
         return if (item.isConsumable) {
             val newHealth = (health + item.healAmount).coerceAtMost(maxHealth)
@@ -215,14 +161,15 @@ data class PlayerState(
         )
     }
 
+    @Deprecated("Use inventoryComponent for quest rewards", ReplaceWith("updateInventory(inventoryComponent.addGold(quest.reward.goldAmount))"))
     fun claimQuestReward(questId: QuestId): PlayerState {
         val quest = getQuest(questId) ?: return this
         if (!quest.isComplete()) return this
 
         return copy(
             experiencePoints = experiencePoints + quest.reward.experiencePoints,
-            gold = gold + quest.reward.goldAmount,
-            inventory = inventory + quest.reward.items
+            inventory = inventory + quest.reward.items,
+            inventoryComponent = inventoryComponent.addGold(quest.reward.goldAmount)
         ).updateQuest(quest.claim())
     }
 
@@ -242,17 +189,7 @@ data class PlayerState(
      */
     fun hasRevealedExit(edgeId: String): Boolean = revealedExits.contains(edgeId)
 
-    // V2 Inventory Component Methods
-
-    /**
-     * Get or initialize the inventory component
-     * Creates a new one if it doesn't exist, with capacity based on Strength
-     */
-    fun getOrInitInventory(): InventoryComponent {
-        return inventoryComponent ?: InventoryComponent(
-            capacityWeight = stats.strength * 5.0
-        )
-    }
+    // Inventory Component Methods
 
     /**
      * Update inventory component
@@ -262,26 +199,24 @@ data class PlayerState(
     }
 
     /**
-     * Add item instance to V2 inventory
+     * Add item instance to inventory
      * Returns null if item cannot be added (weight limit)
      */
     fun addItemInstance(instance: ItemInstance, templates: Map<String, ItemTemplate>): PlayerState? {
-        val inv = getOrInitInventory()
         val template = templates[instance.templateId] ?: return null
 
-        if (!inv.canAdd(template, instance.quantity, templates)) {
+        if (!inventoryComponent.canAdd(template, instance.quantity, templates)) {
             return null // Over weight limit
         }
 
-        return updateInventory(inv.addItem(instance))
+        return updateInventory(inventoryComponent.addItem(instance))
     }
 
     /**
      * Add gold to V2 inventory
      */
     fun addGoldV2(amount: Int): PlayerState {
-        val inv = getOrInitInventory()
-        return updateInventory(inv.addGold(amount))
+        return updateInventory(inventoryComponent.addGold(amount))
     }
 
     /**
@@ -289,8 +224,7 @@ data class PlayerState(
      * Returns null if insufficient gold
      */
     fun removeGoldV2(amount: Int): PlayerState? {
-        val inv = getOrInitInventory()
-        val updated = inv.removeGold(amount) ?: return null
+        val updated = inventoryComponent.removeGold(amount) ?: return null
         return updateInventory(updated)
     }
 
@@ -298,6 +232,11 @@ data class PlayerState(
      * Check if player has sufficient gold in V2 inventory
      */
     fun hasGoldV2(amount: Int): Boolean {
-        return getOrInitInventory().gold >= amount
+        return inventoryComponent.gold >= amount
     }
+
+    /**
+     * Get current gold amount from V2 inventory
+     */
+    val gold: Int get() = inventoryComponent.gold
 }

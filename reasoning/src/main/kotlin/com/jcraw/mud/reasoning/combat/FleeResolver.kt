@@ -261,6 +261,9 @@ sealed class FleeResult {
  */
 private fun WorldState.findEntity(entityId: String): Entity? {
     if (player.id == entityId) {
+        val equippedWeapon = player.inventoryComponent.getEquipped(EquipSlot.HANDS_MAIN)
+            ?: player.inventoryComponent.getEquipped(EquipSlot.HANDS_BOTH)
+        val equippedArmor = player.inventoryComponent.getEquipped(EquipSlot.CHEST)
         return Entity.Player(
             id = player.id,
             name = player.name,
@@ -268,8 +271,8 @@ private fun WorldState.findEntity(entityId: String): Entity? {
             playerId = player.id,
             health = player.health,
             maxHealth = player.maxHealth,
-            equippedWeapon = player.equippedWeapon?.id,
-            equippedArmor = player.equippedArmor?.id
+            equippedWeapon = equippedWeapon?.id,
+            equippedArmor = equippedArmor?.id
         )
     }
 

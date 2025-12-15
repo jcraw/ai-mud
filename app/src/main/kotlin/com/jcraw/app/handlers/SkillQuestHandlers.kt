@@ -58,14 +58,15 @@ object SkillQuestHandlers {
         // Check tool requirement (if specified in properties)
         val requiredToolTag = feature.properties["required_tool_tag"]
         if (requiredToolTag != null) {
-            // TODO: Check player's InventoryComponent for tool with matching tag
-            // For now, assume player has the tool (will be implemented with InventoryComponent)
-            // val hasTool = player.getComponent<InventoryComponent>()?.items
-            //     ?.any { item -> itemTemplate.tags.contains(requiredToolTag) } ?: false
-            // if (!hasTool) {
-            //     println("You need a ${requiredToolTag.replace("_", " ")} to harvest this.")
-            //     return
-            // }
+            val playerInventory = game.worldState.player.inventoryComponent
+            val hasTool = playerInventory?.items?.any { instance ->
+                val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
+                template?.tags?.contains(requiredToolTag) == true
+            } ?: false
+            if (!hasTool) {
+                println("You need a ${requiredToolTag.replace("_", " ")} to harvest this.")
+                return
+            }
         }
 
         println("\nYou attempt to harvest ${feature.name}...")
@@ -147,14 +148,40 @@ object SkillQuestHandlers {
             println("You didn't find anything useful.")
         } else {
             println("\nYou harvested:")
+            var updatedInventory = game.worldState.player.inventoryComponent
+
             instances.forEach { instance ->
                 val templateResult = game.itemRepository.findTemplateById(instance.templateId)
-                val templateName = templateResult.getOrNull()?.name ?: "item"
-                println("  - $templateName")
+                val template = templateResult.getOrNull()
+                val templateName = template?.name ?: "item"
 
-                // TODO: Add items to player inventory when InventoryComponent is integrated
-                // For now, just track for quests
+                // Add to player inventory if they have one
+                if (updatedInventory != null && template != null) {
+                    // Build template map for weight checking
+                    val templates = updatedInventory.items.associate { it.templateId to game.itemRepository.findTemplateById(it.templateId).getOrNull() }
+                        .filterValues { it != null }
+                        .mapValues { it.value!! }
+                        .toMutableMap()
+                    templates[template.id] = template
+
+                    if (updatedInventory.canAdd(template, instance.quantity, templates)) {
+                        updatedInventory = updatedInventory.addItem(instance)
+                        println("  - $templateName (added to inventory)")
+                    } else {
+                        println("  - $templateName (too heavy to carry)")
+                    }
+                } else {
+                    println("  - $templateName")
+                }
+
+                // Track for quests
                 game.trackQuests(QuestAction.CollectedItem(instance.id))
+            }
+
+            // Update player state with new inventory
+            if (updatedInventory != null && updatedInventory != game.worldState.player.inventoryComponent) {
+                val updatedPlayer = game.worldState.player.copy(inventoryComponent = updatedInventory)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
             }
         }
 
@@ -417,18 +444,33 @@ object SkillQuestHandlers {
         println("Difficulty: DC ${recipe.difficulty}")
         println()
 
-        // TODO: Get SkillComponent and InventoryComponent for player when fully integrated
-        println("❌ Crafting requires InventoryComponent integration (coming soon!)")
+        // Get player's SkillComponent and InventoryComponent
+        val skillComponent = game.skillManager.getSkillComponent(game.worldState.player.id)
+        val inventoryComponent = game.worldState.player.inventoryComponent
 
-        /* TODO: Uncomment when InventoryComponent is integrated
+        if (skillComponent == null) {
+            println("You don't have skills to craft.")
+            return
+        }
+
+        if (inventoryComponent == null) {
+            println("You don't have an inventory to craft with.")
+            return
+        }
+
+        // Attempt to craft using existing craftingManager
         val result = craftingManager.craft(skillComponent, inventoryComponent, recipe)
 
         when (result) {
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Success -> {
-                println("✅ ${result.message}")
+                println("${result.message}")
 
-                // TODO: Add crafted item to player inventory when InventoryComponent is integrated
-                // For now, just track for quests
+                // Add crafted item to player inventory
+                val updatedInventory = inventoryComponent.addItem(result.craftedItem)
+                val updatedPlayer = game.worldState.player.copy(inventoryComponent = updatedInventory)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
+                // Track for quests
                 game.trackQuests(QuestAction.CollectedItem(result.craftedItem.id))
 
                 // Attempt skill progression for crafting (dual-path: lucky chance OR XP)
@@ -446,9 +488,9 @@ object SkillQuestHandlers {
                             println("+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})")
                         }
                         is com.jcraw.mud.core.SkillEvent.LevelUp -> {
-                            println("🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel}")
+                            println("${recipe.requiredSkill} leveled up! ${event.oldLevel} -> ${event.newLevel}")
                             if (event.isAtPerkMilestone) {
-                                println("⚡ Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk.")
+                                println("Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk.")
                             }
                         }
                         else -> {}
@@ -456,7 +498,19 @@ object SkillQuestHandlers {
                 }
             }
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Failure -> {
-                println("❌ ${result.message}")
+                println("${result.message}")
+
+                // Remove consumed materials from inventory
+                var updatedInventory: com.jcraw.mud.core.InventoryComponent = inventoryComponent
+                result.inputsLost.forEach { (templateId, qty) ->
+                    val itemsToRemove = updatedInventory.items.filter { it.templateId == templateId }.take(qty)
+                    itemsToRemove.forEach { item ->
+                        updatedInventory = updatedInventory.removeItem(item.id) ?: updatedInventory
+                    }
+                }
+                val updatedPlayer = game.worldState.player.copy(inventoryComponent = updatedInventory)
+                game.worldState = game.worldState.updatePlayer(updatedPlayer)
+
                 if (result.inputsLost.isNotEmpty()) {
                     println("Materials lost:")
                     result.inputsLost.forEach { (templateId, qty) ->
@@ -481,17 +535,16 @@ object SkillQuestHandlers {
                             println("+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})")
                         }
                         is com.jcraw.mud.core.SkillEvent.LevelUp -> {
-                            println("🎉 ${recipe.requiredSkill} leveled up! ${event.oldLevel} → ${event.newLevel}")
+                            println("${recipe.requiredSkill} leveled up! ${event.oldLevel} -> ${event.newLevel}")
                         }
                         else -> {}
                     }
                 }
             }
             is com.jcraw.mud.reasoning.crafting.CraftingManager.CraftResult.Invalid -> {
-                println("❌ ${result.message}")
+                println("${result.message}")
             }
         }
-        */
     }
 
     /**
