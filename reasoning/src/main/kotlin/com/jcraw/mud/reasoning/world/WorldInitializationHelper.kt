@@ -135,7 +135,7 @@ suspend fun initializeAncientAbyssWorld(
         inventoryComponent = InventoryComponent(
             items = emptyList(),
             equipped = emptyMap(),
-            gold = 0,
+            gold = 75,
             capacityWeight = 50.0
         )
     )

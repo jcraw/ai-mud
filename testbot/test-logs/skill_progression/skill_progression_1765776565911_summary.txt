@@ -1,0 +1,59 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 8
+        - Passed: 6
+        - Failed: 2
+        - Pass Rate: 75%
+
+        Timing:
+        - Start: 2025-12-15T05:29:25.912292676Z
+        - End: 2025-12-15T05:30:45.692003407Z
+        - Duration: 79.78s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response contains repeated and nonsensical text regarding Dodge skill loading, which does not align with expected game behavior after a movement command.
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 8: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: Player died (HP: 0/10) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

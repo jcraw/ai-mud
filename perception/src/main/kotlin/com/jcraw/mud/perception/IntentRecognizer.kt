@@ -621,7 +621,18 @@ Response format (JSON only, no markdown):
             "talk", "speak", "chat" -> if (args.isNullOrBlank()) Intent.Invalid("Talk to whom?") else Intent.Talk(args)
             "attack", "kill", "fight", "hit" -> Intent.Attack(args)
             "equip", "wield", "wear" -> if (args.isNullOrBlank()) Intent.Invalid("Equip what?") else Intent.Equip(args)
-            "use", "consume", "drink", "eat" -> if (args.isNullOrBlank()) Intent.Invalid("Use what?") else Intent.Use(args)
+            "use", "consume", "eat" -> if (args.isNullOrBlank()) Intent.Invalid("Use what?") else Intent.Use(args)
+            "drink" -> {
+                // "drink from fountain" -> Interact with fountain
+                // "drink potion" -> Use consumable
+                if (args?.contains("from", ignoreCase = true) == true ||
+                    args?.contains("fountain", ignoreCase = true) == true) {
+                    val target = args.replace("from ", "", ignoreCase = true).trim()
+                    Intent.Interact(target)
+                } else {
+                    if (args.isNullOrBlank()) Intent.Invalid("Drink what?") else Intent.Use(args)
+                }
+            }
             "check", "test", "attempt", "try" -> if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)
             "persuade", "convince" -> if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)
             "intimidate", "threaten" -> if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)

@@ -1,0 +1,79 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 13
+        - Passed: 10
+        - Failed: 3
+        - Pass Rate: 76%
+
+        Timing:
+        - Start: 2025-12-15T19:28:32.125318213Z
+        - End: 2025-12-15T19:31:12.589346691Z
+        - Duration: 160.46s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response does not acknowledge the player's input to go east and instead repeats the Dodge skill loading message without any combat or NPC interaction.
+
+Step 3: ✗ FAIL
+Input: go west
+Reason: The response contains repeated and nonsensical text regarding the Dodge skill, which does not make sense in the context of moving west.
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: attack Training Skeleton #2
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 13: ✗ FAIL
+Input: go south
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

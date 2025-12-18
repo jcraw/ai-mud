@@ -43,6 +43,13 @@ object SkillQuestHandlers {
             return
         }
 
+        // Special handling for healing fountain
+        if (feature.properties["interaction_type"] == "fountain" &&
+            feature.properties["heals_hp"] == "true") {
+            handleFountainInteraction(game, feature)
+            return
+        }
+
         // Check if feature is harvestable (has lootTableId)
         if (feature.lootTableId == null) {
             println("There's nothing to harvest from that.")
@@ -218,6 +225,35 @@ object SkillQuestHandlers {
     }
 
     /**
+     * Handle interaction with a healing fountain.
+     * Fully restores HP but only works in safe zones.
+     */
+    private fun handleFountainInteraction(game: MudGame, fountain: Entity.Feature) {
+        // Check if in safe zone
+        val spaceId = game.worldState.player.currentRoomId
+        val space = game.worldState.spaces[spaceId]
+        if (space?.isSafeZone != true) {
+            println("\nThe fountain's magic lies dormant outside the safety of town.")
+            return
+        }
+
+        val player = game.worldState.player
+        if (player.health >= player.maxHealth) {
+            println("\nYou drink from the ${fountain.name}. The water is cool and refreshing,")
+            println("though you are already at full health.")
+            return
+        }
+
+        val healed = player.maxHealth - player.health
+        val newPlayer = player.copy(health = player.maxHealth)
+        game.worldState = game.worldState.updatePlayer(newPlayer)
+
+        println("\nYou cup the luminescent water and drink deeply.")
+        println("Warmth spreads through your body, mending wounds and easing pain.")
+        println("HP fully restored: ${newPlayer.health}/${newPlayer.maxHealth} (+$healed)")
+    }
+
+    /**
      * Handle skill check on interactive features (D&D-style d20 rolls)
      */
     fun handleCheck(game: MudGame, target: String) {
@@ -301,6 +337,14 @@ object SkillQuestHandlers {
      * Handle using a skill with the V2 skill system
      */
     fun handleUseSkill(game: MudGame, skill: String?, action: String) {
+        val lower = action.lowercase()
+
+        // Handle healing spells specially
+        if (lower.contains("heal") || lower.contains("cure") || lower.contains("mend")) {
+            handleHealingSpell(game)
+            return
+        }
+
         // Determine skill name from explicit parameter or action
         val skillName = skill ?: inferSkillFromAction(action)
         if (skillName == null) {
@@ -361,6 +405,79 @@ object SkillQuestHandlers {
                         println("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.")
                     }
                 }
+                else -> {}
+            }
+        }
+    }
+
+    /**
+     * Handle casting a healing spell using Water Magic.
+     * Costs mana, scales with skill level.
+     */
+    private fun handleHealingSpell(game: MudGame) {
+        val player = game.worldState.player
+
+        // Check Water Magic skill
+        val skillComponent = game.skillManager.getSkillComponent(player.id)
+        val waterMagic = skillComponent.getSkill("Water Magic")
+
+        if (waterMagic == null || !waterMagic.unlocked) {
+            println("\nYou don't know Water Magic.")
+            println("The Cleric archetype starts with this skill, or train with a healer.")
+            return
+        }
+
+        val level = waterMagic.getEffectiveLevel()
+
+        // Calculate: 20 mana cost, heals 15 + (level * 3) HP
+        val manaCost = 20
+        val healAmount = 15 + (level * 3)
+
+        // Check mana
+        val resourceManager = com.jcraw.mud.reasoning.skill.ResourceManager(
+            game.skillManager.getSkillComponentRepository()
+        )
+        val manaPool = resourceManager.getResourcePool(player.id, "mana").getOrNull()
+
+        if (manaPool == null || manaPool.current < manaCost) {
+            val current = manaPool?.current ?: 0
+            println("\nNot enough mana. Need $manaCost, have $current.")
+            println("Rest in town or use mana potions to restore.")
+            return
+        }
+
+        // Check if healing needed
+        if (player.health >= player.maxHealth) {
+            println("\nYou are already at full health.")
+            return
+        }
+
+        // Consume mana
+        resourceManager.consumeResource(player.id, "mana", manaCost)
+
+        // Apply healing (capped at max)
+        val actualHeal = minOf(healAmount, player.maxHealth - player.health)
+        val healed = player.heal(actualHeal)
+        game.worldState = game.worldState.updatePlayer(healed)
+
+        // Output
+        val newMana = resourceManager.getResourcePool(player.id, "mana").getOrNull()?.current ?: 0
+        println("\nYou channel Water Magic, calling forth restorative energies.")
+        println("HP restored: +$actualHeal (${healed.health}/${healed.maxHealth})")
+        println("Mana: -$manaCost ($newMana remaining)")
+
+        // Grant XP
+        game.skillManager.attemptSkillProgress(
+            entityId = player.id,
+            skillName = "Water Magic",
+            baseXp = 30L,
+            success = true
+        ).getOrNull()?.forEach { event ->
+            when (event) {
+                is com.jcraw.mud.core.SkillEvent.XpGained ->
+                    println("+${event.xpAmount} XP to Water Magic")
+                is com.jcraw.mud.core.SkillEvent.LevelUp ->
+                    println("Water Magic leveled up! ${event.oldLevel} -> ${event.newLevel}")
                 else -> {}
             }
         }

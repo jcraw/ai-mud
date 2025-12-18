@@ -9,6 +9,14 @@ import com.jcraw.mud.core.*
 object ClientSkillQuestHandlers {
 
     fun handleUseSkill(game: EngineGameClient, skill: String?, action: String) {
+        val lower = action.lowercase()
+
+        // Handle healing spells specially
+        if (lower.contains("heal") || lower.contains("cure") || lower.contains("mend")) {
+            handleHealingSpell(game)
+            return
+        }
+
         // Determine skill name from explicit parameter or action
         val skillName = skill ?: inferSkillFromAction(action)
         if (skillName == null) {
@@ -103,6 +111,88 @@ object ClientSkillQuestHandlers {
             lower.contains("blacksmith") || lower.contains("forge") || lower.contains("craft") -> "Blacksmithing"
             else -> null
         }
+    }
+
+    /**
+     * Handle casting a healing spell using Water Magic.
+     * Costs mana, scales with skill level.
+     */
+    private fun handleHealingSpell(game: EngineGameClient) {
+        val player = game.worldState.player
+
+        // Check Water Magic skill
+        val skillComponent = game.skillManager.getSkillComponent(player.id)
+        val waterMagic = skillComponent.getSkill("Water Magic")
+
+        if (waterMagic == null || !waterMagic.unlocked) {
+            game.emitEvent(GameEvent.System(
+                "You don't know Water Magic. The Cleric archetype starts with this skill, or train with a healer.",
+                GameEvent.MessageLevel.WARNING
+            ))
+            return
+        }
+
+        val level = waterMagic.getEffectiveLevel()
+
+        // Calculate: 20 mana cost, heals 15 + (level * 3) HP
+        val manaCost = 20
+        val healAmount = 15 + (level * 3)
+
+        // Check mana
+        val resourceManager = com.jcraw.mud.reasoning.skill.ResourceManager(
+            game.skillManager.getSkillComponentRepository()
+        )
+        val manaPool = resourceManager.getResourcePool(player.id, "mana").getOrNull()
+
+        if (manaPool == null || manaPool.current < manaCost) {
+            val current = manaPool?.current ?: 0
+            game.emitEvent(GameEvent.System(
+                "Not enough mana. Need $manaCost, have $current. Rest in town or use mana potions.",
+                GameEvent.MessageLevel.WARNING
+            ))
+            return
+        }
+
+        // Check if healing needed
+        if (player.health >= player.maxHealth) {
+            game.emitEvent(GameEvent.System("You are already at full health.", GameEvent.MessageLevel.INFO))
+            return
+        }
+
+        // Consume mana
+        resourceManager.consumeResource(player.id, "mana", manaCost)
+
+        // Apply healing (capped at max)
+        val actualHeal = minOf(healAmount, player.maxHealth - player.health)
+        val healed = player.heal(actualHeal)
+        game.worldState = game.worldState.updatePlayer(healed)
+
+        // Output
+        val newMana = resourceManager.getResourcePool(player.id, "mana").getOrNull()?.current ?: 0
+        val output = buildString {
+            appendLine("You channel Water Magic, calling forth restorative energies.")
+            appendLine("HP restored: +$actualHeal (${healed.health}/${healed.maxHealth})")
+            appendLine("Mana: -$manaCost ($newMana remaining)")
+        }
+
+        // Grant XP and emit narrative with XP info
+        val xpOutput = StringBuilder(output)
+        game.skillManager.attemptSkillProgress(
+            entityId = player.id,
+            skillName = "Water Magic",
+            baseXp = 30L,
+            success = true
+        ).getOrNull()?.forEach { event ->
+            when (event) {
+                is com.jcraw.mud.core.SkillEvent.XpGained ->
+                    xpOutput.appendLine("+${event.xpAmount} XP to Water Magic")
+                is com.jcraw.mud.core.SkillEvent.LevelUp ->
+                    xpOutput.appendLine("Water Magic leveled up! ${event.oldLevel} -> ${event.newLevel}")
+                else -> {}
+            }
+        }
+
+        game.emitEvent(GameEvent.Narrative(xpOutput.toString()))
     }
 
     fun handleTrainSkill(game: EngineGameClient, skill: String, method: String) {
@@ -420,6 +510,13 @@ object ClientSkillQuestHandlers {
             return
         }
 
+        // Special handling for healing fountain
+        if (feature.properties["interaction_type"] == "fountain" &&
+            feature.properties["heals_hp"] == "true") {
+            handleFountainInteraction(game, feature)
+            return
+        }
+
         // Check if feature is harvestable (has lootTableId)
         if (feature.lootTableId == null) {
             game.emitEvent(GameEvent.System("There's nothing to harvest from that.", GameEvent.MessageLevel.INFO))
@@ -595,6 +692,42 @@ object ClientSkillQuestHandlers {
         // Mark feature as completed
         val updatedFeature = feature.copy(isCompleted = true)
         game.worldState = game.worldState.replaceEntityInSpace(spaceId, feature.id, updatedFeature) ?: game.worldState
+    }
+
+    /**
+     * Handle interaction with a healing fountain.
+     * Fully restores HP but only works in safe zones.
+     */
+    private fun handleFountainInteraction(game: EngineGameClient, fountain: Entity.Feature) {
+        // Check if in safe zone
+        val spaceId = game.worldState.player.currentRoomId
+        val space = game.worldState.spaces[spaceId]
+        if (space?.isSafeZone != true) {
+            game.emitEvent(GameEvent.System(
+                "The fountain's magic lies dormant outside the safety of town.",
+                GameEvent.MessageLevel.INFO
+            ))
+            return
+        }
+
+        val player = game.worldState.player
+        if (player.health >= player.maxHealth) {
+            game.emitEvent(GameEvent.Narrative(
+                "You drink from the ${fountain.name}. The water is cool and refreshing,\nthough you are already at full health."
+            ))
+            return
+        }
+
+        val healed = player.maxHealth - player.health
+        val newPlayer = player.copy(health = player.maxHealth)
+        game.worldState = game.worldState.updatePlayer(newPlayer)
+
+        val output = buildString {
+            appendLine("You cup the luminescent water and drink deeply.")
+            appendLine("Warmth spreads through your body, mending wounds and easing pain.")
+            appendLine("HP fully restored: ${newPlayer.health}/${newPlayer.maxHealth} (+$healed)")
+        }
+        game.emitEvent(GameEvent.Narrative(output))
     }
 
     /**

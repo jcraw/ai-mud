@@ -168,18 +168,36 @@ class TownGenerator(
             entityRepo.save(merchant).getOrElse { return Result.failure(it) }
         }
 
-        // Update space description for town
+        // Create healing fountain
+        val fountain = Entity.Feature(
+            id = "feature_town_fountain",
+            name = "Font of Renewal",
+            description = "An ancient stone fountain rises from the center of the square. " +
+                "Luminescent water spills from a carved serpent's mouth into a basin etched with healing runes. " +
+                "Weary adventurers often pause here to restore their strength.",
+            isInteractable = true,
+            properties = mapOf(
+                "interaction_type" to "fountain",
+                "heals_hp" to "true"
+            ),
+            skillChallenge = null,
+            isCompleted = false,
+            lootTableId = null
+        )
+        entityRepo.save(fountain).getOrElse { return Result.failure(it) }
+
+        // Update space description for town (mentions fountain)
         val townDescription = """
             You stand in the Town, a safe haven carved from the dungeon depths.
+            At its center, the Font of Renewal glows softly, its healing waters a beacon for weary adventurers.
             Torches flicker on stone walls, casting dancing shadows. Merchants display their wares on
             rickety stalls, calling out to passing adventurers. The air is warm and smells of bread,
-            metal, and brewing potions. Weary travelers rest on benches, sharing tales of the depths below.
-            This is a place of respite - no danger reaches here.
+            metal, and brewing potions. This is a place of respite - no danger reaches here.
         """.trimIndent()
         val populated = spaceProps
             .copy(
                 description = townDescription,
-                entities = spaceProps.entities + merchantIds,
+                entities = spaceProps.entities + merchantIds + fountain.id,
                 isSafeZone = true,
                 traps = emptyList() // No traps in town
             )

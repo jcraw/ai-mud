@@ -79,7 +79,7 @@ class DungeonInitializer(
 
         // Generate 4 REGION levels (Training Grounds, Upper/Mid/Lower Depths)
         val regions = listOf(
-            RegionSpec("Training Grounds", "entrance level", 2, "training grounds"), // Starter area for skill training
+            RegionSpec("Training Grounds", "entrance level", 1, "training grounds"), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 11-50", 12),
             RegionSpec("Lower Depths", "floors 51-100+", 18)
@@ -217,7 +217,7 @@ class DungeonInitializer(
 
         // Generate 5 REGION levels (Training Grounds, Upper/Mid/Lower Depths, Abyssal Core)
         val regions = listOf(
-            RegionSpec("Training Grounds", "entrance level", 2, "training grounds"), // Starter area for skill training
+            RegionSpec("Training Grounds", "entrance level", 1, "training grounds"), // Starter area for skill training
             RegionSpec("Upper Depths", "floors 1-10", 5),
             RegionSpec("Mid Depths", "floors 10-30", 15),
             RegionSpec("Lower Depths", "floors 30-60", 40),

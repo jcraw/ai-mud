@@ -57,7 +57,7 @@ data class PlayerState(
         val endurance = skillComponent.getEffectiveLevel("Endurance")
         val constitution = skillComponent.getEffectiveLevel("Constitution")
 
-        val baseHp = 10
+        val baseHp = 30
         val skillHp = (vitality * 5) + (endurance * 3) + (constitution * 2)
 
         return (baseHp + skillHp).coerceAtLeast(10)

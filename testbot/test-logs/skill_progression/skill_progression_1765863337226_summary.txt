@@ -1,0 +1,75 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 12
+        - Passed: 9
+        - Failed: 3
+        - Pass Rate: 75%
+
+        Timing:
+        - Start: 2025-12-16T05:35:37.227560854Z
+        - End: 2025-12-16T05:38:01.215063848Z
+        - Duration: 143.99s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response does not reflect the expected outcome of encountering hostile NPCs or enemies for combat, which is necessary for gaining Dodge XP.
+
+Step 3: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 4: ✗ FAIL
+Input: go down
+Reason: The response does not correctly reflect the player's action of moving down, as it repeats the Dodge skill loading message instead of providing a coherent description of the new location or combat opportunities.
+
+Step 5: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go northeast
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: attack Weak Goblin #1
+Reason: Step completed successfully
+
+Step 12: ✗ FAIL
+Input: attack Weak Goblin #1
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
