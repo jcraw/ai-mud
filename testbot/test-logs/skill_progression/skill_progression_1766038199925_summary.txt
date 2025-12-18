@@ -1,0 +1,91 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 16
+        - Passed: 14
+        - Failed: 2
+        - Pass Rate: 87%
+
+        Timing:
+        - Start: 2025-12-18T06:09:59.926790759Z
+        - End: 2025-12-18T06:12:36.521095570Z
+        - Duration: 156.60s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 12: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: go south
+Reason: Step completed successfully
+
+Step 14: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 15: ✗ FAIL
+Input: go south
+Reason: The response contains repeated 'DODGE LOADED FROM DB' messages without any progression or coherent narrative following the player's action.
+
+Step 16: ✗ FAIL
+Input: attack Training Skeleton #1
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

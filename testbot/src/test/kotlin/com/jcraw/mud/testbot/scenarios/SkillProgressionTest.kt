@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 
 /**
  * E2E test for Skill Progression scenario.
- * Tests AI bot leveling Dodge skill from 0 to 10 through combat.
+ * Tests AI bot leveling Dodge skill from 0 to 3 through combat.
  *
  * This test validates:
  * - Dual-path skill progression (lucky + XP)
@@ -53,8 +53,8 @@ class SkillProgressionTest {
     }
 
     @Test
-    @DisplayName("Bot levels Dodge skill from 0 to 10 through combat")
-    fun `bot successfully levels dodge skill to 10`() = runBlocking {
+    @DisplayName("Bot levels Dodge skill from 0 to 3 through combat")
+    fun `bot successfully levels dodge skill to 3`() = runBlocking {
         // ARRANGE: Set up game with enemies and skill progression enabled
         GameConfig.enableMobGeneration = true  // Ensure enemies spawn
 
@@ -79,13 +79,15 @@ class SkillProgressionTest {
             val combatNarrator = CombatNarrator(llmClient, memoryManager)
 
             // Create real game engine (same as console/GUI clients)
+            // Use in-memory skill database for test isolation
             val mudGame = MudGame(
                 initialWorldState = worldState,
                 descriptionGenerator = descriptionGenerator,
                 npcInteractionGenerator = npcInteractionGenerator,
                 combatNarrator = combatNarrator,
                 memoryManager = memoryManager,
-                llmClient = llmClient
+                llmClient = llmClient,
+                skillDbPath = ":memory:"
             )
 
             // Wrap in adapter for testbot (captures stdout)

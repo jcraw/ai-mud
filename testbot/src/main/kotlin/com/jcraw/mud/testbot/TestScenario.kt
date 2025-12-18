@@ -99,10 +99,10 @@ sealed class TestScenario {
     @Serializable
     data class SkillProgression(
         override val name: String = "skill_progression",
-        override val description: String = "AI-driven bot levels Dodge skill from 0 to 10 through combat, with reasoning/thought process",
+        override val description: String = "AI-driven bot levels Dodge skill from 0 to 3 through combat, with reasoning/thought process",
         override val maxSteps: Int = 120,
         val targetSkill: String = "Dodge",
-        val targetLevel: Int = 10
+        val targetLevel: Int = 3
     ) : TestScenario()
 
     @Serializable

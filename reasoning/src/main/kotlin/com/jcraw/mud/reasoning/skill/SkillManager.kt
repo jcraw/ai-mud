@@ -41,19 +41,9 @@ class SkillManager(
         return runCatching {
             require(baseXp >= 0) { "Base XP must be non-negative" }
 
-            // DEBUG: Log entry into grantXp
-            if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE grantXp() CALLED [$entityId]: baseXp=$baseXp, success=$success")
-            }
-
             // Get current component
             val component = getSkillComponent(entityId)
             val currentSkill = component.getSkill(skillName) ?: SkillState()
-
-            // DEBUG: Log loaded skill state
-            if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE CURRENT STATE [$entityId]: level=${currentSkill.level}, xp=${currentSkill.xp}/${currentSkill.xpToNext}")
-            }
 
             // Calculate XP (full if success, 20% if failure) with config multiplier
             val baseAmount = if (success) baseXp else (baseXp * 0.2).toLong()
@@ -67,11 +57,6 @@ class SkillManager(
             var updatedSkill = currentSkill.addXp(xpToGrant)
             val newLevel = updatedSkill.level
 
-            // Log Dodge XP awards for testbot debugging
-            if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE XP AWARD [$entityId]: +$xpToGrant XP (now ${updatedSkill.xp}/${updatedSkill.xpToNext}, level ${updatedSkill.level})")
-            }
-
             // Auto-unlock skill if it reaches level 1 or higher through use-based progression
             if (!wasUnlocked && updatedSkill.level >= 1) {
                 updatedSkill = updatedSkill.unlock()
@@ -83,11 +68,6 @@ class SkillManager(
 
             // Save to denormalized table
             skillRepo.save(entityId, skillName, updatedSkill).getOrThrow()
-
-            // DEBUG: Verify skill was saved correctly
-            if (skillName.equals("Dodge", ignoreCase = true)) {
-                println("DODGE SAVED TO DB [$entityId]: level=${updatedSkill.level}, xp=${updatedSkill.xp}/${updatedSkill.xpToNext}")
-            }
 
             // Generate events
             val events = mutableListOf<SkillEvent>()
@@ -559,15 +539,7 @@ class SkillManager(
      * Returns empty component if none exists
      */
     fun getSkillComponent(entityId: String): SkillComponent {
-        val component = componentRepo.load(entityId).getOrNull() ?: SkillComponent()
-
-        // DEBUG: Log loaded Dodge skill
-        val dodgeSkill = component.getSkill("Dodge")
-        if (dodgeSkill != null) {
-            println("DODGE LOADED FROM DB [$entityId]: level=${dodgeSkill.level}, xp=${dodgeSkill.xp}/${dodgeSkill.xpToNext}")
-        }
-
-        return component
+        return componentRepo.load(entityId).getOrNull() ?: SkillComponent()
     }
 
     /**

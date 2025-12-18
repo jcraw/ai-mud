@@ -54,7 +54,8 @@ class MudGame(
     internal val npcInteractionGenerator: NPCInteractionGenerator? = null,
     internal val combatNarrator: CombatNarrator? = null,
     private val memoryManager: MemoryManager? = null,
-    private val llmClient: OpenAIClient? = null
+    private val llmClient: OpenAIClient? = null,
+    private val skillDbPath: String = com.jcraw.mud.core.DatabaseConfig.SKILLS_DB
 ) {
     internal var worldState: WorldState = initialWorldState
     internal var running = true
@@ -98,7 +99,7 @@ class MudGame(
     private val questTracker = QuestTracker(dispositionManager)
 
     // Skill system components
-    private val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(com.jcraw.mud.core.DatabaseConfig.SKILLS_DB)
+    private val skillDatabase = com.jcraw.mud.memory.skill.SkillDatabase(skillDbPath)
     private val skillRepo = com.jcraw.mud.memory.skill.SQLiteSkillRepository(skillDatabase)
     private val skillComponentRepo = com.jcraw.mud.memory.skill.SQLiteSkillComponentRepository(skillDatabase)
     internal val skillManager = com.jcraw.mud.reasoning.skill.SkillManager(skillRepo, skillComponentRepo, memoryManager)

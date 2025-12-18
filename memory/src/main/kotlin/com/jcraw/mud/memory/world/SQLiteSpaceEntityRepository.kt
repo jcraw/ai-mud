@@ -89,13 +89,15 @@ class SQLiteSpaceEntityRepository(
     private fun serializeEntity(entity: Entity): Pair<String, String> {
         return when (entity) {
             is Entity.NPC -> "NPC" to json.encodeToString(Entity.NPC.serializer(), entity)
-            else -> throw UnsupportedOperationException("SpaceEntityRepository currently supports only NPC entities (got ${entity::class.simpleName})")
+            is Entity.Feature -> "Feature" to json.encodeToString(Entity.Feature.serializer(), entity)
+            else -> throw UnsupportedOperationException("SpaceEntityRepository currently supports only NPC and Feature entities (got ${entity::class.simpleName})")
         }
     }
 
     private fun deserializeEntity(type: String, payload: String): Entity? {
         return when (type) {
             "NPC" -> json.decodeFromString(Entity.NPC.serializer(), payload)
+            "Feature" -> json.decodeFromString(Entity.Feature.serializer(), payload)
             else -> null
         }
     }
