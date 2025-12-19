@@ -103,6 +103,7 @@ class GameplayReportGenerator(
     private fun buildProgressionMetrics(report: TestReport): String {
         return when (report.scenario) {
             is TestScenario.SkillProgression -> {
+                val targetLevel = report.scenario.targetLevel
                 // Extract Dodge level progression from steps
                 val skillLevels = report.steps.mapNotNull { step ->
                     val match = Regex("Dodge.*level\\s+(\\d+)", RegexOption.IGNORE_CASE)
@@ -120,7 +121,7 @@ class GameplayReportGenerator(
                 - Ending Dodge Level: $endLevel
                 - Total Level-Ups: $levelUps
                 - Average Actions per Level: $averageActionsPerLevel
-                - Goal Reached: ${if (endLevel >= 10) "YES ✅" else "NO ❌ (only $endLevel/10)"}
+                - Goal Reached: ${if (endLevel >= targetLevel) "YES" else "NO ($endLevel/$targetLevel)"}
                 """.trimIndent()
             }
             else -> {

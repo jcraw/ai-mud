@@ -1,0 +1,71 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 3 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 11
+        - Passed: 8
+        - Failed: 3
+        - Pass Rate: 72%
+
+        Timing:
+        - Start: 2025-12-18T21:03:49.491435083Z
+        - End: 2025-12-18T21:05:21.857020036Z
+        - Duration: 92.37s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The player attempted to go east, but the only available exit is west. The response indicates movement to an invalid direction.
+
+Step 3: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 7: ✗ FAIL
+Input: go west
+Reason: The response does not correspond to the player's input of 'go west', as the player is in a location where 'west' is not a valid exit.
+
+Step 8: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: attack Giant Rat #1
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 11: ✗ FAIL
+Input: attack Giant Rat #1
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

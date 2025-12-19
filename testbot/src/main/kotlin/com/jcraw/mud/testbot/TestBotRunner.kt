@@ -364,24 +364,13 @@ class TestBotRunner(
                 reachedSecretChamber || bossDefeated
             }
             is TestScenario.SkillProgression -> {
-                // Complete if player dies (test should end, report current skill level)
-                val playerDied = worldState.player.health <= 0 || state.steps.any {
-                    it.gmResponse.contains("You have died", ignoreCase = true) ||
-                    it.gmResponse.contains("You have been slain", ignoreCase = true) ||
-                    it.gmResponse.contains("been defeated", ignoreCase = true) ||
-                    it.validationResult?.reason?.contains("Player died", ignoreCase = true) == true
-                }
-                if (playerDied) {
-                    return true
-                }
-
-                // Complete when Dodge skill reaches target level (10)
-                // Check response for skill level messages or query current level
-                val dodgeLevelReached = state.steps.any {
-                    it.gmResponse.contains("Dodge", ignoreCase = true) &&
-                    (it.gmResponse.contains("level 10", ignoreCase = true) ||
-                     it.gmResponse.contains("Level: 10", ignoreCase = true) ||
-                     Regex("Dodge.*level\\s+1[0-9]").find(it.gmResponse) != null)
+                // Death should NOT complete objectives - bot needs to learn to survive
+                // Only complete when Dodge skill reaches target level
+                val targetLevel = state.scenario.targetLevel
+                val dodgeLevelReached = state.steps.any { step ->
+                    val match = Regex("Dodge.*level\\s+(\\d+)", RegexOption.IGNORE_CASE).find(step.gmResponse)
+                    val level = match?.groupValues?.get(1)?.toIntOrNull() ?: 0
+                    level >= targetLevel
                 }
                 dodgeLevelReached
             }

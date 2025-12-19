@@ -528,6 +528,7 @@ class InputGenerator(
                 """.trimIndent()
             }
             is TestScenario.SkillProgression -> {
+                val targetLevel = scenario.targetLevel
                 // Extract current Dodge level from game context
                 val dodgeLevel = currentContext.lines()
                     .find { it.contains("Dodge", ignoreCase = true) && it.contains("level", ignoreCase = true) }
@@ -536,10 +537,10 @@ class InputGenerator(
                     } ?: 0
 
                 """
-                YOUR GOAL: Level your Dodge skill from 0 to 10
+                YOUR GOAL: Level your Dodge skill from 0 to $targetLevel
 
                 CURRENT STATUS:
-                - Dodge Level: $dodgeLevel / 10 ${if (dodgeLevel >= 10) "✅ COMPLETE!" else ""}
+                - Dodge Level: $dodgeLevel / $targetLevel ${if (dodgeLevel >= targetLevel) "COMPLETE!" else ""}
                 - Actions taken: ${actionsTaken.size}
 
                 HOW DODGE SKILL WORKS:
@@ -553,7 +554,9 @@ class InputGenerator(
                 - Find hostile NPCs/enemies in the dungeon
                 - Engage them in combat (attack them)
                 - Survive their counter-attacks (this trains Dodge)
-                - Repeat until Dodge reaches level 10
+                - Repeat until Dodge reaches level $targetLevel
+
+                This is a grinding RPG - expect many combat sessions. If low on health, find a way to heal.
 
                 NAVIGATION TIPS:
                 - You have detailed history of all your previous room visits below
@@ -571,7 +574,7 @@ class InputGenerator(
 
                 Play naturally and reason through the problem. Use the 'skills' command to track progress.
 
-                Target: Complete within 120 actions
+                Target: Complete within ${scenario.maxSteps} actions
                 """.trimIndent()
             }
             is TestScenario.TreasureRoomPlaythrough -> {
