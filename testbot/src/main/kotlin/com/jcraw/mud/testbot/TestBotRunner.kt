@@ -201,11 +201,21 @@ class TestBotRunner(
 
     /**
      * Build context string describing the current game state.
+     * Health is shown FIRST with warnings to ensure bot awareness of danger.
      */
     private fun buildContext(state: TestState): String {
         val worldState = gameEngine.getWorldState()
         val currentSpace = worldState.getCurrentSpace()
         val player = worldState.player
+
+        // Calculate health status with explicit warnings
+        val healthPercent = (player.health.toDouble() / player.maxHealth * 100).toInt()
+        val healthWarning = when {
+            healthPercent <= 25 -> "⚠️ CRITICAL - find healing immediately!"
+            healthPercent <= 50 -> "⚠️ LOW - be careful in combat"
+            else -> ""
+        }
+        val healthLine = "Health: ${player.health}/${player.maxHealth} (${healthPercent}%) $healthWarning"
 
         val questInfo = if (scenario is TestScenario.QuestTesting) {
             val activeQuests = player.activeQuests
@@ -227,14 +237,16 @@ class TestBotRunner(
         // Include the last GM response so the bot can see room descriptions and exits
         val lastGMResponse = state.steps.lastOrNull()?.gmResponse ?: "No previous game output"
 
+        // Health shown FIRST to ensure bot notices it
         return """
-            Last game output:
-            $lastGMResponse
-
-            Current space: ${currentSpace?.name ?: "Unknown"}
-            Player health: ${player.health}/${player.maxHealth}
+            === CURRENT STATUS ===
+            $healthLine
+            Location: ${currentSpace?.name ?: "Unknown"}
             Inventory: ${player.inventory.joinToString { it.name }}
-            Steps completed: ${state.currentStep}/${state.scenario.maxSteps}$questInfo
+            Steps: ${state.currentStep}/${state.scenario.maxSteps}$questInfo
+
+            === LAST GAME OUTPUT ===
+            $lastGMResponse
         """.trimIndent()
     }
 

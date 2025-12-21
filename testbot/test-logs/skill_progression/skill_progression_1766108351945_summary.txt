@@ -1,0 +1,87 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 3 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 14
+        - Passed: 12
+        - Failed: 2
+        - Pass Rate: 85%
+
+        Timing:
+        - Start: 2025-12-19T01:39:11.946710588Z
+        - End: 2025-12-19T01:41:36.485005Z
+        - Duration: 144.54s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 3: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 6: ✗ FAIL
+Input: go down
+Reason: Response contains a 502 Bad Gateway error, indicating a failure in processing the command.
+
+Step 7: ✓ PASS
+Input: attack Giant Rat #3
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack Giant Rat #3
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: go east
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 11: ✓ PASS
+Input: attack Giant Rat Swarm #1
+Reason: Step completed successfully
+
+        Step 12: ✓ PASS
+        Input: {
+"reasoning": "Given that my current Dodge skill is at level 1 and I need to level it up to level 3, I need to continue engaging with hostile NPCs to gain more opportunities for my Dodge skill to improve. Since I've already encountered the Giant Rat Swarm #1 and Training Skeleton #1, I can focus on the Giant Rat Swarm #1 again. By attacking it, I hope to provoke its counter-attack which will provide another chance for my Dodge skill to progress.",
+"input": "attack Giant Rat Swarm #1",
+"intent": "To engage in combat with the Giant Rat Swarm #1 and allow it to attack me, thus training my Dodge skill further.",
+"expected": "I expect to either hit the Giant Rat Swarm #1 and deal damage or miss, followed by the Giant Rat Swarm #1 attacking me. This will provide an opportunity for my Dodge skill to gain XP or possibly level up."
+        Reason: Step completed successfully
+
+Step 13: ✓ PASS
+Input: attack Giant Rat #3
+Reason: Step completed successfully
+
+Step 14: ✗ FAIL
+Input: attack Giant Rat Swarm #1
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================

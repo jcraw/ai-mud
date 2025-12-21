@@ -164,22 +164,25 @@ fun createCorpseNarration(
  * Create fresh player state for respawn.
  *
  * Player spawns with:
- * - Level 1 skills
+ * - NEW player ID (this is a different character)
+ * - Level 1 skills (starts fresh)
  * - Starter gear (basic dagger, cloth armor) via V2 inventory
  * - Empty inventory
  * - 0 gold
  * - Full HP
  *
- * @param playerId Original player ID (preserved for corpse tracking)
- * @param playerName Original player name
+ * @param oldPlayerId Original player ID (only used for corpse tracking, not reused)
+ * @param newCharacterName New character's name
  * @param townSpaceId Town spawn point
- * @return Fresh player state
+ * @return Fresh player state with new ID
  */
 private fun createFreshPlayer(
-    playerId: PlayerId,
+    oldPlayerId: PlayerId,  // Keep param for signature compatibility, but don't use
     newCharacterName: String,
     townSpaceId: String
 ): PlayerState {
+    // Generate NEW player ID - this is a different character
+    val newPlayerId: PlayerId = "player_${UUID.randomUUID()}"
     // Basic stats (10 in all stats, D&D baseline)
     val baseStats = Stats(
         strength = 10,
@@ -219,7 +222,7 @@ private fun createFreshPlayer(
     )
 
     return PlayerState(
-        id = playerId,
+        id = newPlayerId,
         name = newCharacterName,
         currentRoomId = townSpaceId, // Spawn at town
         health = 100,

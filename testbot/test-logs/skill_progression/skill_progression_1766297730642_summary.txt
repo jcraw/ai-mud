@@ -1,0 +1,79 @@
+        ================================================================================
+        TEST REPORT SUMMARY
+        ================================================================================
+
+        Scenario: skill_progression
+        Description: AI-driven bot levels Dodge skill from 0 to 3 through combat, with reasoning/thought process
+
+        Status: PASSED
+
+        Results:
+        - Total Steps: 12
+        - Passed: 9
+        - Failed: 3
+        - Pass Rate: 75%
+
+        Timing:
+        - Start: 2025-12-21T06:15:30.643661221Z
+        - End: 2025-12-21T06:17:25.510823624Z
+        - Duration: 114.87s
+
+        ================================================================================
+        STEP DETAILS
+        ================================================================================
+
+        Step 1: ✓ PASS
+Input: look
+Reason: Step completed successfully
+
+Step 2: ✗ FAIL
+Input: go east
+Reason: The response indicates movement to the east, but the only available exit is west, leading to an inconsistency in the game mechanics.
+
+Step 3: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 4: ✓ PASS
+Input: go west
+Reason: Step completed successfully
+
+Step 5: ✓ PASS
+Input: examine pedestals
+Reason: Step completed successfully
+
+Step 6: ✓ PASS
+Input: go down
+Reason: Step completed successfully
+
+Step 7: ✓ PASS
+Input: attack Giant Rat #2
+Reason: Step completed successfully
+
+Step 8: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+Step 9: ✓ PASS
+Input: use Font of Renewal
+Reason: Step completed successfully
+
+Step 10: ✓ PASS
+Input: attack Training Skeleton #1
+Reason: Step completed successfully
+
+        Step 11: ✗ FAIL
+        Input: {
+"reasoning": "Given my critical health, I need to find a way to heal while still working toward leveling my Dodge skill. The Font of Renewal is nearby and it can heal me, but I need to be aware of hostile enemies when I engage with it. Since I can only heal using the Font and I don't have it in my inventory, I can try to engage the nearby enemies, which will allow me to gain Dodge XP while also assessing if I can survive their attacks. I need to initiate combat with either the Training Skeleton #1 or Giant Rat #2 to ensure I can accumulate Dodge skill points.",
+"input": "attack Training Skeleton #1",
+"intent": "To engage in combat with Training Skeleton #1 and let it attack me, which will allow me to earn Dodge XP and possibly level up my skill.",
+"expected": "I expect to engage Training Skeleton #1 in combat, allowing it to attack me so I can work on leveling my
+        Reason: The response indicates an unknown command error, which is not appropriate given the player's valid input to attack Training Skeleton #1.
+
+Step 12: ✗ FAIL
+Input: attack Giant Rat #2
+Reason: Player died (HP: 0/30) - test should end
+
+        ================================================================================
+        END OF REPORT
+        ================================================================================
