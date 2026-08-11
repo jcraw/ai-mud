@@ -47,7 +47,7 @@
 
 ### MUD-021 — quarantine slice 3 lore/death/placer
 - **When:** 2026-08-11 14:22 MST
-- **SHA:** `4eef71e792af47540673d17d0ff2e56b6abc6797`
+- **SHA:** `4eef71e792af47540673d17d0ff2e56b6abc6797` (bookkeep `21714c64bf810e6e37bf5d6a15ef70fbd7c58d75`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** TreasureRoomPlacer isTreasureEligible prod, lore/worldgen harness, DeathHandler V3 re-contract, TEST_QUARANTINE 12→8, AGENTS pointer, test-lock, issues/plans/board/handoff
