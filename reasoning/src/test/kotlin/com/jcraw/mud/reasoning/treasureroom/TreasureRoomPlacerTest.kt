@@ -7,7 +7,6 @@ import com.jcraw.mud.core.world.EdgeData
 import com.jcraw.mud.core.world.NodeType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Tag
 import kotlin.random.Random
 
 class TreasureRoomPlacerTest {
@@ -109,8 +108,6 @@ class TreasureRoomPlacerTest {
         assertEquals("n4", result!!.id)
     }
 
-    // quarantine: placer selected Frontier node as treasure room
-    @Tag("quarantine")
     @Test
     fun `selectTreasureRoomNode excludes Boss and Frontier nodes`() {
         val nodes = listOf(

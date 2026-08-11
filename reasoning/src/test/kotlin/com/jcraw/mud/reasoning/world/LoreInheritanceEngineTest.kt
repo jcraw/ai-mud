@@ -8,7 +8,6 @@ import com.jcraw.sophia.llm.OpenAIResponse
 import com.jcraw.sophia.llm.OpenAIUsage
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Tag
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -20,8 +19,6 @@ import kotlin.test.assertTrue
  */
 class LoreInheritanceEngineTest {
 
-    // quarantine: fallback lore no longer embeds parent keywords
-    @Tag("quarantine")
     @Test
     fun `varyLore generates lore variation with parent keywords`() = runBlocking {
         val mockLLM = MockLLMClient()
@@ -32,6 +29,7 @@ class LoreInheritanceEngineTest {
 
         assertTrue(result.isSuccess)
         val lore = result.getOrNull()!!
+        // Mock embeds full parent first line (incl. proper noun Valdor) + direction adjective.
         assertTrue(lore.contains("kingdom of Valdor"), "Child lore should reference parent")
         assertTrue(lore.contains("northern"), "Lore should reflect direction hint")
     }
@@ -135,11 +133,26 @@ class LoreInheritanceEngineTest {
 
             val content = when {
                 isLoreVariation -> {
-                    val directionMatch = Regex("direction").find(userContext)
-                    val direction = if (directionMatch != null) "northern" else ""
+                    // Embed full parent first line (distinctive tokens e.g. Valdor) + direction adj.
+                    // First-3-word window alone drops "kingdom of Valdor" → assert mismatch.
                     val parentMatch = Regex("Parent lore: (.+)").find(userContext)
-                    val parentKeyword = parentMatch?.groupValues?.get(1)?.split(" ")?.take(3)?.joinToString(" ") ?: "unknown"
-                    "The $direction $parentKeyword has unique local features. Factions operate here."
+                    val parentLore = parentMatch?.groupValues?.get(1)
+                        ?.trim()
+                        ?.lineSequence()
+                        ?.firstOrNull()
+                        ?.trim()
+                        ?: "unknown"
+                    val dirWord = Regex("for (\\w+) direction").find(userContext)
+                        ?.groupValues?.get(1)?.lowercase()
+                    val directionAdj = when (dirWord) {
+                        "north" -> "northern"
+                        "south" -> "southern"
+                        "east" -> "eastern"
+                        "west" -> "western"
+                        else -> if (dirWord != null) dirWord else ""
+                    }
+                    val dirPart = if (directionAdj.isNotEmpty()) "In the $directionAdj reaches, " else ""
+                    "${dirPart}$parentLore Local features and factions operate here."
                 }
                 isThemeBlend -> {
                     val parentMatch = Regex("Parent theme: (.+)").find(userContext)

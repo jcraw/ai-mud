@@ -53,7 +53,7 @@ _(empty — Wave E complete: MUD-016…018 done)_
 
 ### Wave F — product + quarantine drip (Jason 2026-08-11)
 - **Post-done:** allowlisted `git push origin master` after each ticket closeout (no force)
-- _(MUD-021 in progress — see below)_
+- _(Wave F open backlog empty — MUD-019…021 done; residual SkillManager ×8 Jason-gated)_
 
 ## Plan review
 
@@ -61,7 +61,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · deps 020 · **planning** (grok)
+_(empty)_
 
 ## Blocked (awaiting Jason)
 
@@ -70,6 +70,7 @@ _(empty)_
 
 ## Recently done
 
+- **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · done · 12→**8** tags · C4 prod `isTreasureEligible` (Hub/Boss/Frontier) candidates+fallback · C1/C2 harness parent-keyword mock lore · C3 DeathHandler V3 dual-write gold `>=1` (variance 0.8–1.2) · residual SkillManager×8 only (Jason L1/L2) · `--core` exit 0 · `--quarantine` hard-fail quarantine_count **8** · test-lock 112 · closeout `tmp/workers/MUD-021/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-021-quarantine-slice3-lore-death-treasure.md`
 - **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 (`med`) · done · 20→**12** tags · C1 combat size 11+membership · C2 prod `hasSkill` filter fallback+LLM parse · C3 DeepDungeon 4 REGIONs [1,5,12,18] children 4 · residual SkillManager×8 + MUD-021 cluster · `--core` exit 0 · `--quarantine` hard-fail quarantine_count **12** · test-lock 112 · closeout `tmp/workers/MUD-020/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-020-quarantine-slice2-catalog-hierarchy.md`
 - **MUD-019** — floor-item take → V2 InventoryComponent parity (`high`) · done · pure `FloorItemTakeApply` + thin console/GUI/GameServer take handlers; contract tests (templateId Success, overweight Failure, space cleared); no `addToInventory` on Success; KNOWN_ISSUES residual floor fixed/narrowed (drop/legacy residual remain); `--core` exit 0 · test-lock 112 · closeout `tmp/workers/MUD-019/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-019-floor-item-v2-inventory.md`
 - **MUD-018** — CLAUDE/CODEX deprecation path (`low`) · done · docs-only: banners on CLAUDE+CODEX; CODEX collab → AGENTS ops SoT; README demotes CLAUDE primary SoT; guidelines top note; AGENTS settings.local not-DoD line; settings.local untouched; CLAUDE body zero-diff · closeout `tmp/workers/MUD-018/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-018-claude-codex-deprecation-path.md`

@@ -1,7 +1,7 @@
 # Test Quarantine
 
-**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2 cleared 2026-08-11)**  
-**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12
+**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2)** · **MUD-021 (slice 3 cleared 2026-08-11)**  
+**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12 · **Post-slice-3 count:** 8
 
 Known failing tests are tagged `@Tag("quarantine")` and **excluded by default** from green verify lanes. They remain runnable and hard-fail on the quarantine lane. Do **not** weaken asserts to force green.
 
@@ -33,7 +33,8 @@ fun `…`() { … }
 
 Original post-tag green reasoning (default exclude): **621** tests (644 − 23).  
 **MUD-017 slice 1 (2026-08-11):** cleared **3** tags → quarantine count **20**. Green reasoning under exclude: **624** expected (644 − 20).  
-**MUD-020 slice 2 (2026-08-11):** cleared **8** tags → quarantine count **12**. Green reasoning under exclude: **632** expected (644 − 12).
+**MUD-020 slice 2 (2026-08-11):** cleared **8** tags → quarantine count **12**. Green reasoning under exclude: **632** expected (644 − 12).  
+**MUD-021 slice 3 (2026-08-11):** cleared **4** tags → quarantine count **8**. Green reasoning under exclude: **636** expected (644 − 8).
 
 Core lane includes green `:reasoning:test` under excludeTags.
 
@@ -58,14 +59,19 @@ Core lane includes green `:reasoning:test` under excludeTags.
 | `DungeonInitializerSimpleTest#initializeDeepDungeon creates regions with correct difficulty` | Test: sorted difficulties [1, 5, 12, 18] |
 | `DungeonInitializerSimpleTest#initializeDeepDungeon creates parent-child relationships` | Test: world.children size 4; each REGION parent = WORLD |
 
-## Quarantined tests (12)
+### Cleared in MUD-021 slice 3
+
+| Class#method | Fix |
+|--------------|-----|
+| `LoreInheritanceEngineTest#varyLore generates lore variation with parent keywords` | Harness: MockLLMClient embeds full parent first line + direction adj (Valdor / kingdom of Valdor + northern) |
+| `WorldGeneratorTest#generateChunk creates REGION level with parent lore variation` | Harness: `createMockLoreEngine` MockLLMClient embeds parent keywords on lore variation |
+| `DeathHandlerTest#NPC death drops loot into space and corpse` | Re-contract: V3 dual-write (corpse/itemsDropped/Entity.Item); gold floor `>= 1` (variance 0.8–1.2) |
+| `TreasureRoomPlacerTest#selectTreasureRoomNode excludes Boss and Frontier nodes` | Prod: shared `isTreasureEligible` (not Hub/Boss/Frontier) in candidates + empty fallback |
+
+## Quarantined tests (8)
 
 | Class#method | Reason |
 |--------------|--------|
-| `LoreInheritanceEngineTest#varyLore generates lore variation with parent keywords` | fallback lore no longer embeds parent keywords |
-| `DeathHandlerTest#NPC death drops loot into space and corpse` | V3 death/loot path assert mismatch (space/corpse) |
-| `TreasureRoomPlacerTest#selectTreasureRoomNode excludes Boss and Frontier nodes` | placer selected Frontier node as treasure room |
-| `WorldGeneratorTest#generateChunk creates REGION level with parent lore variation` | region lore no longer references parent keywords |
 | `SkillManagerTest#defensive skills progress independently for different entities` | defensive skill isolation assert failed post progression rewrite |
 | `SkillManagerTest#attemptSkillProgress with lucky success unlocks skill at level 1` | lucky unlock starts at level 2 not 1 (progression formula drift) |
 | `SkillManagerTest#grantXp grants full XP on success` | XP/level expectations drift after dual-path progression |
@@ -79,7 +85,7 @@ Core lane includes green `:reasoning:test` under excludeTags.
 
 - Counts may drift if new tests are added or failures change; re-baseline before expanding the list.
 - Only **consistent** fails from the recorded baseline were tagged — flakes (if any later) should be noted, not silently `@Disabled`.
-- **Deferred clusters (12 residual):** SkillManager ×8 (L1/L2 Jason) + MUD-021 cluster (Lore/WorldGenerator ×2, DeathHandler ×1, TreasureRoomPlacer ×1).
+- **Deferred residual (8):** SkillManager ×8 only (L1/L2 unlock / XP redesign — Jason product opinion).
 
 ## Related
 

@@ -48,9 +48,8 @@ class TreasureRoomPlacer {
         val distances = calculateBFSDistances(startNodeId, nodes)
         val candidates = findTreasureRoomCandidates(nodes, distances)
         if (candidates.isEmpty()) {
-            return nodes.firstOrNull { node ->
-                node.type !is NodeType.Hub && node.type !is NodeType.Boss
-            }
+            // Fallback still excludes Hub / Boss / Frontier (same eligibility as candidates).
+            return nodes.firstOrNull { isTreasureEligible(it) }
         }
 
         return candidates.sortedWith(
@@ -150,11 +149,18 @@ class TreasureRoomPlacer {
     ): List<GraphNodeComponent> {
         return nodes.filter { node ->
             val distance = distances[node.id] ?: Int.MAX_VALUE
-            distance in 2..3 &&
-                node.type !is NodeType.Boss &&
-                node.type !is NodeType.Frontier &&
-                node.type !is NodeType.Hub
+            distance in 2..3 && isTreasureEligible(node)
         }
+    }
+
+    /**
+     * Treasure rooms must not land on Hub, Boss, or Frontier nodes.
+     * Shared by distance-2–3 candidates and empty-candidate fallback.
+     */
+    fun isTreasureEligible(node: GraphNodeComponent): Boolean {
+        return node.type !is NodeType.Hub &&
+            node.type !is NodeType.Boss &&
+            node.type !is NodeType.Frontier
     }
 
     private fun candidatePriority(node: GraphNodeComponent): Int {

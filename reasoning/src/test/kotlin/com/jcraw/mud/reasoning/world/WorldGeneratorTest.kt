@@ -9,7 +9,6 @@ import com.jcraw.sophia.llm.OpenAIResponse
 import com.jcraw.sophia.llm.OpenAIUsage
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Tag
 import kotlin.test.*
 
 /**
@@ -43,8 +42,6 @@ class WorldGeneratorTest {
         assertTrue(id.contains("WORLD"))
     }
 
-    // quarantine: region lore no longer references parent keywords
-    @Tag("quarantine")
     @Test
     fun `generateChunk creates REGION level with parent lore variation`() = runBlocking {
         val mockLLM = ChunkGeneratingMockLLM()
@@ -570,6 +567,10 @@ class WorldGeneratorTest {
         return LoreInheritanceEngine(MockLLMClient())
     }
 
+    /**
+     * Mock used by [createMockLoreEngine]. Embeds parent keywords on lore variation so
+     * REGION/ZONE inheritance tests can assert parent identity (e.g. Valdor).
+     */
     private class MockLLMClient : LLMClient {
         override suspend fun chatCompletion(
             modelId: String,
@@ -578,6 +579,29 @@ class WorldGeneratorTest {
             maxTokens: Int,
             temperature: Double
         ): OpenAIResponse {
+            val content = when {
+                userContext.contains("Parent lore:") || userContext.contains("lore variation") -> {
+                    val parentMatch = Regex("Parent lore: (.+)").find(userContext)
+                    val parentLore = parentMatch?.groupValues?.get(1)
+                        ?.trim()
+                        ?.lineSequence()
+                        ?.firstOrNull()
+                        ?.trim()
+                        ?: "unknown lands"
+                    val dirWord = Regex("for (\\w+) direction").find(userContext)
+                        ?.groupValues?.get(1)?.lowercase()
+                    val directionAdj = when (dirWord) {
+                        "north" -> "northern"
+                        "south" -> "southern"
+                        "east" -> "eastern"
+                        "west" -> "western"
+                        else -> dirWord.orEmpty()
+                    }
+                    val dirPart = if (directionAdj.isNotEmpty()) "In the $directionAdj reaches, " else ""
+                    "${dirPart}$parentLore Local features vary here."
+                }
+                else -> "mock response"
+            }
             return OpenAIResponse(
                 id = "test-id",
                 `object` = "chat.completion",
@@ -585,7 +609,7 @@ class WorldGeneratorTest {
                 model = modelId,
                 choices = listOf(
                     OpenAIChoice(
-                        message = OpenAIMessage("assistant", "mock response"),
+                        message = OpenAIMessage("assistant", content),
                         finishReason = "stop"
                     )
                 ),
