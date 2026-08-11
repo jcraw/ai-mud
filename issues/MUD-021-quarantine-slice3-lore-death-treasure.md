@@ -2,15 +2,15 @@
 id: MUD-021
 area: testing
 title: Quarantine slice 3 — lore, death loot, treasure placer
-status: open
+status: in_progress
 priority: med
 created: 2026-08-11
 updated: 2026-08-11
 source: jason
 labels: [testing, quarantine, wave-f]
 assignee: ""
-worker: ""
-phase: backlog
+worker: grok
+phase: planning
 agent_eligible: true
 eligibility: agent_eligible
 needs_jason: ""

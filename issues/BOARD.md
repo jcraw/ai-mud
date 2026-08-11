@@ -52,8 +52,8 @@ _(empty — Wave D complete: MUD-014, 015 done)_
 _(empty — Wave E complete: MUD-016…018 done)_
 
 ### Wave F — product + quarantine drip (Jason 2026-08-11)
-- **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · deps 020 · after 020
 - **Post-done:** allowlisted `git push origin master` after each ticket closeout (no force)
+- _(MUD-021 in progress — see below)_
 
 ## Plan review
 
@@ -61,7 +61,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-021** — quarantine slice 3 · `open` · after 020 (020 done)
+- **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · deps 020 · **planning** (grok)
 
 ## Blocked (awaiting Jason)
 

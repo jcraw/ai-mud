@@ -37,3 +37,11 @@
 - **Included:** FloorItemTakeApply + handlers (app/client/GameServer/MultiUserGame), contract test, KNOWN_ISSUES, test-lock 112, issues/plans Wave F tickets+board+handoff
 - **Excluded:** testbot/, tmp/, secrets
 
+### MUD-020 — quarantine slice 2 catalog/hierarchy
+- **When:** 2026-08-11 13:42 MST
+- **SHA:** `e68ff12c9ed96c94dbdc353daeb895959414fb81`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** SkillClassifier prod filter, SkillDefinitions/DungeonInitializer KDoc+tests, TEST_QUARANTINE 20→12, AGENTS pointer, test-lock, issues/plans/board/handoff
+- **Excluded:** testbot/, tmp/, secrets
+
