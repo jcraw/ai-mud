@@ -3,6 +3,7 @@ package com.jcraw.app.handlers
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
 
 /**
  * Handlers for treasure room interactions: take, return, examine
@@ -26,10 +27,6 @@ object TreasureRoomHandlers {
 
         // Get player inventory component
         val playerInventory = game.worldState.player.inventoryComponent
-        if (playerInventory == null) {
-            println("Inventory system not available (V2 Item System required)")
-            return
-        }
 
         // Build item templates map
         val templates = buildItemTemplatesMap(game, treasureRoomComponent)
@@ -53,22 +50,12 @@ object TreasureRoomHandlers {
         // Handle result
         when (result) {
             is TreasureRoomHandler.TreasureRoomResult.Success -> {
-                // DEBUG
-                println("DEBUG: Before update - inventory has ${playerInventory.items.size} items")
-                println("DEBUG: After take - inventory has ${result.playerInventory.items.size} items")
-
-                // Update world state with new components
-                var newState = game.worldState.updatePlayer(
-                    game.worldState.player.copy(inventoryComponent = result.playerInventory)
+                game.worldState = TreasureRoomStateApply.applySuccess(
+                    world = game.worldState,
+                    spaceId = spaceId,
+                    player = game.worldState.player,
+                    success = result
                 )
-
-                // Update treasure room component
-                newState = newState.updateTreasureRoom(spaceId, result.treasureRoomComponent)
-
-                game.worldState = newState
-
-                // DEBUG
-                println("DEBUG: After worldState update - player inventory has ${game.worldState.player.inventoryComponent?.items?.size ?: 0} items")
 
                 // Print success message with atmospheric description
                 println("You take the ${result.itemName} from its ${getPedestalDescription(treasureRoomComponent, itemTemplateId)}.")
@@ -103,10 +90,6 @@ object TreasureRoomHandlers {
 
         // Get player inventory component
         val playerInventory = game.worldState.player.inventoryComponent
-        if (playerInventory == null) {
-            println("Inventory system not available (V2 Item System required)")
-            return
-        }
 
         // Build item templates map
         val templates = buildItemTemplatesMap(game, treasureRoomComponent)
@@ -114,7 +97,8 @@ object TreasureRoomHandlers {
         // Find item instance in player inventory by name
         val itemInstance = playerInventory.items.find { instance ->
             val template = templates[instance.templateId]
-            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true
+            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true ||
+                instance.templateId.lowercase().contains(itemTarget.lowercase())
         }
 
         if (itemInstance == null) {
@@ -133,15 +117,12 @@ object TreasureRoomHandlers {
         // Handle result
         when (result) {
             is TreasureRoomHandler.TreasureRoomResult.Success -> {
-                // Update world state with new components
-                var newState = game.worldState.updatePlayer(
-                    game.worldState.player.copy(inventoryComponent = result.playerInventory)
+                game.worldState = TreasureRoomStateApply.applySuccess(
+                    world = game.worldState,
+                    spaceId = spaceId,
+                    player = game.worldState.player,
+                    success = result
                 )
-
-                // Update treasure room component
-                newState = newState.updateTreasureRoom(spaceId, result.treasureRoomComponent)
-
-                game.worldState = newState
 
                 // Print success message with atmospheric description
                 println("You return the ${result.itemName} to its ${getPedestalDescription(treasureRoomComponent, itemInstance.templateId)}.")

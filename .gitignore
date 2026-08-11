@@ -49,3 +49,7 @@ local.properties
 # Game data (databases)
 data/
 *.db
+
+# agent ops / local runs
+tmp/
+testbot/test-logs/

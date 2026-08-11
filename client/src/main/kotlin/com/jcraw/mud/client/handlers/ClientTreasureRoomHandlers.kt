@@ -3,6 +3,7 @@ package com.jcraw.mud.client.handlers
 import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
+import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
 
 /**
  * Handles treasure room interactions in the GUI client
@@ -22,10 +23,6 @@ object ClientTreasureRoomHandlers {
         }
 
         val playerInventory = game.worldState.player.inventoryComponent
-        if (playerInventory == null) {
-            game.emitEvent(GameEvent.System("Inventory system not available (V2 Item System required)", GameEvent.MessageLevel.WARNING))
-            return
-        }
 
         val templates = buildItemTemplatesMap(game, treasureRoomComponent)
         val itemTemplateId = findItemTemplateByName(itemTarget, templates, treasureRoomComponent)
@@ -45,11 +42,12 @@ object ClientTreasureRoomHandlers {
 
         when (result) {
             is TreasureRoomHandler.TreasureRoomResult.Success -> {
-                var newState = game.worldState.updatePlayer(
-                    game.worldState.player.copy(inventoryComponent = result.playerInventory)
+                game.worldState = TreasureRoomStateApply.applySuccess(
+                    world = game.worldState,
+                    spaceId = spaceId,
+                    player = game.worldState.player,
+                    success = result
                 )
-                newState = newState.updateTreasureRoom(spaceId, result.treasureRoomComponent)
-                game.worldState = newState
 
                 val pedestalDesc = getPedestalDescription(treasureRoomComponent, itemTemplateId)
                 game.emitEvent(GameEvent.Narrative("You take the ${result.itemName} from its $pedestalDesc."))
@@ -59,6 +57,9 @@ object ClientTreasureRoomHandlers {
                     game.emitEvent(GameEvent.Narrative("\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away."))
                     game.emitEvent(GameEvent.Narrative("You may return to this room at any time to swap your choice for a different treasure."))
                 }
+
+                // Refresh ViewModel playerState (inventory HUD) after take
+                emitStatusUpdate(game, spaceId)
             }
             is TreasureRoomHandler.TreasureRoomResult.Failure -> {
                 game.emitEvent(GameEvent.System(result.reason, GameEvent.MessageLevel.WARNING))
@@ -79,15 +80,12 @@ object ClientTreasureRoomHandlers {
         }
 
         val playerInventory = game.worldState.player.inventoryComponent
-        if (playerInventory == null) {
-            game.emitEvent(GameEvent.System("Inventory system not available (V2 Item System required)", GameEvent.MessageLevel.WARNING))
-            return
-        }
 
         val templates = buildItemTemplatesMap(game, treasureRoomComponent)
         val itemInstance = playerInventory.items.find { instance ->
             val template = templates[instance.templateId]
-            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true
+            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true ||
+                instance.templateId.lowercase().contains(itemTarget.lowercase())
         }
 
         if (itemInstance == null) {
@@ -104,17 +102,21 @@ object ClientTreasureRoomHandlers {
 
         when (result) {
             is TreasureRoomHandler.TreasureRoomResult.Success -> {
-                var newState = game.worldState.updatePlayer(
-                    game.worldState.player.copy(inventoryComponent = result.playerInventory)
+                game.worldState = TreasureRoomStateApply.applySuccess(
+                    world = game.worldState,
+                    spaceId = spaceId,
+                    player = game.worldState.player,
+                    success = result
                 )
-                newState = newState.updateTreasureRoom(spaceId, result.treasureRoomComponent)
-                game.worldState = newState
 
                 val pedestalDesc = getPedestalDescription(treasureRoomComponent, itemInstance.templateId)
                 game.emitEvent(GameEvent.Narrative("You return the ${result.itemName} to its $pedestalDesc."))
 
                 val barrierType = getBarrierTypeForBiome(treasureRoomComponent.biomeTheme)
                 game.emitEvent(GameEvent.Narrative("\nThe $barrierType shimmer and fade, revealing the other treasures once more. You may choose again."))
+
+                // Refresh ViewModel playerState after return
+                emitStatusUpdate(game, spaceId)
             }
             is TreasureRoomHandler.TreasureRoomResult.Failure -> {
                 game.emitEvent(GameEvent.System(result.reason, GameEvent.MessageLevel.WARNING))
@@ -197,12 +199,30 @@ object ClientTreasureRoomHandlers {
         game.emitEvent(GameEvent.Narrative(text))
     }
 
+    /**
+     * Resolve pedestal templates via repository / getItemTemplate (parity with console).
+     * Cache-only was a known GUI miss (MUD-007 RC-B).
+     */
     private fun buildItemTemplatesMap(game: EngineGameClient, treasureRoom: TreasureRoomComponent): Map<String, ItemTemplate> {
         val templates = mutableMapOf<String, ItemTemplate>()
         treasureRoom.pedestals.forEach { pedestal ->
-            game.itemTemplateCache[pedestal.itemTemplateId]?.let { templates[it.id] = it }
+            val fromRepo = game.itemRepository.findTemplateById(pedestal.itemTemplateId).getOrNull()
+            val template = fromRepo ?: game.getItemTemplate(pedestal.itemTemplateId)
+            templates[template.id] = template
         }
         return templates
+    }
+
+    /** Emit StatusUpdate so GameViewModel refreshes playerState (inventory HUD). */
+    private fun emitStatusUpdate(game: EngineGameClient, spaceId: String) {
+        val player = game.worldState.player
+        game.emitEvent(
+            GameEvent.StatusUpdate(
+                hp = player.health,
+                maxHp = player.maxHealth,
+                location = game.worldState.getSpace(spaceId)?.name ?: spaceId
+            )
+        )
     }
 
     private fun findItemTemplateByName(

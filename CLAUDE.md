@@ -1,5 +1,12 @@
 # CLAUDE.md
 
+> **Status: optional deep / historical — not ops SoT.**
+> - **Ops, DoD, startup reads:** `AGENTS.md` (all agents: Grok, Codex, Claude, Cursor, humans).
+> - **This file:** optional deep status / Claude-era narrative. **Do not full-read by default.**
+> - Architecture detail when needed: `docs/ARCHITECTURE.md` and other `docs/*`.
+> - Do **not** grow this file as the agent contract; freeze Claude-only surface growth.
+> - Local Claude tool perms (`.claude/settings.local.json`) are **not** DoD — leave local; do not expand as project contract.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview

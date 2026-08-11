@@ -549,17 +549,17 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Total Tests:** ~793 across all modules
-**Pass Rate:** 100%
+**Baseline:** 2026-08-10 (MUD-008). Full list of quarantined tests: [`docs/TEST_QUARANTINE.md`](TEST_QUARANTINE.md).
 
-**Module Breakdown:**
-- ✅ **core**: 112 tests
-- ✅ **perception**: 8 tests
-- ✅ **reasoning**: 40 tests
-- ✅ **memory**: 15 tests
-- ✅ **app**: 148 integration tests (including 20 V3 graph navigation tests)
-- ✅ **client**: 7 tests
-- ✅ **testbot**: 12 E2E scenario tests
+| Module (verify `--core` / `--full`) | Count | Notes |
+|-------------------------------------|------:|-------|
+| core | 462 | green |
+| perception | 56 | green |
+| memory | 321 | green |
+| reasoning (default excludeTags) | 621 | green; 23 `@Tag("quarantine")` excluded |
+| reasoning (quarantine lane) | 23 | known debt; hard-fail OK (`--quarantine`) |
+
+Default / full lanes use JUnit `excludeTags("quarantine")`. Do not weaken asserts to clear quarantine — repair wave is MUD-017.
 
 **Test Migration Complete:** All legacy shell scripts have been migrated to proper Kotlin tests and deleted.
 

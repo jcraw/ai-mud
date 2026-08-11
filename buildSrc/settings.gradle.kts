@@ -4,6 +4,8 @@ dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
+        // PIT gradle plugin (MUD-014) — portal marker artifact + published plugin id.
+        gradlePluginPortal()
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }

@@ -1,0 +1,802 @@
+#!/usr/bin/env bash
+# tools/verify_mud.sh — thin Gradle lane wrapper for AI MUD
+# Ticket: MUD-004. Honest defaults; no full-green theater.
+# Detekt (MUD-010) + Konsist arch (MUD-011) + test-lock (MUD-012) are real on
+# default/fast/core/full. PIT (MUD-014): --pitest lane only (core measured >45s → not on full).
+# MUD-013: per-gate status + durations → tmp/dod-summary.json (or $MUD_DOD_SUMMARY).
+# fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${ROOT_DIR}"
+
+GRADLEW="${ROOT_DIR}/gradlew"
+TEST_LOCK="${ROOT_DIR}/tools/test_lock.sh"
+DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
+LANE="default"
+DRY_RUN=0
+MODULES=()
+NOTES=()
+STEPS=()
+EXIT_CODE=0
+VERIFY_STARTED=0
+DOD_WRITTEN=0
+SCRIPT_START_S="$(date +%s)"
+
+# Soft mutation threshold (day-one). Hard fail only when MUD_PITEST_HARD=1 or -Pmud.pitestHard=true.
+PITEST_SOFT_THRESHOLD=60
+# Measured 2026-08-11: :core:pitest wall ~130s (PIT analysis ~125s) → full never runs PIT.
+# Nightly / local deep gate: --pitest only. See docs/PIT.md.
+PITEST_IN_FULL_LANE=0
+
+# Gate records (MUD-013): status pass|fail|skipped, wall-clock seconds, optional note
+declare -A GATE_SEEN=()
+declare -A GATE_STATUS=()
+declare -A GATE_DURATION=()
+declare -A GATE_NOTE=()
+# Optional numeric mutation score (min of modules) when pitest gate ran (MUD-014).
+GATE_MUTATION_SCORE=""
+
+usage() {
+  cat <<'EOF'
+Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run]
+
+Lanes (pick one; default if omitted):
+  default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
+                              With module args: :<m>:compileKotlin (+ :<m>:test if src/test exists)
+                              Then hard detekt + Konsist arch + test-lock.
+                              Bare run does NOT auto-run --core/--full unit suites.
+                              PIT never runs (use --pitest).
+  core    | --core            :core:test :perception:test :memory:test :reasoning:test
+                              (default excludeTags quarantine; honest green)
+                              + detekt + Konsist arch + test-lock
+                              PIT never runs (ticket drain stays free of PIT wall-time).
+  full    | --full            Stable green set: core/perception/memory/reasoning tests +
+                              compile-only action/llm/config. Default excludeTags quarantine.
+                              + detekt + Konsist arch + test-lock
+                              PIT: skipped (core PIT >45s); use --pitest nightly — docs/PIT.md
+  pitest  | --pitest          PIT mutation on pure modules only:
+                              :core:pitest :perception:pitest :memory:pitest
+                              + detekt + Konsist arch + test-lock
+                              Soft 60% (pass + note if below); hard fail if MUD_PITEST_HARD=1
+  quarantine | --quarantine   :reasoning:test -Pmud.quarantineOnly=true (known debt; hard-fail OK)
+                              (no detekt / no Konsist / no test-lock / no PIT — debt lane only)
+
+Flags:
+  --dry-run                   Print intended Gradle commands; do not run
+  -h | --help                 This help
+
+DoD summary (MUD-013):
+  Always writes compact JSON (pass/fail/skipped per gate, durations, quarantine_count)
+  to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). Human == verify_mud == kept.
+  When --pitest runs: gates.pitest.mutation_score = min of three modules.
+
+Exit codes:
+  0  all hard steps green (or dry-run)
+  1  usage / unknown lane, or a hard step failed
+
+Examples:
+  ./tools/verify_mud.sh
+  ./tools/verify_mud.sh --fast
+  ./tools/verify_mud.sh --core
+  ./tools/verify_mud.sh default perception
+  ./tools/verify_mud.sh --full --dry-run
+  ./tools/verify_mud.sh --pitest
+  ./tools/verify_mud.sh --dry-run --pitest
+  ./tools/verify_mud.sh --quarantine
+
+Requires Java 17 and ./gradlew at repo root.
+See docs/TEST_LOCK.md for unauthorized src/test edit policy.
+See docs/PIT.md for mutation testing (pure modules).
+EOF
+}
+
+die_usage() {
+  echo "error: $*" >&2
+  usage >&2
+  EXIT_CODE=1
+  exit 1
+}
+
+note() {
+  NOTES+=("$*")
+}
+
+add_step() {
+  STEPS+=("$*")
+}
+
+# Aggregate gate: sum durations; first fail wins; keep first non-empty note.
+record_gate() {
+  local name="$1"
+  local status="$2"
+  local duration="${3:-0}"
+  local gnote="${4:-}"
+
+  if [[ -n "${GATE_SEEN[$name]:-}" ]]; then
+    GATE_DURATION[$name]=$(( ${GATE_DURATION[$name]:-0} + duration ))
+    if [[ "${GATE_STATUS[$name]}" != "fail" && "${status}" == "fail" ]]; then
+      GATE_STATUS[$name]="fail"
+    elif [[ "${GATE_STATUS[$name]}" == "skipped" && "${status}" == "pass" ]]; then
+      GATE_STATUS[$name]="pass"
+    fi
+    if [[ -z "${GATE_NOTE[$name]:-}" && -n "${gnote}" ]]; then
+      GATE_NOTE[$name]="${gnote}"
+    fi
+  else
+    GATE_SEEN[$name]=1
+    GATE_STATUS[$name]="${status}"
+    GATE_DURATION[$name]="${duration}"
+    GATE_NOTE[$name]="${gnote}"
+  fi
+}
+
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "${s}"
+}
+
+# Cheap quarantine count: live @Tag scan → doc fallback. Never runs quarantine suite.
+count_quarantine_tags() {
+  local n=""
+  if command -v rg >/dev/null 2>&1; then
+    n="$(rg --glob '*.kt' -c '@Tag\("quarantine"\)' "${ROOT_DIR}" 2>/dev/null \
+      | awk -F: '{ s += $2 } END { print s + 0 }' || true)"
+  else
+    n="$(grep -r --include='*.kt' -c '@Tag("quarantine")' "${ROOT_DIR}" 2>/dev/null \
+      | awk -F: '{ s += $2 } END { print s + 0 }' || true)"
+  fi
+  # Only fall back when scan produced nothing usable (empty), not when count is 0.
+  if [[ -z "${n}" ]]; then
+    if [[ -f "${ROOT_DIR}/docs/TEST_QUARANTINE.md" ]]; then
+      n="$(sed -n 's/.*Quarantine count:[[:space:]]*\*\*\([0-9][0-9]*\)\*\*.*/\1/p' \
+        "${ROOT_DIR}/docs/TEST_QUARANTINE.md" | head -n1 || true)"
+    fi
+  fi
+  printf '%s' "${n}"
+}
+
+# Run a hard gradle step under a named gate (or print in dry-run). Failures set EXIT_CODE.
+# Usage: run_gradle <gate> <gradle-args...>
+run_gradle() {
+  local gate="$1"
+  shift
+  local -a args=("$@")
+  local cmd_display="./gradlew ${args[*]}"
+  local t0 t1 dur rc
+
+  add_step "${cmd_display}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    return 0
+  fi
+  if [[ ! -x "${GRADLEW}" ]]; then
+    echo "error: gradlew not found or not executable at ${GRADLEW}" >&2
+    EXIT_CODE=1
+    record_gate "${gate}" "fail" 0 "gradlew missing"
+    return 1
+  fi
+  echo ">> ${cmd_display}"
+  t0="$(date +%s)"
+  set +e
+  "${GRADLEW}" "${args[@]}"
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+  if [[ ${rc} -ne 0 ]]; then
+    EXIT_CODE=1
+    record_gate "${gate}" "fail" "${dur}"
+    return 1
+  fi
+  record_gate "${gate}" "pass" "${dur}"
+  return 0
+}
+
+# Parse mutation coverage % from a module PIT report (timestampedReports=false path).
+# Prefers mutations.xml detected counts (stable); HTML second coverage_legend is Mutation Coverage
+# (first=line, second=mutation, third=test strength) as fallback.
+# Prints one decimal on stdout; empty on failure.
+parse_pitest_module_score() {
+  local mod="$1"
+  local report_dir="${ROOT_DIR}/${mod}/build/reports/pitest"
+  local html="${report_dir}/index.html"
+  local xml="${report_dir}/mutations.xml"
+  local score="" killed total
+
+  if [[ -f "${xml}" ]]; then
+    # XML attributes use single quotes: detected='true'
+    total="$(grep -c '<mutation ' "${xml}" 2>/dev/null || true)"
+    killed="$(grep -c "detected='true'" "${xml}" 2>/dev/null || true)"
+    total="${total:-0}"
+    killed="${killed:-0}"
+    if [[ "${total}" -gt 0 ]]; then
+      score="$(awk -v k="${killed}" -v t="${total}" 'BEGIN { printf "%.1f", (k * 100.0) / t }')"
+    fi
+  fi
+
+  if [[ -z "${score}" && -f "${html}" ]]; then
+    # Second coverage_legend is Mutation Coverage (killed/total).
+    score="$(
+      sed -n 's/.*coverage_legend">\([0-9][0-9]*\)\/\([0-9][0-9]*\)<.*/\1 \2/p' "${html}" 2>/dev/null \
+        | sed -n '2p' \
+        | {
+            read -r killed total || true
+            if [[ -n "${killed:-}" && -n "${total:-}" && "${total}" -gt 0 ]]; then
+              awk -v k="${killed}" -v t="${total}" 'BEGIN { printf "%.1f", (k * 100.0) / t }'
+            fi
+          }
+    )"
+  fi
+
+  printf '%s' "${score}"
+}
+
+# True when hard mutation threshold is requested (env or -Pmud.pitestHard=true in env GRADLE_OPTS not required).
+pitest_hard_mode() {
+  if [[ "${MUD_PITEST_HARD:-0}" == "1" || "${MUD_PITEST_HARD:-}" == "true" ]]; then
+    return 0
+  fi
+  # Gradle-style property passed through env for CI convenience
+  if [[ "${MUD_PITEST_HARD:-}" == "yes" ]]; then
+    return 0
+  fi
+  # Also honor project property if present in shell env from caller
+  if [[ "${mud_pitestHard:-}" == "true" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Run pure-module PIT (:core :perception :memory). Fail-closed on task error / unparseable / 0 mutations.
+# Soft 60%: pass + note if min score below; hard mode (MUD_PITEST_HARD=1) fails if min < 60.
+run_pitest() {
+  local cmd_display="./gradlew :core:pitest :perception:pitest :memory:pitest"
+  local t0 t1 dur rc
+  local score_core score_perc score_mem min_score
+  local note_msg hard_note
+  local s c p m
+
+  add_step "${cmd_display}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    note "pitest dry-run (would run pure modules; soft threshold ${PITEST_SOFT_THRESHOLD}%)"
+    return 0
+  fi
+  if [[ ! -x "${GRADLEW}" ]]; then
+    echo "error: gradlew not found or not executable at ${GRADLEW}" >&2
+    EXIT_CODE=1
+    record_gate "pitest" "fail" 0 "gradlew missing"
+    return 1
+  fi
+
+  echo ">> ${cmd_display}"
+  t0="$(date +%s)"
+  set +e
+  "${GRADLEW}" :core:pitest :perception:pitest :memory:pitest
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+
+  if [[ ${rc} -ne 0 ]]; then
+    EXIT_CODE=1
+    record_gate "pitest" "fail" "${dur}" "gradle pitest tasks failed (exit ${rc})"
+    return 1
+  fi
+
+  score_core="$(parse_pitest_module_score core)"
+  score_perc="$(parse_pitest_module_score perception)"
+  score_mem="$(parse_pitest_module_score memory)"
+
+  if [[ -z "${score_core}" || -z "${score_perc}" || -z "${score_mem}" ]]; then
+    EXIT_CODE=1
+    record_gate "pitest" "fail" "${dur}" \
+      "unparseable or missing PIT report (core=${score_core:-?} perception=${score_perc:-?} memory=${score_mem:-?})"
+    return 1
+  fi
+
+  # Min of three (conservative). awk for float compare / min.
+  min_score="$(
+    awk -v a="${score_core}" -v b="${score_perc}" -v c="${score_mem}" \
+      'BEGIN {
+        m = a + 0
+        if (b + 0 < m) m = b + 0
+        if (c + 0 < m) m = c + 0
+        printf "%.1f", m
+      }'
+  )"
+
+  if awk -v s="${min_score}" 'BEGIN { exit !(s + 0 == 0) }'; then
+    # Exactly 0.0 → treat as fail (0 mutations / total failure mode)
+    EXIT_CODE=1
+    GATE_MUTATION_SCORE="${min_score}"
+    record_gate "pitest" "fail" "${dur}" \
+      "mutation_score=0 (core=${score_core} perception=${score_perc} memory=${score_mem})"
+    return 1
+  fi
+
+  GATE_MUTATION_SCORE="${min_score}"
+  note_msg="core=${score_core} perception=${score_perc} memory=${score_mem} (min); soft threshold ${PITEST_SOFT_THRESHOLD}%"
+
+  if awk -v s="${min_score}" -v t="${PITEST_SOFT_THRESHOLD}" 'BEGIN { exit !(s + 0 < t) }'; then
+    note_msg="${note_msg}; below ${PITEST_SOFT_THRESHOLD}% soft threshold"
+    if pitest_hard_mode; then
+      EXIT_CODE=1
+      record_gate "pitest" "fail" "${dur}" "${note_msg}; MUD_PITEST_HARD=1"
+      note "PIT hard fail: min mutation_score ${min_score} < ${PITEST_SOFT_THRESHOLD}"
+      return 1
+    fi
+    note "PIT soft: min mutation_score ${min_score} below ${PITEST_SOFT_THRESHOLD}% (not failing)"
+  else
+    note "PIT min mutation_score ${min_score} (core/perception/memory)"
+  fi
+
+  record_gate "pitest" "pass" "${dur}" "${note_msg}"
+  return 0
+}
+
+# Honest skip when lane does not run PIT (never a permanent placeholder ticket note).
+skip_pitest() {
+  local reason="${1:-not in lane}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] SKIP pitest (${reason})"
+  else
+    echo "SKIP pitest (${reason})"
+  fi
+  note "SKIP pitest (${reason})"
+  record_gate "pitest" "skipped" 0 "${reason}"
+}
+
+# Hard test-file lock (MUD-012). Content hash of tracked */src/test/** vs baseline.
+# Fail-closed on drift, missing baseline, or untracked src/test paths. See docs/TEST_LOCK.md.
+run_test_lock() {
+  local cmd_display="./tools/test_lock.sh --check"
+  local t0 t1 dur rc
+
+  add_step "${cmd_display}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    return 0
+  fi
+  if [[ ! -x "${TEST_LOCK}" ]]; then
+    echo "error: test_lock.sh not found or not executable at ${TEST_LOCK}" >&2
+    EXIT_CODE=1
+    record_gate "test_lock" "fail" 0 "test_lock.sh missing"
+    return 1
+  fi
+  echo ">> ${cmd_display}"
+  t0="$(date +%s)"
+  set +e
+  "${TEST_LOCK}" --check
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+  if [[ ${rc} -ne 0 ]]; then
+    EXIT_CODE=1
+    record_gate "test_lock" "fail" "${dur}"
+    return 1
+  fi
+  record_gate "test_lock" "pass" "${dur}"
+  return 0
+}
+
+module_has_tests() {
+  local mod="$1"
+  [[ -d "${ROOT_DIR}/${mod}/src/test" ]]
+}
+
+normalize_module() {
+  # strip leading : if present
+  local m="$1"
+  m="${m#:}"
+  printf '%s' "${m}"
+}
+
+# Fill unset gates with skipped + notes (honest inventory).
+finalize_gates() {
+  local g
+
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    for g in compile tests detekt konsist test_lock pitest; do
+      GATE_SEEN[$g]=1
+      GATE_STATUS[$g]="skipped"
+      GATE_DURATION[$g]=0
+      case "$g" in
+        pitest)
+          if [[ "${LANE}" == "pitest" ]]; then
+            GATE_NOTE[$g]="dry-run"
+          elif [[ "${LANE}" == "full" && "${PITEST_IN_FULL_LANE}" -eq 0 ]]; then
+            GATE_NOTE[$g]="nightly via --pitest (core PIT >45s)"
+          else
+            GATE_NOTE[$g]="not in lane"
+          fi
+          ;;
+        *) GATE_NOTE[$g]="dry-run" ;;
+      esac
+    done
+    return 0
+  fi
+
+  if [[ -z "${GATE_SEEN[compile]:-}" ]]; then
+    if [[ "${LANE}" == "core" || "${LANE}" == "full" || "${LANE}" == "quarantine" || "${LANE}" == "pitest" ]]; then
+      record_gate "compile" "skipped" 0 "via test tasks / not separate"
+    else
+      record_gate "compile" "skipped" 0
+    fi
+  fi
+
+  if [[ -z "${GATE_SEEN[tests]:-}" ]]; then
+    if [[ "${LANE}" == "default" && ${#MODULES[@]} -eq 0 ]]; then
+      record_gate "tests" "skipped" 0 "no module tests; pass modules or use --core/--full"
+    elif [[ "${LANE}" == "pitest" ]]; then
+      record_gate "tests" "skipped" 0 "pitest lane (mutation via pitest tasks)"
+    else
+      record_gate "tests" "skipped" 0
+    fi
+  fi
+
+  for g in detekt konsist test_lock; do
+    if [[ -z "${GATE_SEEN[$g]:-}" ]]; then
+      if [[ "${LANE}" == "quarantine" ]]; then
+        record_gate "$g" "skipped" 0 "quarantine lane"
+      else
+        record_gate "$g" "skipped" 0
+      fi
+    fi
+  done
+
+  if [[ -z "${GATE_SEEN[pitest]:-}" ]]; then
+    if [[ "${LANE}" == "full" && "${PITEST_IN_FULL_LANE}" -eq 0 ]]; then
+      record_gate "pitest" "skipped" 0 "nightly via --pitest (core PIT >45s)"
+    else
+      record_gate "pitest" "skipped" 0 "not in lane"
+    fi
+  fi
+}
+
+# Emit compact dod-summary.json (pure bash; no jq required).
+write_dod_summary() {
+  local result result_json duration_s generated_at qcount
+  local steps_json="" i s
+  local out_dir
+
+  [[ "${VERIFY_STARTED}" -eq 1 ]] || return 0
+  [[ "${DOD_WRITTEN}" -eq 0 ]] || return 0
+  DOD_WRITTEN=1
+
+  finalize_gates
+
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    result="DRY_RUN"
+  elif [[ ${EXIT_CODE} -ne 0 ]]; then
+    result="FAIL"
+  else
+    result="PASS"
+  fi
+
+  duration_s=$(( $(date +%s) - SCRIPT_START_S ))
+  generated_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  qcount="$(count_quarantine_tags)"
+
+  # Cap steps list (token / size pressure)
+  if [[ ${#STEPS[@]} -gt 0 ]]; then
+    steps_json="\"$(json_escape "${STEPS[0]}")\""
+    i=1
+    while [[ ${i} -lt ${#STEPS[@]} && ${i} -lt 12 ]]; do
+      steps_json="${steps_json}, \"$(json_escape "${STEPS[${i}]}")\""
+      i=$((i + 1))
+    done
+  fi
+
+  out_dir="$(dirname "${DOD_SUMMARY_PATH}")"
+  mkdir -p "${out_dir}"
+
+  {
+    printf '{\n'
+    printf '  "schema_version": 1,\n'
+    printf '  "tool": "verify_mud",\n'
+    printf '  "lane": "%s",\n' "$(json_escape "${LANE}")"
+    printf '  "result": "%s",\n' "$(json_escape "${result}")"
+    printf '  "exit_code": %s,\n' "${EXIT_CODE}"
+    printf '  "generated_at": "%s",\n' "$(json_escape "${generated_at}")"
+    printf '  "duration_s": %s,\n' "${duration_s}"
+    if [[ "${DRY_RUN}" -eq 1 ]]; then
+      printf '  "dry_run": true,\n'
+    fi
+    printf '  "gates": {\n'
+
+    # compile
+    printf '    "compile": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[compile]:-skipped}" "${GATE_DURATION[compile]:-0}"
+    if [[ -n "${GATE_NOTE[compile]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[compile]}")"
+    fi
+    printf ' },\n'
+
+    # tests
+    printf '    "tests": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[tests]:-skipped}" "${GATE_DURATION[tests]:-0}"
+    if [[ -n "${GATE_NOTE[tests]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[tests]}")"
+    fi
+    printf ' },\n'
+
+    # detekt
+    printf '    "detekt": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[detekt]:-skipped}" "${GATE_DURATION[detekt]:-0}"
+    if [[ -n "${GATE_NOTE[detekt]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[detekt]}")"
+    fi
+    printf ' },\n'
+
+    # konsist
+    printf '    "konsist": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[konsist]:-skipped}" "${GATE_DURATION[konsist]:-0}"
+    if [[ -n "${GATE_NOTE[konsist]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[konsist]}")"
+    fi
+    printf ' },\n'
+
+    # test_lock
+    printf '    "test_lock": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[test_lock]:-skipped}" "${GATE_DURATION[test_lock]:-0}"
+    if [[ -n "${GATE_NOTE[test_lock]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[test_lock]}")"
+    fi
+    printf ' },\n'
+
+    # pitest (mutation_score only when run — MUD-014)
+    printf '    "pitest": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[pitest]:-skipped}" "${GATE_DURATION[pitest]:-0}"
+    if [[ -n "${GATE_MUTATION_SCORE}" ]]; then
+      printf ', "mutation_score": %s' "${GATE_MUTATION_SCORE}"
+    fi
+    if [[ -n "${GATE_NOTE[pitest]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[pitest]}")"
+    fi
+    printf ' }\n'
+
+    printf '  },\n'
+    if [[ -n "${qcount}" ]]; then
+      printf '  "quarantine_count": %s,\n' "${qcount}"
+    else
+      printf '  "quarantine_count": null,\n'
+    fi
+    if [[ -n "${steps_json}" ]]; then
+      printf '  "steps": [%s]\n' "${steps_json}"
+    else
+      printf '  "steps": []\n'
+    fi
+    printf '}\n'
+  } > "${DOD_SUMMARY_PATH}"
+}
+
+print_human_summary() {
+  local RESULT steps_line notes_line local_i
+  local rel_dod
+
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    RESULT="DRY_RUN"
+  elif [[ ${EXIT_CODE} -ne 0 ]]; then
+    RESULT="FAIL"
+  else
+    RESULT="PASS"
+  fi
+
+  steps_line=""
+  if [[ ${#STEPS[@]} -gt 0 ]]; then
+    steps_line="${STEPS[0]}"
+    local_i=1
+    while [[ ${local_i} -lt ${#STEPS[@]} ]]; do
+      steps_line="${steps_line}; ${STEPS[${local_i}]}"
+      local_i=$((local_i + 1))
+    done
+  else
+    steps_line="(none)"
+  fi
+
+  notes_line=""
+  if [[ ${#NOTES[@]} -gt 0 ]]; then
+    notes_line="${NOTES[0]}"
+    local_i=1
+    while [[ ${local_i} -lt ${#NOTES[@]} ]]; do
+      notes_line="${notes_line}; ${NOTES[${local_i}]}"
+      local_i=$((local_i + 1))
+    done
+  else
+    notes_line="(none)"
+  fi
+
+  # Prefer repo-relative path in summary when under ROOT_DIR
+  rel_dod="${DOD_SUMMARY_PATH}"
+  case "${DOD_SUMMARY_PATH}" in
+    "${ROOT_DIR}"/*) rel_dod="${DOD_SUMMARY_PATH#"${ROOT_DIR}"/}" ;;
+  esac
+
+  echo ""
+  echo "== verify_mud =="
+  echo "lane: ${LANE}"
+  echo "steps: ${steps_line}"
+  echo "result: ${RESULT} (exit ${EXIT_CODE})"
+  echo "notes: ${notes_line}"
+  echo "dod_summary: ${rel_dod}"
+}
+
+# Always attempt JSON write on exit (PASS/FAIL/mid-script die after start).
+on_exit() {
+  local ec=$?
+  if [[ "${VERIFY_STARTED}" -eq 1 ]]; then
+    # Prefer script EXIT_CODE over trap ec when set by hard steps
+    write_dod_summary || true
+  fi
+  return 0
+}
+trap on_exit EXIT
+
+# --- arg parse ---
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    default|fast|--fast)
+      LANE="default"
+      shift
+      ;;
+    core|--core)
+      LANE="core"
+      shift
+      ;;
+    full|--full)
+      LANE="full"
+      shift
+      ;;
+    pitest|--pitest)
+      LANE="pitest"
+      shift
+      ;;
+    quarantine|--quarantine)
+      LANE="quarantine"
+      shift
+      ;;
+    -*)
+      die_usage "unknown flag: $1"
+      ;;
+    *)
+      # positional: module name or lane synonym already handled
+      MODULES+=("$(normalize_module "$1")")
+      shift
+      ;;
+  esac
+done
+
+VERIFY_STARTED=1
+
+# --- lane body ---
+case "${LANE}" in
+  default)
+    if [[ ${#MODULES[@]} -eq 0 ]]; then
+      run_gradle compile :core:compileKotlin || true
+    else
+      for mod in "${MODULES[@]}"; do
+        if module_has_tests "${mod}"; then
+          # compile via test task deps; explicit compile then test for clarity
+          run_gradle compile ":${mod}:compileKotlin" || true
+          if [[ ${EXIT_CODE} -eq 0 ]]; then
+            run_gradle tests ":${mod}:test" || true
+          fi
+        else
+          run_gradle compile ":${mod}:compileKotlin" || true
+        fi
+        # continue modules after failure to surface all; exit non-zero still
+      done
+    fi
+    ;;
+  core)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "core lane does not take module args (got: ${MODULES[*]})"
+    fi
+    # Default JUnit excludeTags("quarantine") — green reasoning only. Debt: --quarantine / MUD-017.
+    note ":reasoning included under default excludeTags(quarantine); debt via --quarantine (MUD-017)"
+    run_gradle tests :core:test :perception:test :memory:test :reasoning:test || true
+    ;;
+  full)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "full lane does not take module args (got: ${MODULES[*]})"
+    fi
+    note ":reasoning included under default excludeTags(quarantine); use --quarantine for debt"
+    note "testbot excluded from full (slow/integration)"
+    # Stable green: unit-test modules + compile-only leaf modules (record under tests)
+    run_gradle tests \
+      :core:test \
+      :perception:test \
+      :memory:test \
+      :reasoning:test \
+      :action:compileKotlin \
+      :llm:compileKotlin \
+      :config:compileKotlin \
+      || true
+    # client left out of full (Compose can be slow); compile-only optional later
+    ;;
+  quarantine)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "quarantine lane does not take module args (got: ${MODULES[*]})"
+    fi
+    note "quarantine may fail: @Tag(quarantine) :reasoning debt (MUD-017) — hard-fail, not soft-pass"
+    run_gradle tests :reasoning:test -Pmud.quarantineOnly=true || true
+    ;;
+  pitest)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "pitest lane does not take module args (got: ${MODULES[*]})"
+    fi
+    note "PIT pure modules only (core/perception/memory); STRONGER mutators; soft ${PITEST_SOFT_THRESHOLD}%"
+    run_pitest || true
+    ;;
+  *)
+    die_usage "unknown lane: ${LANE}"
+    ;;
+esac
+
+# Detekt hard gate (MUD-010) on default/fast/core/full/pitest — not quarantine debt lane.
+# New smells fail; legacy soft via config/detekt/baseline.xml. See docs/DETEKT.md.
+if [[ "${LANE}" != "quarantine" ]]; then
+  run_gradle detekt detekt || true
+fi
+
+# Konsist architecture gate (MUD-011) on default/fast/core/full/pitest — not quarantine.
+# Filtered :core:test so the arch suite is visible in the summary on every hard lane.
+# Recorded under konsist (not general tests). See docs/KONSIST.md.
+if [[ "${LANE}" != "quarantine" ]]; then
+  run_gradle konsist :core:test --tests 'com.jcraw.mud.architecture.*' || true
+fi
+
+# Test-file lock (MUD-012) on default/fast/core/full/pitest — not quarantine debt lane.
+# Unauthorized src/test content drift / untracked tests fail closed. See docs/TEST_LOCK.md.
+if [[ "${LANE}" != "quarantine" ]]; then
+  run_test_lock || true
+fi
+
+# PIT (MUD-014): never on default/fast/core; full only if measured ≤45s (currently off).
+# --pitest lane already ran run_pitest above. Honest skip notes — never eternal stub.
+if [[ -z "${GATE_SEEN[pitest]:-}" ]]; then
+  case "${LANE}" in
+    full)
+      if [[ "${PITEST_IN_FULL_LANE}" -eq 1 ]]; then
+        run_pitest || true
+      else
+        skip_pitest "nightly via --pitest (core PIT >45s)"
+      fi
+      ;;
+    quarantine)
+      # quarantine never runs PIT; finalize_gates fills if needed
+      skip_pitest "quarantine lane"
+      ;;
+    pitest)
+      # should already be recorded; if dry-run left it unset, finalize handles
+      :
+      ;;
+    *)
+      skip_pitest "not in lane"
+      ;;
+  esac
+fi
+
+# --- summary (JSON via trap + explicit write; human always) ---
+write_dod_summary
+print_human_summary
+
+exit "${EXIT_CODE}"

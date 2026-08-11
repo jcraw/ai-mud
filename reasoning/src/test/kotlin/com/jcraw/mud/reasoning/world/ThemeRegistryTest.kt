@@ -116,9 +116,9 @@ class ThemeRegistryTest {
     }
 
     @Test
-    fun `getAllThemeNames returns all 8 themes`() {
+    fun `getAllThemeNames returns all themes`() {
         val themes = ThemeRegistry.getAllThemeNames()
-        assertEquals(8, themes.size)
+        assertEquals(9, themes.size)
         assertTrue(themes.contains("dark forest"))
         assertTrue(themes.contains("magma cave"))
         assertTrue(themes.contains("ancient crypt"))
@@ -127,6 +127,7 @@ class ThemeRegistryTest {
         assertTrue(themes.contains("swamp"))
         assertTrue(themes.contains("desert ruins"))
         assertTrue(themes.contains("underground lake"))
+        assertTrue(themes.contains("training grounds"))
     }
 
     @Test

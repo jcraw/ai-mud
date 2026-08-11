@@ -173,11 +173,11 @@ class GameViewModel(
         }
         println("$prefix ${logEntry.text}")
 
-        // Update player state if status update
-        if (event is GameEvent.StatusUpdate) {
-            gameClient?.getCurrentState()?.let { playerState ->
-                _uiState.update { it.copy(playerState = playerState) }
-            }
+        // Refresh playerState from engine after any event so inventory/equip HUD
+        // stays in sync even when handlers emit Narrative without StatusUpdate (MUD-007).
+        // StatusUpdate remains the explicit path; broader refresh is a belt for parity.
+        gameClient?.getCurrentState()?.let { playerState ->
+            _uiState.update { it.copy(playerState = playerState) }
         }
     }
 

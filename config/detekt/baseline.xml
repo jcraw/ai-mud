@@ -1,0 +1,1484 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ComplexCondition:CodeValidationRules.kt$CodeValidationRules$!gmResponse.contains("error", ignoreCase = true) &amp;&amp; !gmResponse.contains("crash", ignoreCase = true) &amp;&amp; !gmResponse.contains("exception", ignoreCase = true) &amp;&amp; gmResponse.isNotBlank() &amp;&amp; gmResponse.length &gt; 5</ID>
+    <ID>ComplexCondition:CodeValidationRules.kt$CodeValidationRules$!npcInRoom &amp;&amp; (gmResponse.contains("no one here", ignoreCase = true) || gmResponse.contains("don't see", ignoreCase = true) || gmResponse.contains("cannot intimidate", ignoreCase = true))</ID>
+    <ID>ComplexCondition:CodeValidationRules.kt$CodeValidationRules$!npcInRoom &amp;&amp; (gmResponse.contains("no one here", ignoreCase = true) || gmResponse.contains("don't see", ignoreCase = true) || gmResponse.contains("cannot persuade", ignoreCase = true))</ID>
+    <ID>ComplexCondition:CodeValidationRules.kt$CodeValidationRules$(gmResponse.contains("Inventory", ignoreCase = true) || gmResponse.contains("Carrying", ignoreCase = true)) &amp;&amp; !gmResponse.contains("error", ignoreCase = true) &amp;&amp; !gmResponse.contains("crash", ignoreCase = true) &amp;&amp; !gmResponse.contains("exception", ignoreCase = true)</ID>
+    <ID>ComplexCondition:SceneryDescriptionGenerator.kt$SceneryDescriptionGenerator$result != null &amp;&amp; (result.contains("does not exist", ignoreCase = true) || result.contains("don't see", ignoreCase = true) || result.contains("no such", ignoreCase = true))</ID>
+    <ID>ComplexCondition:TestBotRunner.kt$TestBotRunner$report.damageTaken &gt; 0 || report.npcsKilled &gt; 0 || report.skillChecksPassed &gt; 0 || report.socialChecksPassed &gt; 0</ID>
+    <ID>ComplexCondition:TestModels.kt$TestReport.Companion$(step.playerInput.contains("persuade", ignoreCase = true) || step.playerInput.contains("intimidate", ignoreCase = true)) &amp;&amp; (step.gmResponse.contains("Success!", ignoreCase = true) || step.gmResponse.contains("succeed", ignoreCase = true))</ID>
+    <ID>ComplexCondition:TestModels.kt$TestReport.Companion$step.gmResponse.contains("You have died", ignoreCase = true) || step.gmResponse.contains("You fall", ignoreCase = true) || step.gmResponse.contains("You are dead", ignoreCase = true) || step.gmResponse.contains("death", ignoreCase = true) &amp;&amp; step.gmResponse.contains("you", ignoreCase = true)</ID>
+    <ID>ComplexCondition:TestModels.kt$TestReport.Companion$step.gmResponse.contains("damage", ignoreCase = true) || step.gmResponse.contains("hit", ignoreCase = true) || step.gmResponse.contains("strike", ignoreCase = true) || step.gmResponse.contains("attack", ignoreCase = true) || step.gmResponse.contains("combat", ignoreCase = true) || step.gmResponse.contains("retaliate", ignoreCase = true)</ID>
+    <ID>ComplexCondition:TestModels.kt$TestReport.Companion$step.playerInput.contains("attack", ignoreCase = true) || step.playerInput.contains("fight", ignoreCase = true) || step.playerInput.contains("hit", ignoreCase = true) || step.playerInput.contains("kill", ignoreCase = true)</ID>
+    <ID>CyclomaticComplexMethod:AttackResolver.kt$AttackResolver$suspend fun resolveAttack( attackerId: String, defenderId: String, action: String, worldState: WorldState, skillManager: SkillManager, attackerEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), defenderEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), templates: Map&lt;String, ItemTemplate&gt; = emptyMap() ): AttackResult</ID>
+    <ID>CyclomaticComplexMethod:ClientCombatHandlers.kt$ClientCombatHandlers$fun handleAttack(game: EngineGameClient, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:ClientItemHandlers.kt$ClientItemHandlers$fun handleEquip(game: EngineGameClient, target: String)</ID>
+    <ID>CyclomaticComplexMethod:ClientItemHandlers.kt$ClientItemHandlers$fun handleInventory(game: EngineGameClient)</ID>
+    <ID>CyclomaticComplexMethod:ClientItemHandlers.kt$ClientItemHandlers$private fun formatItemInfo(instance: ItemInstance, template: ItemTemplate): String</ID>
+    <ID>CyclomaticComplexMethod:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleLook(game: EngineGameClient, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleSearch(game: EngineGameClient, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleCraft(game: EngineGameClient, target: String)</ID>
+    <ID>CyclomaticComplexMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleInteract(game: EngineGameClient, target: String)</ID>
+    <ID>CyclomaticComplexMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun inferSkillFromAction(action: String): String?</ID>
+    <ID>CyclomaticComplexMethod:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$fun handleExaminePedestal(game: EngineGameClient, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$private fun extractItemStats(template: ItemTemplate): List&lt;String&gt;</ID>
+    <ID>CyclomaticComplexMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateCombat( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>CyclomaticComplexMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateItemInteraction( playerInput: String, gmResponse: String, inventoryTracker: Set&lt;String&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>CyclomaticComplexMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateMovement( playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>CyclomaticComplexMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateSocialInteraction( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>CyclomaticComplexMethod:CombatHandlers.kt$CombatHandlers$fun handleAttack(game: MudGame, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:CombatNarrator.kt$CombatNarrator$suspend fun narrateAction( weapon: String, damage: Int, maxHp: Int, isHit: Boolean, isCritical: Boolean = false, isDeath: Boolean = false, isSpell: Boolean = false, targetName: String = "enemy" ): String</ID>
+    <ID>CyclomaticComplexMethod:DungeonLayoutGenerator.kt$DungeonLayoutGenerator$private fun addCrossConnections( nodes: List&lt;DungeonNode&gt;, occupiedPositions: Set&lt;Pair&lt;Int, Int&gt;&gt; )</ID>
+    <ID>CyclomaticComplexMethod:EmoteHandler.kt$EmoteHandler$private fun getEmoteReaction( npc: Entity.NPC, emoteType: EmoteType, newDisposition: Int, oldDisposition: Int ): String</ID>
+    <ID>CyclomaticComplexMethod:EngineGameClient.kt$EngineGameClient$private fun processNPCTurns()</ID>
+    <ID>CyclomaticComplexMethod:EngineGameClient.kt$EngineGameClient$private suspend fun processIntent(intent: Intent)</ID>
+    <ID>CyclomaticComplexMethod:GameServer.kt$GameServer$private fun handleCheck( playerId: PlayerId, playerState: PlayerState, targetId: String ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>CyclomaticComplexMethod:GameServer.kt$GameServer$private suspend fun handleIntent( playerId: PlayerId, playerState: PlayerState, intent: Intent ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun assignDirectionPair( fromId: String, toId: String, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; )</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun assignNodeTypes( nodes: List&lt;GraphNodeComponent&gt;, chunkId: String ): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirectionsBidirectional( node: GraphNodeComponent, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun buildNodeEdges( nodes: List&lt;GraphNodeComponent&gt;, edges: List&lt;Pair&lt;String, String&gt;&gt; ): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun calculateDirection(from: GraphNodeComponent, to: GraphNodeComponent): String</ID>
+    <ID>CyclomaticComplexMethod:GraphGenerator.kt$GraphGenerator$private fun fixBidirectionalDirections(nodes: List&lt;GraphNodeComponent&gt;): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>CyclomaticComplexMethod:InputGenerator.kt$InputGenerator$private fun buildUserContext( scenario: TestScenario, recentHistory: List&lt;TestStep&gt;, currentContext: String ): String</ID>
+    <ID>CyclomaticComplexMethod:IntentRecognizer.kt$IntentRecognizer$private fun parseDirectionWord(word: String): Direction?</ID>
+    <ID>CyclomaticComplexMethod:IntentRecognizer.kt$IntentRecognizer$private fun parseFallback(input: String): Intent</ID>
+    <ID>CyclomaticComplexMethod:IntentRecognizer.kt$IntentRecognizer$private fun parseIntentFromResponse(responseText: String, originalInput: String): Intent</ID>
+    <ID>CyclomaticComplexMethod:IntentRecognizer.kt$IntentRecognizer$private fun splitSayRemainder(remainder: String): Pair&lt;String?, String&gt;</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$fun handleDrop(game: MudGame, target: String)</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$fun handleEquip(game: MudGame, target: String)</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$fun handleInventory(game: MudGame)</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?)</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$fun handleLootAll(game: MudGame, corpseTarget: String)</ID>
+    <ID>CyclomaticComplexMethod:ItemHandlers.kt$ItemHandlers$private fun formatItemInfo(instance: ItemInstance, template: ItemTemplate): String</ID>
+    <ID>CyclomaticComplexMethod:ItemUseHandler.kt$ItemUseHandler$fun determineUse( instanceId: String, action: String, inventory: InventoryComponent ): ItemUseResult</ID>
+    <ID>CyclomaticComplexMethod:LootTableGenerator.kt$LootTableGenerator$fun generateForTheme(theme: String, difficulty: Int): LootTable</ID>
+    <ID>CyclomaticComplexMethod:LootTableGenerator.kt$LootTableGenerator$private fun extractThemeKeywords(theme: String): List&lt;String&gt;</ID>
+    <ID>CyclomaticComplexMethod:MainGameScreen.kt$@Composable fun GameInputField( onSendInput: (String) -&gt; Unit, onNavigateHistory: (Int) -&gt; String?, colors: androidx.compose.material3.ColorScheme, modifier: Modifier = Modifier )</ID>
+    <ID>CyclomaticComplexMethod:MovementHandlers.kt$MovementHandlers$private fun postMove(game: MudGame, movementLabel: String, treasureExitMessage: String? = null)</ID>
+    <ID>CyclomaticComplexMethod:MudGameEngine.kt$MudGame$internal fun describeCurrentRoom()</ID>
+    <ID>CyclomaticComplexMethod:MudGameEngine.kt$MudGame$internal fun processIntent(intent: Intent)</ID>
+    <ID>CyclomaticComplexMethod:MudGameEngine.kt$MudGame$internal fun processNPCTurns()</ID>
+    <ID>CyclomaticComplexMethod:NarrationMatcher.kt$NarrationMatcher$private fun getWeaponCategory(weapon: String): String</ID>
+    <ID>CyclomaticComplexMethod:NarrationMatcher.kt$NarrationMatcher$private fun matchesContext(narrative: String, context: CombatContext): Boolean</ID>
+    <ID>CyclomaticComplexMethod:PersonalityAI.kt$PersonalityAI$fun getActionFlavor( decision: AIDecision, socialComponent: SocialComponent? ): String</ID>
+    <ID>CyclomaticComplexMethod:PersonalityAI.kt$PersonalityAI$fun modifyDecision( decision: AIDecision, socialComponent: SocialComponent?, combatComponent: CombatComponent ): AIDecision</ID>
+    <ID>CyclomaticComplexMethod:PlayerSession.kt$PlayerSession$private fun formatEvent(event: GameEvent): String?</ID>
+    <ID>CyclomaticComplexMethod:SkillClassifier.kt$SkillClassifier$private fun fallbackClassification( action: String, entitySkills: SkillComponent ): List&lt;SkillWeight&gt;</ID>
+    <ID>CyclomaticComplexMethod:SkillComboResolver.kt$SkillComboResolver$fun identifySkills(action: String): Map&lt;String, Float&gt;</ID>
+    <ID>CyclomaticComplexMethod:SkillFormatter.kt$SkillFormatter$fun formatSkillSheet(component: SkillComponent): String</ID>
+    <ID>CyclomaticComplexMethod:SkillManager.kt$SkillManager$fun checkSkill( entityId: String, skillName: String, difficulty: Int, opposedEntityId: String? = null, opposedSkill: String? = null ): Result&lt;SkillCheckResult&gt;</ID>
+    <ID>CyclomaticComplexMethod:SkillManager.kt$SkillManager$fun unlockSkill( entityId: String, skillName: String, method: UnlockMethod ): Result&lt;SkillEvent.SkillUnlocked?&gt;</ID>
+    <ID>CyclomaticComplexMethod:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleCraft(game: MudGame, target: String)</ID>
+    <ID>CyclomaticComplexMethod:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleInteract(game: MudGame, target: String)</ID>
+    <ID>CyclomaticComplexMethod:SkillQuestHandlers.kt$SkillQuestHandlers$private fun inferSkillFromAction(action: String): String?</ID>
+    <ID>CyclomaticComplexMethod:TestBotMain.kt$private fun parseScenarioFromArgs(args: Array&lt;String&gt;): TestScenario</ID>
+    <ID>CyclomaticComplexMethod:TestBotRunner.kt$TestBotRunner$private fun checkScenarioComplete(state: TestState): Boolean</ID>
+    <ID>CyclomaticComplexMethod:TestBotRunner.kt$TestBotRunner$private fun printSummary(report: TestReport)</ID>
+    <ID>CyclomaticComplexMethod:ThemeRegistry.kt$ThemeRegistry$fun getProfileSemantic(theme: String): ThemeProfile?</ID>
+    <ID>CyclomaticComplexMethod:TreasureRoomHandlers.kt$TreasureRoomHandlers$fun handleExaminePedestal(game: MudGame, target: String?)</ID>
+    <ID>CyclomaticComplexMethod:TreasureRoomHandlers.kt$TreasureRoomHandlers$private fun extractItemStats(template: ItemTemplate): List&lt;String&gt;</ID>
+    <ID>CyclomaticComplexMethod:V3TestGameEngine.kt$V3TestGameEngine$private fun processIntent(intent: Intent): String</ID>
+    <ID>CyclomaticComplexMethod:ValidationPrompts.kt$ValidationPrompts$fun buildUserContext( scenario: TestScenario, playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, expectedOutcome: String?, worldState: WorldState? ): String</ID>
+    <ID>CyclomaticComplexMethod:WorldGenerator.kt$WorldGenerator$private suspend fun generateNodeNameAndDescription( node: GraphNodeComponent, chunk: WorldChunkComponent, chunkId: String ): Result&lt;Pair&lt;String, String&gt;&gt;</ID>
+    <ID>ForbiddenComment:BossLootHandler.kt$BossLootHandler$// TODO: Implement generic legendary loot generation</ID>
+    <ID>ForbiddenComment:ClientMovementHandlers.kt$ClientMovementHandlers$// TODO: Trigger player death/respawn logic</ID>
+    <ID>ForbiddenComment:CorpseDecayManager.kt$CorpseDecayManager$* Manages corpse decay over time. * * Corpses tick down their decay timer each turn. When timer reaches 0: * - Corpse is removed from the room * - All items and gold are lost (destroyed with corpse) * * Note: Items are not dropped to room as entities in V2 system. * TODO: Future enhancement could store items in room loot containers.</ID>
+    <ID>ForbiddenComment:DeathHandler.kt$DeathHandler$* Handle player death - create corpse with inventory. * Note: Inventory migration is pending. For now, creates empty corpse. * TODO: Update when InventoryComponent is fully integrated with PlayerState</ID>
+    <ID>ForbiddenComment:DeathHandler.kt$DeathHandler$// TODO: Extract from InventoryComponent when integrated</ID>
+    <ID>ForbiddenComment:ExitData.kt$Condition.ItemRequired$// TODO: Check actual item tags when ItemRepository integration is complete</ID>
+    <ID>ForbiddenComment:ExitLinker.kt$ExitLinker$* Handles vertical exits by spawning new subzones. * TODO: For very deep descents, spawn new zones instead of subzones.</ID>
+    <ID>ForbiddenComment:ExitLinker.kt$ExitLinker$// TODO: Track depth and create zones for multi-level dungeons</ID>
+    <ID>ForbiddenComment:FleeResolver.kt$FleeResolver$// TODO: Get equipped items if needed</ID>
+    <ID>ForbiddenComment:MovementHandlers.kt$MovementHandlers$// TODO: Trigger player death/respawn logic</ID>
+    <ID>ForbiddenComment:MudGameEngine.kt$MudGame$// TODO: Add corpse decay scheduler when integrated</ID>
+    <ID>ForbiddenComment:MudGameEngine.kt$MudGame$// TODO: Apply defensive buff</ID>
+    <ID>ForbiddenComment:MudGameEngine.kt$MudGame$// TODO: Implement NPC flee mechanics</ID>
+    <ID>ForbiddenComment:MudGameEngine.kt$MudGame$// TODO: Implement NPC item usage</ID>
+    <ID>ForbiddenComment:Quest.kt$QuestReward$* Quest rewards * TODO: Migrate items from List&lt;Entity.Item&gt; to List&lt;String&gt; (templateIds) when InventoryComponent is integrated * Reward items should be generated using LootGenerator or ItemRepository.findTemplateById()</ID>
+    <ID>ForbiddenComment:RestHandler.kt$// TODO: Add mana restoration when mana system exists:</ID>
+    <ID>ForbiddenComment:SQLiteCombatRepository.kt$SQLiteCombatRepository$// TODO: This requires access to WorldState to determine room occupants</ID>
+    <ID>ForbiddenComment:SQLiteCombatRepository.kt$SQLiteCombatRepository$// TODO: This requires integration with SocialRepository to check dispositions</ID>
+    <ID>ForbiddenComment:SkillSystem.kt$SkillSystem$* Interface for future :skill module * * TODO: INTEGRATION POINT - Replace with real :skill module implementation * * This stub provides basic d20 skill check functionality until the full skill * system is implemented.</ID>
+    <ID>ForbiddenComment:SkillSystem.kt$StubSkillSystem$// TODO: INTEGRATION POINT - Replace with real skill system</ID>
+    <ID>ForbiddenComment:StorySystem.kt$StorySystem$* Interface for future :story module * * TODO: INTEGRATION POINT - Replace with real :story module implementation * * This stub provides basic interfaces for story/narrative systems until the full * story module is implemented.</ID>
+    <ID>ForbiddenComment:StorySystem.kt$StubStorySystem$// TODO: INTEGRATION POINT - Replace with real story system</ID>
+    <ID>FunctionNaming:Main.kt$@Composable fun App()</ID>
+    <ID>FunctionNaming:MainGameScreen.kt$@Composable fun GameInputField( onSendInput: (String) -&gt; Unit, onNavigateHistory: (Int) -&gt; String?, colors: androidx.compose.material3.ColorScheme, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:MainGameScreen.kt$@Composable fun GameLogWindow( logEntries: List&lt;LogEntry&gt;, colors: androidx.compose.material3.ColorScheme, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:MainGameScreen.kt$@Composable fun LogEntryText(entry: LogEntry, colors: androidx.compose.material3.ColorScheme)</ID>
+    <ID>FunctionNaming:MainGameScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun MainGameScreen( viewModel: GameViewModel, uiState: UiState )</ID>
+    <ID>FunctionNaming:MainGameScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun StatusBar( playerState: com.jcraw.mud.core.PlayerState?, theme: UiState.Theme, onThemeToggle: () -&gt; Unit, onCopyLog: () -&gt; Unit, colors: androidx.compose.material3.ColorScheme )</ID>
+    <ID>FunctionOnlyReturningConstant:GameServer.kt$GameServer$private fun formatQuests(playerState: PlayerState): String</ID>
+    <ID>ImplicitDefaultLocale:InventoryManager.kt$InventoryManager$String.format("%.1fkg / %.1fkg", currentWeight, inventory.capacityWeight)</ID>
+    <ID>ImplicitDefaultLocale:MemoryManager.kt$MemoryManager$String.format("%.3f", scored.score)</ID>
+    <ID>ImplicitDefaultLocale:WorldGenerator.kt$WorldGenerator$String.format("%.2f", chunk.mobDensity)</ID>
+    <ID>LargeClass:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers</ID>
+    <ID>LargeClass:EngineGameClient.kt$EngineGameClient : GameClient</ID>
+    <ID>LargeClass:GameServer.kt$GameServer</ID>
+    <ID>LargeClass:GraphGenerator.kt$GraphGenerator</ID>
+    <ID>LargeClass:InputGenerator.kt$InputGenerator</ID>
+    <ID>LargeClass:IntentRecognizer.kt$IntentRecognizer</ID>
+    <ID>LargeClass:MudGameEngine.kt$MudGame</ID>
+    <ID>LargeClass:PerkDefinitions.kt$PerkDefinitions</ID>
+    <ID>LargeClass:SkillQuestHandlers.kt$SkillQuestHandlers</ID>
+    <ID>LongMethod:App.kt$fun main()</ID>
+    <ID>LongMethod:AttackResolver.kt$AttackResolver$suspend fun resolveAttack( attackerId: String, defenderId: String, action: String, worldState: WorldState, skillManager: SkillManager, attackerEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), defenderEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), templates: Map&lt;String, ItemTemplate&gt; = emptyMap() ): AttackResult</ID>
+    <ID>LongMethod:ClientCombatHandlers.kt$ClientCombatHandlers$fun handleAttack(game: EngineGameClient, target: String?)</ID>
+    <ID>LongMethod:ClientItemHandlers.kt$ClientItemHandlers$fun handleEquip(game: EngineGameClient, target: String)</ID>
+    <ID>LongMethod:ClientItemHandlers.kt$ClientItemHandlers$fun handleInventory(game: EngineGameClient)</ID>
+    <ID>LongMethod:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleLook(game: EngineGameClient, target: String?)</ID>
+    <ID>LongMethod:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleSearch(game: EngineGameClient, target: String?)</ID>
+    <ID>LongMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleCraft(game: EngineGameClient, target: String)</ID>
+    <ID>LongMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleInteract(game: EngineGameClient, target: String)</ID>
+    <ID>LongMethod:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleUseSkill(game: EngineGameClient, skill: String?, action: String)</ID>
+    <ID>LongMethod:ClientTradeHandlers.kt$ClientTradeHandlers$private fun handleBuy(game: EngineGameClient, intent: Intent.Trade)</ID>
+    <ID>LongMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateCombat( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>LongMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateItemInteraction( playerInput: String, gmResponse: String, inventoryTracker: Set&lt;String&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>LongMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateMovement( playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>LongMethod:CodeValidationRules.kt$CodeValidationRules$private fun validateSocialInteraction( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>LongMethod:CombatDatabase.kt$CombatDatabase$private fun initializeSchema()</ID>
+    <ID>LongMethod:CombatHandlers.kt$CombatHandlers$fun handleAttack(game: MudGame, target: String?)</ID>
+    <ID>LongMethod:CombatNarrator.kt$CombatNarrator$suspend fun narrateCombatRound( worldState: WorldState, npc: Entity.NPC, playerDamage: Int, npcDamage: Int, npcDied: Boolean, playerDied: Boolean ): String</ID>
+    <ID>LongMethod:DispositionManager.kt$DispositionManager$fun trainSkillWithNPC( playerId: String, npc: Entity.NPC, skillName: String ): Result&lt;String&gt;</ID>
+    <ID>LongMethod:DungeonInitializer.kt$DungeonInitializer$private fun linkTownToDungeon( townSpaceId: String, townSubzoneId: String, combatEntranceId: String, combatSubzoneId: String ): Result&lt;Unit&gt;</ID>
+    <ID>LongMethod:DungeonInitializer.kt$DungeonInitializer$suspend fun initializeAncientAbyss(seed: String = "dark fantasy DnD"): Result&lt;AncientAbyssData&gt;</ID>
+    <ID>LongMethod:EngineGameClient.kt$EngineGameClient$private fun maybeExpandFrontier(currentNode: GraphNodeComponent)</ID>
+    <ID>LongMethod:EngineGameClient.kt$EngineGameClient$private suspend fun processIntent(intent: Intent)</ID>
+    <ID>LongMethod:FleeResolver.kt$FleeResolver$suspend fun resolveFlee( fleeingEntityId: String, pursuers: List&lt;String&gt;, targetDirection: Direction, worldState: WorldState, skillManager: SkillManager ): FleeResult</ID>
+    <ID>LongMethod:GraphGenerator.kt$GraphGenerator$private fun assignNodeTypes( nodes: List&lt;GraphNodeComponent&gt;, chunkId: String ): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>LongMethod:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirectionsBidirectional( node: GraphNodeComponent, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>LongMethod:GraphGenerator.kt$GraphGenerator$private fun buildNodeEdges( nodes: List&lt;GraphNodeComponent&gt;, edges: List&lt;Pair&lt;String, String&gt;&gt; ): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>LongMethod:GraphGenerator.kt$GraphGenerator$private fun fixBidirectionalDirections(nodes: List&lt;GraphNodeComponent&gt;): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>LongMethod:HiddenExitPlacer.kt$HiddenExitPlacer$suspend fun placeHiddenExit( midDepthsRegionId: String, seed: String, globalLore: String ): Result&lt;String&gt;</ID>
+    <ID>LongMethod:InputGenerator.kt$InputGenerator$private fun buildUserContext( scenario: TestScenario, recentHistory: List&lt;TestStep&gt;, currentContext: String ): String</ID>
+    <ID>LongMethod:IntentRecognizer.kt$IntentRecognizer$private fun buildSystemPrompt(): String</ID>
+    <ID>LongMethod:IntentRecognizer.kt$IntentRecognizer$private fun parseFallback(input: String): Intent</ID>
+    <ID>LongMethod:IntentRecognizer.kt$IntentRecognizer$private fun parseIntentFromResponse(responseText: String, originalInput: String): Intent</ID>
+    <ID>LongMethod:ItemDatabase.kt$ItemDatabase$private fun initializeSchema()</ID>
+    <ID>LongMethod:ItemHandlers.kt$ItemHandlers$fun handleEquip(game: MudGame, target: String)</ID>
+    <ID>LongMethod:ItemHandlers.kt$ItemHandlers$fun handleInventory(game: MudGame)</ID>
+    <ID>LongMethod:ItemHandlers.kt$ItemHandlers$fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?)</ID>
+    <ID>LongMethod:ItemHandlers.kt$ItemHandlers$fun handleLootAll(game: MudGame, corpseTarget: String)</ID>
+    <ID>LongMethod:LootTableGenerator.kt$LootTableGenerator$fun generateForTheme(theme: String, difficulty: Int): LootTable</ID>
+    <ID>LongMethod:LootTableRegistry.kt$LootTableRegistry$private fun registerDefaultTables()</ID>
+    <ID>LongMethod:MainGameScreen.kt$@Composable fun GameInputField( onSendInput: (String) -&gt; Unit, onNavigateHistory: (Int) -&gt; String?, colors: androidx.compose.material3.ColorScheme, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:MainGameScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun StatusBar( playerState: com.jcraw.mud.core.PlayerState?, theme: UiState.Theme, onThemeToggle: () -&gt; Unit, onCopyLog: () -&gt; Unit, colors: androidx.compose.material3.ColorScheme )</ID>
+    <ID>LongMethod:MobSpawner.kt$MobSpawner$private suspend fun spawnEntitiesWithLLM( theme: String, count: Int, difficulty: Int ): List&lt;Entity.NPC&gt;</ID>
+    <ID>LongMethod:MovementHandlers.kt$MovementHandlers$private fun postMove(game: MudGame, movementLabel: String, treasureExitMessage: String? = null)</ID>
+    <ID>LongMethod:MudGameEngine.kt$MudGame$internal fun processIntent(intent: Intent)</ID>
+    <ID>LongMethod:MudGameEngine.kt$MudGame$private fun executeNPCAttack(npc: Entity.NPC)</ID>
+    <ID>LongMethod:NPCKnowledgeManager.kt$NPCKnowledgeManager$private suspend fun generateCanonKnowledge( npc: Entity.NPC, question: String, normalizedTopic: String, worldContext: String, existingKnowledge: List&lt;KnowledgeEntry&gt; ): Pair&lt;String, Entity.NPC&gt;</ID>
+    <ID>LongMethod:PickpocketHandler.kt$PickpocketHandler$fun stealFromNPC( playerInventory: InventoryComponent, playerSkills: SkillComponent, targetNpc: Entity.NPC, itemTarget: String? = null, templates: Map&lt;String, ItemTemplate&gt; ): PickpocketResult</ID>
+    <ID>LongMethod:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$override fun save(properties: SpacePropertiesComponent, chunkId: String): Result&lt;Unit&gt;</ID>
+    <ID>LongMethod:SkillComboResolver.kt$SkillComboResolver$fun identifySkills(action: String): Map&lt;String, Float&gt;</ID>
+    <ID>LongMethod:SkillManager.kt$SkillManager$fun attemptSkillProgress( entityId: String, skillName: String, baseXp: Long, success: Boolean ): Result&lt;List&lt;SkillEvent&gt;&gt;</ID>
+    <ID>LongMethod:SkillManager.kt$SkillManager$fun checkSkill( entityId: String, skillName: String, difficulty: Int, opposedEntityId: String? = null, opposedSkill: String? = null ): Result&lt;SkillCheckResult&gt;</ID>
+    <ID>LongMethod:SkillManager.kt$SkillManager$fun grantXp( entityId: String, skillName: String, baseXp: Long, success: Boolean ): Result&lt;List&lt;SkillEvent&gt;&gt;</ID>
+    <ID>LongMethod:SkillManager.kt$SkillManager$fun unlockSkill( entityId: String, skillName: String, method: UnlockMethod ): Result&lt;SkillEvent.SkillUnlocked?&gt;</ID>
+    <ID>LongMethod:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleCraft(game: MudGame, target: String)</ID>
+    <ID>LongMethod:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleInteract(game: MudGame, target: String)</ID>
+    <ID>LongMethod:TestBotRunner.kt$TestBotRunner$private fun printSummary(report: TestReport)</ID>
+    <ID>LongMethod:TestBotRunner.kt$TestBotRunner$private suspend fun executeStep(state: TestState, sessionId: String): StepResult</ID>
+    <ID>LongMethod:TownGenerator.kt$TownGenerator$suspend fun generateTownSubzone( parentZone: WorldChunkComponent, parentZoneId: String, seed: String, globalLore: String ): Result&lt;Pair&lt;String, String&gt;&gt;</ID>
+    <ID>LongMethod:ValidationPrompts.kt$ValidationPrompts$fun buildUserContext( scenario: TestScenario, playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, expectedOutcome: String?, worldState: WorldState? ): String</ID>
+    <ID>LongMethod:ValidationPrompts.kt$ValidationPrompts$private fun buildCombatCriteria()</ID>
+    <ID>LongMethod:WorldDatabase.kt$WorldDatabase$private fun initializeSchema()</ID>
+    <ID>LongMethod:WorldGenerator.kt$WorldGenerator$private suspend fun generateChunkData(context: GenerationContext, lore: String): Result&lt;ChunkData&gt;</ID>
+    <ID>LongMethod:WorldGenerator.kt$WorldGenerator$private suspend fun generateNodeNameAndDescription( node: GraphNodeComponent, chunk: WorldChunkComponent, chunkId: String ): Result&lt;Pair&lt;String, String&gt;&gt;</ID>
+    <ID>LongMethod:WorldInitializationHelper.kt$suspend fun initializeAncientAbyssWorld( apiKey: String, playerId: String = "player_cli", playerName: String = "Adventurer", dbPath: String = DatabaseConfig.WORLD_DB, includeQuests: Boolean = true ): Result&lt;AncientAbyssWorld&gt;</ID>
+    <ID>LongMethod:WorldStateSeeder.kt$WorldStateSeeder$fun seedWorldState( baseState: WorldState, startingSpaceId: String, onWarning: (String) -&gt; Unit = {}, onError: (String) -&gt; Unit = {} ): WorldState</ID>
+    <ID>LongParameterList:AttackResolver.kt$AttackResolver$( attackerId: String, defenderId: String, action: String, worldState: WorldState, skillManager: SkillManager, attackerEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), defenderEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), templates: Map&lt;String, ItemTemplate&gt; = emptyMap() )</ID>
+    <ID>LongParameterList:AttackResolver.kt$AttackResult.Companion$( attackerId: String, defenderId: String, attackRoll: Int, defenseRoll: Int, attackerSkillsUsed: List&lt;String&gt;, defenderSkillsUsed: List&lt;String&gt;, defenseOutcome: DefenseOutcome, wasDodged: Boolean )</ID>
+    <ID>LongParameterList:AttackResolver.kt$AttackResult.Companion$( attackerId: String, defenderId: String, damage: Int, damageType: DamageType, attackRoll: Int, defenseRoll: Int, attackerSkillsUsed: List&lt;String&gt;, defenderSkillsUsed: List&lt;String&gt;, defenseOutcome: DefenseOutcome, updatedDefenderCombat: CombatComponent, statusEffects: List&lt;StatusEffect&gt; = emptyList(), wasKilled: Boolean = false )</ID>
+    <ID>LongParameterList:CombatNarrator.kt$CombatNarrator$( weapon: String, damage: Int, isHit: Boolean, isCritical: Boolean, isDeath: Boolean, narrative: String )</ID>
+    <ID>LongParameterList:CombatNarrator.kt$CombatNarrator$( weapon: String, damage: Int, isHit: Boolean, isCritical: Boolean, isDeath: Boolean, targetName: String )</ID>
+    <ID>LongParameterList:CombatNarrator.kt$CombatNarrator$( weapon: String, damage: Int, maxHp: Int, isHit: Boolean, isCritical: Boolean = false, isDeath: Boolean = false, isSpell: Boolean = false, targetName: String = "enemy" )</ID>
+    <ID>LongParameterList:CombatNarrator.kt$CombatNarrator$( worldState: WorldState, npc: Entity.NPC, playerDamage: Int, npcDamage: Int, npcDied: Boolean, playerDied: Boolean )</ID>
+    <ID>LongParameterList:CorpseHandlers.kt$( intent: Intent.LootCorpse, world: WorldState, player: PlayerState, corpseRepository: CorpseRepository, itemRepository: ItemRepository, currentTime: Long )</ID>
+    <ID>LongParameterList:DungeonInitializer.kt$DungeonInitializer$( private val worldGenerator: WorldGenerator, private val worldSeedRepo: WorldSeedRepository, private val chunkRepo: WorldChunkRepository, private val spaceRepo: SpacePropertiesRepository, private val townGenerator: TownGenerator, private val bossGenerator: BossGenerator, private val hiddenExitPlacer: HiddenExitPlacer, private val graphNodeRepo: com.jcraw.mud.core.repository.GraphNodeRepository, private val treasureRoomRepository: TreasureRoomRepository )</ID>
+    <ID>LongParameterList:FleeResolver.kt$FleeResult.Companion$( fleeingEntityId: String, targetDirection: Direction, fleeRoll: Int, pursuitRoll: Int, escapeSkillUsed: Boolean, pursuitSkillsUsed: Map&lt;String, Int&gt;, freeAttacks: List&lt;AttackResult&gt; = emptyList() )</ID>
+    <ID>LongParameterList:FleeResolver.kt$FleeResult.Companion$( fleeingEntityId: String, targetDirection: Direction, fleeRoll: Int, pursuitRoll: Int, escapeSkillUsed: Boolean, pursuitSkillsUsed: Map&lt;String, Int&gt;, freeAttacks: List&lt;AttackResult&gt;, interceptorId: String? )</ID>
+    <ID>LongParameterList:GameServer.kt$GameServer$( private var worldState: WorldState, private val memoryManager: MemoryManager, private val roomDescriptionGenerator: RoomDescriptionGenerator, private val npcInteractionGenerator: NPCInteractionGenerator, private val combatResolver: CombatResolver, private val combatNarrator: CombatNarrator, private val skillCheckResolver: SkillCheckResolver, private val sceneryGenerator: SceneryDescriptionGenerator, private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager, private val socialDatabase: SocialDatabase? = null )</ID>
+    <ID>LongParameterList:MobSpawner.kt$MobSpawner$( theme: String, mobDensity: Double, difficulty: Int, spaceId: String, respawnChecker: RespawnChecker, spaceSize: Int = 10 )</ID>
+    <ID>LongParameterList:MonsterAIHandler.kt$MonsterAIHandler$( npc: Entity.NPC, combatComponent: CombatComponent, socialComponent: SocialComponent?, intelligenceLevel: Int, wisdomLevel: Int, worldState: WorldState )</ID>
+    <ID>LongParameterList:MudGameEngine.kt$MudGame$( internal val initialWorldState: WorldState, private val descriptionGenerator: RoomDescriptionGenerator? = null, internal val npcInteractionGenerator: NPCInteractionGenerator? = null, internal val combatNarrator: CombatNarrator? = null, private val memoryManager: MemoryManager? = null, private val llmClient: OpenAIClient? = null, private val skillDbPath: String = com.jcraw.mud.core.DatabaseConfig.SKILLS_DB )</ID>
+    <ID>LongParameterList:MultiUserGame.kt$MultiUserGame$( private val initialWorldState: WorldState, private val descriptionGenerator: RoomDescriptionGenerator?, private val npcInteractionGenerator: NPCInteractionGenerator?, private val combatNarrator: CombatNarrator?, private val memoryManager: MemoryManager?, private val combatResolver: CombatResolver, private val skillCheckResolver: SkillCheckResolver, private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager, private val llmClient: OpenAIClient? )</ID>
+    <ID>LongParameterList:NPCKnowledgeManager.kt$NPCKnowledgeManager$( npcName: String, personality: String, traits: String?, disposition: DispositionTier?, worldContext: String, existingKnowledge: String )</ID>
+    <ID>LongParameterList:OutputValidator.kt$OutputValidator$( scenario: TestScenario, playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, expectedOutcome: String? = null, worldState: WorldState? = null )</ID>
+    <ID>LongParameterList:SkillCheckResult.kt$SkillCheckResult.Companion$( roll: Int, skillLevel: Int, opposingSkill: String, opposingRoll: Int, opposingSkillLevel: Int, narrative: String )</ID>
+    <ID>LongParameterList:SkillFormatter.kt$SkillFormatter$( skillName: String, success: Boolean, roll: Int, skillLevel: Int, difficulty: Int, margin: Int )</ID>
+    <ID>LongParameterList:SpacePopulator.kt$SpacePopulator$( space: SpacePropertiesComponent, spaceId: String, theme: String, difficulty: Int, mobDensity: Double, respawnChecker: RespawnChecker, spaceSize: Int = 10 )</ID>
+    <ID>LongParameterList:TradeHandler.kt$TradeHandler$( playerInventory: InventoryComponent, merchantTrading: TradingComponent, instanceId: String, quantity: Int, disposition: Int, templates: Map&lt;String, ItemTemplate&gt; )</ID>
+    <ID>LongParameterList:TradeHandlers.kt$TradeHandlers$( game: MudGame, tradeHandler: TradeHandler, merchant: Entity.NPC, tradingComponent: TradingComponent, playerInventory: com.jcraw.mud.core.InventoryComponent, target: String, quantity: Int, disposition: Int, templates: Map&lt;String, ItemTemplate&gt;, spaceId: String )</ID>
+    <ID>LongParameterList:ValidationPrompts.kt$ValidationPrompts$( scenario: TestScenario, playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, expectedOutcome: String?, worldState: WorldState? )</ID>
+    <ID>LoopWithTooManyJumpStatements:DungeonLayoutGenerator.kt$DungeonLayoutGenerator$for</ID>
+    <ID>LoopWithTooManyJumpStatements:EngineGameClient.kt$EngineGameClient$while</ID>
+    <ID>LoopWithTooManyJumpStatements:FleeResolver.kt$FleeResolver$for</ID>
+    <ID>LoopWithTooManyJumpStatements:GraphGenerator.kt$GraphGenerator$for</ID>
+    <ID>LoopWithTooManyJumpStatements:GraphValidator.kt$GraphValidator$for</ID>
+    <ID>LoopWithTooManyJumpStatements:MudGameEngine.kt$MudGame$while</ID>
+    <ID>LoopWithTooManyJumpStatements:MultiUserGame.kt$MultiUserGame$while</ID>
+    <ID>MagicNumber:ActionCosts.kt$ActionCosts$10.0</ID>
+    <ID>MagicNumber:App.kt$60</ID>
+    <ID>MagicNumber:AttackResolver.kt$AttackResolver$0.4</ID>
+    <ID>MagicNumber:AttackResolver.kt$AttackResolver$0.6</ID>
+    <ID>MagicNumber:AttackResolver.kt$AttackResolver$1.5</ID>
+    <ID>MagicNumber:AttackResolver.kt$AttackResolver$21</ID>
+    <ID>MagicNumber:AutosaveManager.kt$AutosaveManager$5</ID>
+    <ID>MagicNumber:BossCombatEnhancements.kt$BossCombatEnhancements$100</ID>
+    <ID>MagicNumber:BossCombatEnhancements.kt$BossCombatEnhancements$3</ID>
+    <ID>MagicNumber:BossCombatEnhancements.kt$BossCombatEnhancements$50.0</ID>
+    <ID>MagicNumber:CapacityCalculator.kt$CapacityCalculator$0.15</ID>
+    <ID>MagicNumber:CapacityCalculator.kt$CapacityCalculator$0.2</ID>
+    <ID>MagicNumber:CapacityCalculator.kt$CapacityCalculator$0.25</ID>
+    <ID>MagicNumber:ChunkIdGenerator.kt$ChunkIdGenerator$3</ID>
+    <ID>MagicNumber:ChunkIdGenerator.kt$ChunkIdGenerator$8</ID>
+    <ID>MagicNumber:ChunkLevel.kt$ChunkLevel.SPACE$4</ID>
+    <ID>MagicNumber:ChunkLevel.kt$ChunkLevel.SUBZONE$3</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$100</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$15</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$30</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$5</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$50</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$75</ID>
+    <ID>MagicNumber:ClientCombatHandlers.kt$ClientCombatHandlers$90</ID>
+    <ID>MagicNumber:ClientItemHandlers.kt$ClientItemHandlers$5</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$10L</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$15</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$20</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$25L</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$26</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$3</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$50L</ID>
+    <ID>MagicNumber:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$5L</ID>
+    <ID>MagicNumber:ClientSocialHandlers.kt$ClientSocialHandlers$5</ID>
+    <ID>MagicNumber:CodeValidationRules.kt$CodeValidationRules$5</ID>
+    <ID>MagicNumber:CombatComponent.kt$CombatComponent$100</ID>
+    <ID>MagicNumber:CombatComponent.kt$CombatComponent$3</ID>
+    <ID>MagicNumber:CombatComponent.kt$CombatComponent.Companion$10</ID>
+    <ID>MagicNumber:CombatComponent.kt$CombatComponent.Companion$3</ID>
+    <ID>MagicNumber:CombatComponent.kt$CombatComponent.Companion$5</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$100</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$15</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$30</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$5</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$50</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$75</ID>
+    <ID>MagicNumber:CombatHandlers.kt$CombatHandlers$90</ID>
+    <ID>MagicNumber:CombatResolver.kt$CombatResolver$13</ID>
+    <ID>MagicNumber:CombatResolver.kt$CombatResolver$16</ID>
+    <ID>MagicNumber:CombatResolver.kt$CombatResolver$3</ID>
+    <ID>MagicNumber:CombatResolver.kt$CombatResolver$5</ID>
+    <ID>MagicNumber:CorpseHandlers.kt$10</ID>
+    <ID>MagicNumber:CorpseHandlers.kt$100</ID>
+    <ID>MagicNumber:CorpseManager.kt$100</ID>
+    <ID>MagicNumber:CorpseManager.kt$500</ID>
+    <ID>MagicNumber:CraftingManager.kt$CraftingManager$10</ID>
+    <ID>MagicNumber:CraftingManager.kt$CraftingManager$21</ID>
+    <ID>MagicNumber:DamageCalculator.kt$DamageCalculator$12</ID>
+    <ID>MagicNumber:DamageCalculator.kt$DamageCalculator$14</ID>
+    <ID>MagicNumber:DamageCalculator.kt$DamageCalculator$15</ID>
+    <ID>MagicNumber:DamageCalculator.kt$DamageCalculator$16</ID>
+    <ID>MagicNumber:DeathHandler.kt$DeathHandler$150</ID>
+    <ID>MagicNumber:DeathHandler.kt$DeathHandler$200</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$0.7</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$0.85</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$1.15</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$1.5</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$10</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$100L</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$2.5</ID>
+    <ID>MagicNumber:DispositionManager.kt$DispositionManager$5</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$12</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$15</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$18</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$40</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$5</ID>
+    <ID>MagicNumber:DungeonInitializer.kt$DungeonInitializer$70</ID>
+    <ID>MagicNumber:DungeonLayoutGenerator.kt$DungeonLayoutGenerator$3</ID>
+    <ID>MagicNumber:DungeonLayoutGenerator.kt$DungeonLayoutGenerator$4</ID>
+    <ID>MagicNumber:EmoteHandler.kt$EmoteHandler$10</ID>
+    <ID>MagicNumber:EngineGameClient.kt$EngineGameClient$6</ID>
+    <ID>MagicNumber:Entity.kt$Stats$10</ID>
+    <ID>MagicNumber:ExitResolver.kt$ExitResolver$10</ID>
+    <ID>MagicNumber:ExitResolver.kt$ExitResolver$5</ID>
+    <ID>MagicNumber:FleeResolver.kt$FleeResolver$0.4</ID>
+    <ID>MagicNumber:FleeResolver.kt$FleeResolver$0.6</ID>
+    <ID>MagicNumber:FleeResolver.kt$FleeResolver$21</ID>
+    <ID>MagicNumber:GameConfig.kt$GameConfig$10.0f</ID>
+    <ID>MagicNumber:GameConfig.kt$GameConfig$15</ID>
+    <ID>MagicNumber:GameServer.kt$GameServer$13</ID>
+    <ID>MagicNumber:GameServer.kt$GameServer$3</ID>
+    <ID>MagicNumber:GameplayLogger.kt$GameplayLogger$100</ID>
+    <ID>MagicNumber:GameplayLogger.kt$GameplayLogger$1000.0</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReport$1000.0</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReport$4</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReport$60</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReportGenerator$10</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReportGenerator$100</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReportGenerator$1000.0</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReportGenerator$150</ID>
+    <ID>MagicNumber:GameplayReportGenerator.kt$GameplayReportGenerator$5</ID>
+    <ID>MagicNumber:GenerationCache.kt$GenerationCache.&lt;no name provided&gt;$0.75f</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$0.10</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$0.15</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$0.2</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$10</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$180</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$20</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$3</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$360.0</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$5</ID>
+    <ID>MagicNumber:GraphGenerator.kt$GraphGenerator$50</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.BSP$6</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$10</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$100</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$25</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$3</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$5</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$50</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$6</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Companion$8</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.FloodFill$0.1</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.FloodFill$100</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.FloodFill$5</ID>
+    <ID>MagicNumber:GraphLayout.kt$GraphLayout.Grid$100</ID>
+    <ID>MagicNumber:GraphNodeComponent.kt$GraphNodeComponent$3</ID>
+    <ID>MagicNumber:GraphNodeComponent.kt$GraphNodeComponent$4</ID>
+    <ID>MagicNumber:GraphNodeComponent.kt$GraphNodeComponent$5</ID>
+    <ID>MagicNumber:GraphNodeComponent.kt$GraphNodeComponent$7</ID>
+    <ID>MagicNumber:GraphValidator.kt$GraphValidator$3</ID>
+    <ID>MagicNumber:GraphValidator.kt$GraphValidator$3.0</ID>
+    <ID>MagicNumber:HiddenExitHandler.kt$HiddenExitHandler.Companion$30</ID>
+    <ID>MagicNumber:HiddenExitHandler.kt$HiddenExitHandler.Companion$40</ID>
+    <ID>MagicNumber:HiddenExitHandler.kt$HiddenExitHandler.Companion$50</ID>
+    <ID>MagicNumber:HiddenExitPlacer.kt$HiddenExitPlacer$20</ID>
+    <ID>MagicNumber:HiddenExitPlacer.kt$HiddenExitPlacer$30</ID>
+    <ID>MagicNumber:HiddenExitPlacer.kt$HiddenExitPlacer$40</ID>
+    <ID>MagicNumber:HiddenExitPlacer.kt$HiddenExitPlacer$50</ID>
+    <ID>MagicNumber:InputGenerator.kt$InputGenerator$10</ID>
+    <ID>MagicNumber:InputGenerator.kt$InputGenerator$1200</ID>
+    <ID>MagicNumber:InputGenerator.kt$InputGenerator$3</ID>
+    <ID>MagicNumber:InputGenerator.kt$InputGenerator$4</ID>
+    <ID>MagicNumber:InputGenerator.kt$InputGenerator$5</ID>
+    <ID>MagicNumber:IntentRecognizer.kt$IntentRecognizer$50</ID>
+    <ID>MagicNumber:InventoryComponent.kt$InventoryComponent$10.0</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$100</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$15</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$20</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$25</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$3</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$30</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$4</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$40</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$45</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$5</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$50</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$6</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$65</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$7</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$8</ID>
+    <ID>MagicNumber:ItemGenerator.kt$ItemGenerator$9</ID>
+    <ID>MagicNumber:ItemHandlers.kt$ItemHandlers$5</ID>
+    <ID>MagicNumber:ItemInstance.kt$ItemInstance$0.1</ID>
+    <ID>MagicNumber:ItemInstance.kt$ItemInstance$0.5</ID>
+    <ID>MagicNumber:ItemInstance.kt$ItemInstance$10</ID>
+    <ID>MagicNumber:ItemUseHandler.kt$ItemUseHandler$0.5</ID>
+    <ID>MagicNumber:ItemUseHandler.kt$ItemUseHandler$10.0</ID>
+    <ID>MagicNumber:ItemUseHandler.kt$ItemUseHandler$20</ID>
+    <ID>MagicNumber:ItemUseHandler.kt$ItemUseHandler$3</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$10</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$3</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$4</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$5</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$6</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$7</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$8</ID>
+    <ID>MagicNumber:KnowledgeRepository.kt$SqliteKnowledgeRepository$9</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$0.5</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$0.8</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$1.2</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$1.5</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$10</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$3</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$3.0</ID>
+    <ID>MagicNumber:LootGenerator.kt$LootGenerator$5.0</ID>
+    <ID>MagicNumber:LootTable.kt$LootEntry$10</ID>
+    <ID>MagicNumber:LootTable.kt$LootTable$10</ID>
+    <ID>MagicNumber:LootTable.kt$LootTable$5</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$10</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$15</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$3</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$4</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$5</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$50</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$7</ID>
+    <ID>MagicNumber:LootTableGenerator.kt$LootTableGenerator$9</ID>
+    <ID>MagicNumber:MainGameScreen.kt$0xFFCF6679</ID>
+    <ID>MagicNumber:MainGameScreen.kt$0xFFD4AF37</ID>
+    <ID>MagicNumber:MemoryManager.kt$MemoryManager$60</ID>
+    <ID>MagicNumber:MerchantPricingCalculator.kt$MerchantPricingCalculator$0.4</ID>
+    <ID>MagicNumber:MerchantPricingCalculator.kt$MerchantPricingCalculator$0.5</ID>
+    <ID>MagicNumber:MerchantPricingCalculator.kt$MerchantPricingCalculator$0.6</ID>
+    <ID>MagicNumber:MerchantPricingCalculator.kt$MerchantPricingCalculator$0.8</ID>
+    <ID>MagicNumber:MerchantPricingCalculator.kt$MerchantPricingCalculator$1.25</ID>
+    <ID>MagicNumber:MobSpawnTuning.kt$MobSpawnTuning$0.5</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$10</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$2</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$20</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$3</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$5</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$6</ID>
+    <ID>MagicNumber:MobSpawner.kt$MobSpawner$8</ID>
+    <ID>MagicNumber:MockGameClient.kt$MockGameClient$8</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$0.3</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$0.5</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$0.7</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$1.2</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$100</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$20</ID>
+    <ID>MagicNumber:MonsterAIHandler.kt$MonsterAIHandler$50</ID>
+    <ID>MagicNumber:MovementCostCalculator.kt$MovementCostCalculator$10</ID>
+    <ID>MagicNumber:MovementCostCalculator.kt$MovementCostCalculator$20</ID>
+    <ID>MagicNumber:MovementCostCalculator.kt$MovementCostCalculator$21</ID>
+    <ID>MagicNumber:MovementCostCalculator.kt$MovementCostCalculator$5</ID>
+    <ID>MagicNumber:MovementCostCalculator.kt$MovementCostCalculator$7</ID>
+    <ID>MagicNumber:MovementHandlers.kt$MovementHandlers$5</ID>
+    <ID>MagicNumber:MudGameEngine.kt$MudGame$25</ID>
+    <ID>MagicNumber:MudGameEngine.kt$MudGame$50</ID>
+    <ID>MagicNumber:MudGameEngine.kt$MudGame$6</ID>
+    <ID>MagicNumber:MudGameEngine.kt$MudGame$60</ID>
+    <ID>MagicNumber:MudGameEngine.kt$MudGame$75</ID>
+    <ID>MagicNumber:MultiUserGame.kt$MultiUserGame$30</ID>
+    <ID>MagicNumber:MultiUserGame.kt$MultiUserGame$50</ID>
+    <ID>MagicNumber:MultiUserGame.kt$MultiUserGame$60</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$10</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$100</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$12</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$14</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$15</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$16</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$18</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$20</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$25</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$3</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$4</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$5</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$60</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$75</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$8</ID>
+    <ID>MagicNumber:NPCGenerator.kt$NPCGenerator$80</ID>
+    <ID>MagicNumber:NPCInteractionGenerator.kt$NPCInteractionGenerator$0.3</ID>
+    <ID>MagicNumber:NPCInteractionGenerator.kt$NPCInteractionGenerator$0.7</ID>
+    <ID>MagicNumber:NPCKnowledgeManager.kt$NPCKnowledgeManager$3</ID>
+    <ID>MagicNumber:NPCKnowledgeManager.kt$NPCKnowledgeManager$5</ID>
+    <ID>MagicNumber:NarrationMatcher.kt$NarrationMatcher$10</ID>
+    <ID>MagicNumber:NarrationMatcher.kt$NarrationMatcher$100</ID>
+    <ID>MagicNumber:NarrationMatcher.kt$NarrationMatcher$25</ID>
+    <ID>MagicNumber:NarrationMatcher.kt$NarrationMatcher$50</ID>
+    <ID>MagicNumber:NarrationVariantGenerator.kt$NarrationVariantGenerator$3</ID>
+    <ID>MagicNumber:NavigationState.kt$NavigationState$20</ID>
+    <ID>MagicNumber:OpenAIClient.kt$OpenAIClient$120_000L</ID>
+    <ID>MagicNumber:OpenAIClient.kt$OpenAIClient$150</ID>
+    <ID>MagicNumber:OpenAIClient.kt$OpenAIClient$200</ID>
+    <ID>MagicNumber:OpenAIClient.kt$OpenAIClient$299</ID>
+    <ID>MagicNumber:OpenAIClient.kt$OpenAIClient$30_000L</ID>
+    <ID>MagicNumber:PerkDefinitions.kt$PerkDefinitions$10</ID>
+    <ID>MagicNumber:PerkSelector.kt$PerkSelector$10</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.1</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.2</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.3</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.35</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.5</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.6</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.7</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$0.8</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$1.2</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$1.3</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$1.5</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$1.8</ID>
+    <ID>MagicNumber:PersonalityAI.kt$PersonalityAI$100</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$0.3</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$10</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$20</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$21</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$3</ID>
+    <ID>MagicNumber:PickpocketHandler.kt$PickpocketHandler$50</ID>
+    <ID>MagicNumber:PlayerState.kt$PlayerState$10</ID>
+    <ID>MagicNumber:PlayerState.kt$PlayerState$3</ID>
+    <ID>MagicNumber:PlayerState.kt$PlayerState$30</ID>
+    <ID>MagicNumber:PlayerState.kt$PlayerState$5</ID>
+    <ID>MagicNumber:QuestGenerator.kt$QuestGenerator$1000</ID>
+    <ID>MagicNumber:QuestGenerator.kt$QuestGenerator$3</ID>
+    <ID>MagicNumber:QuestGenerator.kt$QuestGenerator$4</ID>
+    <ID>MagicNumber:QuestGenerator.kt$QuestGenerator$5</ID>
+    <ID>MagicNumber:ResistanceCalculator.kt$DamageReductionResult$100</ID>
+    <ID>MagicNumber:ResistanceCalculator.kt$ResistanceCalculator$100f</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$0.03</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$10</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$100</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$3</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$5</ID>
+    <ID>MagicNumber:ResourceGenerator.kt$ResourceGenerator$8</ID>
+    <ID>MagicNumber:RespawnChecker.kt$RespawnChecker$10</ID>
+    <ID>MagicNumber:RespawnChecker.kt$RespawnChecker$100</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$10</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$100</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$1000L</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$11</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$30</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$300L</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$31</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$500L</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$60</ID>
+    <ID>MagicNumber:RespawnConfig.kt$RespawnConfig$61</ID>
+    <ID>MagicNumber:RestHandler.kt$100L</ID>
+    <ID>MagicNumber:SQLiteCombatRepository.kt$SQLiteCombatRepository$3</ID>
+    <ID>MagicNumber:SQLiteCombatRepository.kt$SQLiteCombatRepository$4</ID>
+    <ID>MagicNumber:SQLiteCombatRepository.kt$SQLiteCombatRepository$5</ID>
+    <ID>MagicNumber:SQLiteCombatRepository.kt$SQLiteCombatRepository$6</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$3</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$4</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$5</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$6</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$7</ID>
+    <ID>MagicNumber:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$8</ID>
+    <ID>MagicNumber:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$3</ID>
+    <ID>MagicNumber:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$4</ID>
+    <ID>MagicNumber:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$5</ID>
+    <ID>MagicNumber:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$6</ID>
+    <ID>MagicNumber:SQLiteInventoryRepository.kt$SQLiteInventoryRepository$3</ID>
+    <ID>MagicNumber:SQLiteInventoryRepository.kt$SQLiteInventoryRepository$4</ID>
+    <ID>MagicNumber:SQLiteInventoryRepository.kt$SQLiteInventoryRepository$5</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$3</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$4</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$5</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$6</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$7</ID>
+    <ID>MagicNumber:SQLiteItemRepository.kt$SQLiteItemRepository$8</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$3</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$4</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$5</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$6</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$7</ID>
+    <ID>MagicNumber:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$8</ID>
+    <ID>MagicNumber:SQLiteRespawnRepository.kt$SQLiteRespawnRepository$3</ID>
+    <ID>MagicNumber:SQLiteRespawnRepository.kt$SQLiteRespawnRepository$4</ID>
+    <ID>MagicNumber:SQLiteRespawnRepository.kt$SQLiteRespawnRepository$5</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$3</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$4</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$5</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$6</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$7</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$8</ID>
+    <ID>MagicNumber:SQLiteSkillRepository.kt$SQLiteSkillRepository$9</ID>
+    <ID>MagicNumber:SQLiteSpaceEntityRepository.kt$SQLiteSpaceEntityRepository$3</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$10</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$11</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$12</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$13</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$3</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$4</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$5</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$6</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$7</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$8</ID>
+    <ID>MagicNumber:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$9</ID>
+    <ID>MagicNumber:SQLiteTradingRepository.kt$SQLiteTradingRepository$3</ID>
+    <ID>MagicNumber:SQLiteTradingRepository.kt$SQLiteTradingRepository$4</ID>
+    <ID>MagicNumber:SQLiteTradingRepository.kt$SQLiteTradingRepository$5</ID>
+    <ID>MagicNumber:SQLiteTreasureRoomRepository.kt$SQLiteTreasureRoomRepository$3</ID>
+    <ID>MagicNumber:SQLiteTreasureRoomRepository.kt$SQLiteTreasureRoomRepository$4</ID>
+    <ID>MagicNumber:SQLiteTreasureRoomRepository.kt$SQLiteTreasureRoomRepository$5</ID>
+    <ID>MagicNumber:SQLiteTreasureRoomRepository.kt$SQLiteTreasureRoomRepository$6</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$10</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$3</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$4</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$5</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$6</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$7</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$8</ID>
+    <ID>MagicNumber:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$9</ID>
+    <ID>MagicNumber:SQLiteWorldSeedRepository.kt$SQLiteWorldSeedRepository$3</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.EASY$10</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.HARD$20</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.MEDIUM$15</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.NEARLY_IMPOSSIBLE$30</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.TRIVIAL$5</ID>
+    <ID>MagicNumber:SkillCheck.kt$Difficulty.VERY_HARD$25</ID>
+    <ID>MagicNumber:SkillCheckResolver.kt$SkillCheckResolver$21</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.2</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.3</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.4</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.6</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.7</ID>
+    <ID>MagicNumber:SkillClassifier.kt$SkillClassifier$0.8</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$0.1f</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$0.3f</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$0.4f</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$0.6f</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$0.7f</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$10</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$21</ID>
+    <ID>MagicNumber:SkillComboResolver.kt$SkillComboResolver$5</ID>
+    <ID>MagicNumber:SkillComponent.kt$SkillComponent$10</ID>
+    <ID>MagicNumber:SkillDefinitions.kt$SkillDefinitions$10</ID>
+    <ID>MagicNumber:SkillDefinitions.kt$SkillDefinitions$3</ID>
+    <ID>MagicNumber:SkillDefinitions.kt$SkillDefinitions$5</ID>
+    <ID>MagicNumber:SkillDefinitions.kt$SkillDefinitions$50</ID>
+    <ID>MagicNumber:SkillFormatter.kt$SkillFormatter$3</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$0.2</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$10</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$101</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$15</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$21</ID>
+    <ID>MagicNumber:SkillManager.kt$SkillManager$5</ID>
+    <ID>MagicNumber:SkillModifierCalculator.kt$SkillModifierCalculator$0.133</ID>
+    <ID>MagicNumber:SkillModifierCalculator.kt$SkillModifierCalculator$0.8</ID>
+    <ID>MagicNumber:SkillModifierCalculator.kt$SkillModifierCalculator$10</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$10L</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$15</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$20</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$25L</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$26</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$3</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$50L</ID>
+    <ID>MagicNumber:SkillQuestHandlers.kt$SkillQuestHandlers$5L</ID>
+    <ID>MagicNumber:SkillState.kt$SkillState$1.5</ID>
+    <ID>MagicNumber:SkillState.kt$SkillState$10</ID>
+    <ID>MagicNumber:SkillState.kt$SkillState$100</ID>
+    <ID>MagicNumber:SkillState.kt$SkillState$100.0</ID>
+    <ID>MagicNumber:SkillState.kt$SkillState$100L</ID>
+    <ID>MagicNumber:SkillSystem.kt$StubSkillSystem$2</ID>
+    <ID>MagicNumber:SkillSystem.kt$StubSkillSystem$21</ID>
+    <ID>MagicNumber:SkillSystem.kt$StubSkillSystem$3</ID>
+    <ID>MagicNumber:SocialComponent.kt$SocialComponent$100</ID>
+    <ID>MagicNumber:SocialComponent.kt$SocialComponent$25</ID>
+    <ID>MagicNumber:SocialComponent.kt$SocialComponent$75</ID>
+    <ID>MagicNumber:SocialComponentRepository.kt$SqliteSocialComponentRepository$3</ID>
+    <ID>MagicNumber:SocialComponentRepository.kt$SqliteSocialComponentRepository$4</ID>
+    <ID>MagicNumber:SocialComponentRepository.kt$SqliteSocialComponentRepository$5</ID>
+    <ID>MagicNumber:SocialComponentRepository.kt$SqliteSocialComponentRepository$6</ID>
+    <ID>MagicNumber:SocialEvent.kt$EmoteType.BOW$5</ID>
+    <ID>MagicNumber:SocialEvent.kt$EmoteType.INSULT$10</ID>
+    <ID>MagicNumber:SocialEvent.kt$EmoteType.LAUGH$3</ID>
+    <ID>MagicNumber:SocialEvent.kt$EmoteType.THREATEN$15</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.AttackAttempted$100</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.GiftGiven$10</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.GiftGiven$30</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.GiftGiven$5</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.HelpRefused$10</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.Intimidated$20</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.Intimidated$5</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.Persuaded$15</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.Persuaded$2</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.QuestFailed$25</ID>
+    <ID>MagicNumber:SocialEvent.kt$SocialEvent.Threatened$15</ID>
+    <ID>MagicNumber:SocialEventRepository.kt$SqliteSocialEventRepository$3</ID>
+    <ID>MagicNumber:SocialEventRepository.kt$SqliteSocialEventRepository$4</ID>
+    <ID>MagicNumber:SocialEventRepository.kt$SqliteSocialEventRepository$5</ID>
+    <ID>MagicNumber:SocialEventRepository.kt$SqliteSocialEventRepository$6</ID>
+    <ID>MagicNumber:SpeedCalculator.kt$SpeedCalculator$10.0</ID>
+    <ID>MagicNumber:TestBotMain.kt$60</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$100</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$1000.0</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$20</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$25</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$5</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$50</ID>
+    <ID>MagicNumber:TestBotRunner.kt$TestBotRunner$60</ID>
+    <ID>MagicNumber:TestModels.kt$TestReport.Companion$3</ID>
+    <ID>MagicNumber:Theme.kt$0xFF0F0E0B</ID>
+    <ID>MagicNumber:Theme.kt$0xFF1A1A1A</ID>
+    <ID>MagicNumber:Theme.kt$0xFF1C1A15</ID>
+    <ID>MagicNumber:Theme.kt$0xFF2C2416</ID>
+    <ID>MagicNumber:Theme.kt$0xFF2D2416</ID>
+    <ID>MagicNumber:Theme.kt$0xFF2D2A22</ID>
+    <ID>MagicNumber:Theme.kt$0xFF3E2723</ID>
+    <ID>MagicNumber:Theme.kt$0xFF4A3F33</ID>
+    <ID>MagicNumber:Theme.kt$0xFF8B6F47</ID>
+    <ID>MagicNumber:Theme.kt$0xFF8B7355</ID>
+    <ID>MagicNumber:Theme.kt$0xFFB00020</ID>
+    <ID>MagicNumber:Theme.kt$0xFFCF6679</ID>
+    <ID>MagicNumber:Theme.kt$0xFFD0C9B9</ID>
+    <ID>MagicNumber:Theme.kt$0xFFD4AF37</ID>
+    <ID>MagicNumber:Theme.kt$0xFFE5C876</ID>
+    <ID>MagicNumber:Theme.kt$0xFFE8E1D3</ID>
+    <ID>MagicNumber:Theme.kt$0xFFEFE8DC</ID>
+    <ID>MagicNumber:Theme.kt$0xFFF5E6D3</ID>
+    <ID>MagicNumber:Theme.kt$0xFFF5EFE0</ID>
+    <ID>MagicNumber:Theme.kt$0xFFFFFBF5</ID>
+    <ID>MagicNumber:Theme.kt$0xFFFFFFFF</ID>
+    <ID>MagicNumber:TradeHandlers.kt$TradeHandlers$40</ID>
+    <ID>MagicNumber:TradeHandlers.kt$TradeHandlers$5</ID>
+    <ID>MagicNumber:TradingComponent.kt$TradingComponent$10</ID>
+    <ID>MagicNumber:TradingComponent.kt$TradingComponent$10.0</ID>
+    <ID>MagicNumber:TradingComponent.kt$TradingComponent$100.0</ID>
+    <ID>MagicNumber:TradingComponent.kt$TradingComponent$50</ID>
+    <ID>MagicNumber:TrapData.kt$TrapData$21</ID>
+    <ID>MagicNumber:TrapGenerator.kt$TrapGenerator$0.05</ID>
+    <ID>MagicNumber:TrapGenerator.kt$TrapGenerator$10</ID>
+    <ID>MagicNumber:TrapGenerator.kt$TrapGenerator$2</ID>
+    <ID>MagicNumber:TrapGenerator.kt$TrapGenerator$25</ID>
+    <ID>MagicNumber:TrapGenerator.kt$TrapGenerator$3</ID>
+    <ID>MagicNumber:TreasureRoomPlacer.kt$TreasureRoomPlacer$0.5</ID>
+    <ID>MagicNumber:TreasureRoomPlacer.kt$TreasureRoomPlacer$0.75</ID>
+    <ID>MagicNumber:TreasureRoomPlacer.kt$TreasureRoomPlacer$3</ID>
+    <ID>MagicNumber:V3TestGameEngine.kt$V3TestGameEngine$0.25</ID>
+    <ID>MagicNumber:V3TestGameEngine.kt$V3TestGameEngine$15</ID>
+    <ID>MagicNumber:V3TestGameEngine.kt$V3TestGameEngine$20</ID>
+    <ID>MagicNumber:V3TestGameEngine.kt$V3TestGameEngine$5</ID>
+    <ID>MagicNumber:ValidationPrompts.kt$ValidationPrompts$150</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$10</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$100</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$2</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$20</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$200</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$25</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$3</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$30</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$40</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$5</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$50</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$55</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$6</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$60</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$600</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$65</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$70</ID>
+    <ID>MagicNumber:WorldGenerator.kt$WorldGenerator$8</ID>
+    <ID>MatchingDeclarationName:BossFlags.kt$BossDesignation</ID>
+    <ID>MatchingDeclarationName:CorpseManager.kt$LootResult</ID>
+    <ID>MatchingDeclarationName:DeathHandler.kt$DeathResult</ID>
+    <ID>MatchingDeclarationName:MudGameEngine.kt$MudGame</ID>
+    <ID>MatchingDeclarationName:VectorStoreInterface.kt$VectorStore</ID>
+    <ID>MatchingDeclarationName:WorldInitializationHelper.kt$AncientAbyssWorld</ID>
+    <ID>MaxLineLength:BossLootHandler.kt$BossLootHandler.Companion$description = "A pulsing crystalline heart torn from the Abyssal Lord. Power radiates from its depths, granting immense strength to its bearer."</ID>
+    <ID>MaxLineLength:ClientCombatHandlers.kt$ClientCombatHandlers$game.emitEvent(GameEvent.System("Attack failed: ${attackResult.reason}", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientCombatHandlers.kt$ClientCombatHandlers$game.emitEvent(GameEvent.System("Combat system not available (requires API key)", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientCombatHandlers.kt$ClientCombatHandlers$game.emitEvent(GameEvent.System("You don't see anyone by that name to attack.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$appendLine(" Equipped Armor: ${player.equippedArmor!!.name} (+${player.equippedArmor!!.defenseBonus} defense)")</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$appendLine(" Equipped Weapon: ${player.equippedWeapon!!.name} (+${player.equippedWeapon!!.damageBonus} damage)")</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.Narrative("You consume the ${item.name} and restore $healedAmount HP.\nCurrent health: ${game.worldState.player.health}/${game.worldState.player.maxHealth}"))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.Narrative("You consume the ${item.name}, but you're already at full health."))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.Narrative("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense)."))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.Narrative("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage)."))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.System("That's part of the environment and can't be taken.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.System("Try 'equip ${item.name}' to equip this weapon.", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientItemHandlers.kt$ClientItemHandlers$game.emitEvent(GameEvent.System("You don't have that in your inventory.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$appendLine("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} strikes you for ${attack.damage} damage!", attack.damage))</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} swings at you but misses!"))</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$game.emitEvent(GameEvent.System("Flee system unavailable. Allowing movement.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$game.emitEvent(GameEvent.System("Interaction system not yet implemented. (Target: $target)", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientMovementHandlers.kt$ClientMovementHandlers$game.emitEvent(GameEvent.System("You can't find any exit matching \"$rawDirection\".", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$"+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})"</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$"+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})"</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$"You drink from the ${fountain.name}. The water is cool and refreshing,\nthough you are already at full health."</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$"⚡ Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk."</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$appendLine("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$appendLine("d20 roll: ${result.roll} + modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Available saves: ${saves.joinToString(", ")}", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Could not determine which skill to use for: $action", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Error: Loot table not found for ${feature.lootTableId}", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Failed to unlock perk. You may not have a pending perk choice for this skill.", GameEvent.MessageLevel.ERROR))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Invalid choice. Please choose a number between 1 and ${availablePerks.size}.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("No perk choices available for $skillName at level ${skillState.level}.", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Quest '${quest.title}' is not complete yet!\nProgress: ${quest.getProgressSummary()}", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("There's no one here by that name to train with.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("This resource has already been harvested.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("Train with whom? Use 'train &lt;skill&gt; with &lt;npc&gt;'.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("You don't have a quest with ID '$questId'.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("You don't have the skill '$skillName'. Train it first!", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("You need a ${requiredToolTag.replace("_", " ")} to harvest this.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("You've already claimed the reward for this quest!", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.emitEvent(GameEvent.System("❌ You failed to harvest the resource properly.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$game.worldState = game.worldState.replaceEntityInSpace(game.worldState.player.currentRoomId, npc.id, npc) ?: game.worldState</ID>
+    <ID>MaxLineLength:ClientSocialHandlers.kt$ClientSocialHandlers$game.emitEvent(GameEvent.System("Intimidation system integrated - implement if needed", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientSocialHandlers.kt$ClientSocialHandlers$game.emitEvent(GameEvent.System("Persuasion system integrated - implement if needed", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientSocialHandlers.kt$ClientSocialHandlers$game.emitEvent(GameEvent.System("Skill check system integrated - implement if needed", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:ClientTradeHandlers.kt$ClientTradeHandlers$GameEvent.System("${merchant.name} doesn't carry anything like '$itemQuery'.", GameEvent.MessageLevel.INFO)</ID>
+    <ID>MaxLineLength:ClientTradeHandlers.kt$ClientTradeHandlers$val match = resolveMerchantCandidate(merchants.map { it.second }, merchantTarget, game.lastConversationNpcId)</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$appendLine("${info.pedestalIndex + 1}. $stateSymbol $rarityColor${info.itemName}$statsText - $stateText")</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.Narrative("The treasure room stands empty, its magic spent. Only bare altars remain."))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.Narrative("You may return to this room at any time to swap your choice for a different treasure."))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.Narrative("\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away."))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.Narrative("\nThe $barrierType shimmer and fade, revealing the other treasures once more. You may choose again."))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.System("Inventory system not available (V2 Item System required)", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.System("That item is not on any pedestal in this room.\nAvailable items: $available", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.System("This isn't a treasure room. Use 'take' for regular items.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$game.emitEvent(GameEvent.System("You don't have that item in your inventory.", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$private</ID>
+    <ID>MaxLineLength:CodeValidationRules.kt$CodeValidationRules$"(?:go|move|^)\\s*(north|south|east|west|northeast|northwest|southeast|southwest|up|down|n|s|e|w|ne|nw|se|sw|u|d)(?:\\s|$)"</ID>
+    <ID>MaxLineLength:CodeValidationRules.kt$CodeValidationRules$reason = "Player died (HP: ${worldState.player.health}/${worldState.player.maxHealth}) - test should end"</ID>
+    <ID>MaxLineLength:CodeValidationRules.kt$CodeValidationRules$reason = "[CODE] Intimidation check failed on '$npcName' (dice roll lost, mechanics work. Flavor text about hostility/consequences is normal for failed intimidation)"</ID>
+    <ID>MaxLineLength:CombatBehavior.kt$CombatBehavior$println("[TURN QUEUE DEBUG] Adding ${npc.name} to queue: gameTime=${worldState.gameTime}, actionCost=$actionCost, timerEnd=$timerEnd")</ID>
+    <ID>MaxLineLength:CombatNarrator.kt$CombatNarrator$appendLine("- Player (${worldState.player.name}): Health ${worldState.player.health}/${worldState.player.maxHealth}")</ID>
+    <ID>MaxLineLength:CombatNarrator.kt$CombatNarrator$appendLine("Narrate the moment combat begins in 1-2 sentences. Mention the player's actual weapon (or fists if unarmed).")</ID>
+    <ID>MaxLineLength:CombatNarrator.kt$CombatNarrator$appendLine("Narrate this combat round in 1-2 SHORT sentences per attack. Put player attack on one line, enemy counter on next line. Use the player's actual weapon (or fists if unarmed). Do not include damage numbers.")</ID>
+    <ID>MaxLineLength:CorpseDecayManager.kt$CorpseDecayManager$private</ID>
+    <ID>MaxLineLength:DispositionManager.kt$DispositionManager$IllegalStateException("${npc.name} is not friendly enough to train you. (Disposition: ${getDisposition(npc)})")</ID>
+    <ID>MaxLineLength:DungeonInitializer.kt$DungeonInitializer$description = "Stone stairs lead upward to the safety of the town above. You can see flickering torchlight."</ID>
+    <ID>MaxLineLength:DungeonInitializer.kt$DungeonInitializer$val (regionChunk, regionId) = worldGenerator.generateChunk(regionContext).getOrElse { return Result.failure(it) }</ID>
+    <ID>MaxLineLength:DungeonInitializer.kt$DungeonInitializer$val (space, spaceId) = worldGenerator.generateSpace(subzoneChunk, subzoneId).getOrElse { return Result.failure(it) }</ID>
+    <ID>MaxLineLength:DungeonInitializer.kt$DungeonInitializer$val (subzoneChunk, subzoneId) = worldGenerator.generateChunk(subzoneContext).getOrElse { return Result.failure(it) }</ID>
+    <ID>MaxLineLength:DungeonLayoutGenerator.kt$DungeonLayoutGenerator$println(" ${node.id}: ${node.connections.size} exits = ${node.connections.keys.joinToString(", ") { it.displayName }}")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$attackResolver = if (skillClassifier != null) com.jcraw.mud.reasoning.combat.AttackResolver(skillClassifier!!) else null</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$builder.appendLine("The other treasures are sealed while you hold the $itemName. Return it to swap your choice.")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.Combat("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.Quest("\n🎉 Quest completed: ${quest.title}\nUse 'claim ${quest.id}' to collect your reward!"))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.System("⚡ Applied perk: ${event.perk.name}", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.System("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.System("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$emitEvent(GameEvent.System("🎉 Unlocked $skillName (lucky progression)!", GameEvent.MessageLevel.INFO))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$exitLinker = com.jcraw.mud.reasoning.world.ExitLinker(worldGenerator, worldChunkRepository, spacePropertiesRepository)</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$is Intent.Craft -&gt; emitEvent(GameEvent.System("Crafting not yet integrated", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$is Intent.LootCorpse -&gt; emitEvent(GameEvent.System("Corpse looting not yet integrated", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$is Intent.Pickpocket -&gt; emitEvent(GameEvent.System("Pickpocketing not yet integrated", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$is Intent.Talk, is Intent.Say, is Intent.Persuade, is Intent.Intimidate -&gt; com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$is Intent.UseItem -&gt; emitEvent(GameEvent.System("Advanced item use not yet integrated", GameEvent.MessageLevel.WARNING))</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$println("[PROCESS NPC DEBUG] NPC not ready yet: timerEnd=${nextEntry.second} &gt; currentTime=$currentTime")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$private</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$takenItem == null -&gt; builder.appendLine("Five pedestals hum with magic. Claim one treasure via 'examine pedestals'—the others will seal away.")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$treasureRoom.hasBeenLooted -&gt; builder.appendLine("Only dust-coated pedestals remain; the room has been looted.")</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val combatComponent = npc.components[com.jcraw.mud.core.ComponentType.COMBAT] as? com.jcraw.mud.core.CombatComponent</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val cost = com.jcraw.mud.reasoning.combat.SpeedCalculator.calculateActionCost("melee_attack", speedLevel)</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val hiddenExitPlacer = com.jcraw.mud.reasoning.world.HiddenExitPlacer(worldGenerator, worldChunkRepository, spacePropertiesRepository)</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val skillComponent = npc.components[com.jcraw.mud.core.ComponentType.SKILL] as? com.jcraw.mud.core.SkillComponent</ID>
+    <ID>MaxLineLength:EngineGameClient.kt$EngineGameClient$val townGenerator = com.jcraw.mud.reasoning.world.TownGenerator(worldGenerator, worldChunkRepository, spacePropertiesRepository, spaceEntityRepository, treasureRoomRepository, graphNodeRepository)</ID>
+    <ID>MaxLineLength:ExitResolver.kt$ExitResolver$fun</ID>
+    <ID>MaxLineLength:ExitResolver.kt$ExitResolver$val systemPrompt = "You are a game assistant matching player intent to exits. Output EXIT:&lt;direction&gt; or UNCLEAR."</ID>
+    <ID>MaxLineLength:FleeResolver.kt$FleeResolver$println("[FLEE DEBUG] Flee ${if (success) "SUCCESS" else "FAILURE"} (flee: $fleeRoll vs pursuit: $highestPursuitRoll)")</ID>
+    <ID>MaxLineLength:GameEvent.kt$GameEvent.Combat$data</ID>
+    <ID>MaxLineLength:GameEvent.kt$GameEvent.PlayerAction$data</ID>
+    <ID>MaxLineLength:GameEvent.kt$GameEvent.Quest$data</ID>
+    <ID>MaxLineLength:GameEvent.kt$GameEvent.StatusUpdate$data</ID>
+    <ID>MaxLineLength:GameEvent.kt$GameEvent.System$data</ID>
+    <ID>MaxLineLength:GameServer.kt$GameServer$is Intent.Interact -&gt; Triple("You need to be more specific about how you want to interact.", worldState, null)</ID>
+    <ID>MaxLineLength:GameServer.kt$GameServer$return Triple("You give the ${item.name} to ${npc.name}." + questResult.notifications, questResult.updatedWorld, event)</ID>
+    <ID>MaxLineLength:GameServer.kt$GameServer$val newWorldState = worldState.removeEntityFromSpace(spaceId, feature.id).addEntityToSpace(spaceId, updatedFeature)</ID>
+    <ID>MaxLineLength:GraphGenerator.kt$GraphGenerator$errors.add("Missing reverse edge: ${node.id} -&gt; ${edge.targetId} (${edge.direction}) has no return path")</ID>
+    <ID>MaxLineLength:HiddenExitPlacer.kt$HiddenExitPlacer$perceptionLevel &gt;= 30 -&gt; "You sense something unusual about this place, but can't quite make it out. (Perception 40 needed)"</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"attack_skeleton_king_unarmed" to actionsTaken.any { it.contains("attack") &amp;&amp; it.contains("skeleton") }</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"attempt_intimidate_king" to actionsTaken.any { it.contains("intimidate") &amp;&amp; it.contains("skeleton") }</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"examine_pedestals" to actionsTaken.any { it.contains("examine") &amp;&amp; (it.contains("pedestal") || it.contains("altar")) }</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"explore_secret_chamber" to actionsTaken.any { it.matches(Regex(".*(secret|chamber).*")) || actionsTaken.count { it == "n" } &gt;= 3 }</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"go_to_corridor" to recentHistory.any { it.gmResponse.contains("Dark Corridor", ignoreCase = true) }</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"revisit_room" to (roomsVisited.size &gt;= 3 &amp;&amp; actionsTaken.count { it.matches(Regex("[nsew]|north|south|east|west")) } &gt; roomsVisited.size)</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"take_dropped_item_back" to (actionsTaken.count { it.startsWith("take ") || it.startsWith("get ") } &gt;= 3)</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"test_partial_names" to (actionsTaken.any { it.matches(Regex(".*(sword|dagger|armor|mail)")) &amp;&amp; !it.contains("Rusty") &amp;&amp; !it.contains("Sharp") })</ID>
+    <ID>MaxLineLength:InputGenerator.kt$InputGenerator$"work_on_objectives" to (actionsTaken.any { it.contains("attack") || it.contains("take") || it.matches(Regex("[nsew]")) || it.startsWith("talk ") || it.startsWith("check ") })</ID>
+    <ID>MaxLineLength:Intent.kt$Intent.Pickpocket$data</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"abandon_quest" -&gt; if (target != null) Intent.AbandonQuest(target) else Intent.Invalid("Abandon which quest?")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"buy", "purchase" -&gt; parseTradeCommand(args, action = "buy", missingItemMessage = "Buy what?", merchantPrepositions = listOf("from", "with"))</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"check", "test", "attempt", "try" -&gt; if (args.isNullOrBlank()) Intent.Invalid("Check what?") else Intent.Check(args)</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"claim" -&gt; if (args.isNullOrBlank()) Intent.Invalid("Claim reward for which quest?") else Intent.ClaimReward(args)</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"claim_reward" -&gt; if (target != null) Intent.ClaimReward(target) else Intent.Invalid("Claim reward for which quest?")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"emote" -&gt; if (target != null) Intent.Emote(target, npcTarget) else Intent.Invalid("What emotion do you want to express?")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"intimidate", "threaten" -&gt; if (args.isNullOrBlank()) Intent.Invalid("Intimidate whom?") else Intent.Intimidate(args)</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"invalid" -&gt; Intent.Invalid("Unknown command: ${originalInput.take(50)}. Type 'help' for available commands.")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"persuade", "convince" -&gt; if (args.isNullOrBlank()) Intent.Invalid("Persuade whom?") else Intent.Persuade(args)</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"return_treasure" -&gt; if (target != null) Intent.ReturnTreasure(target) else Intent.Invalid("Return which treasure?")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"sell" -&gt; parseTradeCommand(args, action = "sell", missingItemMessage = "Sell what?", merchantPrepositions = listOf("to", "with"))</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$"take_treasure" -&gt; if (target != null) Intent.TakeTreasure(target) else Intent.Invalid("Take which treasure?")</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$action in setOf("list") -&gt; Intent.Trade(action, if (itemTarget.isNotBlank()) itemTarget else "stock", normalizedQuantity, merchantTarget)</ID>
+    <ID>MaxLineLength:IntentRecognizer.kt$IntentRecognizer$if</ID>
+    <ID>MaxLineLength:InventoryManager.kt$InventoryManager$return AddResult.Failure("Too heavy to carry! You need ${template.getWeight() * instance.quantity}kg capacity.")</ID>
+    <ID>MaxLineLength:ItemHandlers.kt$ItemHandlers$println(" Equipped Armor: ${player.equippedArmor!!.name} (+${player.equippedArmor!!.defenseBonus} defense)")</ID>
+    <ID>MaxLineLength:ItemHandlers.kt$ItemHandlers$println(" Equipped Weapon: ${player.equippedWeapon!!.name} (+${player.equippedWeapon!!.damageBonus} damage)")</ID>
+    <ID>MaxLineLength:ItemHandlers.kt$ItemHandlers$println("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense).")</ID>
+    <ID>MaxLineLength:ItemHandlers.kt$ItemHandlers$println("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage).")</ID>
+    <ID>MaxLineLength:LootTableRegistry.kt$LootTableRegistry$LootEntry("bone_fragments", weight = 50, minQuality = 2, maxQuality = 5, minQuantity = 1, maxQuantity = 3)</ID>
+    <ID>MaxLineLength:LootTableRegistry.kt$LootTableRegistry$LootEntry("healing_herb", weight = 60, minQuality = 3, maxQuality = 7, minQuantity = 1, maxQuantity = 3)</ID>
+    <ID>MaxLineLength:LootTableRegistry.kt$LootTableRegistry$LootEntry("health_potion", weight = 35, minQuality = 5, maxQuality = 8, minQuantity = 1, maxQuantity = 2)</ID>
+    <ID>MaxLineLength:LootTableRegistry.kt$LootTableRegistry$LootEntry("health_potion", weight = 40, minQuality = 4, maxQuality = 8, minQuantity = 1, maxQuantity = 3)</ID>
+    <ID>MaxLineLength:MainGameScreen.kt$keyEvent.type == KeyEventType.KeyDown &amp;&amp; (keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter)</ID>
+    <ID>MaxLineLength:MemoryManager.kt$MemoryManager$println(" ${idx + 1}. [score=${String.format("%.3f", scored.score)}] ${scored.entry.content.take(60)}...")</ID>
+    <ID>MaxLineLength:MerchantPricingCalculator.kt$MerchantPricingCalculator$val social = merchant.getComponent(com.jcraw.mud.core.ComponentType.SOCIAL) as? com.jcraw.mud.core.SocialComponent</ID>
+    <ID>MaxLineLength:MobSpawner.kt$MobSpawner$println("[MOB SPAWN DEBUG] Created NPC (fallback): ${npc.name} (health=${npc.health}/${npc.maxHealth}, components=${npc.components.keys})")</ID>
+    <ID>MaxLineLength:MobSpawner.kt$MobSpawner$println("[MOB SPAWN DEBUG] Created NPC: ${npc.name} (health=${npc.health}/${npc.maxHealth}, components=${npc.components.keys})")</ID>
+    <ID>MaxLineLength:MockGameClient.kt$MockGameClient$sendEvent(GameEvent.Narrative("The stone corridor extends north and south. Ancient runes cover the walls."))</ID>
+    <ID>MaxLineLength:MockGameClient.kt$MockGameClient$sendEvent(GameEvent.Narrative("You find yourself in a dark stone corridor. Flickering torches cast dancing shadows on the walls."))</ID>
+    <ID>MaxLineLength:MovementHandlers.kt$MovementHandlers$println("[MOVE DEBUG] Current node edges: ${currentNode?.neighbors?.map { "${it.direction} -&gt; ${it.targetId}" }}")</ID>
+    <ID>MaxLineLength:MovementHandlers.kt$MovementHandlers$println("[MOVE DEBUG] Move failed! Edge found: ${edge.direction} -&gt; ${edge.targetId}, Target space exists: $targetExists")</ID>
+    <ID>MaxLineLength:MovementHandlers.kt$MovementHandlers$val edge = currentNode?.neighbors?.find { it.direction.equals(direction.displayName, ignoreCase = true) }</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$internal val npcKnowledgeManager = com.jcraw.mud.reasoning.NPCKnowledgeManager(knowledgeRepo, socialComponentRepo, llmClient)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$internal val spacePopulationService = com.jcraw.mud.reasoning.world.SpacePopulationService(spacePopulator, respawnChecker)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$internal val spacePopulator = com.jcraw.mud.reasoning.world.SpacePopulator(trapGenerator, resourceGenerator, mobSpawner)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.AskQuestion -&gt; runBlocking { com.jcraw.app.handlers.SocialHandlers.handleAskQuestion(this@MudGame, intent.npcTarget, intent.topic) }</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.ChoosePerk -&gt; com.jcraw.app.handlers.SkillQuestHandlers.handleChoosePerk(this, intent.skillName, intent.choice)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.ExaminePedestal -&gt; com.jcraw.app.handlers.TreasureRoomHandlers.handleExaminePedestal(this, intent.target)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.ReturnTreasure -&gt; com.jcraw.app.handlers.TreasureRoomHandlers.handleReturnTreasure(this, intent.itemTarget)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.TakeTreasure -&gt; com.jcraw.app.handlers.TreasureRoomHandlers.handleTakeTreasure(this, intent.itemTarget)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.TrainSkill -&gt; com.jcraw.app.handlers.SkillQuestHandlers.handleTrainSkill(this, intent.skill, intent.method)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$is Intent.UseSkill -&gt; com.jcraw.app.handlers.SkillQuestHandlers.handleUseSkill(this, intent.skill, intent.action)</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$println("The other pedestals are sealed while you hold the $templateName. Return it if you wish to choose again.")</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$println("[PROCESS NPC DEBUG] NPC not ready yet: timerEnd=${nextEntry.second} &gt; currentTime=$currentTime")</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$takenItem == null -&gt; println("Five pedestals glow softly. Claim a single treasure with 'examine pedestals' before the others seal away.")</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"</ID>
+    <ID>MaxLineLength:MudGameEngine.kt$MudGame$val narration = com.jcraw.mud.reasoning.boss.BossCombatEnhancements.getSummonNarration(npc, minions.size)</ID>
+    <ID>MaxLineLength:NarrationMatcher.kt$NarrationMatcher$"critical" -&gt; narrativeLower.contains("devastating") || narrativeLower.contains("crushing") || narrativeLower.contains("brutal")</ID>
+    <ID>MaxLineLength:NarrationMatcher.kt$NarrationMatcher$"death" -&gt; narrativeLower.contains("fall") || narrativeLower.contains("defeat") || narrativeLower.contains("killing")</ID>
+    <ID>MaxLineLength:NarrationMatcher.kt$NarrationMatcher$"miss" -&gt; narrativeLower.contains("miss") || narrativeLower.contains("dodge") || narrativeLower.contains("deflect")</ID>
+    <ID>MaxLineLength:NarrationVariantGenerator.kt$NarrationVariantGenerator$"melee hit" -&gt; appendLine("Describe a successful melee attack with the $weapon. Focus on the strike connecting.")</ID>
+    <ID>MaxLineLength:NarrationVariantGenerator.kt$NarrationVariantGenerator$"melee miss" -&gt; appendLine("Describe a missed melee attack with the $weapon. Show the enemy dodging or parrying.")</ID>
+    <ID>MaxLineLength:NarrationVariantGenerator.kt$NarrationVariantGenerator$"ranged hit" -&gt; appendLine("Describe a successful ranged attack with the $weapon. Show the projectile striking true.")</ID>
+    <ID>MaxLineLength:NarrationVariantGenerator.kt$NarrationVariantGenerator$"ranged miss" -&gt; appendLine("Describe a missed ranged attack with the $weapon. Show the projectile missing.")</ID>
+    <ID>MaxLineLength:OpenAIClient.kt$OpenAIClient$println(" Choice $index content: '${choice.message.content}' (length: ${choice.message.content?.length ?: 0})")</ID>
+    <ID>MaxLineLength:OpenAIClient.kt$OpenAIClient$println(" Temperature: $actualTemperature${if (actualTemperature != temperature) " (forced to 1.0 for GPT-5)" else ""}")</ID>
+    <ID>MaxLineLength:OpenAIClient.kt$OpenAIClient$println("🔥 LLM API: $modelId | tokens=${response.usage.totalTokens} (${response.usage.promptTokens}+${response.usage.completionTokens ?: 0})")</ID>
+    <ID>MaxLineLength:PickpocketHandler.kt$PickpocketHandler$val dispositionDelta = (-20 - (kotlin.math.abs(skillCheckResult.margin) * 3)).coerceAtMost(-20).coerceAtLeast(-50)</ID>
+    <ID>MaxLineLength:PlayerState.kt$PlayerState$@Deprecated("Use inventoryComponent for quest rewards", ReplaceWith("updateInventory(inventoryComponent.addGold(quest.reward.goldAmount))"))</ID>
+    <ID>MaxLineLength:QuestGenerator.kt$QuestGenerator$description = "The ${targetNpc.name} poses a threat to all who enter this place. Defeat them to make the area safer."</ID>
+    <ID>MaxLineLength:ResistanceCalculator.kt$DamageReductionResult$"Your $damageType Resistance (L$resistanceLevel) reduces damage by $reductionAmount (${"%.1f".format(reductionPercentage * 100)}%)"</ID>
+    <ID>MaxLineLength:RestHandler.kt$space == null -&gt; "You are not in a procedurally generated area. Resting is only available in the Ancient Abyss Dungeon."</ID>
+    <ID>MaxLineLength:SQLiteSpaceEntityRepository.kt$SQLiteSpaceEntityRepository$else -&gt; throw UnsupportedOperationException("SpaceEntityRepository currently supports only NPC and Feature entities (got ${entity::class.simpleName})")</ID>
+    <ID>MaxLineLength:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$return Result.failure(Exception("Cannot save space $chunkId: parent subzone $parentSubzoneId does not exist in database"))</ID>
+    <ID>MaxLineLength:SkillCheckResult.kt$SkillCheckResult.Companion$fun</ID>
+    <ID>MaxLineLength:SkillDefinitions.kt$SkillDefinitions$description = "Deflecting attacks with weapon or shield. Reduces damage and creates counter-attack opportunities."</ID>
+    <ID>MaxLineLength:SkillDefinitions.kt$SkillDefinitions$description = "Fleeing from combat and evading pursuit. Increases success chance when retreating from battle."</ID>
+    <ID>MaxLineLength:SkillFormatter.kt$SkillFormatter$return "$skillName +${formatNumber(xpGained)} XP (Level $currentLevel: ${formatNumber(currentXp)} / ${formatNumber(xpToNext)})"</ID>
+    <ID>MaxLineLength:SkillFormatter.kt$SkillFormatter$return "$skillName check: $outcome (rolled $roll + $skillLevel = $total vs DC $difficulty, margin: ${if (margin &gt;= 0) "+" else ""}$margin)"</ID>
+    <ID>MaxLineLength:SkillManager.kt$SkillManager$"$skillName leveled up from ${currentSkill.level} to ${updatedSkill.level} (lucky progression)!"</ID>
+    <ID>MaxLineLength:SkillManager.kt$SkillManager$"Attempted $skillName check: $outcome (roll: $roll+$skillLevel vs DC $difficulty, margin: $margin)"</ID>
+    <ID>MaxLineLength:SkillManager.kt$SkillManager$"Attempted $skillName vs $opposedSkill check: $outcome (roll: $roll+$skillLevel vs $opposingRoll+$opponentLevel)"</ID>
+    <ID>MaxLineLength:SkillManager.kt$SkillManager$println("DODGE LUCKY LEVEL-UP [$entityId]: ${currentSkill.level} → ${updatedSkill.level} (${luckyChance}% chance)")</ID>
+    <ID>MaxLineLength:SkillQuestHandlers.kt$SkillQuestHandlers$game.worldState = game.worldState.replaceEntityInSpace(spaceId, feature.id, updatedFeature) ?: game.worldState</ID>
+    <ID>MaxLineLength:SkillQuestHandlers.kt$SkillQuestHandlers$println("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")</ID>
+    <ID>MaxLineLength:SkillQuestHandlers.kt$SkillQuestHandlers$println("+${event.xpAmount} XP to ${recipe.requiredSkill} (${event.currentXp} total, level ${event.currentLevel})")</ID>
+    <ID>MaxLineLength:SkillQuestHandlers.kt$SkillQuestHandlers$println("Milestone reached! Use 'choose perk for ${recipe.requiredSkill}' to select a perk.")</ID>
+    <ID>MaxLineLength:SkillQuestHandlers.kt$SkillQuestHandlers$val</ID>
+    <ID>MaxLineLength:SocialEvent.kt$SocialEvent.Intimidated$override val description: String = if (success) "You successfully intimidated this NPC" else "You failed to intimidate this NPC"</ID>
+    <ID>MaxLineLength:SocialEvent.kt$SocialEvent.Persuaded$override val description: String = if (success) "You successfully persuaded this NPC" else "You failed to persuade this NPC"</ID>
+    <ID>MaxLineLength:SpaceEntitySupport.kt$SpaceEntitySupport$description = "A middle-aged woman with stained robes and kind eyes. Her stall overflows with colorful vials."</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$// Also check if room description starts with "Secret Chamber" or "Hidden Chamber" (room name header)</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$if</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$println(" Damage Taken: ${report.damageTaken} ${if (report.damageTaken &lt; 20) "✅ (minimal)" else "⚠️ (high)"}")</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$println(" NPCs Killed: ${report.npcsKilled} ${if (report.npcsKilled == 0) "✅ (non-lethal!)" else "⚠️"}")</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$println(" Player Died: ${if (!report.playerDied) "✅ NO (victory!)" else "❌ YES (should win with gear!)"}")</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$println(" Social Checks Passed: ${report.socialChecksPassed} ${if (report.socialChecksPassed &gt; 0) "✅" else "❌"}")</ID>
+    <ID>MaxLineLength:TestBotRunner.kt$TestBotRunner$val match = Regex("Dodge leveled up!.*?(\\d+)\\s*→\\s*(\\d+)", RegexOption.IGNORE_CASE).find(step.gmResponse)</ID>
+    <ID>MaxLineLength:TestScenario.kt$TestScenario.BruteForcePlaythrough$override val description: String = "Explore all rooms, collect best gear, defeat boss through superior equipment"</ID>
+    <ID>MaxLineLength:TestScenario.kt$TestScenario.ItemInteraction$override val description: String = "Test examine (room+inventory), pickup, inventory, equip, use, and drop mechanics"</ID>
+    <ID>MaxLineLength:TestScenario.kt$TestScenario.SkillProgression$override val description: String = "AI-driven bot levels Dodge skill from 0 to 3 through combat, with reasoning/thought process"</ID>
+    <ID>MaxLineLength:TestScenario.kt$TestScenario.TreasureRoomPlaythrough$override val description: String = "Test treasure room system: find room, examine pedestals, take/return/swap items, finalize choice"</ID>
+    <ID>MaxLineLength:ThemeRegistry.kt$ThemeRegistry$"training" in normalized || "practice" in normalized || "beginner" in normalized || "starter" in normalized</ID>
+    <ID>MaxLineLength:TownGenerator.kt$TownGenerator$description = "A middle-aged woman with stained robes and kind eyes. Her stall overflows with colorful vials."</ID>
+    <ID>MaxLineLength:TownGenerator.kt$TownGenerator$description = "A muscular human covered in soot and sweat. The clang of his hammer echoes through the town."</ID>
+    <ID>MaxLineLength:TradeHandler.kt$TradeHandler$return TradeResult.Failure("Merchant doesn't have enough gold (only ${merchantTrading.merchantGold} gold available)")</ID>
+    <ID>MaxLineLength:TradeHandlers.kt$TradeHandlers$"buy" -&gt; handleBuy(game, tradeHandler, merchant, tradingComponent, playerInventory, target, quantity, disposition, templates, spaceId)</ID>
+    <ID>MaxLineLength:TradeHandlers.kt$TradeHandlers$"sell" -&gt; handleSell(game, tradeHandler, merchant, tradingComponent, playerInventory, target, quantity, disposition, templates, spaceId)</ID>
+    <ID>MaxLineLength:TreasureRoomDescriptionGenerator.kt$TreasureRoomDescriptionGenerator$"${pedestal.themeDescription} displaying ${pedestal.itemName}. The item rests freely, ready to be claimed."</ID>
+    <ID>MaxLineLength:TreasureRoomExitLogic.kt$TreasureRoomExitLogic$val narration = "As you depart with the $itemName, the remaining treasures shimmer and fade. Your choice is final."</ID>
+    <ID>MaxLineLength:TreasureRoomHandlers.kt$TreasureRoomHandlers$println("DEBUG: After worldState update - player inventory has ${game.worldState.player.inventoryComponent?.items?.size ?: 0} items")</ID>
+    <ID>MaxLineLength:TreasureRoomHandlers.kt$TreasureRoomHandlers$println("You return the ${result.itemName} to its ${getPedestalDescription(treasureRoomComponent, itemInstance.templateId)}.")</ID>
+    <ID>MaxLineLength:TreasureRoomHandlers.kt$TreasureRoomHandlers$println("You take the ${result.itemName} from its ${getPedestalDescription(treasureRoomComponent, itemTemplateId)}.")</ID>
+    <ID>MaxLineLength:TreasureRoomHandlers.kt$TreasureRoomHandlers$println("\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away.")</ID>
+    <ID>MaxLineLength:TreasureRoomHandlers.kt$TreasureRoomHandlers$println("\nThe $barrierType shimmer and fade, revealing the other treasures once more. You may choose again.")</ID>
+    <ID>MaxLineLength:ValidationPrompts.kt$ValidationPrompts$append("\n - ROOM CHANGED: \"$previousRoomName\" → \"$currentRoomName\" (successful movement)")</ID>
+    <ID>MaxLineLength:ValidationPrompts.kt$ValidationPrompts$append("\n - Same room name: \"$previousRoomName\" (could be: stayed in place, OR moved to different room with same name)")</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$!context.biomeTheme.isNullOrBlank() -&gt; context.biomeTheme!!</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$"Inherit from parent: $parentTheme (${parentLore.take(200)}) but vary toward deeper grit, claustrophobia, and abyssal descent."</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$"Strictly underground abyssal dungeon—enclosed stone/cavern motifs only; no surface elements like trees, sky, or foliage unless explicitly magical anomalies. Emphasize vertical descent, increasing darkness/peril with depth."</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$"castle" in theme.lowercase() || "fortress" in theme.lowercase() -&gt; listOf("spike trap", "swinging blade", "falling portcullis").random()</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$"cave" in theme.lowercase() || "magma" in theme.lowercase() -&gt; listOf("lava pool", "collapsing floor", "gas vent").random()</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$"crypt" in theme.lowercase() || "tomb" in theme.lowercase() -&gt; listOf("poison dart", "cursed rune", "arrow trap").random()</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$println("[INHERIT] Child ${context.level.name} from parent $parentId (biome='${parentTheme}'): Setting to '$newTheme'")</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$println("[PROMPT] For chunk $chunkId (${chunk.level}): biome='${chunk.biomeTheme}', inheriting from '$parentTheme'")</ID>
+    <ID>MaxLineLength:WorldGenerator.kt$WorldGenerator$val (name, description) = generateNodeNameAndDescription(graphNode, chunk, graphNode.chunkId).getOrElse { return Result.failure(it) }</ID>
+    <ID>MaxLineLength:WorldState.kt$WorldState$fun</ID>
+    <ID>MaxLineLength:WorldState.kt$WorldState$fun movePlayerByExit(exitLabel: String, playerSkills: SkillComponent): WorldState?</ID>
+    <ID>NestedBlockDepth:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleCraft(game: EngineGameClient, target: String)</ID>
+    <ID>NestedBlockDepth:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleInteract(game: EngineGameClient, target: String)</ID>
+    <ID>NestedBlockDepth:CodeValidationRules.kt$CodeValidationRules$private fun validateMovement( playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>NestedBlockDepth:CraftingManager.kt$CraftingManager$private fun consumeInputs( inventory: InventoryComponent, inputs: Map&lt;String, Int&gt; ): Map&lt;String, Int&gt;</ID>
+    <ID>NestedBlockDepth:EngineGameClient.kt$EngineGameClient$internal fun trackQuests(action: QuestAction)</ID>
+    <ID>NestedBlockDepth:GraphGenerator.kt$GraphGenerator$private fun addLoopEdges( nodes: List&lt;GraphNodeComponent&gt;, mstEdges: List&lt;Pair&lt;String, String&gt;&gt;, loopFrequency: Double = 0.5 ): List&lt;Pair&lt;String, String&gt;&gt;</ID>
+    <ID>NestedBlockDepth:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirectionsBidirectional( node: GraphNodeComponent, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>NestedBlockDepth:GraphGenerator.kt$GraphGenerator$private fun ensureBidirectionalConsistency( edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; )</ID>
+    <ID>NestedBlockDepth:GraphGenerator.kt$GraphGenerator$private fun fixBidirectionalDirections(nodes: List&lt;GraphNodeComponent&gt;): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>NestedBlockDepth:GraphValidator.kt$GraphValidator$private fun validateBidirectionalDirections(nodes: List&lt;GraphNodeComponent&gt;): List&lt;String&gt;</ID>
+    <ID>NestedBlockDepth:IntentRecognizer.kt$IntentRecognizer$private fun parseFallback(input: String): Intent</ID>
+    <ID>NestedBlockDepth:ItemHandlers.kt$ItemHandlers$fun handleInventory(game: MudGame)</ID>
+    <ID>NestedBlockDepth:ItemHandlers.kt$ItemHandlers$fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?)</ID>
+    <ID>NestedBlockDepth:KnowledgeRepository.kt$SqliteKnowledgeRepository$override fun findByCategory(npcId: String, category: String): Result&lt;List&lt;KnowledgeEntry&gt;&gt;</ID>
+    <ID>NestedBlockDepth:KnowledgeRepository.kt$SqliteKnowledgeRepository$override fun findById(id: String): Result&lt;KnowledgeEntry?&gt;</ID>
+    <ID>NestedBlockDepth:KnowledgeRepository.kt$SqliteKnowledgeRepository$override fun findByNpcId(npcId: String): Result&lt;List&lt;KnowledgeEntry&gt;&gt;</ID>
+    <ID>NestedBlockDepth:MovementHandlers.kt$MovementHandlers$fun handleLook(game: MudGame, target: String?)</ID>
+    <ID>NestedBlockDepth:MudGameEngine.kt$MudGame$internal fun describeCurrentRoom()</ID>
+    <ID>NestedBlockDepth:MudGameEngine.kt$MudGame$internal fun trackQuests(action: QuestAction)</ID>
+    <ID>NestedBlockDepth:SQLiteCombatRepository.kt$SQLiteCombatRepository$override fun getEventHistory(entityId: String, limit: Int): Result&lt;List&lt;CombatEvent&gt;&gt;</ID>
+    <ID>NestedBlockDepth:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$override fun findByChunk(chunkId: String): Result&lt;List&lt;GraphNodeComponent&gt;&gt;</ID>
+    <ID>NestedBlockDepth:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$override fun findById(id: String): Result&lt;GraphNodeComponent?&gt;</ID>
+    <ID>NestedBlockDepth:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$override fun getAll(): Result&lt;Map&lt;String, GraphNodeComponent&gt;&gt;</ID>
+    <ID>NestedBlockDepth:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$override fun findViable( skillName: String, skillLevel: Int, availableItems: Map&lt;String, Int&gt; ): Result&lt;List&lt;Recipe&gt;&gt;</ID>
+    <ID>NestedBlockDepth:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$override fun save(properties: SpacePropertiesComponent, chunkId: String): Result&lt;Unit&gt;</ID>
+    <ID>NestedBlockDepth:SkillModifierCalculator.kt$SkillModifierCalculator$fun calculateAllSkillBonuses( equipped: Map&lt;EquipSlot, ItemInstance&gt;, templates: Map&lt;String, ItemTemplate&gt; ): Map&lt;String, Int&gt;</ID>
+    <ID>NestedBlockDepth:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleCraft(game: MudGame, target: String)</ID>
+    <ID>NestedBlockDepth:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleInteract(game: MudGame, target: String)</ID>
+    <ID>NestedBlockDepth:TradeHandlers.kt$TradeHandlers$fun handleListStock(game: MudGame, merchantTarget: String?)</ID>
+    <ID>NestedBlockDepth:WorldState.kt$WorldState$fun removeDroppedItem( spaceId: SpaceId, instanceId: String, removeEntity: Boolean = false, updateCorpses: Boolean = true ): WorldState</ID>
+    <ID>NewLineAtEndOfFile:Direction.kt$com.jcraw.mud.core.Direction.kt</ID>
+    <ID>NewLineAtEndOfFile:Entity.kt$com.jcraw.mud.core.Entity.kt</ID>
+    <ID>NewLineAtEndOfFile:LLMClient.kt$com.jcraw.sophia.llm.LLMClient.kt</ID>
+    <ID>NewLineAtEndOfFile:OpenAIModels.kt$com.jcraw.sophia.llm.OpenAIModels.kt</ID>
+    <ID>PrintStackTrace:GameViewModel.kt$GameViewModel$e</ID>
+    <ID>PrintStackTrace:ItemTemplateLoader.kt$ItemTemplateLoader$e</ID>
+    <ID>PrintStackTrace:OpenAIClient.kt$OpenAIClient$e</ID>
+    <ID>ReturnCount:AncientAbyssStarter.kt$AncientAbyssStarter$suspend fun ensureAncientAbyss(seed: String = DEFAULT_SEED): Result&lt;AncientAbyssStart&gt;</ID>
+    <ID>ReturnCount:AttackResolver.kt$AttackResolver$suspend fun resolveAttack( attackerId: String, defenderId: String, action: String, worldState: WorldState, skillManager: SkillManager, attackerEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), defenderEquipped: Map&lt;EquipSlot, ItemInstance&gt; = emptyMap(), templates: Map&lt;String, ItemTemplate&gt; = emptyMap() ): AttackResult</ID>
+    <ID>ReturnCount:BossCombatEnhancements.kt$BossCombatEnhancements$fun shouldSummon(boss: Entity.NPC, hasSummoned: Boolean): Boolean</ID>
+    <ID>ReturnCount:BossGenerator.kt$BossGenerator$fun getBossTitle(npc: Entity.NPC): String</ID>
+    <ID>ReturnCount:BossGenerator.kt$BossGenerator$fun getVictoryFlag(npc: Entity.NPC): String</ID>
+    <ID>ReturnCount:BossGenerator.kt$BossGenerator$suspend fun generateAbyssalLordSpace( parentSubzone: WorldChunkComponent ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:ChunkIdGenerator.kt$ChunkIdGenerator$fun extractParentId(id: String): String?</ID>
+    <ID>ReturnCount:ClientCombatHandlers.kt$ClientCombatHandlers$fun handleAttack(game: EngineGameClient, target: String?)</ID>
+    <ID>ReturnCount:ClientItemHandlers.kt$ClientItemHandlers$fun handleEquip(game: EngineGameClient, target: String)</ID>
+    <ID>ReturnCount:ClientItemHandlers.kt$ClientItemHandlers$fun handleTake(game: EngineGameClient, target: String)</ID>
+    <ID>ReturnCount:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleLook(game: EngineGameClient, target: String?)</ID>
+    <ID>ReturnCount:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleScout(game: EngineGameClient, rawDirection: String?)</ID>
+    <ID>ReturnCount:ClientMovementHandlers.kt$ClientMovementHandlers$fun handleTravel(game: EngineGameClient, rawDirection: String)</ID>
+    <ID>ReturnCount:ClientMovementHandlers.kt$ClientMovementHandlers$private fun finalizeTreasureRoomExit( game: EngineGameClient, previousSpaceId: String, previousTreasureRoom: TreasureRoomComponent? ): String?</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleAcceptQuest(game: EngineGameClient, questId: String?)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleChoosePerk(game: EngineGameClient, skillName: String, choice: Int)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleClaimReward(game: EngineGameClient, questId: String)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleCraft(game: EngineGameClient, target: String)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleInteract(game: EngineGameClient, target: String)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$fun handleUseSkill(game: EngineGameClient, skill: String?, action: String)</ID>
+    <ID>ReturnCount:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers$private fun handleHealingSpell(game: EngineGameClient)</ID>
+    <ID>ReturnCount:ClientSocialHandlers.kt$ClientSocialHandlers$fun handleEmote(game: EngineGameClient, emoteType: String, target: String?)</ID>
+    <ID>ReturnCount:ClientSocialHandlers.kt$ClientSocialHandlers$private fun merchantResponse(game: EngineGameClient, npc: Entity.NPC, topic: String): String?</ID>
+    <ID>ReturnCount:ClientSocialHandlers.kt$ClientSocialHandlers$private fun resolveSpaceNpc( game: EngineGameClient, space: SpacePropertiesComponent, npcTarget: String? ): Pair&lt;String, Entity.NPC&gt;?</ID>
+    <ID>ReturnCount:ClientSocialHandlers.kt$ClientSocialHandlers$suspend fun handleAskQuestion(game: EngineGameClient, npcTarget: String, topic: String)</ID>
+    <ID>ReturnCount:ClientSocialHandlers.kt$ClientSocialHandlers$suspend fun handleSay(game: EngineGameClient, message: String, npcTarget: String?)</ID>
+    <ID>ReturnCount:ClientTradeHandlers.kt$ClientTradeHandlers$private fun handleBuy(game: EngineGameClient, intent: Intent.Trade)</ID>
+    <ID>ReturnCount:ClientTradeHandlers.kt$ClientTradeHandlers$private fun handleListStock(game: EngineGameClient, merchantTarget: String?)</ID>
+    <ID>ReturnCount:ClientTradeHandlers.kt$ClientTradeHandlers$private fun resolveMerchantCandidate( candidates: List&lt;Entity.NPC&gt;, merchantTarget: String?, recentId: String? ): Entity.NPC?</ID>
+    <ID>ReturnCount:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$fun handleReturnTreasure(game: EngineGameClient, itemTarget: String)</ID>
+    <ID>ReturnCount:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$fun handleTakeTreasure(game: EngineGameClient, itemTarget: String)</ID>
+    <ID>ReturnCount:CodeValidationRules.kt$CodeValidationRules$fun validate( playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, worldState: WorldState? ): ValidationResult?</ID>
+    <ID>ReturnCount:CodeValidationRules.kt$CodeValidationRules$private fun validateCombat( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>ReturnCount:CodeValidationRules.kt$CodeValidationRules$private fun validateItemInteraction( playerInput: String, gmResponse: String, inventoryTracker: Set&lt;String&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>ReturnCount:CodeValidationRules.kt$CodeValidationRules$private fun validateMovement( playerInput: String, gmResponse: String, recentHistory: List&lt;TestStep&gt;, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>ReturnCount:CodeValidationRules.kt$CodeValidationRules$private fun validateSocialInteraction( playerInput: String, gmResponse: String, currentRoom: RoomView?, worldState: WorldState ): ValidationResult?</ID>
+    <ID>ReturnCount:CombatHandlers.kt$CombatHandlers$fun handleAttack(game: MudGame, target: String?)</ID>
+    <ID>ReturnCount:CombatResolver.kt$CombatResolver$fun initiateCombat(worldState: WorldState, player: PlayerState, targetNpcId: String): CombatResult?</ID>
+    <ID>ReturnCount:CombatResolver.kt$CombatResolver$private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int</ID>
+    <ID>ReturnCount:CorpseHandlers.kt$fun handleCorpsesInfo( player: PlayerState, corpseRepository: CorpseRepository, currentTime: Long ): String</ID>
+    <ID>ReturnCount:CorpseHandlers.kt$fun handleLootCorpse( intent: Intent.LootCorpse, world: WorldState, player: PlayerState, corpseRepository: CorpseRepository, itemRepository: ItemRepository, currentTime: Long ): Pair&lt;WorldState, String&gt;</ID>
+    <ID>ReturnCount:CorpseManager.kt$fun lootCorpse( corpseId: String, player: PlayerState, corpseRepository: CorpseRepository, itemRepository: ItemRepository ): Result&lt;LootResult&gt;</ID>
+    <ID>ReturnCount:CraftingManager.kt$CraftingManager$fun craft( skillComponent: SkillComponent, inventory: InventoryComponent, recipe: Recipe ): CraftResult</ID>
+    <ID>ReturnCount:DamageCalculator.kt$DamageCalculator$private fun calculateResistanceReduction( damageType: DamageType, defenderSkills: SkillComponent? ): Int</ID>
+    <ID>ReturnCount:DamageCalculator.kt$DamageCalculator$private fun getBaseDamageAndType(action: String): Pair&lt;Int, DamageType&gt;</ID>
+    <ID>ReturnCount:DeathHandler.kt$DeathHandler$fun handleDeath(entityId: String, worldState: WorldState): DeathResult?</ID>
+    <ID>ReturnCount:DispositionManager.kt$DispositionManager$fun attemptIntimidation( playerId: String, npc: Entity.NPC, difficulty: Int = 15 ): Triple&lt;Boolean, SkillCheckResult?, Entity.NPC&gt;</ID>
+    <ID>ReturnCount:DispositionManager.kt$DispositionManager$fun attemptPersuasion( playerId: String, npc: Entity.NPC, difficulty: Int = 15 ): Triple&lt;Boolean, SkillCheckResult?, Entity.NPC&gt;</ID>
+    <ID>ReturnCount:DispositionManager.kt$DispositionManager$fun trainSkillWithNPC( playerId: String, npc: Entity.NPC, skillName: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$override suspend fun initializeDeepDungeon(seed: String): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$private fun linkTownToDungeon( townSpaceId: String, townSubzoneId: String, combatEntranceId: String, combatSubzoneId: String ): Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$private suspend fun generateBossLairInAbyssalCore( seed: String, globalLore: String, abyssalCoreId: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$private suspend fun generateFirstCombatSubzone( seed: String, globalLore: String, zoneChunk: WorldChunkComponent, zoneId: String ): Result&lt;CombatSubzoneResult&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$private suspend fun generateStartingLocation( seed: String, globalLore: String, regionId: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$private suspend fun generateTownInUpperDepths( seed: String, globalLore: String, upperDepthsId: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:DungeonInitializer.kt$DungeonInitializer$suspend fun initializeAncientAbyss(seed: String = "dark fantasy DnD"): Result&lt;AncientAbyssData&gt;</ID>
+    <ID>ReturnCount:EngineGameClient.kt$EngineGameClient$internal fun ensureGraphNodeLoaded(spaceId: String): GraphNodeComponent?</ID>
+    <ID>ReturnCount:EngineGameClient.kt$EngineGameClient$internal fun ensureSpaceContent(spaceId: String)</ID>
+    <ID>ReturnCount:EngineGameClient.kt$EngineGameClient$override suspend fun sendInput(text: String)</ID>
+    <ID>ReturnCount:EngineGameClient.kt$EngineGameClient$private fun maybeExpandFrontier(currentNode: GraphNodeComponent)</ID>
+    <ID>ReturnCount:EngineGameClient.kt$EngineGameClient$private fun populateSpaceIfNeeded(spaceId: String)</ID>
+    <ID>ReturnCount:ExitResolver.kt$ExitResolver$private fun levenshteinDistance(s1: String, s2: String): Int</ID>
+    <ID>ReturnCount:ExitResolver.kt$ExitResolver$suspend fun resolve( exitIntent: String, currentSpace: SpacePropertiesComponent, playerState: PlayerState, playerSkills: SkillComponent ): ResolveResult</ID>
+    <ID>ReturnCount:FleeResolver.kt$FleeResolver$suspend fun resolveFlee( fleeingEntityId: String, pursuers: List&lt;String&gt;, targetDirection: Direction, worldState: WorldState, skillManager: SkillManager ): FleeResult</ID>
+    <ID>ReturnCount:GameServer.kt$GameServer$private fun handleCheck( playerId: PlayerId, playerState: PlayerState, targetId: String ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>ReturnCount:GameServer.kt$GameServer$private fun handleGive( playerId: PlayerId, playerState: PlayerState, itemTarget: String, npcTarget: String ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>ReturnCount:GameServer.kt$GameServer$private fun handleIntimidate( playerId: PlayerId, playerState: PlayerState, targetId: String ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>ReturnCount:GameServer.kt$GameServer$private fun handlePersuade( playerId: PlayerId, playerState: PlayerState, targetId: String ): Triple&lt;String, WorldState, GameEvent?&gt;</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun assignDirectionPair( fromId: String, toId: String, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; )</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirectionsBidirectional( node: GraphNodeComponent, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun calculateAngleAndDistance( from: GraphNodeComponent, to: GraphNodeComponent? ): Pair&lt;Double?, Double&gt;</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun calculateDirection(from: GraphNodeComponent, to: GraphNodeComponent): String</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun calculateDistance(n1: GraphNodeComponent, n2: GraphNodeComponent): Double</ID>
+    <ID>ReturnCount:GraphGenerator.kt$GraphGenerator$private fun shortestPath(from: String, to: String, adjacency: Map&lt;String, List&lt;String&gt;&gt;): Int</ID>
+    <ID>ReturnCount:GraphNodeComponent.kt$GraphNodeComponent$fun getEdgeGeometric(direction: String, currentPosition: Pair&lt;Int, Int&gt;? = this.position): EdgeData?</ID>
+    <ID>ReturnCount:GraphNodeComponent.kt$GraphNodeComponent$fun validate(): Boolean</ID>
+    <ID>ReturnCount:GraphValidator.kt$GraphValidator$private fun hasCycleDFS( nodeId: String, parentId: String?, adjacency: Map&lt;String, List&lt;String&gt;&gt;, visited: MutableSet&lt;String&gt;, recursionStack: MutableSet&lt;String&gt; ): Boolean</ID>
+    <ID>ReturnCount:GraphValidator.kt$GraphValidator$private fun hasLoop(nodes: List&lt;GraphNodeComponent&gt;): Boolean</ID>
+    <ID>ReturnCount:HiddenExitHandler.kt$HiddenExitHandler$fun checkHiddenExit(player: PlayerState, playerSkills: SkillComponent, exit: ExitData): HiddenExitResult</ID>
+    <ID>ReturnCount:HiddenExitPlacer.kt$HiddenExitPlacer$suspend fun generateSurfaceWilderness( seed: String, globalLore: String, worldId: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:HiddenExitPlacer.kt$HiddenExitPlacer$suspend fun placeHiddenExit( midDepthsRegionId: String, seed: String, globalLore: String ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun extractSayComponents(raw: String): Pair&lt;String?, String&gt;</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun parseFallback(input: String): Intent</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun parseIntentFromResponse(responseText: String, originalInput: String): Intent</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun parseTradeCommand( args: String?, action: String, missingItemMessage: String, merchantPrepositions: List&lt;String&gt; ): Intent</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun sanitizeNpcTarget(raw: String?): String?</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$private fun splitSayRemainder(remainder: String): Pair&lt;String?, String&gt;</ID>
+    <ID>ReturnCount:IntentRecognizer.kt$IntentRecognizer$suspend fun parseIntent( input: String, roomContext: String? = null, exitsWithNames: Map&lt;Direction, String&gt;? = null ): Intent</ID>
+    <ID>ReturnCount:InventoryManager.kt$InventoryManager$fun equipItem( inventory: InventoryComponent, instance: ItemInstance, template: ItemTemplate ): EquipResult</ID>
+    <ID>ReturnCount:InventoryManager.kt$InventoryManager$fun removeItem( inventory: InventoryComponent, instanceId: String ): RemoveResult</ID>
+    <ID>ReturnCount:ItemHandlers.kt$ItemHandlers$fun handleEquip(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:ItemHandlers.kt$ItemHandlers$fun handleLoot(game: MudGame, corpseTarget: String, itemTarget: String?)</ID>
+    <ID>ReturnCount:ItemHandlers.kt$ItemHandlers$fun handleTake(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:ItemTemplateLoader.kt$ItemTemplateLoader$fun loadTemplatesFromResource(repository: ItemRepository): Int</ID>
+    <ID>ReturnCount:ItemUseHandler.kt$ItemUseHandler$fun determineUse( instanceId: String, action: String, inventory: InventoryComponent ): ItemUseResult</ID>
+    <ID>ReturnCount:ItemUseHandlers.kt$fun handleExamineItemUses( itemName: String, itemRepository: ItemRepository, itemUseHandler: ItemUseHandler, inventory: InventoryComponent? ): String</ID>
+    <ID>ReturnCount:ItemUseHandlers.kt$fun handleUseItem( intent: Intent.UseItem, world: WorldState, player: PlayerState, itemUseHandler: ItemUseHandler, itemRepository: ItemRepository ): Pair&lt;WorldState, String&gt;</ID>
+    <ID>ReturnCount:LootGenerator.kt$LootGenerator$private fun createInstance( templateId: String, quality: Int, quantity: Int ): Result&lt;ItemInstance&gt;</ID>
+    <ID>ReturnCount:LootTable.kt$LootTable$fun selectEntry(random: Random = Random.Default): LootEntry?</ID>
+    <ID>ReturnCount:MemoryManager.kt$MemoryManager$suspend fun recall( query: String, k: Int = 5 ): List&lt;String&gt;</ID>
+    <ID>ReturnCount:MemoryManager.kt$MemoryManager$suspend fun recallWithMetadata( query: String, k: Int = 5, metadataFilter: Map&lt;String, String&gt; ): List&lt;String&gt;</ID>
+    <ID>ReturnCount:MerchantPricingCalculator.kt$MerchantPricingCalculator$fun canTrade(merchant: Entity.NPC, player: PlayerState): Boolean</ID>
+    <ID>ReturnCount:MerchantPricingCalculator.kt$MerchantPricingCalculator$fun getTradeRefusalReason(merchant: Entity.NPC, player: PlayerState): String</ID>
+    <ID>ReturnCount:MobSpawnTuning.kt$MobSpawnTuning$fun desiredMobCount(mobDensity: Double, spaceSize: Int): Int</ID>
+    <ID>ReturnCount:MobSpawner.kt$MobSpawner$open suspend fun spawnEntities( theme: String, mobDensity: Double, difficulty: Int, spaceSize: Int = 10 ): List&lt;Entity.NPC&gt;</ID>
+    <ID>ReturnCount:MonsterAIHandler.kt$MonsterAIHandler$private suspend fun tryLLMDecision( npc: Entity.NPC, combatComponent: CombatComponent, socialComponent: SocialComponent?, intelligenceLevel: Int, wisdomLevel: Int, worldState: WorldState ): AIDecision?</ID>
+    <ID>ReturnCount:MonsterAIHandler.kt$MonsterAIHandler$suspend fun decideAction( npcId: String, worldState: WorldState ): AIDecision</ID>
+    <ID>ReturnCount:MovementHandlers.kt$MovementHandlers$fun handleScout(game: MudGame, target: String?)</ID>
+    <ID>ReturnCount:MovementHandlers.kt$MovementHandlers$fun handleTravel(game: MudGame, rawDirection: String)</ID>
+    <ID>ReturnCount:MovementHandlers.kt$MovementHandlers$private fun finalizeTreasureRoomExit( game: MudGame, previousSpaceId: String, previousTreasureRoom: TreasureRoomComponent? ): String?</ID>
+    <ID>ReturnCount:MovementHandlers.kt$MovementHandlers$private fun populateSpaceIfNeeded( game: MudGame, spaceId: String, space: SpacePropertiesComponent, node: GraphNodeComponent )</ID>
+    <ID>ReturnCount:MudGameEngine.kt$MudGame$internal fun generateRoomDescription( space: SpacePropertiesComponent, spaceId: String? = null ): String</ID>
+    <ID>ReturnCount:NPCKnowledgeManager.kt$NPCKnowledgeManager$suspend fun queryKnowledge( npc: Entity.NPC, question: String, worldContext: String = "" ): KnowledgeResult</ID>
+    <ID>ReturnCount:PerkSelector.kt$PerkSelector$fun hasPendingPerkChoice(entityId: String, skillName: String): Boolean</ID>
+    <ID>ReturnCount:PerkSelector.kt$PerkSelector$fun selectPerk(entityId: String, skillName: String, perkChoice: Perk): SkillEvent?</ID>
+    <ID>ReturnCount:PersistentVectorStore.kt$PersistentVectorStore$override fun searchWithMetadata( queryEmbedding: List&lt;Double&gt;, k: Int, metadataFilter: Map&lt;String, String&gt; ): List&lt;ScoredMemoryEntry&gt;</ID>
+    <ID>ReturnCount:PersonalityAI.kt$PersonalityAI$fun modifyDecision( decision: AIDecision, socialComponent: SocialComponent?, combatComponent: CombatComponent ): AIDecision</ID>
+    <ID>ReturnCount:PickpocketHandler.kt$PickpocketHandler$fun placeItemOnNPC( playerInventory: InventoryComponent, playerSkills: SkillComponent, targetNpc: Entity.NPC, instanceId: String, templates: Map&lt;String, ItemTemplate&gt; ): PickpocketResult</ID>
+    <ID>ReturnCount:PickpocketHandler.kt$PickpocketHandler$fun stealFromNPC( playerInventory: InventoryComponent, playerSkills: SkillComponent, targetNpc: Entity.NPC, itemTarget: String? = null, templates: Map&lt;String, ItemTemplate&gt; ): PickpocketResult</ID>
+    <ID>ReturnCount:PickpocketHandlers.kt$PickpocketHandlers$fun handlePlace( game: MudGame, npcTarget: String, itemTarget: String )</ID>
+    <ID>ReturnCount:PickpocketHandlers.kt$PickpocketHandlers$fun handleSteal( game: MudGame, action: String, npcTarget: String, itemTarget: String? )</ID>
+    <ID>ReturnCount:PlayerRespawnService.kt$PlayerRespawnService$fun createPendingRespawn( worldState: WorldState, playerId: PlayerId, spawnSpaceIdOverride: String? = null ): Result&lt;PendingRespawn&gt;</ID>
+    <ID>ReturnCount:PlayerRespawnService.kt$PlayerRespawnService$private fun resetAllTreasureRooms(): Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:PlayerState.kt$PlayerState$@Deprecated("Use inventoryComponent for quest rewards", ReplaceWith("updateInventory(inventoryComponent.addGold(quest.reward.goldAmount))")) fun claimQuestReward(questId: QuestId): PlayerState</ID>
+    <ID>ReturnCount:PlayerState.kt$PlayerState$fun addItemInstance(instance: ItemInstance, templates: Map&lt;String, ItemTemplate&gt;): PlayerState?</ID>
+    <ID>ReturnCount:QuestTracker.kt$QuestTracker$private fun applyQuestCompletionDisposition(quest: Quest, worldState: WorldState): WorldState</ID>
+    <ID>ReturnCount:RealGameEngineAdapter.kt$RealGameEngineAdapter$override fun isRunning(): Boolean</ID>
+    <ID>ReturnCount:ResourceManager.kt$ResourceManager$fun consumeResource(entityId: String, resourceType: String, amount: Int): Result&lt;Boolean&gt;</ID>
+    <ID>ReturnCount:ResourceNode.kt$ResourceNode$fun tick(ticks: Int = 1): Pair&lt;ResourceNode, Boolean&gt;</ID>
+    <ID>ReturnCount:RespawnChecker.kt$RespawnChecker$fun registerRespawn( entity: Entity.NPC, spaceId: String, respawnTurns: Long = 0L ): Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$private fun extractParentIdFromChunkId(chunkId: String): String?</ID>
+    <ID>ReturnCount:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$override fun findAdjacent(currentId: String, direction: String): Result&lt;WorldChunkComponent?&gt;</ID>
+    <ID>ReturnCount:SafeZoneValidator.kt$SafeZoneValidator$fun validateSafeZone(space: SpacePropertiesComponent): Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:SceneryDescriptionGenerator.kt$SceneryDescriptionGenerator$suspend fun describeScenery( sceneryTarget: String, space: SpacePropertiesComponent, spaceDescription: String, hintTraits: List&lt;String&gt; = emptyList() ): String?</ID>
+    <ID>ReturnCount:SkillClassifier.kt$SkillClassifier$private fun normalizeWeights(weights: List&lt;SkillWeight&gt;): List&lt;SkillWeight&gt;</ID>
+    <ID>ReturnCount:SkillClassifier.kt$SkillClassifier$private suspend fun tryLLMClassification( action: String, entitySkills: SkillComponent ): List&lt;SkillWeight&gt;</ID>
+    <ID>ReturnCount:SkillComboResolver.kt$SkillComboResolver$fun identifySkills(action: String): Map&lt;String, Float&gt;</ID>
+    <ID>ReturnCount:SkillManager.kt$SkillManager$fun attemptSkillProgress( entityId: String, skillName: String, baseXp: Long, success: Boolean ): Result&lt;List&lt;SkillEvent&gt;&gt;</ID>
+    <ID>ReturnCount:SkillManager.kt$SkillManager$fun checkSkill( entityId: String, skillName: String, difficulty: Int, opposedEntityId: String? = null, opposedSkill: String? = null ): Result&lt;SkillCheckResult&gt;</ID>
+    <ID>ReturnCount:SkillManager.kt$SkillManager$fun unlockSkill( entityId: String, skillName: String, method: UnlockMethod ): Result&lt;SkillEvent.SkillUnlocked?&gt;</ID>
+    <ID>ReturnCount:SkillModifierCalculator.kt$SkillModifierCalculator$fun getWeaponDamage( equipped: Map&lt;EquipSlot, ItemInstance&gt;, templates: Map&lt;String, ItemTemplate&gt; ): Int</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleAcceptQuest(game: MudGame, questId: String?)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleCheck(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleChoosePerk(game: MudGame, skillName: String, choice: Int)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleClaimReward(game: MudGame, questId: String)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleCraft(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleInteract(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$fun handleUseSkill(game: MudGame, skill: String?, action: String)</ID>
+    <ID>ReturnCount:SkillQuestHandlers.kt$SkillQuestHandlers$private fun handleHealingSpell(game: MudGame)</ID>
+    <ID>ReturnCount:SocialHandlers.kt$SocialHandlers$fun handleEmote(game: MudGame, emoteType: String, target: String?)</ID>
+    <ID>ReturnCount:SocialHandlers.kt$SocialHandlers$fun handleIntimidate(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:SocialHandlers.kt$SocialHandlers$fun handlePersuade(game: MudGame, target: String)</ID>
+    <ID>ReturnCount:SocialHandlers.kt$SocialHandlers$fun handleSay(game: MudGame, message: String, npcTarget: String?)</ID>
+    <ID>ReturnCount:SocialHandlers.kt$SocialHandlers$private fun resolveNpcTarget(game: MudGame, npcTarget: String?): Entity.NPC?</ID>
+    <ID>ReturnCount:SpacePropertiesComponent.kt$SpacePropertiesComponent$fun resolveExit(intent: String, player: PlayerState, playerSkills: SkillComponent): ExitData?</ID>
+    <ID>ReturnCount:StatusEffectApplicator.kt$StatusEffectApplicator$fun applyEffectToEntity( entityId: String, effect: StatusEffect, worldState: WorldState, gameTime: Long ): ApplicationResult</ID>
+    <ID>ReturnCount:StatusEffectApplicator.kt$StatusEffectApplicator$fun removeEffectFromEntity( entityId: String, effectType: StatusEffectType, worldState: WorldState, gameTime: Long, wasExpired: Boolean = true ): ApplicationResult</ID>
+    <ID>ReturnCount:StatusEffectApplicator.kt$StatusEffectApplicator$fun tickEffects( entityId: String, worldState: WorldState, gameTime: Long ): ApplicationResult</ID>
+    <ID>ReturnCount:StatusEffectApplicator.kt$private fun WorldState.updateEntityCombat( entityId: String, updatedCombat: CombatComponent ): WorldState</ID>
+    <ID>ReturnCount:TestBotMain.kt$private fun getApiKey(): String?</ID>
+    <ID>ReturnCount:TestBotRunner.kt$TestBotRunner$private suspend fun executeStep(state: TestState, sessionId: String): StepResult</ID>
+    <ID>ReturnCount:TownGenerator.kt$TownGenerator$fun populateTownSpace(spaceProps: SpacePropertiesComponent): Result&lt;SpacePropertiesComponent&gt;</ID>
+    <ID>ReturnCount:TownGenerator.kt$TownGenerator$suspend fun generateTownSubzone( parentZone: WorldChunkComponent, parentZoneId: String, seed: String, globalLore: String ): Result&lt;Pair&lt;String, String&gt;&gt;</ID>
+    <ID>ReturnCount:TradeHandler.kt$TradeHandler$fun buyFromMerchant( playerInventory: InventoryComponent, merchantTrading: TradingComponent, instanceId: String, quantity: Int, disposition: Int, templates: Map&lt;String, ItemTemplate&gt; ): TradeResult</ID>
+    <ID>ReturnCount:TradeHandler.kt$TradeHandler$fun sellToMerchant( playerInventory: InventoryComponent, merchantTrading: TradingComponent, instanceId: String, quantity: Int, disposition: Int, templates: Map&lt;String, ItemTemplate&gt; ): TradeResult</ID>
+    <ID>ReturnCount:TradeHandlers.kt$TradeHandlers$fun handleTrade( game: MudGame, action: String, target: String, quantity: Int, merchantTarget: String? )</ID>
+    <ID>ReturnCount:TreasureRoomComponent.kt$TreasureRoomComponent$fun canTakeItem(itemTemplateId: String): Boolean</ID>
+    <ID>ReturnCount:TreasureRoomExitLogic.kt$TreasureRoomExitLogic$fun finalizeExit( treasureRoom: TreasureRoomComponent, itemRepository: ItemRepository ): ExitResult?</ID>
+    <ID>ReturnCount:TreasureRoomHandler.kt$TreasureRoomHandler$fun returnItemToPedestal( treasureRoom: TreasureRoomComponent, playerInventory: InventoryComponent, itemInstanceId: String, itemTemplates: Map&lt;String, ItemTemplate&gt; ): TreasureRoomResult</ID>
+    <ID>ReturnCount:TreasureRoomHandler.kt$TreasureRoomHandler$fun takeItemFromPedestal( treasureRoom: TreasureRoomComponent, playerInventory: InventoryComponent, itemTemplateId: String, itemTemplates: Map&lt;String, ItemTemplate&gt; ): TreasureRoomResult</ID>
+    <ID>ReturnCount:TreasureRoomHandlers.kt$TreasureRoomHandlers$fun handleReturnTreasure(game: MudGame, itemTarget: String)</ID>
+    <ID>ReturnCount:TreasureRoomHandlers.kt$TreasureRoomHandlers$fun handleTakeTreasure(game: MudGame, itemTarget: String)</ID>
+    <ID>ReturnCount:TreasureRoomPlacer.kt$TreasureRoomPlacer$fun selectTreasureRoomNode( nodes: List&lt;GraphNodeComponent&gt;, startNodeId: String ): GraphNodeComponent?</ID>
+    <ID>ReturnCount:V3TestGameEngine.kt$V3TestGameEngine$private fun handleAttack(target: String?): String</ID>
+    <ID>ReturnCount:V3TestGameEngine.kt$V3TestGameEngine$private fun handleDrop(target: String): String</ID>
+    <ID>ReturnCount:V3TestGameEngine.kt$V3TestGameEngine$private fun handleMove(direction: Direction): String</ID>
+    <ID>ReturnCount:V3TestGameEngine.kt$V3TestGameEngine$private fun handleSearch(): String</ID>
+    <ID>ReturnCount:V3TestGameEngine.kt$V3TestGameEngine$private fun handleTake(target: String): String</ID>
+    <ID>ReturnCount:VictoryChecker.kt$VictoryChecker$fun checkVictoryCondition(player: PlayerState, currentSpace: SpacePropertiesComponent): VictoryResult</ID>
+    <ID>ReturnCount:VictoryHandlers.kt$VictoryHandlers$fun checkVictory( worldState: WorldState, playerId: PlayerId, currentSpace: SpacePropertiesComponent ): VictoryResponse</ID>
+    <ID>ReturnCount:WorldChunkComponent.kt$WorldChunkComponent$fun validate(): Boolean</ID>
+    <ID>ReturnCount:WorldGenerator.kt$WorldGenerator$private fun generateGraphTopology( chunkId: String, chunk: WorldChunkComponent ): Result&lt;List&lt;GraphNodeComponent&gt;&gt;</ID>
+    <ID>ReturnCount:WorldGenerator.kt$WorldGenerator$suspend fun fillSpaceContent( currentSpace: SpacePropertiesComponent, graphNode: GraphNodeComponent, chunk: WorldChunkComponent ): Result&lt;SpacePropertiesComponent&gt;</ID>
+    <ID>ReturnCount:WorldGenerator.kt$WorldGenerator$suspend fun generateChunk(context: GenerationContext): Result&lt;ChunkGenerationResult&gt;</ID>
+    <ID>ReturnCount:WorldState.kt$WorldState$fun getAvailableExitsV3(playerId: PlayerId, playerSkills: SkillComponent): List&lt;Direction&gt;</ID>
+    <ID>ReturnCount:WorldState.kt$WorldState$fun movePlayerByExit(playerId: PlayerId, exitLabel: String, playerSkills: SkillComponent): WorldState?</ID>
+    <ID>ReturnCount:WorldState.kt$WorldState$fun movePlayerV3(playerId: PlayerId, direction: Direction, playerSkills: SkillComponent): WorldState?</ID>
+    <ID>ReturnCount:WorldState.kt$private fun evaluateEdgeAccess( player: PlayerState, playerSkills: SkillComponent, node: GraphNodeComponent, edge: EdgeData ): EdgeAccess</ID>
+    <ID>ReturnCount:WorldStateSeeder.kt$WorldStateSeeder$private fun loadOrCreateSpace( spaceId: String, node: GraphNodeComponent, parentChunk: WorldChunkComponent?, onWarning: (String) -&gt; Unit, onError: (String) -&gt; Unit ): SpacePropertiesComponent?</ID>
+    <ID>SwallowedException:App.kt$e: Exception</ID>
+    <ID>SwallowedException:ChunkIdGenerator.kt$ChunkIdGenerator$e: IllegalArgumentException</ID>
+    <ID>SwallowedException:ClientCombatHandlers.kt$ClientCombatHandlers$e: Exception</ID>
+    <ID>SwallowedException:CombatNarrator.kt$CombatNarrator$e: Exception</ID>
+    <ID>SwallowedException:EngineGameClient.kt$EngineGameClient$e: Exception</ID>
+    <ID>SwallowedException:ExitResolver.kt$ExitResolver$e: Exception</ID>
+    <ID>SwallowedException:InputGenerator.kt$InputGenerator$e: Exception</ID>
+    <ID>SwallowedException:IntentRecognizer.kt$IntentRecognizer$e: Exception</ID>
+    <ID>SwallowedException:Main.kt$e: Exception</ID>
+    <ID>SwallowedException:MobSpawner.kt$MobSpawner$e: Exception</ID>
+    <ID>SwallowedException:MudGameEngine.kt$MudGame$e: Exception</ID>
+    <ID>SwallowedException:NarrationVariantGenerator.kt$NarrationVariantGenerator$e: Exception</ID>
+    <ID>SwallowedException:ResourceGenerator.kt$ResourceGenerator$e: Exception</ID>
+    <ID>SwallowedException:SQLiteCombatRepository.kt$SQLiteCombatRepository$e: Exception</ID>
+    <ID>SwallowedException:TrapGenerator.kt$TrapGenerator$e: Exception</ID>
+    <ID>ThrowsCount:WorldDatabase.kt$WorldDatabase$private fun initializeSchema()</ID>
+    <ID>TooGenericExceptionCaught:App.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BossCombatEnhancements.kt$BossCombatEnhancements$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BossLootHandler.kt$BossLootHandler$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ClientCombatHandlers.kt$ClientCombatHandlers$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CombatNarrator.kt$CombatNarrator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EngineGameClient.kt$EngineGameClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ExitResolver.kt$ExitResolver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GameViewModel.kt$GameViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:InputGenerator.kt$InputGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IntentRecognizer.kt$IntentRecognizer$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ItemTemplateLoader.kt$ItemTemplateLoader$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:KnowledgeRepository.kt$SqliteKnowledgeRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LootGenerator.kt$LootGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LoreInheritanceEngine.kt$LoreInheritanceEngine$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Main.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MemoryManager.kt$MemoryManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MobSpawner.kt$MobSpawner$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MonsterAIHandler.kt$MonsterAIHandler$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MudGameEngine.kt$MudGame$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NPCInteractionGenerator.kt$NPCInteractionGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NarrationVariantGenerator.kt$NarrationVariantGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:OpenAIClient.kt$OpenAIClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PersistenceManager.kt$PersistenceManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PersistentVectorStore.kt$PersistentVectorStore$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ResourceGenerator.kt$ResourceGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RoomDescriptionGenerator.kt$RoomDescriptionGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteCombatRepository.kt$SQLiteCombatRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteCorpseRepository.kt$SQLiteCorpseRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteGraphNodeRepository.kt$SQLiteGraphNodeRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteInventoryRepository.kt$SQLiteInventoryRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteItemRepository.kt$SQLiteItemRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteRecipeRepository.kt$SQLiteRecipeRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteRespawnRepository.kt$SQLiteRespawnRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteSkillComponentRepository.kt$SQLiteSkillComponentRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteSkillRepository.kt$SQLiteSkillRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteSpaceEntityRepository.kt$SQLiteSpaceEntityRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteSpacePropertiesRepository.kt$SQLiteSpacePropertiesRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteTradingRepository.kt$SQLiteTradingRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteTreasureRoomRepository.kt$SQLiteTreasureRoomRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteWorldChunkRepository.kt$SQLiteWorldChunkRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SQLiteWorldSeedRepository.kt$SQLiteWorldSeedRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SceneryDescriptionGenerator.kt$SceneryDescriptionGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SkillClassifier.kt$SkillClassifier$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SocialComponentRepository.kt$SqliteSocialComponentRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SocialEventRepository.kt$SqliteSocialEventRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TestBotMain.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TestBotRunner.kt$TestBotRunner$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TrapGenerator.kt$TrapGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TreasureRoomDescriptionGenerator.kt$TreasureRoomDescriptionGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ValidationParsers.kt$ValidationParsers$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WorldGenerator.kt$WorldGenerator$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:MobSpawner.kt$MobSpawner$throw Exception("LLM returned empty response")</ID>
+    <ID>TooGenericExceptionThrown:OpenAIClient.kt$OpenAIClient$throw RuntimeException("OpenAI API error: ${httpResponse.status} - $errorBody")</ID>
+    <ID>TooGenericExceptionThrown:OpenAIClient.kt$OpenAIClient$throw RuntimeException("OpenAI Embedding API error: ${httpResponse.status} - $errorBody")</ID>
+    <ID>TooGenericExceptionThrown:StateChangeHandler.kt$StateChangeHandler$throw Exception("LLM returned empty description")</ID>
+    <ID>TooManyFunctions:ClientMovementHandlers.kt$ClientMovementHandlers</ID>
+    <ID>TooManyFunctions:ClientSkillQuestHandlers.kt$ClientSkillQuestHandlers</ID>
+    <ID>TooManyFunctions:ClientSocialHandlers.kt$ClientSocialHandlers</ID>
+    <ID>TooManyFunctions:CombatComponent.kt$CombatComponent : Component</ID>
+    <ID>TooManyFunctions:CombatRepository.kt$CombatRepository</ID>
+    <ID>TooManyFunctions:DispositionManager.kt$DispositionManager</ID>
+    <ID>TooManyFunctions:EngineGameClient.kt$EngineGameClient : GameClient</ID>
+    <ID>TooManyFunctions:GameServer.kt$GameServer</ID>
+    <ID>TooManyFunctions:GameplayLogger.kt$GameplayLogger</ID>
+    <ID>TooManyFunctions:GraphGenerator.kt$GraphGenerator</ID>
+    <ID>TooManyFunctions:GraphNodeComponent.kt$GraphNodeComponent : Component</ID>
+    <ID>TooManyFunctions:IntentRecognizer.kt$IntentRecognizer</ID>
+    <ID>TooManyFunctions:InventoryComponent.kt$InventoryComponent : Component</ID>
+    <ID>TooManyFunctions:ItemRepository.kt$ItemRepository</ID>
+    <ID>TooManyFunctions:MovementHandlers.kt$MovementHandlers</ID>
+    <ID>TooManyFunctions:MudGameEngine.kt$MudGame</ID>
+    <ID>TooManyFunctions:NPCKnowledgeManager.kt$NPCKnowledgeManager</ID>
+    <ID>TooManyFunctions:NarrationVariantGenerator.kt$NarrationVariantGenerator</ID>
+    <ID>TooManyFunctions:PersonalityAI.kt$PersonalityAI</ID>
+    <ID>TooManyFunctions:PlayerState.kt$PlayerState</ID>
+    <ID>TooManyFunctions:SQLiteCombatRepository.kt$SQLiteCombatRepository : CombatRepository</ID>
+    <ID>TooManyFunctions:SQLiteItemRepository.kt$SQLiteItemRepository : ItemRepository</ID>
+    <ID>TooManyFunctions:SkillComponent.kt$SkillComponent : Component</ID>
+    <ID>TooManyFunctions:SkillDefinitions.kt$SkillDefinitions</ID>
+    <ID>TooManyFunctions:SkillQuestHandlers.kt$SkillQuestHandlers</ID>
+    <ID>TooManyFunctions:SpacePropertiesComponent.kt$SpacePropertiesComponent : Component</ID>
+    <ID>TooManyFunctions:V3TestGameEngine.kt$V3TestGameEngine : GameEngineInterface</ID>
+    <ID>TooManyFunctions:ValidationPrompts.kt$ValidationPrompts</ID>
+    <ID>TooManyFunctions:WorldGenerator.kt$WorldGenerator</ID>
+    <ID>TooManyFunctions:WorldState.kt$WorldState</ID>
+    <ID>UnusedParameter:BossGenerator.kt$BossGenerator$bossName: String</ID>
+    <ID>UnusedParameter:BossGenerator.kt$BossGenerator$difficulty: Int</ID>
+    <ID>UnusedParameter:ClientSocialHandlers.kt$ClientSocialHandlers$target: String</ID>
+    <ID>UnusedParameter:ClientTradeHandlers.kt$ClientTradeHandlers$context: MerchantContext</ID>
+    <ID>UnusedParameter:ClientTreasureRoomHandlers.kt$ClientTreasureRoomHandlers$target: String?</ID>
+    <ID>UnusedParameter:CodeValidationRules.kt$CodeValidationRules$worldState: WorldState</ID>
+    <ID>UnusedParameter:CombatBehavior.kt$CombatBehavior$spaceId: SpaceId</ID>
+    <ID>UnusedParameter:CombatBehavior.kt$CombatBehavior$worldState: WorldState</ID>
+    <ID>UnusedParameter:CombatComponent.kt$CombatComponent$gameTime: Long</ID>
+    <ID>UnusedParameter:CombatComponent.kt$CombatComponent$type: DamageType = DamageType.PHYSICAL</ID>
+    <ID>UnusedParameter:CombatInitiator.kt$CombatInitiator$playerId: PlayerId = ""</ID>
+    <ID>UnusedParameter:CombatNarrator.kt$CombatNarrator$damage: Int</ID>
+    <ID>UnusedParameter:CombatResolver.kt$CombatResolver$player: PlayerState</ID>
+    <ID>UnusedParameter:CombatResolver.kt$CombatResolver$worldState: WorldState</ID>
+    <ID>UnusedParameter:CorpseDecayManager.kt$CorpseDecayManager$space: SpacePropertiesComponent</ID>
+    <ID>UnusedParameter:CorpseHandlers.kt$currentTime: Long</ID>
+    <ID>UnusedParameter:DamageCalculator.kt$DamageCalculator$worldState: WorldState</ID>
+    <ID>UnusedParameter:DeathHandler.kt$DeathHandler$space: SpacePropertiesComponent</ID>
+    <ID>UnusedParameter:DeathHandler.kt$oldPlayer: PlayerState</ID>
+    <ID>UnusedParameter:DeathHandler.kt$oldPlayerId: PlayerId</ID>
+    <ID>UnusedParameter:DungeonInitializer.kt$DungeonInitializer$combatSubzoneId: String</ID>
+    <ID>UnusedParameter:EmoteHandler.kt$EmoteHandler$newDisposition: Int</ID>
+    <ID>UnusedParameter:EmoteHandler.kt$EmoteHandler$oldDisposition: Int</ID>
+    <ID>UnusedParameter:GameServer.kt$GameServer$player: PlayerState</ID>
+    <ID>UnusedParameter:GameServer.kt$GameServer$playerId: PlayerId</ID>
+    <ID>UnusedParameter:GameServer.kt$GameServer$playerState: PlayerState</ID>
+    <ID>UnusedParameter:GameServer.kt$GameServer$targetId: String?</ID>
+    <ID>UnusedParameter:GraphGenerator.kt$GraphGenerator$chunkId: String</ID>
+    <ID>UnusedParameter:HiddenExitHandler.kt$HiddenExitHandler.Companion$sourceSpaceId: String</ID>
+    <ID>UnusedParameter:ItemUseHandler.kt$ItemUseHandler$instance: ItemInstance</ID>
+    <ID>UnusedParameter:MerchantPricingCalculator.kt$MerchantPricingCalculator$basePrice: Int</ID>
+    <ID>UnusedParameter:MerchantPricingCalculator.kt$MerchantPricingCalculator$player: PlayerState</ID>
+    <ID>UnusedParameter:MonsterAIHandler.kt$MonsterAIHandler$npc: Entity.NPC</ID>
+    <ID>UnusedParameter:PickpocketHandlers.kt$PickpocketHandlers$action: String</ID>
+    <ID>UnusedParameter:QuestTracker.kt$QuestTracker$worldState: WorldState</ID>
+    <ID>UnusedParameter:RespawnChecker.kt$RespawnChecker$newEntityId: String</ID>
+    <ID>UnusedParameter:RespawnChecker.kt$RespawnChecker$originalEntityId: String</ID>
+    <ID>UnusedParameter:SkillClassifier.kt$SkillClassifier$entitySkills: SkillComponent</ID>
+    <ID>UnusedParameter:StateChangeHandler.kt$StateChangeHandler$player: PlayerState</ID>
+    <ID>UnusedParameter:TradeHandler.kt$TradeHandler$templates: Map&lt;String, ItemTemplate&gt;</ID>
+    <ID>UnusedParameter:TreasureRoomHandlers.kt$TreasureRoomHandlers$target: String?</ID>
+    <ID>UnusedParameter:TreasureRoomPlacer.kt$TreasureRoomPlacer$totalPositions: Int</ID>
+    <ID>UnusedParameter:WorldGenerator.kt$WorldGenerator$chunk: WorldChunkComponent</ID>
+    <ID>UnusedParameter:WorldPersistence.kt$WorldPersistence$currentSpaceId: String</ID>
+    <ID>UnusedPrivateMember:CombatResolver.kt$CombatResolver$private fun calculateNpcDamage(worldState: WorldState, player: PlayerState, npcId: String): Int</ID>
+    <ID>UnusedPrivateMember:CombatResolver.kt$CombatResolver$private fun calculatePlayerDamage(player: PlayerState): Int</ID>
+    <ID>UnusedPrivateMember:GameServer.kt$GameServer$private fun calculateNpcDamage(npc: Entity.NPC, player: PlayerState): Int</ID>
+    <ID>UnusedPrivateMember:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirections( node: GraphNodeComponent, neighbors: List&lt;EdgeData&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>UnusedPrivateMember:GraphGenerator.kt$GraphGenerator$private fun assignUniqueDirectionsBidirectional( node: GraphNodeComponent, edgeMap: MutableMap&lt;String, MutableList&lt;EdgeData&gt;&gt;, nodeMap: Map&lt;String, GraphNodeComponent&gt; ): List&lt;EdgeData&gt;</ID>
+    <ID>UnusedPrivateMember:GraphGenerator.kt$GraphGenerator$private fun fixBidirectionalDirections(nodes: List&lt;GraphNodeComponent&gt;): List&lt;GraphNodeComponent&gt;</ID>
+    <ID>UnusedPrivateMember:PersonalityAI.kt$PersonalityAI$private fun hasHonorableTrait(traits: List&lt;String&gt;): Boolean</ID>
+    <ID>UnusedPrivateMember:SkillClassifier.kt$SkillClassifier$private fun addIfHasSkill( weights: MutableList&lt;SkillWeight&gt;, skillName: String, weight: Double, entitySkills: SkillComponent )</ID>
+    <ID>UnusedPrivateProperty:CodeValidationRules.kt$CodeValidationRules$val previousRoomId = if (recentHistory.isNotEmpty()) { worldState.player.currentRoomId // This is the room AFTER the last action } else { null }</ID>
+    <ID>UnusedPrivateProperty:CombatHandlers.kt$CombatHandlers$val space = game.worldState.getCurrentSpace()</ID>
+    <ID>UnusedPrivateProperty:CombatResolver.kt$CombatResolver$val space = worldState.getCurrentSpace(player.id) ?: return 0</ID>
+    <ID>UnusedPrivateProperty:CombatResolver.kt$CombatResolver$val space = worldState.getCurrentSpace(player.id) ?: return null</ID>
+    <ID>UnusedPrivateProperty:CorpseDecayManager.kt$CorpseDecayManager$private val random: Random = Random.Default</ID>
+    <ID>UnusedPrivateProperty:CraftingManager.kt$CraftingManager$val consumedInputs = consumeInputs(inventory, recipe.inputItems)</ID>
+    <ID>UnusedPrivateProperty:DungeonInitializer.kt$DungeonInitializer$index</ID>
+    <ID>UnusedPrivateProperty:DungeonInitializer.kt$DungeonInitializer$private val treasureRoomPlacer = TreasureRoomPlacer()</ID>
+    <ID>UnusedPrivateProperty:DungeonInitializer.kt$DungeonInitializer$private val treasureRoomRepository: TreasureRoomRepository</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$private val combatNarrator: CombatNarrator</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$private val combatResolver: CombatResolver</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$private val memoryManager: MemoryManager</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$private val roomDescriptionGenerator: RoomDescriptionGenerator</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$private val sceneryGenerator: SceneryDescriptionGenerator</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$val currentSpaceId = playerState.currentRoomId</ID>
+    <ID>UnusedPrivateProperty:GameServer.kt$GameServer$val inCombat = false // V2: No modal combat</ID>
+    <ID>UnusedPrivateProperty:MobSpawner.kt$MobSpawner$private val lootTableGenerator: LootTableGenerator? = null</ID>
+    <ID>UnusedPrivateProperty:NarrationMatcher.kt$NarrationMatcher$private val similarityThreshold: Double = 0.85</ID>
+    <ID>UnusedPrivateProperty:ResourceGenerator.kt$ResourceGenerator$private val itemRepository: ItemRepository</ID>
+    <ID>UnusedPrivateProperty:RespawnChecker.kt$RespawnChecker$private val mobSpawner: MobSpawner</ID>
+    <ID>UnusedPrivateProperty:SocialEventRepository.kt$SqliteSocialEventRepository$private val json = Json { ignoreUnknownKeys = true }</ID>
+    <ID>UnusedPrivateProperty:TreasureRoomDescriptionGenerator.kt$TreasureRoomDescriptionGenerator$val lockedCount = pedestalInfo.count { it.state == PedestalState.LOCKED }</ID>
+    <ID>UnusedPrivateProperty:TurnQueueManager.kt$TurnQueueManager$val timer = entityTimers.remove(entityId) ?: return false</ID>
+    <ID>UseCheckOrError:ExitLinker.kt$ExitLinker$throw IllegalStateException("Adjacent subzone not found: $adjacentSubzoneId")</ID>
+    <ID>UseCheckOrError:GraphGenerator.kt$GraphGenerator$throw IllegalStateException("Layout $layout generated no nodes")</ID>
+    <ID>UseCheckOrError:ItemTemplateLoader.kt$ItemTemplateLoader$throw IllegalStateException("Could not find item_templates.json resource")</ID>
+    <ID>UseCheckOrError:WorldState.kt$WorldState$throw IllegalStateException("No players in world")</ID>
+    <ID>WildcardImport:AttackResolver.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:BossCombatEnhancements.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:BossGenerator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:BossLootHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CapacityCalculator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientCombatHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientItemHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientMovementHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientSkillQuestHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientSocialHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientTradeHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ClientTreasureRoomHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CombatBehavior.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CombatHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CombatInitiator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CombatResolver.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CorpseDecayManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CorpseDecayScheduler.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:CorpseHandlers.kt$import com.jcraw.mud.reasoning.death.*</ID>
+    <ID>WildcardImport:CorpseManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:CraftingManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:DamageCalculator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:DeathHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:DispositionManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:DispositionManager.kt$import com.jcraw.mud.memory.social.*</ID>
+    <ID>WildcardImport:EmoteHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:EngineGameClient.kt$import com.jcraw.mud.client.handlers.*</ID>
+    <ID>WildcardImport:EngineGameClient.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:EngineGameClient.kt$import com.jcraw.mud.reasoning.*</ID>
+    <ID>WildcardImport:FleeResolver.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:GameServer.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:GameServer.kt$import com.jcraw.mud.reasoning.*</ID>
+    <ID>WildcardImport:GameViewModel.kt$import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:HiddenExitHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:HiddenExitHandler.kt$import com.jcraw.mud.core.world.*</ID>
+    <ID>WildcardImport:InventoryManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ItemUseHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:ItemUseHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:MainGameScreen.kt$import androidx.compose.foundation.layout.*</ID>
+    <ID>WildcardImport:MainGameScreen.kt$import androidx.compose.material.icons.filled.*</ID>
+    <ID>WildcardImport:MainGameScreen.kt$import androidx.compose.material3.*</ID>
+    <ID>WildcardImport:MainGameScreen.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:MainGameScreen.kt$import androidx.compose.ui.input.key.*</ID>
+    <ID>WildcardImport:MobSpawner.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:MockGameClient.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:MonsterAIHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:NPCKnowledgeManager.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:NPCKnowledgeManager.kt$import com.jcraw.mud.memory.social.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.call.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.engine.cio.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.plugins.contentnegotiation.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.client.statement.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.http.*</ID>
+    <ID>WildcardImport:OpenAIClient.kt$import io.ktor.serialization.kotlinx.json.*</ID>
+    <ID>WildcardImport:PickpocketHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:PickpocketHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:QuestGenerator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:QuestTracker.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:SQLiteItemRepository.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:SQLiteSpacePropertiesRepository.kt$import com.jcraw.mud.core.world.*</ID>
+    <ID>WildcardImport:SkillCheckResolver.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:SkillModifierCalculator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:SpacePropertiesComponent.kt$import com.jcraw.mud.core.world.*</ID>
+    <ID>WildcardImport:StatusEffectApplicator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:TownGenerator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:TownMerchantTemplates.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:TradeHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:TreasureRoomHandler.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:TreasureRoomHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:V3TestGameEngine.kt$import com.jcraw.mud.memory.world.*</ID>
+    <ID>WildcardImport:V3TestGameEngine.kt$import com.jcraw.mud.reasoning.world.*</ID>
+    <ID>WildcardImport:V3TestWorldHelper.kt$import com.jcraw.mud.memory.world.*</ID>
+    <ID>WildcardImport:V3TestWorldHelper.kt$import com.jcraw.mud.reasoning.world.*</ID>
+    <ID>WildcardImport:VictoryChecker.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:VictoryHandlers.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:WorldGenerator.kt$import com.jcraw.mud.core.*</ID>
+    <ID>WildcardImport:WorldGenerator.kt$import com.jcraw.mud.core.world.*</ID>
+    <ID>WildcardImport:WorldInitializationHelper.kt$import com.jcraw.mud.memory.world.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

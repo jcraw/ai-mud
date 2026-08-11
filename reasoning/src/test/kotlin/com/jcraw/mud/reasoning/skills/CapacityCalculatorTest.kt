@@ -18,7 +18,8 @@ class CapacityCalculatorTest {
     fun `calculateCapacity - base capacity scales linearly`() {
         assertEquals(25.0, calculator.calculateCapacity(strengthLevel = 5), 0.01)
         assertEquals(100.0, calculator.calculateCapacity(strengthLevel = 20), 0.01)
-        assertEquals(0.0, calculator.calculateCapacity(strengthLevel = 0), 0.01)
+        // STR 0 hits documented floor (not 0.0)
+        assertEquals(CapacityCalculator.MINIMUM_CAPACITY, calculator.calculateCapacity(strengthLevel = 0), 0.01)
     }
 
     @Test

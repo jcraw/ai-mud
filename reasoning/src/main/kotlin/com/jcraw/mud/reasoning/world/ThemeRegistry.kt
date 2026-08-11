@@ -101,7 +101,8 @@ object ThemeRegistry {
                 profiles["training grounds"]
             "forest" in normalized || "wood" in normalized || "tree" in normalized ->
                 profiles["dark forest"]
-            "lava" in normalized || "magma" in normalized || "volcano" in normalized || "fire" in normalized ->
+            "lava" in normalized || "magma" in normalized ||
+                "volcano" in normalized || "volcanic" in normalized || "fire" in normalized ->
                 profiles["magma cave"]
             "crypt" in normalized || "tomb" in normalized || "undead" in normalized || "grave" in normalized ->
                 profiles["ancient crypt"]

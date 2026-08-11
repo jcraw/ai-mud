@@ -1,0 +1,18 @@
+# Detekt config for AI MUD (MUD-010)
+# Thin overlay on defaults. buildUponDefaultConfig=true in Gradle; allRules=false.
+# Do not mass-tune to silence legacy debt — use baseline.xml (Jason/explicit mass regen only).
+# See docs/DETEKT.md
+
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+# Keep default rule set active. Optional light overrides only if baseline is unusable.
+# style:
+#   MaxLineLength:
+#     active: true
+#     maxLineLength: 140

@@ -1,47 +1,31 @@
 # Known Issues
 
-## Treasure Room Inventory Bug (UNRESOLVED)
+## Treasure Room Inventory Bug (PENDING JASON PLAYTEST)
 
-**Status**: In progress, needs further investigation
+**Status**: Impl landed (MUD-007) — **pending Jason playtest** before player-done. Do not claim fixed until playtested.
 
-**Symptom**:
+**Symptom (historical)**:
 - Treasure room items successfully taken (success message shown)
-- Items do NOT appear in inventory
-- `wield`/`equip` commands fail with "You don't have that in your inventory"
-- `i`/`inventory` shows empty inventory
+- Items did NOT appear in inventory / HUD
+- `wield`/`equip` failed with "You don't have that in your inventory"
+- `i`/`inventory` looked empty
 
-**Affected Clients**:
-- ✅ Console app - FIXED (not tested)
-- ❌ GUI client - Still broken after attempted fix
+**Fix (MUD-007, automated green; playtest open)**:
+- Pure contract: take Success → `InventoryComponent` gains `ItemInstance` with pedestal `templateId`
+- Shared `TreasureRoomStateApply.applySuccess` used by console + GUI
+- GUI `buildItemTemplatesMap` resolves via repository / `getItemTemplate` (not cache-only)
+- After take/return Success: emit `StatusUpdate` so ViewModel refreshes `playerState`
+- ViewModel also refreshes `playerState` on any event (belt)
+- Inventory/equip: template-null shows `templateId` fallback / distinct error (no silent skip)
 
-**Changes Made**:
+**Playtest still required (Jason)**:
+- [ ] GUI: examine pedestals → take treasure → inventory lists item → equip works
+- [ ] GUI: return treasure clears carrying and unlocks pedestals
+- [ ] Console: same take/inventory/equip smoke
+- [ ] Leave room with item still in inventory
 
-1. **IntentRecognizer.kt** (perception module):
-   - Line 180: Added "i", "inv", "eq" to inventory intent triggers
-   - Line 188: Added "wield", "wear" variations to equip intent
-   - Line 244-246: Added parsing rules #24-26 for equip/inventory/pedestal variations
+**Residual risk (out of scope MUD-007)**:
+- Floor-item take still uses V1 `addToInventory` while inventory/equip read V2 first — empty-inventory bug for floor loot possible
+- Multi-user treasure not retested
 
-2. **App.kt** (console app):
-   - Lines 122-127: Initialize player with empty `InventoryComponent` (V2 system)
-   - Line 4: Added import for `InventoryComponent`
-
-3. **ItemHandlers.kt** (console app):
-   - Lines 335-412: Rewrote `handleEquip` to check V2 `inventoryComponent` first, then fallback to legacy
-   - Lines 67-71: Added debug logging to `handleInventory`
-
-4. **TreasureRoomHandlers.kt** (console app):
-   - Lines 56-71: Added debug logging to `handleTakeTreasure`
-
-5. **ClientItemHandlers.kt** (GUI client):
-   - Lines 199-281: Rewrote `handleEquip` to check V2 `inventoryComponent` first, then fallback to legacy
-
-**Root Cause**: Unknown
-- Player IS initialized with `inventoryComponent` (verified in EngineGameClient.kt:247)
-- Treasure room handler should add items to V2 inventory
-- Something is preventing the inventory update from persisting
-
-**Next Steps**:
-1. Add comprehensive debug logging to trace inventory state through entire flow
-2. Check if treasure room state update is working correctly
-3. Verify `game.worldState` updates are persisting between commands
-4. Check GUI client event handling - may be an issue with state propagation
+**Ticket**: `issues/MUD-007-treasure-inventory-gui.md` · plan `plans/2026-08-10-ai-mud-MUD-007-treasure-inventory-gui.md`

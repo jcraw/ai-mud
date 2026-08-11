@@ -1,0 +1,119 @@
+Conduct a primary-source technical study and produce an implementation-ready policy for quality gates AND strong unit testing for an AI-maintained Kotlin multi-module game engine (AI MUD).
+
+MAKE A DECISION
+
+This is NOT a generic JUnit tutorial, SonarQube sales pitch, or "aim for 80% coverage" pep talk.
+Decide the best practical system for a small team where:
+- AI coding agents (Grok/Codex-style) write and maintain most production code
+- Humans set goals, taste, and risk; rarely hand-edit implementation
+- Token cost, agent navigability, and machine-checkable DoD matter as much as classical quality
+- Goal: catch real regressions and weak agent tests — NOT coverage theater
+
+If a fashionable rule wastes tokens or invites test-gaming without improving reliability, reject it with reasons and stop conditions.
+
+CONTEXT — PRODUCT FACTS (constraints; do not invent a different stack)
+
+Repo: AI MUD — Kotlin / Gradle multi-project, Java 17 toolchain
+Modules: app, utils, llm, core, config, perception, reasoning, memory, action, testbot, client
+Systems: combat, items, skills, social, quests, worldgen V3 graph, LLM/RAG, multi-user server, Compose desktop client, LLM-powered testbot
+Persistence: JSON saves + SQLite world data; API key optional (OPENAI_API_KEY / local.properties)
+
+Existing testing philosophy IN REPO (honor spirit; improve for agents):
+- Unit / integration (InMemoryGameEngine) / E2E testbot pyramid
+- Behavior and contracts over line coverage
+- Prefer property-based, boundaries, failure cases; mock LLM calls; deterministic fixtures
+- Avoid trivial getter tests
+
+Known health signals (do not treat as live green without noting re-verify):
+- :core:compileKotlin recently succeeded
+- On-disk stale results ~2025-12: large green modules; reasoning module ~22 failures
+- README pass counts are inconsistent/stale — gates must not trust marketing claims
+- No single verify entrypoint yet; no AGENTS.md; Claude-era docs are legacy
+
+PRIOR ART TO ADAPT (not copy blindly)
+- Library DIGEST-007 / NOTE-007: AI-native quality gates for Godot monorepo — principles: mutation over coverage, symbol/AST grounding, token ceilings, import boundaries, test locks, anti-gaming, compact JSON DoD
+- Godot-specific tools (gdlint, ClassDB, scene NodePath) DO NOT transfer; map equivalents for Kotlin/JVM/Gradle
+- game_jam patterns: touched-scope verify lanes, mutation on pure modules, craw-unit-test behavior contracts, tests protected unless ticket authorizes
+- DIGEST-016 agentic engineering: test gaming as first-class failure mode; verify/evals axis
+- MUD modernization spike 2026-08-08: tooling-first (AGENTS + verify + board), then health/product
+
+RESEARCH-OPS CONTROLS
+
+Purpose: Produce a durable, enforceable quality-gate + unit-test craft policy AI MUD can implement in 30/60/90 days — optimized for agent correctness and low token waste.
+
+People: Solo technical founder + multiple coding agents. Prefer boring automated checks + machine-readable errors over human-only review culture.
+
+Process: Prefer primary sources on LLM/agent code quality, mutation testing, property-based testing, characterization tests for legacy systems, Kotlin/JVM static analysis, Gradle test organization, and industrial agent-harness writeups. Optimize for decisions we can encode as Gradle tasks / scripts / CI JSON.
+
+Platform / source window:
+- Prefer peer-reviewed SE/LLM papers, official Kotlin/Gradle/JUnit/PIT docs, industrial case studies with methods
+- Timeframe for tooling/practice claims: 2023-01-01 through 2026-08-08 (older classical metrics OK if foundational: mutation, PBT, pyramid)
+- Reject undated tool marketing and "10 testing tips" listicles as primary evidence
+- No vague recently/currently — use dates when sources have them
+
+Performance / anti-hallucination:
+- Every material factual/numeric claim needs title + publisher + URL when available
+- Quantitative claims (thresholds, mutation scores, coverage %, token budgets) need >=3 independent primaries for [Fact]; else [Unverified Claim]
+- Tag [Fact], [Analysis], [Inference], [Repository Recommendation], [Local Measurement Required]
+- Do not require SaaS we do not have; optional components must be clearly optional
+- Every OUTPUT section must be non-empty; if unknown, say Unknown and what to measure
+
+Collaborative plan (Gemini Deep Research):
+First propose a short research plan (sub-questions + source classes). Prefer primary sources. After the human edits/approves the plan in the UI, execute fully.
+
+RESEARCH QUESTIONS
+
+1) Quality gates for an AI-maintained Kotlin multi-module game engine
+Cover correctness, structure/architecture, tests, docs-as-contracts, security/secrets, performance, release readiness, and process/harness gates.
+Map DIGEST-007 ROI gates onto JVM equivalents (compile, detekt/ktlint or alternatives, dependency/module boundaries, API surface, etc.).
+
+2) Strong unit tests WITHOUT coverage theater
+What should agents write tests for in a domain-heavy engine (pure core rules, parsers, world graph, combat math, inventory contracts)?
+What should NOT be unit-tested (LLM calls, flaky testbot, pure GUI chrome)?
+How to prevent weak assertions that only chase coverage %.
+Role of property-based tests, characterization/legacy tests for known-red suites, contract tests across modules.
+When mutation testing is worth it (which modules) and default score policy.
+
+3) AI-specific failure modes and anti-gaming
+Test gaming (editing tests to match broken code), hallucinated APIs, thrashing full-suite green-up, token-bloated test dumps, flaky LLM-dependent tests.
+Safeguards: test file locks, N-retry caps, known residual failure lists, touched-scope lanes.
+
+4) Layered verify architecture for AI MUD
+Propose default/fast/full lanes suitable for ticket verify: fields (e.g. compile-only vs :core:test vs integration vs full).
+How to handle pre-existing reasoning failures without lying about green.
+Where testbot/E2E fits (cost, flakiness, optional).
+
+5) 30/60/90 implementation plan for THIS repo
+Concrete Gradle tasks, tools, thresholds, file paths, and ticket-shaped backlog.
+Minimal viable first week vs later.
+
+EXCLUSIONS — do not recommend as required
+- Replacing Kotlin with another language
+- Mandatory 80%+ line coverage as primary success metric
+- Godot/gdlint/ClassDB tools as required
+- Expensive enterprise SaaS as hard dependency
+- Full green of all historical red tests before any gates land
+- Rewriting the whole game to make testing "easier"
+
+FORCED OUTPUT SECTIONS
+
+A. Executive decision (1 screen): what to build first and what to refuse
+B. Gate catalog (ROI-ordered table): name, category, what it prevents, JVM/Gradle mechanism, latency budget, hard vs soft fail, scope (touched/core/full)
+C. Unit-test craft standard: do/don't, pyramid placement, assertion strength rules, PBT/characterization guidance
+D. Mutation policy: when, where, score, triage
+E. Verify lanes for AI MUD: exact default commands and ticket verify: conventions
+F. Anti-gaming / agent harness rules
+G. Gap vs DIGEST-007 (Godot): what transfers, what is rewritten
+H. 30/60/90 backlog (ticket titles + deps)
+I. Risks, open measurements [Local Measurement Required]
+J. Sources with citations
+K. Fallback recommendation if evidence is thin
+
+SUCCESS CRITERIA
+- A competent agent could implement Phase-30 gates from the report without re-researching
+- Coverage % is explicitly demoted; mutation/assertion strength elevated where evidence supports
+- Kotlin/Gradle-specific, not a Godot copy-paste
+- Honest about pre-existing red tests and optional LLM testbot
+
+FALLBACK
+If sources disagree, pick the lowest-complexity option that still blocks test-gaming and compile/API hallucination, and label weaker claims Unverified.

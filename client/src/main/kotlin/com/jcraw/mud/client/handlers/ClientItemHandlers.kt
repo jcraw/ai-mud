@@ -41,6 +41,9 @@ object ClientItemHandlers {
                         if (template != null) {
                             val info = formatItemInfo(instance, template)
                             appendLine("    $slot: ${template.name}$info")
+                        } else {
+                            // Template missing: show templateId so inventory is never silently empty
+                            appendLine("    $slot: ${instance.templateId} (template missing)")
                         }
                     }
                 } else {
@@ -62,6 +65,9 @@ object ClientItemHandlers {
                         if (template != null) {
                             val info = formatItemInfo(instance, template)
                             appendLine("    - ${template.name}$info")
+                        } else {
+                            // Template missing: show templateId so inventory is never silently empty
+                            appendLine("    - ${instance.templateId} (template missing)")
                         }
                     }
                 }
@@ -300,13 +306,12 @@ object ClientItemHandlers {
 
         // V2 Inventory System
         if (invComp != null) {
-            // Find item in V2 inventory
+            val query = target.lowercase()
+            // Match by template name or templateId (template may be null)
             val itemInstance = invComp.items.find { instance ->
                 val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
-                template != null && (
-                    template.name.lowercase().contains(target.lowercase()) ||
-                    instance.templateId.lowercase().contains(target.lowercase())
-                )
+                (template?.name?.lowercase()?.contains(query) == true) ||
+                    instance.templateId.lowercase().contains(query)
             }
 
             if (itemInstance == null) {
@@ -314,10 +319,15 @@ object ClientItemHandlers {
                 return
             }
 
-            // Get template
+            // Get template — distinct error when instance exists but template is missing
             val template = game.itemRepository.findTemplateById(itemInstance.templateId).getOrNull()
             if (template == null) {
-                game.emitEvent(GameEvent.System("Error: Item template not found", GameEvent.MessageLevel.ERROR))
+                game.emitEvent(
+                    GameEvent.System(
+                        "Item template missing for '${itemInstance.templateId}' — cannot equip.",
+                        GameEvent.MessageLevel.ERROR
+                    )
+                )
                 return
             }
 

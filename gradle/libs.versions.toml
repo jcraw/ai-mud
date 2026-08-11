@@ -9,9 +9,22 @@ kotlinxSerializationJSON = "1.8.1"
 kotlinxCoroutines = "1.10.2"
 ktor = "3.1.0"
 sqliteJdbc = "3.47.2.0"
+detekt = "1.23.8"
+konsist = "0.17.3"
+# MUD-015: Kotest property tests on pure :core hot paths
+kotest = "5.9.1"
+# MUD-014: PIT mutation (pure modules only — not kotlin-jvm convention)
+pitestGradle = "1.19.0"
+pitestJunit5 = "1.2.2"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+detektGradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+# Portal marker (plugins.gradle.org) — also resolves via gradlePluginPortal() in buildSrc.
+pitestGradlePlugin = { module = "info.solidsoft.pitest:info.solidsoft.pitest.gradle.plugin", version.ref = "pitestGradle" }
+konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+# MUD-015: property-in-JUnit5 (no full Kotest runner required)
+kotestProperty = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
@@ -27,3 +40,5 @@ kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutine
 
 [plugins]
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitestGradle" }

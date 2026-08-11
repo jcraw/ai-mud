@@ -1,5 +1,7 @@
 plugins {
     id("buildsrc.convention.kotlin-jvm")
+    // MUD-014: PIT pure-module mutation (not on kotlin-jvm — would mutate-the-world).
+    id("buildsrc.convention.pitest-pure")
     alias(libs.plugins.kotlinPluginSerialization)
 }
 
