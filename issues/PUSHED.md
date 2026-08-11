@@ -22,3 +22,18 @@
 
 ## Cron
 - Disarmed: `AI MUD clear-backlog re-drain` (`54f4d0f8-485f-45fb-90b8-425efcdedb80`)
+
+## Wave F pushes (2026-08-11+)
+- Target tickets: MUD-019 · MUD-020 · MUD-021
+- Rule: one allowlisted push per ticket after `status: done`
+- Cron: `AI MUD Wave F re-drain` id `0047039f-0dd4-46ea-a487-86aef73f737a` every 20m
+- Rows below appended as each lands:
+
+### MUD-019 — floor-item V2 inventory parity
+- **When:** 2026-08-11 12:42 MST
+- **SHA:** 
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** FloorItemTakeApply + handlers (app/client/GameServer/MultiUserGame), contract test, KNOWN_ISSUES, test-lock 112, issues/plans Wave F tickets+board+handoff
+- **Excluded:** testbot/, tmp/, secrets
+
