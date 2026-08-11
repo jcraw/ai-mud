@@ -74,7 +74,7 @@
 
 ### MUD-022 — SkillManager quarantine clear (8→0)
 - **When:** 2026-08-11 16:45 MST
-- **SHA:** `2b265caab28a4fa93cae4ac4721d529aaf0ef612` (bookkeep pending)
+- **SHA:** `2b265caab28a4fa93cae4ac4721d529aaf0ef612` (bookkeep `b497f0bc4692cdb4cbd77b25ed7afe98011f8255`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** GameConfig skillXpMultiplier 1.0f, SkillManagerTest un-quarantine+re-contract, TEST_QUARANTINE 0, test-lock, AGENTS/KNOWN_ISSUES posture, MUD-007/009 harness-done, Wave G tickets 022–025 + plan/board/handoff
