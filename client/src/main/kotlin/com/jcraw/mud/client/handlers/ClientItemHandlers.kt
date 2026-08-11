@@ -2,7 +2,9 @@ package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 
 /**
  * Handles inventory and item interactions in the GUI client.
@@ -184,18 +186,31 @@ object ClientItemHandlers {
             return
         }
 
-        val newState = game.worldState
-            .removeEntityFromSpace(spaceId, item.id)
-            ?.updatePlayer(game.worldState.player.addToInventory(item))
-
-        if (newState != null) {
-            game.worldState = newState
-            game.emitEvent(GameEvent.Narrative("You take the ${item.name}."))
-
-            // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(item.id))
-        } else {
-            game.emitEvent(GameEvent.System("Something went wrong.", GameEvent.MessageLevel.ERROR))
+        val templates = floorTakeTemplates(game.itemRepository, item)
+        when (val result = FloorItemTakeApply.apply(
+            world = game.worldState,
+            player = game.worldState.player,
+            spaceId = spaceId,
+            floorItem = item,
+            templates = templates
+        )) {
+            is FloorItemTakeApply.Result.Success -> {
+                game.worldState = result.world
+                game.emitEvent(GameEvent.Narrative("You take the ${result.itemName}."))
+                // Explicit StatusUpdate so ViewModel refreshes playerState (inventory HUD)
+                val player = game.worldState.player
+                game.emitEvent(
+                    GameEvent.StatusUpdate(
+                        hp = player.health,
+                        maxHp = player.maxHealth,
+                        location = game.worldState.getSpace(spaceId)?.name ?: spaceId
+                    )
+                )
+                game.trackQuests(QuestAction.CollectedItem(item.id))
+            }
+            is FloorItemTakeApply.Result.Failure -> {
+                game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+            }
         }
     }
 
@@ -213,16 +228,27 @@ object ClientItemHandlers {
 
         var takenCount = 0
         var currentState = game.worldState
+        val takenEntityIds = mutableListOf<String>()
 
         items.forEach { item ->
-            val newState = currentState
-                .removeEntityFromSpace(spaceId, item.id)
-                ?.updatePlayer(currentState.player.addToInventory(item))
-
-            if (newState != null) {
-                currentState = newState
-                takenCount++
-                game.emitEvent(GameEvent.Narrative("You take the ${item.name}."))
+            val player = currentState.player
+            val templates = floorTakeTemplates(game.itemRepository, item)
+            when (val result = FloorItemTakeApply.apply(
+                world = currentState,
+                player = player,
+                spaceId = spaceId,
+                floorItem = item,
+                templates = templates
+            )) {
+                is FloorItemTakeApply.Result.Success -> {
+                    currentState = result.world
+                    takenCount++
+                    takenEntityIds.add(item.id)
+                    game.emitEvent(GameEvent.Narrative("You take the ${result.itemName}."))
+                }
+                is FloorItemTakeApply.Result.Failure -> {
+                    game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+                }
             }
         }
 
@@ -230,13 +256,20 @@ object ClientItemHandlers {
 
         if (takenCount > 0) {
             game.emitEvent(GameEvent.Narrative("Picked up $takenCount ${if (takenCount == 1) "item" else "items"}."))
-
-            // Track item collection for quests
-            items.forEach { item ->
-                game.trackQuests(QuestAction.CollectedItem(item.id))
+            val player = game.worldState.player
+            game.emitEvent(
+                GameEvent.StatusUpdate(
+                    hp = player.health,
+                    maxHp = player.maxHealth,
+                    location = game.worldState.getSpace(spaceId)?.name ?: spaceId
+                )
+            )
+            takenEntityIds.forEach { entityId ->
+                game.trackQuests(QuestAction.CollectedItem(entityId))
             }
         }
     }
+
 
     fun handleDrop(game: EngineGameClient, target: String) {
         val spaceId = game.worldState.player.currentRoomId
@@ -430,4 +463,19 @@ object ClientItemHandlers {
             }
         }
     }
+}
+
+/** Templates for floor take: prefer property templateId, then full catalog for name-match. */
+internal fun floorTakeTemplates(
+    itemRepository: ItemRepository,
+    item: Entity.Item
+): Map<String, ItemTemplate> {
+    val templates = mutableMapOf<String, ItemTemplate>()
+    item.properties["templateId"]?.let { tid ->
+        itemRepository.findTemplateById(tid).getOrNull()?.let { templates[it.id] = it }
+    }
+    if (templates.isEmpty()) {
+        itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    }
+    return templates
 }

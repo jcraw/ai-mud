@@ -7,7 +7,9 @@ import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.GOLD_TEMPLATE_ID
+import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 
 /**
  * Handlers for item interactions: inventory, take, drop, equip, use
@@ -187,22 +189,22 @@ object ItemHandlers {
             return
         }
 
-        // Remove item from space and add to inventory
-        val newState = game.worldState
-            .removeEntityFromSpace(spaceId, item.id)
-            ?.updatePlayer(game.worldState.player.addToInventory(item))
-
-        if (newState != null) {
-            game.worldState = newState
-            item.properties["instanceId"]?.let { instanceId ->
-                game.worldState = game.worldState.removeDroppedItem(spaceId, instanceId)
+        val templates = floorTakeTemplates(game.itemRepository, item)
+        when (val result = FloorItemTakeApply.apply(
+            world = game.worldState,
+            player = game.worldState.player,
+            spaceId = spaceId,
+            floorItem = item,
+            templates = templates
+        )) {
+            is FloorItemTakeApply.Result.Success -> {
+                game.worldState = result.world
+                println("You take the ${result.itemName}.")
+                game.trackQuests(QuestAction.CollectedItem(item.id))
             }
-            println("You take the ${item.name}.")
-
-            // Track item collection for quests
-            game.trackQuests(QuestAction.CollectedItem(item.id))
-        } else {
-            println("Something went wrong.")
+            is FloorItemTakeApply.Result.Failure -> {
+                println(result.message)
+            }
         }
     }
 
@@ -220,16 +222,27 @@ object ItemHandlers {
 
         var takenCount = 0
         var currentState = game.worldState
+        val takenEntityIds = mutableListOf<String>()
 
         items.forEach { item ->
-            val newState = currentState
-                .removeEntityFromSpace(spaceId, item.id)
-                ?.updatePlayer(currentState.player.addToInventory(item))
-
-            if (newState != null) {
-                currentState = newState
-                println("You take the ${item.name}.")
-                takenCount++
+            val player = currentState.player
+            val templates = floorTakeTemplates(game.itemRepository, item)
+            when (val result = FloorItemTakeApply.apply(
+                world = currentState,
+                player = player,
+                spaceId = spaceId,
+                floorItem = item,
+                templates = templates
+            )) {
+                is FloorItemTakeApply.Result.Success -> {
+                    currentState = result.world
+                    println("You take the ${result.itemName}.")
+                    takenCount++
+                    takenEntityIds.add(item.id)
+                }
+                is FloorItemTakeApply.Result.Failure -> {
+                    println(result.message)
+                }
             }
         }
 
@@ -237,10 +250,8 @@ object ItemHandlers {
 
         if (takenCount > 0) {
             println("\nYou took $takenCount item${if (takenCount > 1) "s" else ""}.")
-
-            // Track item collection for quests
-            items.forEach { item ->
-                game.trackQuests(QuestAction.CollectedItem(item.id))
+            takenEntityIds.forEach { entityId ->
+                game.trackQuests(QuestAction.CollectedItem(entityId))
             }
         }
     }
@@ -706,4 +717,21 @@ object ItemHandlers {
         }
         println(summary)
     }
+}
+
+/**
+ * Templates for floor take: prefer property templateId lookup, then full catalog for name-match.
+ */
+internal fun floorTakeTemplates(
+    itemRepository: ItemRepository,
+    item: Entity.Item
+): Map<String, ItemTemplate> {
+    val templates = mutableMapOf<String, ItemTemplate>()
+    item.properties["templateId"]?.let { tid ->
+        itemRepository.findTemplateById(tid).getOrNull()?.let { templates[it.id] = it }
+    }
+    if (templates.isEmpty()) {
+        itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    }
+    return templates
 }

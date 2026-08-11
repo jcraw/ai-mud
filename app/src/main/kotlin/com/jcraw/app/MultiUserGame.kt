@@ -46,9 +46,12 @@ class MultiUserGame(
         val effectiveNpcGenerator = npcInteractionGenerator ?: createFallbackNPCGenerator(effectiveMemoryManager)
         val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
 
-        // Initialize game server with social system
+        // Initialize game server with social system + item templates (floor take → V2 inventory)
         val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
         val sceneryGenerator = SceneryDescriptionGenerator(llmClient)
+        val itemDatabase = com.jcraw.mud.memory.item.ItemDatabase(com.jcraw.mud.core.DatabaseConfig.ITEMS_DB)
+        val itemRepository = com.jcraw.mud.memory.item.SQLiteItemRepository(itemDatabase)
+        com.jcraw.mud.memory.item.ItemTemplateLoader.loadTemplatesFromResource(itemRepository)
         gameServer = GameServer(
             worldState = initialWorldState,
             memoryManager = effectiveMemoryManager,
@@ -61,6 +64,7 @@ class MultiUserGame(
             skillManager = skillManager,
             socialDatabase = socialDatabase
         )
+        gameServer.itemRepository = itemRepository
 
         println("\n🎮 Multi-User Mode Enabled")
         println("=" * 60)

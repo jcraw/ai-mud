@@ -24,8 +24,8 @@
 - [ ] Console: same take/inventory/equip smoke
 - [ ] Leave room with item still in inventory
 
-**Residual risk (out of scope MUD-007)**:
-- Floor-item take still uses V1 `addToInventory` while inventory/equip read V2 first — empty-inventory bug for floor loot possible
+**Residual risk**:
+- ~~Floor-item take V1/V2 mismatch~~ — **fixed MUD-019**: pure `FloorItemTakeApply` writes V2 `InventoryComponent` (console + GUI + GameServer). Residual: **drop** still V1 entity inventory; legacy floor entities with **no templateId and no name-match** fail closed (no V1-only write).
 - Multi-user treasure not retested
 
 **Ticket**: `issues/MUD-007-treasure-inventory-gui.md` · plan `plans/2026-08-10-ai-mud-MUD-007-treasure-inventory-gui.md`

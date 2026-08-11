@@ -22,6 +22,7 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
 3. **Wave C — gates 30d:** MUD-010, 011, 012 → 013
 4. **Wave D — gates 60d:** MUD-014 (done), 015 (done)
 5. **Wave E — later:** MUD-016 CI (done), 017 quarantine slice-1 (done; residual 20 → follow-up), 018 CLAUDE deprecation (done)
+6. **Wave F — product + quarantine drip:** MUD-019 → 020 → 021 (serial; push GitHub after each done)
 
 ## How agents use this
 
@@ -50,13 +51,19 @@ _(empty — Wave D complete: MUD-014, 015 done)_
 ### Wave E — later
 _(empty — Wave E complete: MUD-016…018 done)_
 
+### Wave F — product + quarantine drip (Jason 2026-08-11)
+- **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 (`med`) · deps 017 · after 019
+- **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · deps 020 · after 020
+- **Post-done:** allowlisted `git push origin master` after each ticket closeout (no force)
+
 ## Plan review
 
 _(empty)_
 
 ## Scheduled / In progress
 
-_(empty)_
+- **MUD-020** — quarantine slice 2 · `open` · after 019
+- **MUD-021** — quarantine slice 3 · `open` · after 020
 
 ## Blocked (awaiting Jason)
 
@@ -65,6 +72,7 @@ _(empty)_
 
 ## Recently done
 
+- **MUD-019** — floor-item take → V2 InventoryComponent parity (`high`) · done · pure `FloorItemTakeApply` + thin console/GUI/GameServer take handlers; contract tests (templateId Success, overweight Failure, space cleared); no `addToInventory` on Success; KNOWN_ISSUES residual floor fixed/narrowed (drop/legacy residual remain); `--core` exit 0 · test-lock 112 · closeout `tmp/workers/MUD-019/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-019-floor-item-v2-inventory.md`
 - **MUD-018** — CLAUDE/CODEX deprecation path (`low`) · done · docs-only: banners on CLAUDE+CODEX; CODEX collab → AGENTS ops SoT; README demotes CLAUDE primary SoT; guidelines top note; AGENTS settings.local not-DoD line; settings.local untouched; CLAUDE body zero-diff · closeout `tmp/workers/MUD-018/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-018-claude-codex-deprecation-path.md`
 - **MUD-017** — clear `:reasoning` quarantine slice 1 (`low`) · done · 23→**20** tags · Capacity floor test + ThemeRegistry count(9)+magma `volcanic` prod · residual Skill*/Dungeon/Lore/Death/Treasure deferred · `--core` exit 0 · `--quarantine` hard-fail 20 OK · `tmp/dod-summary.json` quarantine_count 20 · closeout `tmp/workers/MUD-017/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-017-clear-reasoning-quarantine.md`
 - **MUD-016** — CI compile + scoped tests (`med`) · done · `.github/workflows/verify.yml` job `core` → `./tools/verify_mud.sh --core` on PR/push `master`/`main` · `contents: read` only · no secrets/OpenAI · quarantine excluded · stripped machine `org.gradle.java.home` from committed `gradle.properties` · README 1-line CI blurb · local verify `--core` exit 0 · first Actions run needs Jason push · closeout `tmp/workers/MUD-016/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-016-ci-scoped-tests.md`

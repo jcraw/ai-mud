@@ -1,8 +1,10 @@
 package com.jcraw.app
 
 import com.jcraw.mud.core.*
+import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.*
+import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.social.SocialDatabase
 import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
@@ -35,6 +37,9 @@ class GameServer(
     private val skillManager: com.jcraw.mud.reasoning.skill.SkillManager,
     private val socialDatabase: SocialDatabase? = null
 ) {
+    /** Optional item catalog for floor take → V2 inventory (MUD-019). */
+    var itemRepository: ItemRepository? = null
+
     private val sessions = mutableMapOf<PlayerId, PlayerSession>()
     private val stateMutex = Mutex()
 
@@ -438,24 +443,43 @@ class GameServer(
         val spaceId = playerState.currentRoomId
         val entities = worldState.getEntitiesInSpace(spaceId)
         val item = entities.filterIsInstance<Entity.Item>()
-            .find { it.name.equals(itemId, ignoreCase = true) }
+            .find {
+                it.name.equals(itemId, ignoreCase = true) ||
+                    it.name.lowercase().contains(itemId.lowercase()) ||
+                    it.id.lowercase().contains(itemId.lowercase())
+            }
 
         return if (item != null && item.isPickupable) {
-            val updatedPlayer = playerState.addToInventory(item)
-            val newWorldState = worldState.updatePlayer(updatedPlayer).removeEntityFromSpace(spaceId, item.id)
-
-            // Track item collection for quests
-            val questResult = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
-
-            val event = GameEvent.GenericAction(
-                playerId = playerId,
-                playerName = playerState.name,
-                actionDescription = "picks up ${item.name}",
-                roomId = spaceId,
-                excludePlayer = playerId
-            )
-
-            Triple("You take the ${item.name}." + questResult.notifications, questResult.updatedWorld, event)
+            val templates = buildFloorTakeTemplates(item)
+            when (val result = FloorItemTakeApply.apply(
+                world = worldState,
+                player = playerState,
+                spaceId = spaceId,
+                floorItem = item,
+                templates = templates
+            )) {
+                is FloorItemTakeApply.Result.Success -> {
+                    // Point member world at take result so trackQuests does not drop V2 inventory
+                    worldState = result.world
+                    val updatedPlayer = worldState.getPlayer(playerId) ?: worldState.player
+                    val questResult = trackQuests(updatedPlayer, QuestAction.CollectedItem(item.id))
+                    val event = GameEvent.GenericAction(
+                        playerId = playerId,
+                        playerName = playerState.name,
+                        actionDescription = "picks up ${result.itemName}",
+                        roomId = spaceId,
+                        excludePlayer = playerId
+                    )
+                    Triple(
+                        "You take the ${result.itemName}." + questResult.notifications,
+                        questResult.updatedWorld,
+                        event
+                    )
+                }
+                is FloorItemTakeApply.Result.Failure -> {
+                    Triple(result.message, worldState, null)
+                }
+            }
         } else if (item != null && !item.isPickupable) {
             Triple("That's part of the environment and can't be taken.", worldState, null)
         } else {
@@ -485,37 +509,69 @@ class GameServer(
             var currentWorld = worldState
             val takenItems = mutableListOf<String>()
             var allQuestNotifications = ""
+            val messages = mutableListOf<String>()
 
             items.forEach { item ->
-                currentPlayer = currentPlayer.addToInventory(item)
-                currentWorld = currentWorld.removeEntityFromSpace(spaceId, item.id)
-                takenItems.add(item.name)
+                val templates = buildFloorTakeTemplates(item)
+                when (val result = FloorItemTakeApply.apply(
+                    world = currentWorld,
+                    player = currentPlayer,
+                    spaceId = spaceId,
+                    floorItem = item,
+                    templates = templates
+                )) {
+                    is FloorItemTakeApply.Result.Success -> {
+                        currentWorld = result.world
+                        currentPlayer = currentWorld.getPlayer(playerId) ?: currentWorld.player
+                        takenItems.add(result.itemName)
+                        messages.add("You take the ${result.itemName}.")
 
-                // Track item collection for quests
-                val questResult = trackQuests(currentPlayer, QuestAction.CollectedItem(item.id))
-                currentPlayer = questResult.updatedPlayer
-                currentWorld = questResult.updatedWorld
-                allQuestNotifications += questResult.notifications
+                        // Keep trackQuests on post-take world (V2 inventory + entity removal)
+                        worldState = currentWorld
+                        val questResult = trackQuests(currentPlayer, QuestAction.CollectedItem(item.id))
+                        currentPlayer = questResult.updatedPlayer
+                        currentWorld = questResult.updatedWorld
+                        worldState = currentWorld
+                        allQuestNotifications += questResult.notifications
+                    }
+                    is FloorItemTakeApply.Result.Failure -> {
+                        messages.add(result.message)
+                    }
+                }
             }
 
-            val newWorldState = currentWorld.updatePlayer(currentPlayer)
+            if (takenItems.isEmpty()) {
+                Triple(messages.joinToString("\n").ifBlank { "You couldn't take any items." }, worldState, null)
+            } else {
+                val message = buildString {
+                    messages.forEach { appendLine(it) }
+                    append("\nYou took ${takenItems.size} item${if (takenItems.size > 1) "s" else ""}.")
+                    append(allQuestNotifications)
+                }
 
-            val message = buildString {
-                takenItems.forEach { append("You take the $it.\n") }
-                append("\nYou took ${items.size} item${if (items.size > 1) "s" else ""}.")
-                append(allQuestNotifications)
+                val event = GameEvent.GenericAction(
+                    playerId = playerId,
+                    playerName = playerState.name,
+                    actionDescription = "picks up all items",
+                    roomId = spaceId,
+                    excludePlayer = playerId
+                )
+
+                Triple(message, currentWorld, event)
             }
-
-            val event = GameEvent.GenericAction(
-                playerId = playerId,
-                playerName = playerState.name,
-                actionDescription = "picks up all items",
-                roomId = spaceId,
-                excludePlayer = playerId
-            )
-
-            Triple(message, newWorldState, event)
         }
+    }
+
+    private fun buildFloorTakeTemplates(item: Entity.Item): Map<String, ItemTemplate> {
+        val repo = itemRepository ?: return emptyMap()
+        val templates = mutableMapOf<String, ItemTemplate>()
+        item.properties["templateId"]?.let { tid ->
+            repo.findTemplateById(tid).getOrNull()?.let { templates[it.id] = it }
+        }
+        if (templates.isEmpty()) {
+            repo.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+        }
+        return templates
     }
 
     private fun handleDrop(
