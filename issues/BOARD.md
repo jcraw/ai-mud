@@ -61,8 +61,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 · `in_progress` / planning · worker grok
-- **MUD-021** — quarantine slice 3 · `open` · after 020
+- **MUD-021** — quarantine slice 3 · `open` · after 020 (020 done)
 
 ## Blocked (awaiting Jason)
 
@@ -71,6 +70,7 @@ _(empty)_
 
 ## Recently done
 
+- **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 (`med`) · done · 20→**12** tags · C1 combat size 11+membership · C2 prod `hasSkill` filter fallback+LLM parse · C3 DeepDungeon 4 REGIONs [1,5,12,18] children 4 · residual SkillManager×8 + MUD-021 cluster · `--core` exit 0 · `--quarantine` hard-fail quarantine_count **12** · test-lock 112 · closeout `tmp/workers/MUD-020/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-020-quarantine-slice2-catalog-hierarchy.md`
 - **MUD-019** — floor-item take → V2 InventoryComponent parity (`high`) · done · pure `FloorItemTakeApply` + thin console/GUI/GameServer take handlers; contract tests (templateId Success, overweight Failure, space cleared); no `addToInventory` on Success; KNOWN_ISSUES residual floor fixed/narrowed (drop/legacy residual remain); `--core` exit 0 · test-lock 112 · closeout `tmp/workers/MUD-019/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-019-floor-item-v2-inventory.md`
 - **MUD-018** — CLAUDE/CODEX deprecation path (`low`) · done · docs-only: banners on CLAUDE+CODEX; CODEX collab → AGENTS ops SoT; README demotes CLAUDE primary SoT; guidelines top note; AGENTS settings.local not-DoD line; settings.local untouched; CLAUDE body zero-diff · closeout `tmp/workers/MUD-018/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-018-claude-codex-deprecation-path.md`
 - **MUD-017** — clear `:reasoning` quarantine slice 1 (`low`) · done · 23→**20** tags · Capacity floor test + ThemeRegistry count(9)+magma `volcanic` prod · residual Skill*/Dungeon/Lore/Death/Treasure deferred · `--core` exit 0 · `--quarantine` hard-fail 20 OK · `tmp/dod-summary.json` quarantine_count 20 · closeout `tmp/workers/MUD-017/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-017-clear-reasoning-quarantine.md`

@@ -9,7 +9,6 @@ import com.jcraw.sophia.llm.OpenAIMessage
 import com.jcraw.sophia.llm.OpenAIUsage
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Tag
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -127,8 +126,6 @@ class SkillClassifierTest {
         assertEquals(1.0, result.sumOf { it.weight }, 0.01)
     }
 
-    // quarantine: fallback returns extra skill (expected 1, got 2)
-    @Tag("quarantine")
     @Test
     fun `fallback classification returns only available skills`() = runBlocking {
         val classifier = SkillClassifier(llmClient = null)
@@ -143,8 +140,6 @@ class SkillClassifierTest {
         assertEquals(1.0, result.first().weight, 0.01)
     }
 
-    // quarantine: fallback now matches more skills than expected empty
-    @Tag("quarantine")
     @Test
     fun `fallback classification returns empty list when no applicable skills`() = runBlocking {
         val classifier = SkillClassifier(llmClient = null)
@@ -212,8 +207,6 @@ class SkillClassifierTest {
         assertEquals(0.4, result.find { it.skill == "Strength" }?.weight ?: 0.0, 0.01)
     }
 
-    // quarantine: classifier returns extra skill beyond filtered set
-    @Tag("quarantine")
     @Test
     fun `LLM classification filters out skills entity doesn't have`() = runBlocking {
         // LLM suggests Sword Fighting, but entity doesn't have it
@@ -261,8 +254,6 @@ class SkillClassifierTest {
         assertTrue(result.any { it.skill == "Sword Fighting" })
     }
 
-    // quarantine: empty skill component no longer yields empty classification
-    @Tag("quarantine")
     @Test
     fun `classification with empty skill list returns empty result`() = runBlocking {
         val classifier = SkillClassifier(llmClient = null)

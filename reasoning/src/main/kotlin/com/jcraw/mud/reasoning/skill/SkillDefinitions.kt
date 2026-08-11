@@ -92,7 +92,7 @@ object SkillDefinitions {
     )
 
     /**
-     * Combat skills (6 skills)
+     * Combat skills (11 skills)
      * Tags: ["combat", "weapon"/"armor"]
      */
     private val combatSkills = listOf(

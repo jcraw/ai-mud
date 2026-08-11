@@ -127,11 +127,10 @@ class SkillClassifier(private val llmClient: LLMClient?) {
 
             val parsed = json.decodeFromString<List<SkillWeightDto>>(jsonContent)
 
-            // Filter to skills that exist in SkillDefinitions (not just what entity has unlocked)
-            // This allows level 0 skill usage
+            // Filter to catalog skills the entity actually has (level 0 on component counts)
             val validSkills = SkillDefinitions.allSkills.keys
             parsed
-                .filter { it.skill in validSkills }
+                .filter { it.skill in validSkills && entitySkills.hasSkill(it.skill) }
                 .map { SkillWeight(it.skill, it.weight.coerceIn(0.0, 1.0)) }
         } catch (e: Exception) {
             println("⚠️ Failed to parse skill weights: ${e.message}")
@@ -149,7 +148,7 @@ class SkillClassifier(private val llmClient: LLMClient?) {
         val actionLower = action.lowercase()
         val weights = mutableListOf<SkillWeight>()
 
-        // Weapon type detection - always add skills, even if not unlocked (for level 0 usage)
+        // Weapon type detection — candidates, then filter to skills present on the entity
         when {
             actionLower.contains("sword") || actionLower.contains("blade") -> {
                 weights.add(SkillWeight("Sword Fighting", 0.7))
@@ -190,7 +189,8 @@ class SkillClassifier(private val llmClient: LLMClient?) {
             }
         }
 
-        return normalizeWeights(weights)
+        val owned = weights.filter { entitySkills.hasSkill(it.skill) }
+        return normalizeWeights(owned)
     }
 
     private fun addIfHasSkill(

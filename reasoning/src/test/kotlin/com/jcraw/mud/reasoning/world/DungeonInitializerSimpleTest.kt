@@ -16,7 +16,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
-import org.junit.jupiter.api.Tag
 
 /**
  * Integration tests for DungeonInitializer - uses real SQLite database
@@ -80,8 +79,6 @@ class DungeonInitializerSimpleTest {
         database.clearAll()
     }
 
-    // quarantine: region count drift: expected 3 REGIONs, got 4
-    @Tag("quarantine")
     @Test
     fun `initializeDeepDungeon creates complete hierarchy`() = runBlocking {
         val result = initializer.initializeDeepDungeon("test-seed-123")
@@ -101,7 +98,7 @@ class DungeonInitializerSimpleTest {
         val subzoneChunks = allChunks.values.filter { it.level == ChunkLevel.SUBZONE }
 
         assertEquals(1, worldChunks.size, "Should have 1 WORLD")
-        assertEquals(3, regionChunks.size, "Should have 3 REGIONs")
+        assertEquals(4, regionChunks.size, "Should have 4 REGIONs")
         assertTrue(zoneChunks.isNotEmpty(), "Should have at least 1 ZONE")
         assertTrue(subzoneChunks.isNotEmpty(), "Should have at least 1 SUBZONE")
     }
@@ -119,8 +116,6 @@ class DungeonInitializerSimpleTest {
         assertEquals(result.getOrNull(), seed?.startingSpaceId)
     }
 
-    // quarantine: region count drift: expected 3 REGIONs, got 4
-    @Tag("quarantine")
     @Test
     fun `initializeDeepDungeon creates regions with correct difficulty`() = runBlocking {
         val result = initializer.initializeDeepDungeon("test-seed")
@@ -132,14 +127,13 @@ class DungeonInitializerSimpleTest {
             .filter { it.level == ChunkLevel.REGION }
             .sortedBy { it.difficultyLevel }
 
-        assertEquals(3, regions.size)
-        assertEquals(5, regions[0].difficultyLevel, "Upper Depths difficulty")
-        assertEquals(12, regions[1].difficultyLevel, "Mid Depths difficulty")
-        assertEquals(18, regions[2].difficultyLevel, "Lower Depths difficulty")
+        assertEquals(4, regions.size)
+        assertEquals(1, regions[0].difficultyLevel, "Training Grounds difficulty")
+        assertEquals(5, regions[1].difficultyLevel, "Upper Depths difficulty")
+        assertEquals(12, regions[2].difficultyLevel, "Mid Depths difficulty")
+        assertEquals(18, regions[3].difficultyLevel, "Lower Depths difficulty")
     }
 
-    // quarantine: region count drift: expected 3 REGIONs, got 4
-    @Tag("quarantine")
     @Test
     fun `initializeDeepDungeon creates parent-child relationships`() = runBlocking {
         val result = initializer.initializeDeepDungeon("test-seed")
@@ -152,8 +146,8 @@ class DungeonInitializerSimpleTest {
         val worldEntry = allChunks.entries.first { it.value.level == ChunkLevel.WORLD }
         val worldChunk = worldEntry.value
 
-        // WORLD should have 3 region children
-        assertEquals(3, worldChunk.children.size)
+        // WORLD should have 4 region children
+        assertEquals(4, worldChunk.children.size)
 
         // Each REGION should reference WORLD as parent
         val regions = allChunks.filter { it.value.level == ChunkLevel.REGION }

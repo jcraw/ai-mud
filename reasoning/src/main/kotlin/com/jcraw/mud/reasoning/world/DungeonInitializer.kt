@@ -33,7 +33,7 @@ interface DungeonInitializerContract {
  *
  * Creates a predictable starting hierarchy:
  * - WORLD: "Ancient Abyss Dungeon"
- * - REGIONS: Upper Depths (1-10), Mid Depths (11-50), Lower Depths (51-100+)
+ * - REGIONS: Training Grounds (diff 1), Upper Depths (5), Mid Depths (12), Lower Depths (18)
  * - Pre-generates first ZONE/SUBZONE/SPACE for immediate player start
  */
 class DungeonInitializer(

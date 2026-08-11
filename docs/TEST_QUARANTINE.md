@@ -1,7 +1,7 @@
 # Test Quarantine
 
-**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1 cleared 2026-08-11)  
-**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20
+**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2 cleared 2026-08-11)**  
+**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12
 
 Known failing tests are tagged `@Tag("quarantine")` and **excluded by default** from green verify lanes. They remain runnable and hard-fail on the quarantine lane. Do **not** weaken asserts to force green.
 
@@ -32,7 +32,8 @@ fun `…`() { … }
 | `tmp/workers/MUD-008/baseline-core-20260810.log` | `./tools/verify_mud.sh --core` (pre-tag; no reasoning) | **PASS** · core **462** + perception **56** + memory **321** = **839** pass |
 
 Original post-tag green reasoning (default exclude): **621** tests (644 − 23).  
-**MUD-017 slice 1 (2026-08-11):** cleared **3** tags → quarantine count **20**. Green reasoning under exclude: **624** expected (644 − 20).
+**MUD-017 slice 1 (2026-08-11):** cleared **3** tags → quarantine count **20**. Green reasoning under exclude: **624** expected (644 − 20).  
+**MUD-020 slice 2 (2026-08-11):** cleared **8** tags → quarantine count **12**. Green reasoning under exclude: **632** expected (644 − 12).
 
 Core lane includes green `:reasoning:test` under excludeTags.
 
@@ -44,19 +45,24 @@ Core lane includes green `:reasoning:test` under excludeTags.
 | `ThemeRegistryTest#getAllThemeNames returns all themes` | Count 9 + membership includes `training grounds` |
 | `ThemeRegistryTest#getProfileSemantic matches magma keywords` | Prod: magma keyword `"volcanic"` so volcanic/lava/fire map to magma cave |
 
-## Quarantined tests (20)
+### Cleared in MUD-020 slice 2
+
+| Class#method | Fix |
+|--------------|-----|
+| `SkillDefinitionsTest#category getters return correct skills` | Test: combat size 11 + membership of all 11 names; KDoc 6→11 |
+| `SkillClassifierTest#fallback classification returns only available skills` | Prod: `fallbackClassification` filters candidates by `hasSkill`, then renormalize |
+| `SkillClassifierTest#fallback classification returns empty list when no applicable skills` | Prod: same filter → empty when entity has no matching skills |
+| `SkillClassifierTest#LLM classification filters out skills entity doesn't have` | Prod: `parseSkillWeights` filters catalog ∩ entity `hasSkill` |
+| `SkillClassifierTest#classification with empty skill list returns empty result` | Prod: empty component → empty after filter |
+| `DungeonInitializerSimpleTest#initializeDeepDungeon creates complete hierarchy` | Test: 4 REGIONs (Training Grounds + Upper/Mid/Lower) |
+| `DungeonInitializerSimpleTest#initializeDeepDungeon creates regions with correct difficulty` | Test: sorted difficulties [1, 5, 12, 18] |
+| `DungeonInitializerSimpleTest#initializeDeepDungeon creates parent-child relationships` | Test: world.children size 4; each REGION parent = WORLD |
+
+## Quarantined tests (12)
 
 | Class#method | Reason |
 |--------------|--------|
-| `SkillDefinitionsTest#category getters return correct skills` | catalog grew: combat category expected 6 skills, got 11 |
 | `LoreInheritanceEngineTest#varyLore generates lore variation with parent keywords` | fallback lore no longer embeds parent keywords |
-| `SkillClassifierTest#fallback classification returns empty list when no applicable skills` | fallback now matches more skills than expected empty |
-| `SkillClassifierTest#fallback classification returns only available skills` | fallback returns extra skill (expected 1, got 2) |
-| `SkillClassifierTest#LLM classification filters out skills entity doesn't have` | classifier returns extra skill beyond filtered set |
-| `SkillClassifierTest#classification with empty skill list returns empty result` | empty skill component no longer yields empty classification |
-| `DungeonInitializerSimpleTest#initializeDeepDungeon creates complete hierarchy` | region count drift: expected 3 REGIONs, got 4 |
-| `DungeonInitializerSimpleTest#initializeDeepDungeon creates regions with correct difficulty` | region count drift: expected 3 REGIONs, got 4 |
-| `DungeonInitializerSimpleTest#initializeDeepDungeon creates parent-child relationships` | region count drift: expected 3 REGIONs, got 4 |
 | `DeathHandlerTest#NPC death drops loot into space and corpse` | V3 death/loot path assert mismatch (space/corpse) |
 | `TreasureRoomPlacerTest#selectTreasureRoomNode excludes Boss and Frontier nodes` | placer selected Frontier node as treasure room |
 | `WorldGeneratorTest#generateChunk creates REGION level with parent lore variation` | region lore no longer references parent keywords |
@@ -73,7 +79,7 @@ Core lane includes green `:reasoning:test` under excludeTags.
 
 - Counts may drift if new tests are added or failures change; re-baseline before expanding the list.
 - Only **consistent** fails from the recorded baseline were tagged — flakes (if any later) should be noted, not silently `@Disabled`.
-- **Deferred clusters (20 residual):** SkillManager ×8, SkillClassifier ×4, SkillDefinitions ×1, DungeonInitializer ×3, Lore/WorldGenerator ×2, DeathHandler ×1, TreasureRoomPlacer ×1 — follow-up ticket (e.g. MUD-017b); SkillManager may need Jason product opinion on L1 vs L2 unlock.
+- **Deferred clusters (12 residual):** SkillManager ×8 (L1/L2 Jason) + MUD-021 cluster (Lore/WorldGenerator ×2, DeathHandler ×1, TreasureRoomPlacer ×1).
 
 ## Related
 

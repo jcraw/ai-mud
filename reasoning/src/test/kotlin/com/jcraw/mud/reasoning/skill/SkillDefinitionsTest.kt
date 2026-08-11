@@ -2,7 +2,6 @@ package com.jcraw.mud.reasoning.skill
 
 import com.jcraw.mud.core.SkillState
 import kotlin.test.*
-import org.junit.jupiter.api.Tag
 
 class SkillDefinitionsTest {
 
@@ -127,8 +126,6 @@ class SkillDefinitionsTest {
         assertEquals(skill.resourceType, skillState.resourceType)
     }
 
-    // quarantine: catalog grew: combat category expected 6 skills, got 11
-    @Tag("quarantine")
     @Test
     fun `category getters return correct skills`() {
         val coreStats = SkillDefinitions.getCoreStats()
@@ -136,7 +133,23 @@ class SkillDefinitionsTest {
         assertTrue(coreStats.all { it.tags.contains("stat") })
 
         val combatSkills = SkillDefinitions.getCombatSkills()
-        assertEquals(6, combatSkills.size)
+        assertEquals(11, combatSkills.size)
+        assertEquals(
+            setOf(
+                "Sword Fighting",
+                "Axe Mastery",
+                "Bow Accuracy",
+                "Light Armor",
+                "Heavy Armor",
+                "Shield Use",
+                "Dodge",
+                "Parry",
+                "Unarmed Combat",
+                "Escape",
+                "Pursuit"
+            ),
+            combatSkills.map { it.name }.toSet()
+        )
 
         val rogueSkills = SkillDefinitions.getRogueSkills()
         assertEquals(5, rogueSkills.size)
