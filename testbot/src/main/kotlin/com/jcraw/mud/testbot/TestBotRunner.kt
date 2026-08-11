@@ -378,11 +378,12 @@ class TestBotRunner(
             is TestScenario.SkillProgression -> {
                 // Death should NOT complete objectives - bot needs to learn to survive
                 // Only complete when Dodge skill reaches target level
+                // Message format: "🎉 Dodge leveled up! 0 → 1"
                 val targetLevel = state.scenario.targetLevel
                 val dodgeLevelReached = state.steps.any { step ->
-                    val match = Regex("Dodge.*level\\s+(\\d+)", RegexOption.IGNORE_CASE).find(step.gmResponse)
-                    val level = match?.groupValues?.get(1)?.toIntOrNull() ?: 0
-                    level >= targetLevel
+                    val match = Regex("Dodge leveled up!.*?(\\d+)\\s*→\\s*(\\d+)", RegexOption.IGNORE_CASE).find(step.gmResponse)
+                    val newLevel = match?.groupValues?.get(2)?.toIntOrNull() ?: 0
+                    newLevel >= targetLevel
                 }
                 dodgeLevelReached
             }

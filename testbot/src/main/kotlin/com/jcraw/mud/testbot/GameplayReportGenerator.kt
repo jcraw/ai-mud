@@ -104,16 +104,21 @@ class GameplayReportGenerator(
         return when (report.scenario) {
             is TestScenario.SkillProgression -> {
                 val targetLevel = report.scenario.targetLevel
-                // Extract Dodge level progression from steps
-                val skillLevels = report.steps.mapNotNull { step ->
-                    val match = Regex("Dodge.*level\\s+(\\d+)", RegexOption.IGNORE_CASE)
+                // Extract Dodge level transitions from steps
+                // Message format: "🎉 Dodge leveled up! 0 → 1"
+                val levelTransitions = report.steps.mapNotNull { step ->
+                    val match = Regex("Dodge leveled up!.*?(\\d+)\\s*→\\s*(\\d+)", RegexOption.IGNORE_CASE)
                         .find(step.gmResponse)
-                    match?.groupValues?.get(1)?.toIntOrNull()
+                    if (match != null) {
+                        val oldLevel = match.groupValues[1].toIntOrNull() ?: 0
+                        val newLevel = match.groupValues[2].toIntOrNull() ?: 0
+                        Pair(oldLevel, newLevel)
+                    } else null
                 }
 
-                val startLevel = skillLevels.firstOrNull() ?: 0
-                val endLevel = skillLevels.lastOrNull() ?: 0
-                val levelUps = skillLevels.zipWithNext().count { (prev, curr) -> curr > prev }
+                val startLevel = levelTransitions.firstOrNull()?.first ?: 0
+                val endLevel = levelTransitions.lastOrNull()?.second ?: 0
+                val levelUps = levelTransitions.size
                 val averageActionsPerLevel = if (levelUps > 0) report.totalSteps / levelUps else 0
 
                 """
