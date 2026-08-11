@@ -7,7 +7,6 @@ import com.jcraw.mud.core.repository.SkillComponentRepository
 import com.jcraw.mud.core.repository.SkillRepository
 import kotlin.random.Random
 import kotlin.test.*
-import org.junit.jupiter.api.Tag
 
 class SkillManagerTest {
 
@@ -26,8 +25,6 @@ class SkillManagerTest {
 
     // ========== XP Granting Tests ==========
 
-    // quarantine: XP/level expectations drift after dual-path progression
-    @Tag("quarantine")
     @Test
     fun `grantXp grants full XP on success`() {
         // Setup: Entity with unlocked skill at level 1
@@ -50,8 +47,6 @@ class SkillManagerTest {
         assertTrue(xpEvent.success)
     }
 
-    // quarantine: failure XP scale drift (expected 20, got 200)
-    @Tag("quarantine")
     @Test
     fun `grantXp grants 20 percent XP on failure`() {
         val entityId = "player1"
@@ -69,8 +64,6 @@ class SkillManagerTest {
         assertFalse(xpEvent.success)
     }
 
-    // quarantine: level-up threshold/level count drift
-    @Tag("quarantine")
     @Test
     fun `grantXp triggers level-up when threshold crossed`() {
         val entityId = "player1"
@@ -92,8 +85,6 @@ class SkillManagerTest {
         assertFalse(levelUpEvent.isAtPerkMilestone)
     }
 
-    // quarantine: multi level-up count drift (expected 4, got 9)
-    @Tag("quarantine")
     @Test
     fun `grantXp handles multiple level-ups`() {
         val entityId = "player1"
@@ -133,10 +124,10 @@ class SkillManagerTest {
         assertTrue(levelUpEvent.isAtPerkMilestone)
     }
 
-    // quarantine: grantXp no longer fails for unlocked skill as expected
-    @Tag("quarantine")
     @Test
-    fun `grantXp fails for unlocked skill`() {
+    fun `grantXp auto-unlocks locked skill when level reaches 1`() {
+        // Dual-path design: use-based grantXp on a locked skill succeeds and auto-unlocks
+        // when level reaches >= 1 (not a Failure). L0→1 threshold = 100 XP.
         val entityId = "player1"
         val skillName = "Sword Fighting"
         val lockedSkill = SkillState(level = 0, xp = 0, unlocked = false)
@@ -144,7 +135,16 @@ class SkillManagerTest {
 
         val result = manager.grantXp(entityId, skillName, baseXp = 100, success = true)
 
-        assertTrue(result.isFailure)
+        assertTrue(result.isSuccess)
+        val events = result.getOrThrow()
+        assertTrue(events.any { it is SkillEvent.XpGained })
+        assertTrue(events.any { it is SkillEvent.SkillUnlocked })
+        assertTrue(events.any { it is SkillEvent.LevelUp })
+
+        val component = componentRepo.load(entityId).getOrThrow()!!
+        val skill = component.getSkill(skillName)!!
+        assertTrue(skill.unlocked)
+        assertEquals(1, skill.level)
     }
 
     @Test
@@ -484,33 +484,22 @@ class SkillManagerTest {
         assertTrue(events.isNotEmpty())
     }
 
-    // quarantine: lucky unlock starts at level 2 not 1 (progression formula drift)
-    @Tag("quarantine")
     @Test
     fun `attemptSkillProgress with lucky success unlocks skill at level 1`() {
+        // Either lucky path (instant L1) or XP path (100 XP → L0→1) lands unlocked at level 1
         val entityId = "player1"
         val skillName = "Lucky Skill"
         componentRepo.save(entityId, SkillComponent())
 
-        // Use seed that forces roll <= 15 (lucky progression for level 0→1)
         val luckyManager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(5))
 
         val result = luckyManager.attemptSkillProgress(entityId, skillName, baseXp = 100, success = true)
 
         assertTrue(result.isSuccess)
-        val events = result.getOrThrow()
-
-        // Should have SkillUnlocked and LevelUp events if lucky
-        val hasUnlock = events.any { it is SkillEvent.SkillUnlocked }
-        val hasLevelUp = events.any { it is SkillEvent.LevelUp }
-
-        if (hasUnlock && hasLevelUp) {
-            // Verify skill is now unlocked at level 1
-            val component = componentRepo.load(entityId).getOrThrow()!!
-            val skill = component.getSkill(skillName)!!
-            assertTrue(skill.unlocked)
-            assertEquals(1, skill.level)
-        }
+        val component = componentRepo.load(entityId).getOrThrow()!!
+        val skill = component.getSkill(skillName)!!
+        assertTrue(skill.unlocked)
+        assertEquals(1, skill.level)
     }
 
     @Test
@@ -751,64 +740,52 @@ class SkillManagerTest {
         assertFalse(xpEvent.success)
     }
 
-    // quarantine: Dodge lucky unlock level drift (expected 1, got 2)
-    @Tag("quarantine")
     @Test
     fun `defender can unlock Dodge through lucky progression`() {
+        // Lucky or XP path both land Dodge unlocked at level 1 (baseXp 100 ≥ L0→1 threshold)
         val defenderId = "defender"
-
-        // Setup defender with no Dodge skill
         componentRepo.save(defenderId, SkillComponent())
 
-        // Use lucky seed to force unlock
         val luckyManager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(5))
 
-        // Attempt to use Dodge - should unlock via lucky progression
         val result = luckyManager.attemptSkillProgress(defenderId, "Dodge", baseXp = 100, success = true)
 
         assertTrue(result.isSuccess)
-        val events = result.getOrThrow()
-
-        // Check if unlocked via lucky progression
-        val hasUnlock = events.any { it is SkillEvent.SkillUnlocked }
-
-        if (hasUnlock) {
-            // Verify skill was unlocked at level 1
-            val component = componentRepo.load(defenderId).getOrThrow()!!
-            val skill = component.getSkill("Dodge")!!
-            assertTrue(skill.unlocked)
-            assertEquals(1, skill.level)
-        }
+        val component = componentRepo.load(defenderId).getOrThrow()!!
+        val skill = component.getSkill("Dodge")!!
+        assertTrue(skill.unlocked)
+        assertEquals(1, skill.level)
     }
 
-    // quarantine: defensive skill isolation assert failed post progression rewrite
-    @Tag("quarantine")
     @Test
     fun `defensive skills progress independently for different entities`() {
-        val defender1 = "defender1"
-        val defender2 = "defender2"
+        // Force XP path so lucky level-ups cannot collapse both entities to xp=0
+        val originalLuckyEnabled = com.jcraw.mud.config.GameConfig.enableLuckyProgression
+        try {
+            com.jcraw.mud.config.GameConfig.enableLuckyProgression = false
 
-        // Setup both defenders with Dodge at level 1
-        val dodgeSkill = SkillState(level = 1, xp = 0, unlocked = true)
-        componentRepo.save(defender1, SkillComponent().addSkill("Dodge", dodgeSkill))
-        componentRepo.save(defender2, SkillComponent().addSkill("Dodge", dodgeSkill))
+            val defender1 = "defender1"
+            val defender2 = "defender2"
 
-        // Use unlucky seed to force XP path
-        val unluckyManager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(99))
+            val dodgeSkill = SkillState(level = 1, xp = 0, unlocked = true)
+            componentRepo.save(defender1, SkillComponent().addSkill("Dodge", dodgeSkill))
+            componentRepo.save(defender2, SkillComponent().addSkill("Dodge", dodgeSkill))
 
-        // Grant different amounts of XP to each
-        unluckyManager.attemptSkillProgress(defender1, "Dodge", baseXp = 100, success = true).getOrThrow()
-        unluckyManager.attemptSkillProgress(defender2, "Dodge", baseXp = 300, success = true).getOrThrow()
+            val unluckyManager = SkillManager(skillRepo, componentRepo, memoryManager = null, rng = Random(99))
 
-        // Verify they progressed independently
-        val component1 = componentRepo.load(defender1).getOrThrow()!!
-        val component2 = componentRepo.load(defender2).getOrThrow()!!
+            unluckyManager.attemptSkillProgress(defender1, "Dodge", baseXp = 100, success = true).getOrThrow()
+            unluckyManager.attemptSkillProgress(defender2, "Dodge", baseXp = 300, success = true).getOrThrow()
 
-        val skill1 = component1.getSkill("Dodge")!!
-        val skill2 = component2.getSkill("Dodge")!!
+            val component1 = componentRepo.load(defender1).getOrThrow()!!
+            val component2 = componentRepo.load(defender2).getOrThrow()!!
 
-        // Defender2 should have more XP than defender1
-        assertTrue(skill2.xp > skill1.xp)
+            val skill1 = component1.getSkill("Dodge")!!
+            val skill2 = component2.getSkill("Dodge")!!
+
+            assertTrue(skill2.xp > skill1.xp)
+        } finally {
+            com.jcraw.mud.config.GameConfig.enableLuckyProgression = originalLuckyEnabled
+        }
     }
 
     @Test

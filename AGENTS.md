@@ -7,7 +7,7 @@ Keep this file lean. Link out; do not embed full project status.
 
 - **AI MUD** — text multi-user dungeon (console + Compose Multiplatform GUI).
 - Kotlin multi-module Gradle project; LLM-assisted narration optional (works without API key via fallbacks).
-- **Posture (Jason 2026-08-09):** background / low-stakes ops + product work on spare agent capacity only. Prefer autonomous drains; one problem per ticket; no rush.
+- **Posture (Jason 2026-08-11):** **harness-first** — quality gates, unit/contract tests, AGENTS/board/verify/CI modern ops. **Not** ready for product playtest; **do not block drains on Jason playtest/opinion** unless ticket is an explicit design spike. Spare capacity OK; one problem per ticket; no rush.
 
 ## Startup Reads (minimal)
 

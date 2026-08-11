@@ -1,30 +1,26 @@
-# ai-mud overnight / Wave F handoff
+# ai-mud overnight / Wave G handoff
 
-**Updated:** 2026-08-11 14:22 MST
-**Live:** none
-**Agent queue:** empty (Wave F complete)
-**Human-gated left:** MUD-007 playtest · MUD-009 Jason git · SkillManager ×8 (L1/L2 opinion)
-**Cron:** AI MUD Wave F re-drain — **DISARMED** (`0047039f`) after 019+020+021 done+pushed
-**No time rush**
+**Updated:** 2026-08-11 16:45 MST
+**Live:** none (MUD-022 done+pushing this tick; MUD-023 PLAN next)
+**Agent queue:** MUD-023 → 024 → 025 (serial)
+**Human-gated left:** **none** (harness posture — no Jason playtest blockers)
+**Cron:** AI MUD Wave G re-drain (`cd5f9827`) every 20m
+**Posture:** Jason 2026-08-11 — quality gates / unit tests / modern harness only; product play later
 
-## Wave F goals
-1. **MUD-019** floor-item V2 inventory parity — **done + pushed** `d6446aa`
-2. **MUD-020** quarantine slice 2 (SkillDefinitions/Classifier/DungeonInit ×8) — **done + pushed** `e68ff12` (bookkeep `49e861c`)
-3. **MUD-021** quarantine slice 3 (Lore/WG/Death/TreasurePlacer ×4) — **done + pushed** `4eef71e`
+## Wave G goals
+1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE** (this tick push)
+2. **MUD-023** drop → V2 inventory parity — next PLAN
+3. **MUD-024** V1 inventory/equip production write purge
+4. **MUD-025** docs/board closeout quarantine 0
 
 ## Push allowlist (after each done)
-- Include: ticket-owned product/docs, `AGENTS.md`, `issues/`, `plans/`, `docs/`, `tools/`, `.github/`, `config/`, gradle portable bits as ticket-scoped
-- Exclude: secrets (`local.properties`, keys, dbs), dirty `testbot/` without Jason (MUD-009), `tmp/`, logs
-- Branch: `master` · remote `origin` · **no force**
-- Record SHA in `issues/PUSHED.md` (append wave F rows)
+- Include: ticket-owned product/docs, AGENTS, issues/, plans/, docs/, tools/, config/, test-lock
+- Exclude: secrets, local.properties, tmp/, logs
+- master → origin · **no force** · record `issues/PUSHED.md`
 
-## Drain tick checklist
-1. Live pid in `tmp/workers/*/grok.pid` or `*.impl.pid`? → wait
-2. `plan_review`? → Astra common-sense APPROVED stamp → fresh IMPL
-3. Ticket `done` and not yet pushed this wave? → commit allowlist + push + note PUSHED.md
-4. Else next open Wave F ticket → PLAN spawn
-5. All three done+pushed → disarm cron; leave human_gated
-
-## Wave F closeout (2026-08-11 14:22 MST)
-- Serial drain complete; quarantine residual **8** = SkillManager only (Jason-gated)
-- No further Wave F auto-spawn
+## Drain tick
+1. Live pid → wait
+2. plan_review → APPROVED + fresh IMPL
+3. done sans PUSHED row → allowlisted push
+4. next open Wave G → PLAN
+5. 022–025 all done+pushed → disarm cron; Live=none

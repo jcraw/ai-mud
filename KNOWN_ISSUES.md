@@ -1,8 +1,8 @@
 # Known Issues
 
-## Treasure Room Inventory Bug (PENDING JASON PLAYTEST)
+## Treasure Room Inventory Bug (HARNESS DONE)
 
-**Status**: Impl landed (MUD-007) — **pending Jason playtest** before player-done. Do not claim fixed until playtested.
+**Status**: MUD-007 **done for harness** (contract tests + verify). Jason 2026-08-11: no playtest gate until product play phase. Optional future human smoke only.
 
 **Symptom (historical)**:
 - Treasure room items successfully taken (success message shown)

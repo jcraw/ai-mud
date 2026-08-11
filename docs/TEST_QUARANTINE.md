@@ -1,7 +1,7 @@
 # Test Quarantine
 
-**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2)** · **MUD-021 (slice 3 cleared 2026-08-11)**  
-**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12 · **Post-slice-3 count:** 8
+**Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2)** · **MUD-021 (slice 3)** · **MUD-022 (SkillManager clear 2026-08-11)**  
+**Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12 · **Post-slice-3 count:** 8 · **Post-MUD-022 count:** **0**
 
 Known failing tests are tagged `@Tag("quarantine")` and **excluded by default** from green verify lanes. They remain runnable and hard-fail on the quarantine lane. Do **not** weaken asserts to force green.
 
@@ -10,7 +10,7 @@ Known failing tests are tagged `@Tag("quarantine")` and **excluded by default** 
 | Mode | How | Behavior |
 |------|-----|----------|
 | Default (green) | `./gradlew :reasoning:test` or verify `--core` / `--full` | `excludeTags("quarantine")` |
-| Quarantine only | `./gradlew :reasoning:test -Pmud.quarantineOnly=true` or `./tools/verify_mud.sh --quarantine` | `includeTags("quarantine")` only; **non-zero exit OK** |
+| Quarantine only | `./gradlew :reasoning:test -Pmud.quarantineOnly=true` or `./tools/verify_mud.sh --quarantine` | `includeTags("quarantine")` only; empty set → exit 0 |
 | Include all | `./gradlew :reasoning:test -Pmud.includeQuarantine=true` | No tag filter (debug) |
 
 Convention plugin: `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
@@ -34,7 +34,8 @@ fun `…`() { … }
 Original post-tag green reasoning (default exclude): **621** tests (644 − 23).  
 **MUD-017 slice 1 (2026-08-11):** cleared **3** tags → quarantine count **20**. Green reasoning under exclude: **624** expected (644 − 20).  
 **MUD-020 slice 2 (2026-08-11):** cleared **8** tags → quarantine count **12**. Green reasoning under exclude: **632** expected (644 − 12).  
-**MUD-021 slice 3 (2026-08-11):** cleared **4** tags → quarantine count **8**. Green reasoning under exclude: **636** expected (644 − 8).
+**MUD-021 slice 3 (2026-08-11):** cleared **4** tags → quarantine count **8**. Green reasoning under exclude: **636** expected (644 − 8).  
+**MUD-022 (2026-08-11):** cleared **8** SkillManager tags → quarantine count **0**. Green reasoning under exclude: **644** expected (full suite).
 
 Core lane includes green `:reasoning:test` under excludeTags.
 
@@ -68,27 +69,31 @@ Core lane includes green `:reasoning:test` under excludeTags.
 | `DeathHandlerTest#NPC death drops loot into space and corpse` | Re-contract: V3 dual-write (corpse/itemsDropped/Entity.Item); gold floor `>= 1` (variance 0.8–1.2) |
 | `TreasureRoomPlacerTest#selectTreasureRoomNode excludes Boss and Frontier nodes` | Prod: shared `isTreasureEligible` (not Hub/Boss/Frontier) in candidates + empty fallback |
 
-## Quarantined tests (8)
+### Cleared in MUD-022 (SkillManager ×8)
 
-| Class#method | Reason |
-|--------------|--------|
-| `SkillManagerTest#defensive skills progress independently for different entities` | defensive skill isolation assert failed post progression rewrite |
-| `SkillManagerTest#attemptSkillProgress with lucky success unlocks skill at level 1` | lucky unlock starts at level 2 not 1 (progression formula drift) |
-| `SkillManagerTest#grantXp grants full XP on success` | XP/level expectations drift after dual-path progression |
-| `SkillManagerTest#grantXp fails for unlocked skill` | grantXp no longer fails for unlocked skill as expected |
-| `SkillManagerTest#defender can unlock Dodge through lucky progression` | Dodge lucky unlock level drift (expected 1, got 2) |
-| `SkillManagerTest#grantXp grants 20 percent XP on failure` | failure XP scale drift (expected 20, got 200) |
-| `SkillManagerTest#grantXp triggers level-up when threshold crossed` | level-up threshold/level count drift |
-| `SkillManagerTest#grantXp handles multiple level-ups` | multi level-up count drift (expected 4, got 9) |
+| Class#method | Fix |
+|--------------|-----|
+| `SkillManagerTest#grantXp grants full XP on success` | Prod: `GameConfig.skillXpMultiplier` default **1.0f** (was 10× test leak) |
+| `SkillManagerTest#grantXp grants 20 percent XP on failure` | Prod: mult 1.0 → failure XP 20 (20% of base) |
+| `SkillManagerTest#grantXp triggers level-up when threshold crossed` | Prod: mult 1.0 → 300+150 crosses 400 → L2 |
+| `SkillManagerTest#grantXp handles multiple level-ups` | Prod: mult 1.0 → 3000 XP → L4 (not L9) |
+| `SkillManagerTest#grantXp auto-unlocks locked skill when level reaches 1` | Test re-contract: locked grantXp **succeeds** + auto-unlock (use-based; was wrong Failure expect) |
+| `SkillManagerTest#attemptSkillProgress with lucky success unlocks skill at level 1` | Hard assert unlock + L1 (lucky or XP path with mult 1) |
+| `SkillManagerTest#defender can unlock Dodge through lucky progression` | Hard assert Dodge unlock + L1 |
+| `SkillManagerTest#defensive skills progress independently for different entities` | Force XP path (`enableLuckyProgression=false`); compare XP across entities |
+
+## Quarantined tests (0)
+
+_None._ Quarantine residual is empty.
 
 ## Residual risk
 
 - Counts may drift if new tests are added or failures change; re-baseline before expanding the list.
 - Only **consistent** fails from the recorded baseline were tagged — flakes (if any later) should be noted, not silently `@Disabled`.
-- **Deferred residual (8):** SkillManager ×8 only (L1/L2 unlock / XP redesign — Jason product opinion).
+- **Residual: 0** — SkillManager dual-path drift cleared in MUD-022.
 
 ## Related
 
 - Verify lanes: `tools/verify_mud.sh`
 - Testing guide status: `docs/TESTING.md` (Current Test Status)
-- Ticket: `issues/MUD-008-test-baseline-quarantine.md` · repair: `issues/MUD-017-clear-reasoning-quarantine.md`
+- Ticket: `issues/MUD-008-test-baseline-quarantine.md` · repair: `issues/MUD-017-clear-reasoning-quarantine.md` · clear: `issues/MUD-022-skillmanager-quarantine-clear.md`

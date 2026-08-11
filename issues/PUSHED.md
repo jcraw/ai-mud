@@ -58,3 +58,24 @@
 - Cron `AI MUD Wave F re-drain` (`0047039f-0dd4-46ea-a487-86aef73f737a`) disarmed 2026-08-11 14:22 MST
 - Human-gated left: MUD-007 playtest · MUD-009 Jason git · SkillManager ×8 L1/L2 opinion
 
+
+### MUD-009 — git hygiene
+- **When:** 2026-08-11 16:25 MST
+- **SHA:** `74c343e`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** testbot SkillProgression message parsers only
+- **Note:** closed under Jason finish-mod; tree clean after
+
+## Wave G pushes (2026-08-11+)
+- Target: MUD-022 · 023 · 024 · 025
+- Cron: AI MUD Wave G re-drain (`cd5f9827`) every 20m
+- Rows below as each lands:
+
+### MUD-022 — SkillManager quarantine clear (8→0)
+- **When:** 2026-08-11 16:45 MST
+- **SHA:** `(pending push)`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** GameConfig skillXpMultiplier 1.0f, SkillManagerTest un-quarantine+re-contract, TEST_QUARANTINE 0, test-lock, AGENTS/KNOWN_ISSUES posture, MUD-007/009 harness-done, Wave G tickets 022–025 + plan/board/handoff
+- **Excluded:** testbot/, tmp/, secrets

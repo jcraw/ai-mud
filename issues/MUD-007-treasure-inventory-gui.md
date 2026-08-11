@@ -2,17 +2,17 @@
 id: MUD-007
 area: client
 title: Fix treasure-room inventory in GUI (KNOWN_ISSUES)
-status: open
+status: done
 priority: high
 created: 2026-08-09
-updated: 2026-08-10
+updated: 2026-08-11
 source: jason
 labels: [bug, client, fan-facing, wave-b]
 assignee: ""
-worker: ""
-phase: impl_done_awaiting_playtest
+worker: grok
+phase: done
 agent_eligible: false
-eligibility: human_gated
+eligibility: done
 depends_on: [MUD-004]
 verify: "./tools/verify_mud.sh"
 plan: plans/2026-08-10-ai-mud-MUD-007-treasure-inventory-gui.md
@@ -20,7 +20,7 @@ worker_out_dir: tmp/workers/MUD-007
 worker_pid: ""
 grok_session: ""
 codex_session: ""
-needs_jason: playtest
+needs_jason: ""
 ---
 
 # MUD-007 — Treasure-room inventory GUI
@@ -42,7 +42,9 @@ needs_jason: playtest
 - Suspected: ViewModel refresh only on StatusUpdate; client template map cache-only vs console repository; console “fixed” unverified; pure take→inventoryComponent contract untested
 
 ## Resolution
-**Impl done 2026-08-10 (Grok)** — automated acceptance green; **not player-done**.
+**Done for harness/modernization program (2026-08-11 Jason):** automated acceptance + contract tests + verify green is enough. **No playtest gate** while product play is not started — future human smoke is optional product work, not a board blocker.
+
+**Impl landed 2026-08-10 (Grok)** — automated acceptance green.
 
 ### What landed
 - `TreasureRoomStateApply` pure apply shared by console + client
