@@ -31,7 +31,7 @@
 
 ### MUD-019 — floor-item V2 inventory parity
 - **When:** 2026-08-11 12:42 MST
-- **SHA:** 
+- **SHA:** `d6446aa76abb9d2a32fd2f3684ec7e693a2062aa` (bookkeep `3b30a152ba29dd4e834774c7547a1e8e7121c36b`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** FloorItemTakeApply + handlers (app/client/GameServer/MultiUserGame), contract test, KNOWN_ISSUES, test-lock 112, issues/plans Wave F tickets+board+handoff

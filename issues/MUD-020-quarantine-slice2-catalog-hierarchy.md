@@ -2,15 +2,15 @@
 id: MUD-020
 area: testing
 title: Quarantine slice 2 — catalog + hierarchy contracts
-status: open
+status: in_progress
 priority: med
 created: 2026-08-11
 updated: 2026-08-11
 source: jason
 labels: [testing, quarantine, wave-f]
 assignee: ""
-worker: ""
-phase: backlog
+worker: grok
+phase: planning
 agent_eligible: true
 eligibility: agent_eligible
 needs_jason: ""
@@ -18,7 +18,7 @@ depends_on: [MUD-017]
 verify: "./tools/verify_mud.sh --core"
 plan: ""
 worker_out_dir: tmp/workers/MUD-020
-worker_pid: ""
+worker_pid: "820377"
 grok_session: ""
 codex_session: ""
 plan_session: ""

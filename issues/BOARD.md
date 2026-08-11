@@ -52,7 +52,6 @@ _(empty — Wave D complete: MUD-014, 015 done)_
 _(empty — Wave E complete: MUD-016…018 done)_
 
 ### Wave F — product + quarantine drip (Jason 2026-08-11)
-- **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 (`med`) · deps 017 · after 019
 - **MUD-021** — quarantine slice 3 lore/death/placer ×4 (`med`) · deps 020 · after 020
 - **Post-done:** allowlisted `git push origin master` after each ticket closeout (no force)
 
@@ -62,7 +61,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-020** — quarantine slice 2 · `open` · after 019
+- **MUD-020** — quarantine slice 2 catalog/hierarchy ×8 · `in_progress` / planning · worker grok
 - **MUD-021** — quarantine slice 3 · `open` · after 020
 
 ## Blocked (awaiting Jason)
