@@ -39,9 +39,22 @@
 
 ### MUD-020 — quarantine slice 2 catalog/hierarchy
 - **When:** 2026-08-11 13:42 MST
-- **SHA:** `e68ff12c9ed96c94dbdc353daeb895959414fb81`
+- **SHA:** `e68ff12c9ed96c94dbdc353daeb895959414fb81` (bookkeep `49e861c792622b4a76284ac4d34c92061a2c6eb6`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** SkillClassifier prod filter, SkillDefinitions/DungeonInitializer KDoc+tests, TEST_QUARANTINE 20→12, AGENTS pointer, test-lock, issues/plans/board/handoff
 - **Excluded:** testbot/, tmp/, secrets
+
+### MUD-021 — quarantine slice 3 lore/death/placer
+- **When:** 2026-08-11 14:22 MST
+- **SHA:** `4eef71e792af47540673d17d0ff2e56b6abc6797`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** TreasureRoomPlacer isTreasureEligible prod, lore/worldgen harness, DeathHandler V3 re-contract, TEST_QUARANTINE 12→8, AGENTS pointer, test-lock, issues/plans/board/handoff
+- **Excluded:** testbot/, tmp/, secrets
+
+## Wave F complete
+- All of MUD-019 · MUD-020 · MUD-021 done + pushed
+- Cron `AI MUD Wave F re-drain` (`0047039f-0dd4-46ea-a487-86aef73f737a`) disarmed 2026-08-11 14:22 MST
+- Human-gated left: MUD-007 playtest · MUD-009 Jason git · SkillManager ×8 L1/L2 opinion
 
