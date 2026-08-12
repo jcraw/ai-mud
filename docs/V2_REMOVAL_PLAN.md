@@ -16,7 +16,7 @@
 
 The original 7 phases focused on removing the V2 Room class and related fallback code. This was successful. However, the following technical debt remains:
 
-### PlayerState Legacy Fields (Deprecated)
+### PlayerState Legacy Fields (Deprecated) — fields may remain
 PlayerState (242 lines) has V1 fields marked `@Deprecated`:
 - `inventory: List<Entity.Item>` - Deprecated (use `inventoryComponent.items`)
 - `equippedWeapon: Entity.Item?` - Deprecated (use `inventoryComponent.getEquipped(EquipSlot.HANDS_MAIN)`)
@@ -25,11 +25,16 @@ PlayerState (242 lines) has V1 fields marked `@Deprecated`:
 
 **Note**: The 4 deprecated methods (`getSkillLevel()`, `setSkillLevel()`, `getWeaponDamageBonus()`, `getArmorDefenseBonus()`) were removed in a previous update.
 
-### Legacy Field Usage (Produces Deprecation Warnings)
-V1 legacy fields are still used in production code (compiles but shows warnings):
-- `.inventory` referenced in 15 files (handlers, corpse system, quest system)
-- `.equippedWeapon` referenced in 10 files (combat handlers, attack resolver)
-- `.equippedArmor` referenced in 8 files (combat handlers, attack resolver)
+### Production V1 inventory/equip **writes** — purged (MUD-024)
+- ✅ Success paths for give / equip / use / GUI buy no longer call V1 mutators (`addToInventory`, `removeFromInventory`, equip field setters, consumable V1 path).
+- ✅ Shared pure applies: `GiveItemApply`, `UseConsumableApply` (plus prior take/drop applies).
+- Residual optional: hard-delete deprecated fields on `PlayerState` (follow-up if display reads cleaned); skills map V1 purge.
+
+### Legacy Field **reads** (Produces Deprecation Warnings)
+V1 legacy fields may still be **read** for display/fallback in production code (compiles but shows warnings):
+- `.inventory` display fallbacks in some handlers
+- `.equippedWeapon` / `.equippedArmor` display + some combat narration paths
+- Field **definitions** and deprecated method bodies remain on `PlayerState` in core
 
 ### Handler TODOs - RESOLVED
 All InventoryComponent migration TODOs in handlers have been completed. Remaining TODOs in the codebase are for future enhancements (mana system, legendary loot, story system integration), not V2 migration.

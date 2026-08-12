@@ -140,17 +140,12 @@ object ClientTradeHandlers {
             return
         }
 
-        val tradingAfterRemoval = trading.removeQuantityFromStock(matchingEntry.id, quantityRequested)
-            ?: return game.emitEvent(
-                GameEvent.System("Something went wrong removing the item from stock.", GameEvent.MessageLevel.ERROR)
-            )
+        // Build template map for weight checks (existing inventory + purchased template)
+        val templates = game.itemTemplateCache.toMutableMap()
+        templates[template.id] = template
 
-        val updatedTrading = tradingAfterRemoval.addGold(totalCost)
-        val updatedNpc = merchant.withComponent(updatedTrading)
-
-        val purchasedNames = mutableListOf<String>()
-        var updatedPlayer = player.copy(inventoryComponent = player.inventoryComponent.addGold(-totalCost))
-
+        // Trial: deduct gold then add V2 instances; fail closed on overweight (no world mutation)
+        var trialPlayer = player.copy(inventoryComponent = player.inventoryComponent.addGold(-totalCost))
         repeat(quantityRequested) {
             val instanceForPlayer = ItemInstance(
                 id = UUID.randomUUID().toString(),
@@ -159,12 +154,28 @@ object ClientTradeHandlers {
                 charges = matchingEntry.charges,
                 quantity = 1
             )
-            val entityItem = createEntityItem(template, instanceForPlayer)
-            updatedPlayer = updatedPlayer.addToInventory(entityItem)
-            purchasedNames += template.name
+            val added = trialPlayer.addItemInstance(instanceForPlayer, templates)
+            if (added == null) {
+                game.emitEvent(
+                    GameEvent.System(
+                        "You can't carry that — you're already carrying too much weight.",
+                        GameEvent.MessageLevel.WARNING
+                    )
+                )
+                return
+            }
+            trialPlayer = added
         }
 
-        game.worldState = game.worldState.updatePlayer(updatedPlayer)
+        val tradingAfterRemoval = trading.removeQuantityFromStock(matchingEntry.id, quantityRequested)
+            ?: return game.emitEvent(
+                GameEvent.System("Something went wrong removing the item from stock.", GameEvent.MessageLevel.ERROR)
+            )
+
+        val updatedTrading = tradingAfterRemoval.addGold(totalCost)
+        val updatedNpc = merchant.withComponent(updatedTrading)
+
+        game.worldState = game.worldState.updatePlayer(trialPlayer)
         updateMerchant(game, context, updatedNpc)
         game.lastConversationNpcId = merchant.id
 
@@ -176,7 +187,7 @@ object ClientTradeHandlers {
 
         val message = buildString {
             appendLine("\nYou buy $purchasedSummary from ${merchant.name} for $totalCost gold.")
-            appendLine("You now have ${updatedPlayer.gold} gold.")
+            appendLine("You now have ${trialPlayer.gold} gold.")
         }
         game.emitEvent(GameEvent.Narrative(message))
     }
@@ -239,47 +250,6 @@ object ClientTradeHandlers {
         }
 
         return candidates.firstOrNull()
-    }
-
-    private fun createEntityItem(template: ItemTemplate, instance: ItemInstance): Entity.Item {
-        val properties = mutableMapOf<String, String>()
-        properties["templateId"] = template.id
-        properties["rarity"] = template.rarity.name
-        template.tags.takeIf { it.isNotEmpty() }?.let { properties["tags"] = it.joinToString(",") }
-
-        val value = template.getPropertyInt("value", 0)
-        properties["value"] = value.toString()
-
-        val weight = template.getWeight()
-        if (weight > 0.0) {
-            properties["weight"] = weight.toString()
-        }
-
-        return Entity.Item(
-            id = instance.id,
-            name = template.name,
-            description = template.description,
-            isPickupable = true,
-            isUsable = template.type == ItemType.CONSUMABLE,
-            itemType = when (template.type) {
-                ItemType.WEAPON -> ItemType.WEAPON
-                ItemType.ARMOR -> ItemType.ARMOR
-                ItemType.CONSUMABLE -> ItemType.CONSUMABLE
-                ItemType.RESOURCE -> ItemType.RESOURCE
-                ItemType.QUEST -> ItemType.QUEST
-                ItemType.TOOL -> ItemType.TOOL
-                ItemType.CONTAINER -> ItemType.CONTAINER
-                ItemType.SPELL_BOOK -> ItemType.SPELL_BOOK
-                ItemType.SKILL_BOOK -> ItemType.SKILL_BOOK
-                ItemType.ACCESSORY -> ItemType.ACCESSORY
-                ItemType.MISC -> ItemType.MISC
-            },
-            properties = properties,
-            damageBonus = template.getPropertyInt("damage", 0),
-            defenseBonus = template.getPropertyInt("defense", 0),
-            healAmount = template.getPropertyInt("healing", template.getPropertyInt("heal", 0)),
-            isConsumable = template.type == ItemType.CONSUMABLE
-        )
     }
 
     private data class MerchantContext(

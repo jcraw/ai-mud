@@ -39,8 +39,10 @@ PlayerState carries V1, V2, and V3 fields together:
 - ✅ All handler TODOs for InventoryComponent migration resolved
 
 **Remaining work** (optional - game is fully functional):
-- V1 legacy fields still referenced in handlers (produce deprecation warnings)
-- Full removal requires migrating all field references to use V2 `inventoryComponent`
+- ✅ **MUD-024**: production Success paths no longer **write** V1 inventory/equip fields (give/equip/use/GUI buy → V2 only)
+- V1 legacy fields still **read** in some display/fallback paths (deprecation warnings)
+- Full field delete requires migrating remaining reads + removing `@Deprecated` fields from `PlayerState`
+- Skills map V1 purge still residual
 - See `docs/V2_REMOVAL_PLAN.md` for details
 
 ### Integration Tests

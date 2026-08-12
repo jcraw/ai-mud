@@ -59,16 +59,15 @@ _(empty — Wave E complete: MUD-016…018 done)_
 ### Wave G — finish modernization (Jason 2026-08-11)
 - **MUD-025** — modernization closeout docs/board quarantine 0 (`med`) · after 022–024
 - **Post-done:** allowlisted `git push origin master` after each (no force)
-- _(MUD-022…023 done+pushed)_
+- _(MUD-022…024 done; 024 pending Wave G push)_
 
 ## Plan review
 
-_(empty — MUD-024 PLAN spawning)_
+_(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-024** — V1 inventory/equip production write purge (`med`) · planning (Grok) · after 023 done+pushed
-- **MUD-025** — open · serial after 024
+- **MUD-025** — open · serial after 024 push
 
 ## Blocked (awaiting Jason)
 
@@ -76,6 +75,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-024** — V1 inventory/equip production write purge (`med`) · done · pure `GiveItemApply` + `UseConsumableApply`; equip V2 all surfaces (GameServer ported; legacy branches deleted); GUI buy → `addItemInstance`; grep gate 0 V1 mutators in app/client/reasoning main; exceptions core defs + testbot; KNOWN_ISSUES give/V1 writes fixed; field delete residual; `--core` exit 0 · test-lock 114 · closeout `tmp/workers/MUD-024/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-024-v1-inventory-write-purge.md`
 - **MUD-023** — drop → V2 inventory parity (`high`) · done · pure `FloorItemDropApply` + thin console/GUI/GameServer `handleDrop`; V2 `removeItem` + floor entity props + `itemsDropped`; no V1-only Success; contract tests ×5 (incl. equip clear + drop→take round-trip); KNOWN_ISSUES drop residual fixed (give/V1 purge → MUD-024); `--core` exit 0 · test-lock 113 · closeout `tmp/workers/MUD-023/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-023-drop-v2-inventory-parity.md`
 - **MUD-022** — SkillManager quarantine ×8 clear (`high`) · done · 8→**0** tags · C1 prod `skillXpMultiplier` default **1.0f** · C2 locked `grantXp` re-contract auto-unlock · C3 hard L1 unlock + defensive isolation (`enableLuckyProgression=false`) · residual quarantine **0** · `--core` exit 0 · `--quarantine` exit 0 (empty set, quarantine_count **0**) · test-lock 112 · closeout `tmp/workers/MUD-022/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-022-skillmanager-quarantine-clear.md`
 - **MUD-007** — treasure inventory GUI · **done** (harness) · contract tests + shared apply + verify green · playtest deferred to future product phase (not blocking)

@@ -12,6 +12,8 @@ import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
+import com.jcraw.mud.reasoning.inventory.GiveItemApply
+import com.jcraw.mud.reasoning.inventory.UseConsumableApply
 
 /**
  * Handlers for item interactions: inventory, take, drop, equip, use
@@ -281,19 +283,8 @@ object ItemHandlers {
     }
 
     fun handleGive(game: MudGame, itemTarget: String, npcTarget: String) {
-        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
-
-        // Find the item in inventory
-        val item = game.worldState.player.inventory.find { invItem ->
-            invItem.name.lowercase().contains(itemTarget.lowercase()) ||
-            invItem.id.lowercase().contains(itemTarget.lowercase())
-        }
-
-        if (item == null) {
-            println("You don't have that item.")
-            return
-        }
+        val player = game.worldState.player
 
         // Find the NPC in the space
         val npc = game.worldState.getEntitiesInSpace(spaceId)
@@ -308,140 +299,82 @@ object ItemHandlers {
             return
         }
 
-        // Remove item from inventory
-        val updatedPlayer = game.worldState.player.removeFromInventory(item.id)
-        game.worldState = game.worldState.updatePlayer(updatedPlayer)
-
-        println("You give the ${item.name} to ${npc.name}.")
-
-        // Track delivery for quests
-        game.trackQuests(QuestAction.DeliveredItem(item.id, npc.id))
+        val templates = floorDropTemplates(game.itemRepository, player)
+        when (val result = GiveItemApply.apply(
+            world = game.worldState,
+            player = player,
+            target = itemTarget,
+            templates = templates
+        )) {
+            is GiveItemApply.Result.Success -> {
+                game.worldState = result.world
+                println("You give the ${result.itemName} to ${npc.name}.")
+                game.trackQuests(QuestAction.DeliveredItem(result.instanceId, npc.id))
+            }
+            is GiveItemApply.Result.Failure -> {
+                println(result.message)
+            }
+        }
     }
 
     fun handleEquip(game: MudGame, target: String) {
         val player = game.worldState.player
         val invComp = player.inventoryComponent
+        val query = target.lowercase()
 
-        // V2 Inventory System
-        if (invComp != null) {
-            // Find item in V2 inventory
-            val itemInstance = invComp.items.find { instance ->
-                val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
-                template != null && (
-                    template.name.lowercase().contains(target.lowercase()) ||
-                    instance.templateId.lowercase().contains(target.lowercase())
-                )
-            }
-
-            if (itemInstance == null) {
-                println("You don't have that in your inventory.")
-                return
-            }
-
-            // Get template
-            val template = game.itemRepository.findTemplateById(itemInstance.templateId).getOrNull()
-            if (template == null) {
-                println("Error: Item template not found")
-                return
-            }
-
-            // Check if item is equippable
-            val equipSlot = template.equipSlot
-            if (equipSlot == null) {
-                println("You can't equip that.")
-                return
-            }
-
-            // Equip the item
-            val updatedInventory = invComp.equip(itemInstance, equipSlot)
-            if (updatedInventory == null) {
-                println("Error: Could not equip item")
-                return
-            }
-            game.worldState = game.worldState.updatePlayer(player.copy(inventoryComponent = updatedInventory))
-
-            println("You equip the ${template.name}.")
-            return
+        // V2 only — resolve from inventoryComponent (no V1 equip field mutators)
+        val itemInstance = invComp.items.find { instance ->
+            val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
+            template != null && (
+                template.name.lowercase().contains(query) ||
+                instance.templateId.lowercase().contains(query) ||
+                instance.id.lowercase().contains(query)
+            )
         }
 
-        // Legacy Inventory System (fallback)
-        val item = player.inventory.find { invItem ->
-            invItem.name.lowercase().contains(target.lowercase()) ||
-            invItem.id.lowercase().contains(target.lowercase())
-        }
-
-        if (item == null) {
+        if (itemInstance == null) {
             println("You don't have that in your inventory.")
             return
         }
 
-        when (item.itemType) {
-            ItemType.WEAPON -> {
-                val oldWeapon = player.equippedWeapon
-                game.worldState = game.worldState.updatePlayer(player.equipWeapon(item))
-
-                if (oldWeapon != null) {
-                    println("You unequip the ${oldWeapon.name} and equip the ${item.name} (+${item.damageBonus} damage).")
-                } else {
-                    println("You equip the ${item.name} (+${item.damageBonus} damage).")
-                }
-            }
-            ItemType.ARMOR -> {
-                val oldArmor = player.equippedArmor
-                game.worldState = game.worldState.updatePlayer(player.equipArmor(item))
-
-                if (oldArmor != null) {
-                    println("You unequip the ${oldArmor.name} and equip the ${item.name} (+${item.defenseBonus} defense).")
-                } else {
-                    println("You equip the ${item.name} (+${item.defenseBonus} defense).")
-                }
-            }
-            else -> {
-                println("You can't equip that.")
-            }
+        val template = game.itemRepository.findTemplateById(itemInstance.templateId).getOrNull()
+        if (template == null) {
+            println("Error: Item template not found")
+            return
         }
+
+        val equipSlot = template.equipSlot
+        if (equipSlot == null) {
+            println("You can't equip that.")
+            return
+        }
+
+        val updatedInventory = invComp.equip(itemInstance, equipSlot)
+        if (updatedInventory == null) {
+            println("Error: Could not equip item")
+            return
+        }
+        game.worldState = game.worldState.updatePlayer(player.copy(inventoryComponent = updatedInventory))
+
+        println("You equip the ${template.name}.")
     }
 
     fun handleUse(game: MudGame, target: String) {
-        // Find the item in inventory
-        val item = game.worldState.player.inventory.find { invItem ->
-            invItem.name.lowercase().contains(target.lowercase()) ||
-            invItem.id.lowercase().contains(target.lowercase())
-        }
+        val player = game.worldState.player
+        val templates = floorDropTemplates(game.itemRepository, player)
 
-        if (item == null) {
-            println("You don't have that in your inventory.")
-            return
-        }
-
-        if (!item.isUsable) {
-            println("You can't use that.")
-            return
-        }
-
-        when (item.itemType) {
-            ItemType.CONSUMABLE -> {
-                val oldHealth = game.worldState.player.health
-
-                // Consume the item and heal
-                game.worldState = game.worldState.updatePlayer(game.worldState.player.useConsumable(item))
-                val healedAmount = game.worldState.player.health - oldHealth
-
-                if (healedAmount > 0) {
-                    println("\nYou consume the ${item.name} and restore $healedAmount HP.")
-                    println("Current health: ${game.worldState.player.health}/${game.worldState.player.maxHealth}")
+        when (val result = UseConsumableApply.apply(player, target, templates)) {
+            is UseConsumableApply.Result.Success -> {
+                game.worldState = game.worldState.updatePlayer(result.player)
+                if (result.healedAmount > 0) {
+                    println("\nYou consume the ${result.itemName} and restore ${result.healedAmount} HP.")
+                    println("Current health: ${result.player.health}/${result.player.maxHealth}")
                 } else {
-                    println("\nYou consume the ${item.name}, but you're already at full health.")
+                    println("\nYou consume the ${result.itemName}, but you're already at full health.")
                 }
-
-                // V2 combat: Using items takes game time, so NPCs in turn queue may act
-                // This happens naturally through the turn queue system
             }
-            ItemType.WEAPON -> {
-                println("Try 'equip ${item.name}' to equip this weapon.")
-            }
-            else -> {
-                println("You're not sure how to use that.")
+            is UseConsumableApply.Result.Failure -> {
+                println(result.message)
             }
         }
     }

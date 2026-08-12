@@ -6,6 +6,8 @@ import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.*
 import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
+import com.jcraw.mud.reasoning.inventory.GiveItemApply
+import com.jcraw.mud.reasoning.inventory.UseConsumableApply
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.social.SocialDatabase
 import com.jcraw.mud.memory.social.SqliteSocialComponentRepository
@@ -626,19 +628,8 @@ class GameServer(
         itemTarget: String,
         npcTarget: String
     ): Triple<String, WorldState, GameEvent?> {
-        // V3: Get current space ID and entities
         val spaceId = playerState.currentRoomId
         val entities = worldState.getEntitiesInSpace(spaceId)
-
-        // Find the item in inventory
-        val item = playerState.inventory.find { invItem ->
-            invItem.name.lowercase().contains(itemTarget.lowercase()) ||
-            invItem.id.lowercase().contains(itemTarget.lowercase())
-        }
-
-        if (item == null) {
-            return Triple("You don't have that item.", worldState, null)
-        }
 
         // Find the NPC in the space
         val npc = entities.filterIsInstance<Entity.NPC>()
@@ -651,21 +642,40 @@ class GameServer(
             return Triple("There's no one here by that name.", worldState, null)
         }
 
-        // Remove item from inventory
-        val updatedPlayer = playerState.removeFromInventory(item.id)
+        val templates = buildFloorDropTemplates(playerState)
+        return when (val result = GiveItemApply.apply(
+            world = worldState,
+            player = playerState,
+            target = itemTarget,
+            templates = templates
+        )) {
+            is GiveItemApply.Result.Success -> {
+                val givenPlayer = result.world.getPlayer(playerId) ?: playerState
+                val questResult = trackQuests(
+                    givenPlayer,
+                    QuestAction.DeliveredItem(result.instanceId, npc.id)
+                )
+                // Merge inventory remove + quest updates (trackQuests base world may be pre-give)
+                val finalWorld = questResult.updatedWorld.updatePlayer(questResult.updatedPlayer)
 
-        // Track delivery for quests
-        val questResult = trackQuests(updatedPlayer, QuestAction.DeliveredItem(item.id, npc.id))
+                val event = GameEvent.GenericAction(
+                    playerId = playerId,
+                    playerName = playerState.name,
+                    actionDescription = "gives ${result.itemName} to ${npc.name}",
+                    roomId = spaceId,
+                    excludePlayer = playerId
+                )
 
-        val event = GameEvent.GenericAction(
-            playerId = playerId,
-            playerName = playerState.name,
-            actionDescription = "gives ${item.name} to ${npc.name}",
-            roomId = spaceId,
-            excludePlayer = playerId
-        )
-
-        return Triple("You give the ${item.name} to ${npc.name}." + questResult.notifications, questResult.updatedWorld, event)
+                Triple(
+                    "You give the ${result.itemName} to ${npc.name}." + questResult.notifications,
+                    finalWorld,
+                    event
+                )
+            }
+            is GiveItemApply.Result.Failure -> {
+                Triple(result.message, worldState, null)
+            }
+        }
     }
 
     private fun handleEquip(
@@ -673,24 +683,39 @@ class GameServer(
         playerState: PlayerState,
         itemId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+        val invComp = playerState.inventoryComponent
+        val query = itemId.lowercase()
+        val templates = buildFloorDropTemplates(playerState)
 
-        return if (item != null) {
-            when (item.itemType) {
-                ItemType.WEAPON -> {
-                    val updatedPlayer = playerState.equipWeapon(item)
-                    val newWorldState = worldState.updatePlayer(updatedPlayer)
-                    Triple("You equip the ${item.name}.", newWorldState, null)
-                }
-                ItemType.ARMOR -> {
-                    val updatedPlayer = playerState.equipArmor(item)
-                    val newWorldState = worldState.updatePlayer(updatedPlayer)
-                    Triple("You equip the ${item.name}.", newWorldState, null)
-                }
-                else -> Triple("You can't equip that.", worldState, null)
-            }
+        // V2 only — inventoryComponent.equip (no V1 equip field mutators)
+        val itemInstance = invComp.items.find { instance ->
+            val template = templates[instance.templateId]
+            (template?.name?.lowercase()?.contains(query) == true) ||
+                instance.templateId.lowercase().contains(query) ||
+                instance.id.equals(query, ignoreCase = true) ||
+                (template?.name?.equals(itemId, ignoreCase = true) == true)
+        }
+
+        val template = itemInstance?.let {
+            templates[it.templateId]
+                ?: itemRepository?.findTemplateById(it.templateId)?.getOrNull()
+        }
+        val equipSlot = template?.equipSlot
+        val updatedInventory = if (itemInstance != null && equipSlot != null) {
+            invComp.equip(itemInstance, equipSlot)
         } else {
-            Triple("You don't have that item.", worldState, null)
+            null
+        }
+
+        return when {
+            itemInstance == null -> Triple("You don't have that item.", worldState, null)
+            template == null -> Triple("Error: Item template not found", worldState, null)
+            equipSlot == null -> Triple("You can't equip that.", worldState, null)
+            updatedInventory == null -> Triple("Error: Could not equip item", worldState, null)
+            else -> {
+                val updatedPlayer = playerState.copy(inventoryComponent = updatedInventory)
+                Triple("You equip the ${template.name}.", worldState.updatePlayer(updatedPlayer), null)
+            }
         }
     }
 
@@ -699,31 +724,23 @@ class GameServer(
         playerState: PlayerState,
         itemId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
+        val templates = buildFloorDropTemplates(playerState)
 
-        return if (item != null && item.isConsumable) {
-            val oldHealth = playerState.health
-            val inCombat = false  // V2: No modal combat
-
-            // Consume the item and heal
-            var updatedPlayer = playerState.useConsumable(item)
-            val healedAmount = updatedPlayer.health - oldHealth
-
-            val message = buildString {
-                if (healedAmount > 0) {
-                    append("You consume the ${item.name} and restore $healedAmount HP.\n")
-                    append("Current health: ${updatedPlayer.health}/${updatedPlayer.maxHealth}")
+        return when (val result = UseConsumableApply.apply(playerState, itemId, templates)) {
+            is UseConsumableApply.Result.Success -> {
+                val message = if (result.healedAmount > 0) {
+                    "You consume the ${result.itemName} and restore ${result.healedAmount} HP.\n" +
+                        "Current health: ${result.player.health}/${result.player.maxHealth}"
                 } else {
-                    append("You consume the ${item.name}, but you're already at full health.")
+                    "You consume the ${result.itemName}, but you're already at full health."
                 }
-
-                // V2: No modal combat in multi-user mode, consumables simply heal
+                Triple(message, worldState.updatePlayer(result.player), null)
             }
-
-            val newWorldState = worldState.updatePlayer(updatedPlayer)
-            Triple(message, newWorldState, null)
-        } else {
-            Triple("You can't use that.", worldState, null)
+            is UseConsumableApply.Result.Failure -> {
+                // Multi-user previously used a single "can't use" string for non-consumables;
+                // keep Failure message from apply (equip tip / not sure / don't have).
+                Triple(result.message, worldState, null)
+            }
         }
     }
 
