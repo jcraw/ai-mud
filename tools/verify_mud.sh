@@ -5,8 +5,10 @@
 # default/fast/core/full. PIT (MUD-014): --pitest lane only (core measured >45s → not on full).
 # MUD-013: per-gate status + durations → tmp/dod-summary.json (or $MUD_DOD_SUMMARY).
 # MUD-027: schema_version 2 + findings[] (empty until MUD-028+); post-write validate.
-# MUD-030: token/structure pilot — soft report-only on default/fast/core/full; hard via
-#   MUD_TOKEN_HARD=1 or --token-hard (scoped git-diff E-tier only). Skip quarantine/pitest.
+# MUD-031: token/structure hard-on-touched default on default/fast/core/full (scoped
+#   git-diff *_E). Soft opt-out: MUD_TOKEN_SOFT=1 or --token-soft. MUD_TOKEN_HARD /
+#   --token-hard still accepted (redundant hard). Full-repo scope always soft.
+#   Skip quarantine/pitest. Checker always exit 0; verify owns hard policy.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -22,7 +24,9 @@ TOKEN_JSON_OUT="${ROOT_DIR}/tmp/token_budget_kt_verify.json"
 DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
 LANE="default"
 DRY_RUN=0
-# Pilot hard token gate (MUD-030): CLI --token-hard or MUD_TOKEN_HARD=1. Soft default.
+# MUD-031: hard-on-touched default. Soft opt-out via --token-soft / MUD_TOKEN_SOFT.
+# --token-hard / MUD_TOKEN_HARD remain accepted (redundant hard).
+TOKEN_SOFT_CLI=0
 TOKEN_HARD_CLI=0
 MODULES=()
 NOTES=()
@@ -38,7 +42,7 @@ PITEST_SOFT_THRESHOLD=60
 # Nightly / local deep gate: --pitest only. See docs/PIT.md.
 PITEST_IN_FULL_LANE=0
 
-# Cap token findings merged into dod-summary (MUD-030).
+# Cap token findings merged into dod-summary (MUD-030/031).
 TOKEN_FINDINGS_CAP=50
 
 # Gate records (MUD-013): status pass|fail|skipped, wall-clock seconds, optional note
@@ -55,21 +59,21 @@ FINDINGS_JSON_PARTS=()
 
 usage() {
   cat <<'EOF'
-Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-hard]
+Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-soft] [--token-hard]
 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
                               With module args: :<m>:compileKotlin (+ :<m>:test if src/test exists)
-                              Then hard detekt + Konsist arch + test-lock + token (soft).
+                              Then hard detekt + Konsist arch + test-lock + token (hard-on-touched).
                               Bare run does NOT auto-run --core/--full unit suites.
                               PIT never runs (use --pitest).
   core    | --core            :core:test :perception:test :memory:test :reasoning:test
                               (default excludeTags quarantine; honest green)
-                              + detekt + Konsist arch + test-lock + token (soft)
+                              + detekt + Konsist arch + test-lock + token (hard-on-touched)
                               PIT never runs (ticket drain stays free of PIT wall-time).
   full    | --full            Stable green set: core/perception/memory/reasoning tests +
                               compile-only action/llm/config. Default excludeTags quarantine.
-                              + detekt + Konsist arch + test-lock + token (soft)
+                              + detekt + Konsist arch + test-lock + token (hard-on-touched)
                               PIT: skipped (core PIT >45s); use --pitest nightly — docs/PIT.md
   pitest  | --pitest          PIT mutation on pure modules only:
                               :core:pitest :perception:pitest :memory:pitest
@@ -81,24 +85,29 @@ Lanes (pick one; default if omitted):
 
 Flags:
   --dry-run                   Print intended Gradle commands; do not run
-  --token-hard                Pilot hard token gate (same as MUD_TOKEN_HARD=1): fail on
-                              error-tier (*_E) findings in scoped git-diff touch set only.
-                              Default is soft (report-only → findings[] / gates.token_budget).
+  --token-soft                Soft token gate (same as MUD_TOKEN_SOFT=1): report-only;
+                              never fail verify from token alone (escape hatch).
+  --token-hard                Force hard token gate (same as MUD_TOKEN_HARD=1); redundant
+                              under MUD-031 default hard-on-touched (still accepted).
   -h | --help                 This help
 
-DoD summary (MUD-013 / MUD-027 v2 / MUD-030):
+DoD summary (MUD-013 / MUD-027 v2 / MUD-031):
   Always writes compact JSON (pass/fail/skipped per gate, durations, quarantine_count)
   to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). schema_version 2 + findings[]
-  (token/structure rows from soft pilot when run; see docs/DOD_SUMMARY.md).
-  Optional gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
+  (token/structure rows when run; see docs/DOD_SUMMARY.md).
+  gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
   Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
 
-Token budget pilot (MUD-030; docs/TOKEN_BUDGET_KT.md):
-  Soft default on default/fast/core/full: --git-diff vs MUD_TOKEN_GIT_BASE (origin/master).
-  MUD_TOKEN_HARD=1 or --token-hard: fail closed on *_E in that touch set (never full-repo hard).
+Token budget (MUD-031 hard-on-touched; docs/TOKEN_BUDGET_KT.md):
+  Hard default on default/fast/core/full: --git-diff vs MUD_TOKEN_GIT_BASE (origin/master);
+  fail closed on *_E in that touch set (never full-repo hard). *_W never hard-fails.
+  Soft opt-out: MUD_TOKEN_SOFT=1 or --token-soft (report-only → findings[]).
+  MUD_TOKEN_HARD=1 / --token-hard still accepted (redundant hard under default).
   MUD_TOKEN_SCOPE=full: soft full-repo inventory only; hard+full forces scoped + note.
-  Quarantine and pitest lanes skip token. Checker always exit 0; verify owns hard policy.
+  Overrides in config require burn-down ticket; new/Added files cannot use overrides;
+  override caps may only lower over time. Quarantine and pitest skip token.
+  Checker always exit 0; verify owns hard policy.
 
 Exit codes:
   0  all hard steps green (or dry-run)
@@ -113,13 +122,14 @@ Examples:
   ./tools/verify_mud.sh --pitest
   ./tools/verify_mud.sh --dry-run --pitest
   ./tools/verify_mud.sh --quarantine
-  MUD_TOKEN_HARD=1 ./tools/verify_mud.sh --fast
-  ./tools/verify_mud.sh --core --token-hard
+  MUD_TOKEN_SOFT=1 ./tools/verify_mud.sh --fast
+  ./tools/verify_mud.sh --core --token-soft
+  MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
 
 Requires Java 17 and ./gradlew at repo root.
 See docs/TEST_LOCK.md for unauthorized src/test edit policy.
 See docs/PIT.md for mutation testing (pure modules).
-See docs/TOKEN_BUDGET_KT.md for token/structure pilot.
+See docs/TOKEN_BUDGET_KT.md for token/structure hard-on-touched.
 EOF
 }
 
@@ -546,8 +556,19 @@ run_test_lock() {
   return 0
 }
 
-# True when pilot hard token gate is requested (env or --token-hard). Soft is default.
-token_hard_mode() {
+# Soft opt-out (MUD-031): --token-soft or MUD_TOKEN_SOFT=1 → report-only.
+token_soft_mode() {
+  if [[ "${TOKEN_SOFT_CLI}" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ "${MUD_TOKEN_SOFT:-0}" == "1" || "${MUD_TOKEN_SOFT:-}" == "true" || "${MUD_TOKEN_SOFT:-}" == "yes" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Explicit hard force (redundant under MUD-031 default; kept for 030 back-compat).
+token_hard_force() {
   if [[ "${TOKEN_HARD_CLI}" -eq 1 ]]; then
     return 0
   fi
@@ -557,7 +578,17 @@ token_hard_mode() {
   return 1
 }
 
-# Token/structure pilot (MUD-030). Soft report-only by default; hard only on *_E in scoped touch.
+# Hard-on-touched default (MUD-031). Soft only when soft opt-out (or full-repo scope path).
+# Soft opt-out wins over hard force if both set (escape hatch).
+token_hard_mode() {
+  if token_soft_mode; then
+    return 1
+  fi
+  # Default hard for lane runs; force flags are redundant but explicit.
+  return 0
+}
+
+# Token/structure (MUD-031). Hard-on-touched default; soft opt-out; never full-repo hard.
 # Checker always exits 0 — verify owns fail policy. See docs/TOKEN_BUDGET_KT.md.
 run_token_budget() {
   local scope_mode="${MUD_TOKEN_SCOPE:-touched}"
@@ -571,11 +602,26 @@ run_token_budget() {
   local note_msg
   local -a checker_args
 
-  if token_hard_mode; then
+  # Resolve hard vs soft + scope (MUD-031):
+  # - Soft opt-out → report-only (keep requested scope).
+  # - SCOPE=full → soft full-repo inventory (never hard full-repo).
+  # - Explicit hard force + SCOPE=full → force scoped + note (030/031).
+  # - Else hard-on-touched default.
+  if token_soft_mode; then
+    hard=0
+  elif [[ "${scope_mode}" == "full" ]]; then
+    if token_hard_force; then
+      note "MUD_TOKEN_SCOPE=full ignored under hard force (scoped git-diff only; avoid god-file cliff)"
+      scope_mode="touched"
+      hard=1
+    else
+      hard=0
+    fi
+  else
     hard=1
   fi
 
-  # Hard never full-repo: force scoped git-diff + note if someone set SCOPE=full.
+  # Safety: never hard-fail full-repo inventory.
   if [[ "${hard}" -eq 1 && "${scope_mode}" == "full" ]]; then
     note "MUD_TOKEN_SCOPE=full ignored under hard mode (scoped git-diff only; avoid god-file cliff)"
     scope_mode="touched"
@@ -584,6 +630,7 @@ run_token_budget() {
   checker_args=(--root "${ROOT_DIR}" --quiet-stdout --json-out "${TOKEN_JSON_OUT}")
   if [[ "${scope_mode}" == "full" ]]; then
     scope_label="full"
+    hard=0
     cmd_display="python3 tools/quality/check_token_budget_kt.py --root . --quiet-stdout --json-out tmp/token_budget_kt_verify.json"
   else
     scope_label="touched"
@@ -594,7 +641,11 @@ run_token_budget() {
   add_step "${cmd_display}"
   if [[ "${DRY_RUN}" -eq 1 ]]; then
     echo "[dry-run] ${cmd_display}"
-    note "token_budget dry-run (would run soft/hard pilot; soft default)"
+    if [[ "${hard}" -eq 1 ]]; then
+      note "token_budget dry-run (would run hard-on-touched default)"
+    else
+      note "token_budget dry-run (would run soft report-only)"
+    fi
     return 0
   fi
 
@@ -688,12 +739,12 @@ PY
   if [[ "${hard}" -eq 1 ]]; then
     if [[ "${e_count}" -gt 0 ]]; then
       EXIT_CODE=1
-      note_msg="E=${e_count} W=${w_count} scope=${scope_label} hard; MUD_TOKEN_HARD${merge_note}"
+      note_msg="E=${e_count} W=${w_count} scope=${scope_label} hard-on-touched${merge_note}"
       record_gate "token_budget" "fail" "${dur}" "${note_msg}"
       note "token_budget HARD fail: ${e_count} error-tier finding(s) in ${scope_label} scope"
       return 1
     fi
-    note_msg="E=0 W=${w_count} scope=${scope_label} hard; no *_E${merge_note}"
+    note_msg="E=0 W=${w_count} scope=${scope_label} hard-on-touched; no *_E${merge_note}"
     record_gate "token_budget" "pass" "${dur}" "${note_msg}"
     note "token_budget hard pass: E=0 W=${w_count} scope=${scope_label}"
     return 0
@@ -1028,6 +1079,10 @@ while [[ $# -gt 0 ]]; do
       TOKEN_HARD_CLI=1
       shift
       ;;
+    --token-soft)
+      TOKEN_SOFT_CLI=1
+      shift
+      ;;
     default|fast|--fast)
       LANE="default"
       shift
@@ -1145,8 +1200,8 @@ if [[ "${LANE}" != "quarantine" ]]; then
   run_test_lock || true
 fi
 
-# Token/structure pilot (MUD-030) on default/fast/core/full only — soft report-only.
-# Hard via MUD_TOKEN_HARD=1 or --token-hard (scoped git-diff *_E). Skip quarantine + pitest.
+# Token/structure (MUD-031) on default/fast/core/full — hard-on-touched default.
+# Soft opt-out: MUD_TOKEN_SOFT=1 / --token-soft. Skip quarantine + pitest.
 # Placement: after test-lock, before PIT. See docs/TOKEN_BUDGET_KT.md.
 case "${LANE}" in
   default|core|full)

@@ -171,7 +171,8 @@ Estimate: `tokens ≈ ceil(chars / 4)` (OpenClaw / jam convention). Prod `src/ma
 - List today’s offenders (`GraphGenerator`, `EngineGameClient`, …) with temporary higher caps  
 - Each override **requires** a burn-down ticket id  
 - New files: **no** override privilege — must meet target  
-- **Tool (MUD-028):** `tools/quality/check_token_budget_kt.py` + usage `docs/TOKEN_BUDGET_KT.md` (report-only; hard fail MUD-031; verify wire MUD-030)
+- **Caps may only lower** over time (anti-gaming; never raise without ticket)  
+- **Live (MUD-031):** hard-on-touched default on default/fast/core/full via `./tools/verify_mud.sh`; soft opt-out `MUD_TOKEN_SOFT=1` / `--token-soft`; checker + overrides applied — `docs/TOKEN_BUDGET_KT.md`
 
 ### 7.2 Structure (secondary)
 

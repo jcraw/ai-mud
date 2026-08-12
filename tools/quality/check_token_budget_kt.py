@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-check_token_budget_kt.py — Kotlin token/structure report-only checker (MUD-028/029).
+check_token_budget_kt.py — Kotlin token/structure report-only checker (MUD-028–031).
 
 Scans prod `*/src/main/**/*.kt` under --root (full-repo, or path-scoped via
 --files / --git-diff). Estimates tokens as ceil(chars/4) via max(0, (len+3)//4).
 Function spans and structure metrics are **heuristics** (not a full Kotlin parse).
-Always exits 0 (report-only); hard fail is MUD-031; verify wire is MUD-030.
+Always exits 0 (report-only); verify owns hard-on-touched policy (MUD-031).
 
-Does not write/merge tmp/dod-summary.json (verify owns that; MUD-030 wires).
+Overrides in config require burn-down ticket (MUD-\\d+); ignored for new/Added
+paths (anti same-PR grandfather). Override error-tier uses metric > limit so
+measured grandfather sizes hold; global thresholds stay metric >= limit.
+
+Does not write/merge tmp/dod-summary.json (verify owns that; MUD-030/031).
 """
 
 from __future__ import annotations
@@ -56,6 +60,9 @@ SKIP_DIR_SEGMENTS = frozenset(
 
 # Default git base for --git-diff (MUD-029). Override with --git-base.
 DEFAULT_GIT_BASE = "origin/master"
+
+# Burn-down ticket id required on each overrides{} entry (MUD-031).
+TICKET_RE = re.compile(r"^MUD-\d+$")
 
 # Kotlin function declaration start (heuristic — not PSI).
 # Matches: fun name, suspend fun, override fun, private/internal/protected/public fun,
@@ -614,6 +621,91 @@ def thr_pair(section: Dict[str, Any], key: str) -> Tuple[int, int]:
     return int(block.get("warn", 0)), int(block.get("error", 0))
 
 
+def path_exists_at_ref(root: Path, ref: str, rel: str) -> bool:
+    """True if path exists in tree at ref (git cat-file -e ref:path)."""
+    r = subprocess.run(
+        ["git", "-C", str(root), "cat-file", "-e", f"{ref}:{rel}"],
+        capture_output=True,
+        text=True,
+    )
+    return r.returncode == 0
+
+
+def git_paths_with_filter(root: Path, base: str, diff_filter: str) -> List[str]:
+    """git diff --name-only --diff-filter=<filter> <base> → rel paths."""
+    r = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "diff",
+            "--name-only",
+            f"--diff-filter={diff_filter}",
+            base,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0:
+        return []
+    return [
+        line.strip().replace("\\", "/")
+        for line in r.stdout.splitlines()
+        if line.strip()
+    ]
+
+
+def resolve_override_entry(
+    cfg: Dict[str, Any],
+    rel: str,
+    *,
+    is_new_file: bool,
+) -> Optional[Dict[str, Any]]:
+    """
+    Return valid override dict for rel, or None.
+
+    - Missing entry → None
+    - New/Added file → ignore override (stderr note; anti same-PR grandfather)
+    - Missing/invalid ticket (not MUD-\\d+) → ignore + stderr note
+    """
+    overrides = cfg.get("overrides") or {}
+    if not isinstance(overrides, dict):
+        return None
+    entry = overrides.get(rel)
+    if not isinstance(entry, dict):
+        return None
+    if is_new_file:
+        sys.stderr.write(
+            f"check_token_budget_kt: override ignored for new/Added file {rel}\n"
+        )
+        return None
+    ticket = entry.get("ticket")
+    if not ticket or not TICKET_RE.match(str(ticket).strip()):
+        sys.stderr.write(
+            f"check_token_budget_kt: override for {rel} missing valid ticket "
+            f"(MUD-\\d+); ignored\n"
+        )
+        return None
+    return entry
+
+
+def thr_pair_merged(
+    global_section: Dict[str, Any],
+    ov_section: Optional[Dict[str, Any]],
+    key: str,
+) -> Tuple[int, int]:
+    """Merge override warn/error over global for one metric key (if present)."""
+    g_w, g_e = thr_pair(global_section, key)
+    if not ov_section or not isinstance(ov_section, dict):
+        return g_w, g_e
+    block = ov_section.get(key)
+    if not isinstance(block, dict):
+        return g_w, g_e
+    w = int(block["warn"]) if "warn" in block else g_w
+    e = int(block["error"]) if "error" in block else g_e
+    return w, e
+
+
 def add_threshold_findings(
     findings: List[Finding],
     *,
@@ -624,8 +716,13 @@ def add_threshold_findings(
     error: int,
     remediation: str,
     name: Optional[str] = None,
+    error_gt: bool = False,
 ) -> None:
-    if metric >= error > 0:
+    """
+    Emit E then W. Global: metric >= error. Override (error_gt): metric > error
+    so a grandfathered measured size holds without raising caps further.
+    """
+    if error > 0 and (metric > error if error_gt else metric >= error):
         findings.append(
             Finding(
                 code=f"{code_prefix}_E",
@@ -660,9 +757,14 @@ def analyze_file(
     root: Path,
     fp: Path,
     cfg: Dict[str, Any],
+    *,
+    is_new_file: bool = False,
 ) -> Tuple[List[Finding], Optional[Dict[str, Any]], Dict[str, int]]:
     """
     Returns (findings, override_candidate_or_None, counters).
+
+    Applies path overrides when ticket-valid and not a new/Added file (MUD-031).
+    Override error-tier comparison uses metric > limit; global uses >=.
     """
     rel = rel_path(root, fp)
     try:
@@ -676,14 +778,32 @@ def analyze_file(
 
     tok = cfg["tokens"]
     struct = cfg["structure"]
-    f_w, f_e = thr_pair(tok, "file")
-    fn_w, fn_e = thr_pair(tok, "function")
-    floc_w, floc_e = thr_pair(struct, "file_loc")
-    fnloc_w, fnloc_e = thr_pair(struct, "fn_loc")
-    cy_w, cy_e = thr_pair(struct, "cyclo")
-    cog_w, cog_e = thr_pair(struct, "cognitive")
+    ov = resolve_override_entry(cfg, rel, is_new_file=is_new_file)
+    error_gt = ov is not None
+    ov_tok = ov.get("tokens") if ov else None
+    ov_struct = ov.get("structure") if ov else None
+    if ov_tok is not None and not isinstance(ov_tok, dict):
+        ov_tok = None
+    if ov_struct is not None and not isinstance(ov_struct, dict):
+        ov_struct = None
+
+    f_w, f_e = thr_pair_merged(tok, ov_tok, "file")
+    fn_w, fn_e = thr_pair_merged(tok, ov_tok, "function")
+    floc_w, floc_e = thr_pair_merged(struct, ov_struct, "file_loc")
+    fnloc_w, fnloc_e = thr_pair_merged(struct, ov_struct, "fn_loc")
+    cy_w, cy_e = thr_pair_merged(struct, ov_struct, "cyclo")
+    cog_w, cog_e = thr_pair_merged(struct, ov_struct, "cognitive")
+
+    # Global (no override) caps for candidate detection — still use base thresholds.
+    g_f_w, g_f_e = thr_pair(tok, "file")
+    g_floc_w, g_floc_e = thr_pair(struct, "file_loc")
 
     findings: List[Finding] = []
+    rem_file = (
+        "split file or extract modules; temporary override requires burn-down ticket"
+        if not ov
+        else "god under override — burn down (lower caps / split); see ticket in overrides"
+    )
 
     add_threshold_findings(
         findings,
@@ -692,7 +812,8 @@ def analyze_file(
         metric=file_tok,
         warn=f_w,
         error=f_e,
-        remediation="split file or extract modules; add temporary override only with burn-down ticket",
+        remediation=rem_file,
+        error_gt=error_gt,
     )
     add_threshold_findings(
         findings,
@@ -702,6 +823,7 @@ def analyze_file(
         warn=floc_w,
         error=floc_e,
         remediation="reduce file LOC (split types/helpers); secondary to tokens",
+        error_gt=error_gt,
     )
 
     spans = extract_functions(raw, cleaned)
@@ -725,6 +847,7 @@ def analyze_file(
             error=fn_e,
             remediation=rem_base,
             name=sp.name,
+            error_gt=error_gt,
         )
         add_threshold_findings(
             fn_findings,
@@ -735,6 +858,7 @@ def analyze_file(
             error=fnloc_e,
             remediation=rem_base + " (fn LOC heuristic)",
             name=sp.name,
+            error_gt=error_gt,
         )
         add_threshold_findings(
             fn_findings,
@@ -745,6 +869,7 @@ def analyze_file(
             error=cy_e,
             remediation=rem_base + " (cyclomatic heuristic)",
             name=sp.name,
+            error_gt=error_gt,
         )
         add_threshold_findings(
             fn_findings,
@@ -755,6 +880,7 @@ def analyze_file(
             error=cog_e,
             remediation=rem_base + " (cognitive heuristic)",
             name=sp.name,
+            error_gt=error_gt,
         )
 
     # Cap noisy fn rows: prefer E over W, then higher metric
@@ -767,17 +893,21 @@ def analyze_file(
 
     candidate = None
     reasons: List[str] = []
-    if f_e > 0 and file_tok >= f_e:
-        reasons.append(f"file_tokens={file_tok}>={f_e}")
-    if floc_e > 0 and file_loc >= floc_e:
-        reasons.append(f"file_loc={file_loc}>={floc_e}")
+    # Candidates vs global error (not override) so burn-down list still surfaces gods.
+    if g_f_e > 0 and file_tok >= g_f_e:
+        reasons.append(f"file_tokens={file_tok}>={g_f_e}")
+    if g_floc_e > 0 and file_loc >= g_floc_e:
+        reasons.append(f"file_loc={file_loc}>={g_floc_e}")
     if reasons:
         candidate = {
             "path": rel,
             "file_tokens": file_tok,
             "file_loc": file_loc,
             "reasons": reasons,
-            "note": "candidate for temporary overrides{} entry (requires burn-down ticket); do not auto-fill",
+            "note": (
+                "under override" if ov else
+                "candidate for temporary overrides{} entry (requires burn-down ticket)"
+            ),
         }
 
     counters = {
@@ -786,6 +916,7 @@ def analyze_file(
         "functions": len(spans),
         "fn_findings_total": len(fn_findings),
         "fn_findings_emitted": min(len(fn_findings), MAX_FN_FINDINGS_PER_FILE),
+        "override_applied": 1 if ov else 0,
     }
     return findings, candidate, counters
 
@@ -843,9 +974,10 @@ def build_envelope(
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
-            "Kotlin token/structure report-only checker (MUD-028/029). "
+            "Kotlin token/structure report-only checker (MUD-028–031). "
             "Always exits 0. Path scope via --files and/or --git-diff; "
-            "neither → full-repo prod scan. Untracked new .kt: pass --files."
+            "neither → full-repo prod scan. Untracked new .kt: pass --files. "
+            "Overrides require ticket; ignored for new/Added paths."
         )
     )
     p.add_argument(
@@ -923,10 +1055,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         git_base=str(args.git_base),
     )
 
+    # New-file ban for overrides (MUD-031): Added in git-diff or missing at base.
+    git_base_resolved: Optional[str] = scope_meta.get("git_base")
+    if git_base_resolved is None and (args.git_diff or args.files):
+        git_base_resolved, _ = resolve_git_base(root, str(args.git_base))
+    added_set: set = set()
+    if git_base_resolved is not None and args.git_diff:
+        added_set = set(git_paths_with_filter(root, git_base_resolved, "A"))
+
+    def is_new_file(rel: str) -> bool:
+        if rel in added_set:
+            return True
+        if git_base_resolved is not None and not path_exists_at_ref(
+            root, git_base_resolved, rel
+        ):
+            return True
+        return False
+
     all_findings: List[Finding] = []
     candidates: List[Dict[str, Any]] = []
     for fp in files:
-        findings, cand, _ = analyze_file(root, fp, cfg)
+        rel = rel_path(root, fp)
+        findings, cand, _ = analyze_file(
+            root, fp, cfg, is_new_file=is_new_file(rel)
+        )
         all_findings.extend(findings)
         if cand:
             candidates.append(cand)
@@ -971,9 +1123,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"exit_policy=report_only\n"
         )
 
-    # Report-only: always 0 (even with E breaches).
-    # Future: MUD_TOKEN_HARD / verify wire → MUD-030; hard-on-touched → MUD-031.
-    # Do not change exit policy in this ticket (MUD-029 path scope only).
+    # Report-only: always 0 (even with E breaches). Verify owns hard (MUD-031).
     return 0
 
 

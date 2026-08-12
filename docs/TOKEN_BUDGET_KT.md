@@ -1,11 +1,11 @@
-# Kotlin token / structure budget (report-only + verify pilot)
+# Kotlin token / structure budget (hard-on-touched)
 
-**Ticket:** MUD-028 · **Touched-path:** MUD-029 (done) · **Verify wire (pilot):** MUD-030 (done) · **Hard default:** MUD-031  
+**Ticket:** MUD-028 · **Touched-path:** MUD-029 (done) · **Verify wire:** MUD-030 (done) · **Hard default:** MUD-031 (done)  
 **Design:** `docs/AGENT_QUALITY_GATES_DESIGN.md` A6/A7, §7.1–§7.2
 
 ## What it is
 
-Measurement of prod Kotlin sources (tokens primary, structure secondary). Standalone checker is always **exit 0** (`exit_policy: report_only`). **`./tools/verify_mud.sh`** owns soft vs hard policy (MUD-030 pilot).
+Measurement of prod Kotlin sources (tokens primary, structure secondary). Standalone checker is always **exit 0** (`exit_policy: report_only`). **`./tools/verify_mud.sh`** owns soft vs hard policy (**MUD-031 hard-on-touched default**).
 
 | Piece | Path |
 |-------|------|
@@ -14,41 +14,41 @@ Measurement of prod Kotlin sources (tokens primary, structure secondary). Standa
 | Default JSON out | `tmp/token_budget_kt.json` (optional `--json-out`) |
 | Verify side JSON | `tmp/token_budget_kt_verify.json` (gitignored; written by verify) |
 
-## Verify pilot (MUD-030)
+## Verify policy (MUD-031 hard-on-touched)
 
 | Lane | Token gate |
 |------|------------|
-| `default` / `fast` / `core` / `full` | **Run** (soft by default) |
+| `default` / `fast` / `core` / `full` | **Run** — **hard-on-touched** by default |
 | `quarantine` | **Skip** (debt-only) |
 | `pitest` | **Skip** (not in ticket lane set) |
 | `--dry-run` | No checker invoke; `gates.token_budget` → `skipped` + dry-run note |
 
 | Mode | How | Exit / gate |
 |------|-----|-------------|
-| **Soft (default)** | `--git-diff` vs `MUD_TOKEN_GIT_BASE` (default `origin/master`) | Always soft-pass; merge W+E into `findings[]`; `gates.token_budget` = `pass` + note `E=n W=m scope=touched report-only` |
-| **Hard pilot** | `MUD_TOKEN_HARD=1` **or** `--token-hard` | Same **scoped** git-diff (never full-repo hard); **fail** if any finding code ends `_E`; warn `*_W` never hard-fails |
-| **Optional full soft** | `MUD_TOKEN_SCOPE=full` | No `--git-diff` (full-repo inventory); soft only. Hard+full → forced scoped + note |
+| **Hard (default)** | `--git-diff` vs `MUD_TOKEN_GIT_BASE` (default `origin/master`) | **Fail** if any finding code ends `_E` in the touch set; `*_W` never hard-fails; `gates.token_budget` note `E=n W=m scope=touched hard-on-touched` |
+| **Soft opt-out** | `MUD_TOKEN_SOFT=1` **or** `--token-soft` | Report-only; merge W+E into `findings[]`; never set verify `EXIT_CODE` from token alone |
+| **Hard force** | `MUD_TOKEN_HARD=1` **or** `--token-hard` | Redundant under default hard; still accepted (030 back-compat) |
+| **Optional full soft** | `MUD_TOKEN_SCOPE=full` | No `--git-diff` (full-repo inventory); **always soft**. Explicit hard force + full → forced scoped + note |
 
-- Soft **never** sets verify `EXIT_CODE` from token alone.
 - Hard only counts **error-tier** codes (`TOKEN_*_E`, `STRUCTURE_*_E`) in the **touch** set.
-- Empty touch (docs-only, clean tree): 0 findings, soft 0 even under hard.
+- Empty touch (docs-only, clean tree): 0 findings, exit 0 under hard.
 - Checker crash / missing python or script: soft → skipped/pass + note; hard → fail closed.
 - Findings merge capped at ~50 rows (note if truncated).
 - Untracked new `.kt` still **not** in git-diff (MUD-029); stage or pass `--files` outside verify.
 
 ```bash
-# Soft default (touched prod kt)
+# Hard-on-touched default (clean tree → pass; touch over-budget prod kt → fail)
 ./tools/verify_mud.sh --core
 
-# Pilot hard (scoped E-tier only)
-MUD_TOKEN_HARD=1 ./tools/verify_mud.sh --fast
-./tools/verify_mud.sh --core --token-hard
+# Soft opt-out (report-only)
+MUD_TOKEN_SOFT=1 ./tools/verify_mud.sh --fast
+./tools/verify_mud.sh --core --token-soft
 
 # Soft full-repo inventory (noisy; soft only)
 MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
 ```
 
-## Run
+## Run (standalone checker)
 
 ```bash
 # Full-repo prod scan (MUD-028 default)
@@ -68,7 +68,7 @@ python3 tools/quality/check_token_budget_kt.py \
   --quiet-stdout --json-out tmp/token_budget_kt_git.json
 ```
 
-Always **exit 0** (even with error-threshold breaches). `exit_policy: report_only`.
+Always **exit 0** (even with error-threshold breaches). `exit_policy: report_only`. Verify owns hard.
 
 Useful flags:
 
@@ -125,6 +125,37 @@ tokens = max(0, (len(source) + 3) // 4)   # ≡ ceil(chars / 4)
 
 Tokens are **primary**; structure metrics are **secondary**.
 
+## Overrides (MUD-031)
+
+`config/quality/token_budget_kt.json` → `overrides` map. Known god files carry temporary higher caps with a **required** burn-down ticket (umbrella **MUD-034** until per-file split tickets land).
+
+```json
+"overrides": {
+  "path/to/God.kt": {
+    "ticket": "MUD-034",
+    "tokens": {
+      "file": { "warn": 2000, "error": 14209 },
+      "function": { "warn": 200, "error": 800 }
+    },
+    "structure": {
+      "file_loc": { "warn": 700, "error": 1100 },
+      "fn_loc": { "warn": 55, "error": 120 },
+      "cyclo": { "warn": 10, "error": 20 },
+      "cognitive": { "warn": 15, "error": 30 }
+    }
+  }
+}
+```
+
+| Rule | Behavior |
+|------|----------|
+| **Ticket required** | `ticket` must match `MUD-\d+`; missing/invalid → entry ignored + stderr note |
+| **Apply** | Path caps merge over global before threshold checks |
+| **Error compare** | Override error-tier: `metric > limit` (measured grandfather size holds). Global: `metric >= limit` |
+| **New-file ban** | Git **Added** or missing at base → override **ignored** (anti same-PR grandfather) |
+| **Caps may only lower** | Never raise override caps without a ticket; prefer lowering as splits land (AGENTS + DESIGN) |
+| **Untracked** | Still invisible to git-diff; stage new `.kt` so verify sees them |
+
 ## JSON envelope
 
 ```json
@@ -152,7 +183,7 @@ Tokens are **primary**; structure metrics are **secondary**.
 
 Finding shape matches dod-summary v2 (`code`, `path`, `metric`, `limit`, `remediation`). Function paths use `file.kt:line` (optional `name`).
 
-**`override_candidates`:** files over file-token **error** and/or file-LOC **error**. Config `overrides: {}` stays empty until a burn-down ticket (MUD-031/034); **do not auto-fill**.
+**`override_candidates`:** files over global file-token **error** and/or file-LOC **error** (still listed when under override for burn-down visibility).
 
 Per-file function findings are capped (top severity) to limit noise; all file-level findings are kept.
 
@@ -167,25 +198,14 @@ Per-file function findings are capped (top severity) to limit noise; all file-le
 
 Good enough for agent feedback and burn-down lists; not a compiler frontend.
 
-## Overrides policy
-
-See DESIGN §7.1:
-
-- Temporary higher caps only for listed gods during split wave
-- Each override **requires** a burn-down ticket id
-- New files: no override privilege — must meet target
-- Never raise caps without ticket; prefer lowering only
-
-This ticket only **lists candidates**; it does not write overrides.
-
 ## What this does *not* do
 
 | Non-goal | Owner |
 |----------|--------|
-| Hard default / hard-on-touched permanent | MUD-031 |
-| God-file product splits | later Q3 tickets |
+| God-file product splits | MUD-034+ (Wave Q3) |
 | Auto-include untracked files | agents pass `--files` / stage |
 | Checker non-zero exit | stays report_only; verify owns hard |
+| Full-repo hard fail | never; scoped touch only |
 
 ## Related
 

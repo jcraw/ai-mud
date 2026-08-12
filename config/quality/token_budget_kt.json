@@ -1,15 +1,1739 @@
 {
   "version": 1,
-  "description": "Kotlin src/main token + structure ceilings (MUD-028 report-only; hard fail later MUD-031). Thresholds from docs/AGENT_QUALITY_GATES_DESIGN.md A6/A7 + §7.1/§7.2.",
+  "description": "Kotlin src/main token + structure ceilings (MUD-028/031). Global thresholds from DESIGN A6/A7. overrides{}: known gods with ticket MUD-034 burn-down umbrella; caps at measured size (error_gt hold). Override caps may only lower over time; new/Added files cannot use overrides.",
   "tokens": {
-    "file": { "warn": 2000, "error": 2500 },
-    "function": { "warn": 200, "error": 250 }
+    "file": {
+      "warn": 2000,
+      "error": 2500
+    },
+    "function": {
+      "warn": 200,
+      "error": 250
+    }
   },
   "structure": {
-    "file_loc": { "warn": 700, "error": 1100 },
-    "fn_loc": { "warn": 55, "error": 90 },
-    "cyclo": { "warn": 10, "error": 16 },
-    "cognitive": { "warn": 15, "error": 25 }
+    "file_loc": {
+      "warn": 700,
+      "error": 1100
+    },
+    "fn_loc": {
+      "warn": 55,
+      "error": 90
+    },
+    "cyclo": {
+      "warn": 10,
+      "error": 16
+    },
+    "cognitive": {
+      "warn": 15,
+      "error": 25
+    }
   },
-  "overrides": {}
+  "overrides": {
+    "app/src/main/kotlin/com/jcraw/app/GameServer.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 10127
+        },
+        "function": {
+          "warn": 200,
+          "error": 1217
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 34
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/MudGameEngine.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 10257
+        },
+        "function": {
+          "warn": 200,
+          "error": 1593
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 33
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/MultiUserGame.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2730
+        },
+        "function": {
+          "warn": 200,
+          "error": 611
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/CombatHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3249
+        },
+        "function": {
+          "warn": 200,
+          "error": 1978
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 156
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 69
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/ItemHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 6253
+        },
+        "function": {
+          "warn": 200,
+          "error": 1352
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 118
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 19
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 65
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 5770
+        },
+        "function": {
+          "warn": 200,
+          "error": 819
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 31
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/SkillQuestHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 9827
+        },
+        "function": {
+          "warn": 200,
+          "error": 2218
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 176
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 29
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 86
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/SocialHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3491
+        },
+        "function": {
+          "warn": 200,
+          "error": 513
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/TradeHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2545
+        },
+        "function": {
+          "warn": 200,
+          "error": 544
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "app/src/main/kotlin/com/jcraw/app/handlers/TreasureRoomHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3125
+        },
+        "function": {
+          "warn": 200,
+          "error": 773
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 14209
+        },
+        "function": {
+          "warn": 200,
+          "error": 1455
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 31
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientCombatHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3432
+        },
+        "function": {
+          "warn": 200,
+          "error": 2145
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 169
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 19
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 79
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientItemHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 4667
+        },
+        "function": {
+          "warn": 200,
+          "error": 1084
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 66
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientMovementHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 4738
+        },
+        "function": {
+          "warn": 200,
+          "error": 924
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 34
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientSkillQuestHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 9517
+        },
+        "function": {
+          "warn": 200,
+          "error": 2394
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 180
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 25
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 81
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientSocialHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2879
+        },
+        "function": {
+          "warn": 200,
+          "error": 557
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientTreasureRoomHandlers.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3274
+        },
+        "function": {
+          "warn": 200,
+          "error": 812
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 32
+        }
+      }
+    },
+    "client/src/main/kotlin/com/jcraw/mud/client/ui/MainGameScreen.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3033
+        },
+        "function": {
+          "warn": 200,
+          "error": 701
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "core/src/main/kotlin/com/jcraw/mud/core/CombatComponent.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2599
+        },
+        "function": {
+          "warn": 200,
+          "error": 456
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "core/src/main/kotlin/com/jcraw/mud/core/WorldState.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3762
+        },
+        "function": {
+          "warn": 200,
+          "error": 309
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "memory/src/main/kotlin/com/jcraw/mud/memory/combat/NarrationVariantGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2967
+        },
+        "function": {
+          "warn": 200,
+          "error": 623
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "memory/src/main/kotlin/com/jcraw/mud/memory/combat/SQLiteCombatRepository.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2641
+        },
+        "function": {
+          "warn": 200,
+          "error": 400
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "memory/src/main/kotlin/com/jcraw/mud/memory/item/SQLiteItemRepository.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3215
+        },
+        "function": {
+          "warn": 200,
+          "error": 336
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "memory/src/main/kotlin/com/jcraw/mud/memory/skill/SQLiteSkillRepository.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2564
+        },
+        "function": {
+          "warn": 200,
+          "error": 377
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "memory/src/main/kotlin/com/jcraw/mud/memory/world/WorldDatabase.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2506
+        },
+        "function": {
+          "warn": 200,
+          "error": 1972
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 178
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 31
+        }
+      }
+    },
+    "perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2707
+        },
+        "function": {
+          "warn": 200,
+          "error": 250
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 10293
+        },
+        "function": {
+          "warn": 200,
+          "error": 2827
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 219
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 45
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 338
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3219
+        },
+        "function": {
+          "warn": 200,
+          "error": 1017
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 28
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/DispositionManager.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3667
+        },
+        "function": {
+          "warn": 200,
+          "error": 938
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/NPCKnowledgeManager.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3028
+        },
+        "function": {
+          "warn": 200,
+          "error": 725
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/AttackResolver.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3614
+        },
+        "function": {
+          "warn": 200,
+          "error": 254
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/FleeResolver.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2794
+        },
+        "function": {
+          "warn": 200,
+          "error": 1312
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 117
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/combat/MonsterAIHandler.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2863
+        },
+        "function": {
+          "warn": 200,
+          "error": 495
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/pickpocket/PickpocketHandler.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3572
+        },
+        "function": {
+          "warn": 200,
+          "error": 571
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/NPCGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3372
+        },
+        "function": {
+          "warn": 200,
+          "error": 385
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/procedural/QuestGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2975
+        },
+        "function": {
+          "warn": 200,
+          "error": 436
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/PerkDefinitions.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 7304
+        },
+        "function": {
+          "warn": 200,
+          "error": 250
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillDefinitions.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 4419
+        },
+        "function": {
+          "warn": 200,
+          "error": 250
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 5594
+        },
+        "function": {
+          "warn": 200,
+          "error": 1143
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 99
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 35
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/town/TownMerchantTemplates.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2523
+        },
+        "function": {
+          "warn": 200,
+          "error": 468
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/treasureroom/TreasureRoomDescriptionGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2572
+        },
+        "function": {
+          "warn": 200,
+          "error": 397
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/DungeonInitializer.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 6327
+        },
+        "function": {
+          "warn": 200,
+          "error": 930
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/ExitLinker.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3316
+        },
+        "function": {
+          "warn": 200,
+          "error": 250
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/ExitResolver.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2597
+        },
+        "function": {
+          "warn": 200,
+          "error": 423
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 30
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/HiddenExitPlacer.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2894
+        },
+        "function": {
+          "warn": 200,
+          "error": 1544
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 120
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/MobSpawner.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3016
+        },
+        "function": {
+          "warn": 200,
+          "error": 1130
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 95
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/TownGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3906
+        },
+        "function": {
+          "warn": 200,
+          "error": 1164
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 93
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/WorldGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 7653
+        },
+        "function": {
+          "warn": 200,
+          "error": 1020
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/worldgen/GraphGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 11932
+        },
+        "function": {
+          "warn": 200,
+          "error": 1226
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 95
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 20
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 75
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 9131
+        },
+        "function": {
+          "warn": 200,
+          "error": 7884
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 479
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 46
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 140
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestBotRunner.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 4420
+        },
+        "function": {
+          "warn": 200,
+          "error": 1137
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 92
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 17
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 66
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2636
+        },
+        "function": {
+          "warn": 200,
+          "error": 425
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 35
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/V3TestGameEngine.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 3616
+        },
+        "function": {
+          "warn": 200,
+          "error": 421
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/CodeValidationRules.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 7761
+        },
+        "function": {
+          "warn": 200,
+          "error": 2351
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 172
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 43
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 125
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/ValidationPrompts.kt": {
+      "ticket": "MUD-034",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 5412
+        },
+        "function": {
+          "warn": 200,
+          "error": 914
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 44
+        }
+      }
+    }
+  }
 }
