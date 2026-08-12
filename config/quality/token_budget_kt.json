@@ -31,15 +31,15 @@
   },
   "overrides": {
     "app/src/main/kotlin/com/jcraw/app/GameServer.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034d",
       "tokens": {
         "file": {
           "warn": 2000,
-          "error": 10127
+          "error": 2940
         },
         "function": {
           "warn": 200,
-          "error": 1217
+          "error": 1199
         }
       },
       "structure": {
@@ -62,15 +62,15 @@
       }
     },
     "app/src/main/kotlin/com/jcraw/app/MudGameEngine.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034d",
       "tokens": {
         "file": {
           "warn": 2000,
-          "error": 10257
+          "error": 4635
         },
         "function": {
           "warn": 200,
-          "error": 1593
+          "error": 1538
         }
       },
       "structure": {
@@ -89,37 +89,6 @@
         "cognitive": {
           "warn": 15,
           "error": 33
-        }
-      }
-    },
-    "app/src/main/kotlin/com/jcraw/app/MultiUserGame.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 2730
-        },
-        "function": {
-          "warn": 200,
-          "error": 611
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 90
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 25
         }
       }
     },

@@ -1,7 +1,5 @@
 package com.jcraw.app
 
-import com.jcraw.mud.core.Direction
-import com.jcraw.mud.core.GraphNodeComponent
 import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
@@ -41,10 +39,13 @@ class MultiUserGame(
      */
     fun start() = runBlocking {
         // Create fallback components if needed
-        val effectiveMemoryManager = memoryManager ?: createFallbackMemoryManager()
-        val effectiveDescGenerator = descriptionGenerator ?: createFallbackDescriptionGenerator(effectiveMemoryManager)
-        val effectiveNpcGenerator = npcInteractionGenerator ?: createFallbackNPCGenerator(effectiveMemoryManager)
-        val effectiveCombatNarrator = combatNarrator ?: createFallbackCombatNarrator(effectiveMemoryManager)
+        val effectiveMemoryManager = memoryManager ?: MultiUserFallbacks.createFallbackMemoryManager()
+        val effectiveDescGenerator = descriptionGenerator
+            ?: MultiUserFallbacks.createFallbackDescriptionGenerator(effectiveMemoryManager)
+        val effectiveNpcGenerator = npcInteractionGenerator
+            ?: MultiUserFallbacks.createFallbackNPCGenerator(effectiveMemoryManager)
+        val effectiveCombatNarrator = combatNarrator
+            ?: MultiUserFallbacks.createFallbackCombatNarrator(effectiveMemoryManager)
 
         // Initialize game server with social system + item templates (floor take → V2 inventory)
         val socialDatabase = SocialDatabase(com.jcraw.mud.core.DatabaseConfig.SOCIAL_DB)
@@ -101,168 +102,47 @@ class MultiUserGame(
      * Run a player session, processing input and events.
      */
     private suspend fun runPlayerSession(session: PlayerSession) {
+        sendSessionWelcome(session)
         var running = true
+        while (running) {
+            session.processEvents().forEach { session.sendMessage(it) }
+            session.sendMessage("\n[${session.playerName}] > ")
+            val input = session.readLine() ?: break
+            if (input.trim().isBlank()) continue
+            running = processSessionLine(session, input)
+        }
+    }
 
-        // Welcome message
+    private suspend fun sendSessionWelcome(session: PlayerSession) {
         session.sendMessage("\n" + "=" * 60)
         session.sendMessage("  Welcome, ${session.playerName}!")
         session.sendMessage("=" * 60)
-
-        // V3: Show initial location
         val worldState = gameServer.getWorldState()
         val initialSpace = worldState.getCurrentSpace(session.playerId)!!
-        val description = initialSpace.description.ifBlank {
-            "An unexplored area awaits."
-        }
+        val description = initialSpace.description.ifBlank { "An unexplored area awaits." }
         val locationName = description.lines().firstOrNull()?.take(50) ?: "Current Location"
         session.sendMessage("\n$locationName")
         session.sendMessage("-" * locationName.length)
         session.sendMessage(description)
-
         session.sendMessage("\nType 'help' for commands.\n")
+    }
 
-        while (running) {
-            // Process any pending events
-            val events = session.processEvents()
-            events.forEach { session.sendMessage(it) }
-
-            // Show prompt
-            session.sendMessage("\n[${session.playerName}] > ")
-
-            // Read input
-            val input = session.readLine() ?: break
-            if (input.trim().isBlank()) continue
-
-            // V3: Parse intent using LLM with space + graph node
-            val currentWorldState = gameServer.getWorldState()
-            val space = currentWorldState.getCurrentSpace(session.playerId)!!
-            val graphNode = currentWorldState.getCurrentGraphNode(session.playerId)!!
-
-            val locationName = space.description.lines().firstOrNull()?.take(50) ?: "Current Location"
-            val brightness = if (space.brightness > 30) "lit" else "dark"
-            val locationContext = "$locationName: ${space.terrainType}, $brightness"
-            val exitsWithNames = buildExitsWithNamesV3(graphNode, currentWorldState)
-
-            val intent = intentRecognizer.parseIntent(input.trim(), locationContext, exitsWithNames)
-
-            // Check for quit
-            if (intent is Intent.Quit) {
-                session.sendMessage("Goodbye, ${session.playerName}!")
-                running = false
-                gameServer.removePlayerSession(session.playerId)
-                break
-            }
-
-            // Process intent through game server
-            val response = gameServer.processIntent(session.playerId, intent)
-            session.sendMessage(response)
+    /** @return false when session should end */
+    private suspend fun processSessionLine(session: PlayerSession, input: String): Boolean {
+        val world = gameServer.getWorldState()
+        val space = world.getCurrentSpace(session.playerId)!!
+        val graphNode = world.getCurrentGraphNode(session.playerId)!!
+        val locationName = space.description.lines().firstOrNull()?.take(50) ?: "Current Location"
+        val brightness = if (space.brightness > 30) "lit" else "dark"
+        val locationContext = "$locationName: ${space.terrainType}, $brightness"
+        val exits = MultiUserFallbacks.buildExitsWithNamesV3(graphNode, world)
+        val intent = intentRecognizer.parseIntent(input.trim(), locationContext, exits)
+        if (intent is Intent.Quit) {
+            session.sendMessage("Goodbye, ${session.playerName}!")
+            gameServer.removePlayerSession(session.playerId)
+            return false
         }
-    }
-
-    /**
-     * Build a map of exits with their destination space names for navigation parsing (V3).
-     */
-    private fun buildExitsWithNamesV3(
-        graphNode: GraphNodeComponent,
-        worldState: WorldState
-    ): Map<Direction, String> {
-        return graphNode.neighbors.mapNotNull { edge ->
-            val destSpace = worldState.getSpace(edge.targetId)
-            val direction = Direction.fromString(edge.direction)
-            if (destSpace != null && direction != null) {
-                // Extract name from first line of destination description
-                val destName = destSpace.description.lines().firstOrNull()?.take(50) ?: "Unknown"
-                direction to destName
-            } else {
-                null
-            }
-        }.toMap()
-    }
-
-    /**
-     * Create a fallback memory manager for when no LLM client is available.
-     */
-    private fun createFallbackMemoryManager(): MemoryManager {
-        // Create memory manager with null client (will use in-memory store only)
-        return MemoryManager(null)
-    }
-
-    /**
-     * Create a fallback description generator with a mock client.
-     */
-    private fun createFallbackDescriptionGenerator(memoryManager: MemoryManager): RoomDescriptionGenerator {
-        // Create a simple mock LLM client that always throws to trigger fallback logic
-        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
-            override suspend fun chatCompletion(
-                modelId: String,
-                systemPrompt: String,
-                userContext: String,
-                maxTokens: Int,
-                temperature: Double
-            ): com.jcraw.sophia.llm.OpenAIResponse {
-                throw UnsupportedOperationException("Mock client - fallback mode")
-            }
-
-            override suspend fun createEmbedding(text: String, model: String): List<Double> {
-                return emptyList()
-            }
-
-            override fun close() {
-                // No-op for mock
-            }
-        }
-        return RoomDescriptionGenerator(mockClient, memoryManager)
-    }
-
-    /**
-     * Create a fallback NPC interaction generator with a mock client.
-     */
-    private fun createFallbackNPCGenerator(memoryManager: MemoryManager): NPCInteractionGenerator {
-        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
-            override suspend fun chatCompletion(
-                modelId: String,
-                systemPrompt: String,
-                userContext: String,
-                maxTokens: Int,
-                temperature: Double
-            ): com.jcraw.sophia.llm.OpenAIResponse {
-                throw UnsupportedOperationException("Mock client - fallback mode")
-            }
-
-            override suspend fun createEmbedding(text: String, model: String): List<Double> {
-                return emptyList()
-            }
-
-            override fun close() {
-                // No-op for mock
-            }
-        }
-        return NPCInteractionGenerator(mockClient, memoryManager)
-    }
-
-    /**
-     * Create a fallback combat narrator with a mock client.
-     */
-    private fun createFallbackCombatNarrator(memoryManager: MemoryManager): CombatNarrator {
-        val mockClient = object : com.jcraw.sophia.llm.LLMClient {
-            override suspend fun chatCompletion(
-                modelId: String,
-                systemPrompt: String,
-                userContext: String,
-                maxTokens: Int,
-                temperature: Double
-            ): com.jcraw.sophia.llm.OpenAIResponse {
-                throw UnsupportedOperationException("Mock client - fallback mode")
-            }
-
-            override suspend fun createEmbedding(text: String, model: String): List<Double> {
-                return emptyList()
-            }
-
-            override fun close() {
-                // No-op for mock
-            }
-        }
-        return CombatNarrator(mockClient, memoryManager)
+        session.sendMessage(gameServer.processIntent(session.playerId, intent))
+        return true
     }
 }

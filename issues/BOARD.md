@@ -67,8 +67,8 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034a done — client facade pure-move extracts; residual override lowered)_
 - _(MUD-034b done — GraphGenerator pure-move layout/MST/edges/typing; override removed)_
 - _(MUD-034c done — IntentRecognizer pure-move Direction/Say/Trade/LLM/Fallback; host 10293→533; override removed; Intent residual override retargeted MUD-034c)_
-- **MUD-034d** — app runtime split (`med`) · open · depends 034/031 · `MudGameEngine` / `GameServer` / `MultiUserGame`
-- **MUD-034e** — skill/quest handlers parity (`med`) · open · depends 034/031 · app+client
+- _(MUD-034d done — app runtime pure-move MU/Npc/Room/Quest/Death + GameServer Item/Nav/Social/Quest; MultiUserGame override removed; residual hosts retargeted MUD-034d)_
+- **MUD-034e** — skill/quest handlers parity (`med`) · **in_progress** · grok · plan APPROVED · `tmp/workers/MUD-034e` · depends 034/031 · app+client SkillQuest*
 - **MUD-034f** — testbot god split (`med`) · open · depends 034/031 · InputGen / validation / runner / V3 engine
 - **MUD-034g** — world gen cluster split (`med`) · open · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
 - **MUD-034h** — item handlers parity (`med`) · open · depends 034/031 · app+client
@@ -94,13 +94,14 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- _(MUD-034c moved to Recently done)_
+- **MUD-034e** — skill/quest handlers parity (`med`) · in_progress / implementing · plan APPROVED by Astra · worker `tmp/workers/MUD-034e/` · fresh IMPL · hosts SkillQuestHandlers + ClientSkillQuestHandlers
 
 ## Blocked (awaiting Jason)
 
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-034d** — app runtime split (`med`) · done · pure-move: MultiUserFallbacks · MudGameNpc* · MudGameRoomDescribe · MudGameQuestSupport · MudGameDeathRespawn · GameServer Item/Nav/Social/Quest · hosts **10257→4635** / **10127→2940** / **2730→1704** · MultiUserGame override **removed** · residual hosts **retargeted MUD-034d** (lower-only; no Added override) · MU stubs/order preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034d/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md`
 - **MUD-034c** — intent recognizer split (`med`) · done · pure-move: Direction/Say/Trade/LlmPrompt*/LlmJsonMap*/LlmParse/Fallback* · host **10293→533** · IntentRecognizer override **removed** · Intent residual override **retargeted MUD-034c** (tok_E 2707; multi-file deferred) · public `parseIntent` preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034c/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md`
 
 - **MUD-034b** — GraphGenerator layout/MST split (`med`) · done · pure-move: `GraphLayoutNodes` / `GraphMst` / `GraphEdgeDirections` + direction geometry/assign/fix/unique fragments / `GraphNodeTyping` · host **11932→561** · override **removed** (under global E; never raised; no Added override) · public `generate` pipeline + RNG order preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034b/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md`
