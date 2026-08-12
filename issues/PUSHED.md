@@ -139,3 +139,12 @@
 - **Force:** no
 - **Included:** tools/quality/check_token_budget_kt.py (--files/--git-diff/--git-base), docs/TOKEN_BUDGET_KT.md, plan MUD-029, board/handoff
 - **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
+
+### MUD-030 — verify wire token pilot
+- **When:** 2026-08-12 01:13 MST
+- **SHA:** `d8463f46ba2a472169cc0671ff249b358d177a9a`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** tools/verify_mud.sh (run_token_budget soft+hard pilot), docs/TOKEN_BUDGET_KT.md + DOD_SUMMARY, AGENTS Verification, plan MUD-030, board/handoff
+- **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
+
