@@ -11,7 +11,7 @@
 
 **MUD-034e closeout:** `tmp/workers/MUD-034e/CLOSEOUT.md` · hosts 9827→539 / 9517→658 · both host overrides removed · client Craft still stubbed · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md` · **PUSHED** `66bb601`
 
-**MUD-034f closeout:** `tmp/workers/MUD-034f/CLOSEOUT.md` · hosts 9131→1727 / 7761→741 / 5412→1556 / 4420→997 / 3616→1330 / 2636→940 · residual FN overrides lower+retarget MUD-034f · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md` · **PUSHED** _(SHA fill after push)_
+**MUD-034f closeout:** `tmp/workers/MUD-034f/CLOSEOUT.md` · hosts 9131→1727 / 7761→741 / 5412→1556 / 4420→997 / 3616→1330 / 2636→940 · residual FN overrides lower+retarget MUD-034f · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md` · **PUSHED** 
 **MUD-034g:** PLAN launching · world gen cluster split · worker `tmp/workers/MUD-034g` · plan `plans/2026-08-12-ai-mud-MUD-034g-world-gen-cluster-split.md`
 **MUD-034d closeout:** `tmp/workers/MUD-034d/CLOSEOUT.md` · hosts 10257→4635 / 10127→2940 / 2730→1704 · MultiUserGame override removed · residual retarget MUD-034d · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md` · **PUSHED** `b6cce15` (bookkeep `d97f108`)
 **MUD-034c closeout:** `tmp/workers/MUD-034c/CLOSEOUT.md` · IntentRecognizer 10293→533 · override removed · Intent residual retarget MUD-034c · 17 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md` · **PUSHED** `bcbd1da`

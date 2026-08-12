@@ -230,3 +230,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034f fresh PLAN launched same drain tick after push
 
+### MUD-034f — testbot god pure-move split (+ MUD-034g PLAN launch)
+- **When:** 2026-08-12 05:53 MST
+- **SHA:** `511499dd807bacf03d736c08d6280ee0ff451137`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** testbot extracts (Models/V3/Runner/Val/CodeVal/InputGen clusters) + thin hosts, token_budget residual FN lower+retarget MUD-034f, plan MUD-034f, board/ticket/handoff
+- **Excluded:** tmp/, secrets, __pycache__, app/client product
+- **Note:** MUD-034g fresh PLAN launched same drain tick after push
+
