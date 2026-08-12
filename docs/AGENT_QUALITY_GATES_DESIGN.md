@@ -127,8 +127,8 @@ Runtime schema: `config/quality/dod_summary.schema.json` (MUD-027); short ops no
 
 | ID | Gate | Hard? | Jam analogue |
 |----|------|-------|--------------|
-| D1 | plan token budget | hard on plan approve | plan ≤~2k warn / 3.5k fail tok |
-| D2 | brief token budget | hard | brief ≤1.2k / 2k |
+| D1 | plan token budget | hard on plan approve | plan ≤~2k warn / 3.5k fail tok — **live:** `tools/quality/check_builder_preflight.py` + optional `./tools/verify_mud.sh --preflight <path>` (MUD-033; `docs/BUILDER_PREFLIGHT.md`) |
+| D2 | brief token budget | hard | brief ≤1.2k / 2k — **live:** same checker (MUD-033) |
 | D3 | AGENTS.md size | warn/fail | keep lean; deep docs linked |
 | D4 | BOARD slim drain | process | jam snapshot --slim lesson |
 | D5 | N=3 verify retry | process | already in AGENTS |

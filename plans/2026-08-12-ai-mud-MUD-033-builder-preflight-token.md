@@ -1,6 +1,7 @@
 # MUD-033 Plan — Builder plan/brief token preflight (Wave Q2 · D1/D2)
 
 **Ticket:** MUD-033 · **Worker:** grok · **Phase:** plan_review  
+**Status:** APPROVED by Astra 2026-08-12 02:14 MST → fresh IMPL session
 **Paths:** `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md` · mirror `tmp/workers/MUD-033/PLAN.md`  
 **Post-impl verify:** `./tools/verify_mud.sh` (+ optional `--preflight <path>`) · **Depends:** MUD-030 done  
 **Not impl approval** — Astra/Jason APPROVED → **fresh** impl session.

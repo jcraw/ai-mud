@@ -35,8 +35,9 @@
 For **substantial** work:
 
 1. Fill `issues/_templates/plan-brief.md` → `tmp/workers/<ID>/PLAN_BRIEF.md`; write plan under `plans/YYYY-MM-DD-…` (mirror `tmp/workers/<ID>/PLAN.md`).
-2. **Astra or Jason** stamps **APPROVED**.
-3. Fill `issues/_templates/implement-brief.md` → `tmp/workers/<ID>/IMPL_BRIEF.md`; start a **fresh** impl session — do **not** resume the plan session for product/docs edits unless the ticket explicitly allows it.
+2. **Before APPROVED:** run plan/brief token preflight on the plan path — `python3 tools/quality/check_builder_preflight.py <plan-path>` (or `./tools/verify_mud.sh --preflight <plan-path>`). See `docs/BUILDER_PREFLIGHT.md` (D1/D2).
+3. **Astra or Jason** stamps **APPROVED**.
+4. Fill `issues/_templates/implement-brief.md` → `tmp/workers/<ID>/IMPL_BRIEF.md`; start a **fresh** impl session — do **not** resume the plan session for product/docs edits unless the ticket explicitly allows it.
 
 Trivial one-shot docs/tooling may skip formal plan when the ticket says so.
 

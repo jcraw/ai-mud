@@ -11,6 +11,9 @@
 #   Skip quarantine/pitest. Checker always exit 0; verify owns hard policy.
 # MUD-032: no_live_llm_unit hard on default/fast/core/full/pitest (static rg; skip
 #   quarantine). Fail-closed if checker/rg missing. See docs/NO_LIVE_LLM_UNIT.md.
+# MUD-033: optional --preflight PATH (builder plan/brief token only; not on default
+#   lanes). Checker exit 2 → fail; exit 1 warn → pass+note; 0 → pass.
+#   See docs/BUILDER_PREFLIGHT.md.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -24,6 +27,7 @@ TEST_LOCK="${ROOT_DIR}/tools/test_lock.sh"
 NO_LIVE_LLM_CHECKER="${ROOT_DIR}/tools/quality/check_no_live_llm_unit.sh"
 TOKEN_CHECKER="${ROOT_DIR}/tools/quality/check_token_budget_kt.py"
 TOKEN_JSON_OUT="${ROOT_DIR}/tmp/token_budget_kt_verify.json"
+PREFLIGHT_CHECKER="${ROOT_DIR}/tools/quality/check_builder_preflight.py"
 DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
 LANE="default"
 DRY_RUN=0
@@ -31,6 +35,8 @@ DRY_RUN=0
 # --token-hard / MUD_TOKEN_HARD remain accepted (redundant hard).
 TOKEN_SOFT_CLI=0
 TOKEN_HARD_CLI=0
+# MUD-033: set by --preflight PATH (required); LANE becomes preflight.
+PREFLIGHT_PATH=""
 MODULES=()
 NOTES=()
 STEPS=()
@@ -65,6 +71,7 @@ FINDINGS_JSON_PARTS=()
 usage() {
   cat <<'EOF'
 Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-soft] [--token-hard]
+                             | --preflight <path>
 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
@@ -90,6 +97,10 @@ Lanes (pick one; default if omitted):
   quarantine | --quarantine   :reasoning:test -Pmud.quarantineOnly=true (known debt; hard-fail OK)
                               (no detekt / no Konsist / no test-lock / no no_live_llm_unit /
                                no PIT / no token — debt only)
+  --preflight <path>          Builder plan/brief token only (MUD-033). Required path.
+                              Not on default/fast/core/full/pitest/quarantine.
+                              Checker exit 2 → fail; 1 warn → pass+note; 0 → pass.
+                              See docs/BUILDER_PREFLIGHT.md.
 
 Flags:
   --dry-run                   Print intended Gradle commands; do not run
@@ -123,6 +134,11 @@ No live LLM in unit tests (MUD-032; docs/NO_LIVE_LLM_UNIT.md):
   openai.api.key under */src/test/**/*.kt. Hard-excludes testbot/**. Empty allowlist v1.
   Fail-closed if checker or rg missing. Skip quarantine.
 
+Builder preflight (MUD-033; docs/BUILDER_PREFLIGHT.md):
+  Optional only via --preflight <path>. Plan 2k/3.5k, brief 1.2k/2k tok (ceil chars/4).
+  Standalone: python3 tools/quality/check_builder_preflight.py <path>
+  Not forced on default/fast/core/full (historical plans often warn-band).
+
 Exit codes:
   0  all hard steps green (or dry-run)
   1  usage / unknown lane, or a hard step failed
@@ -136,6 +152,8 @@ Examples:
   ./tools/verify_mud.sh --pitest
   ./tools/verify_mud.sh --dry-run --pitest
   ./tools/verify_mud.sh --quarantine
+  ./tools/verify_mud.sh --preflight plans/YYYY-MM-DD-….md
+  ./tools/verify_mud.sh --preflight plans/….md --dry-run
   MUD_TOKEN_SOFT=1 ./tools/verify_mud.sh --fast
   ./tools/verify_mud.sh --core --token-soft
   MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
@@ -145,6 +163,7 @@ See docs/TEST_LOCK.md for unauthorized src/test edit policy.
 See docs/PIT.md for mutation testing (pure modules).
 See docs/TOKEN_BUDGET_KT.md for token/structure hard-on-touched.
 See docs/NO_LIVE_LLM_UNIT.md for unit-test live-LLM policy.
+See docs/BUILDER_PREFLIGHT.md for plan/brief token preflight.
 EOF
 }
 
@@ -861,6 +880,67 @@ skip_token_budget() {
   record_gate "token_budget" "skipped" 0 "${reason}"
 }
 
+# Builder plan/brief token preflight (MUD-033). Optional --preflight PATH only.
+# Checker exit: 0 → pass; 1 warn → pass+note; 2 fail → verify fail.
+# See docs/BUILDER_PREFLIGHT.md.
+run_builder_preflight() {
+  local path="${1:-}"
+  local t0 t1 dur rc=0
+  local cmd_display="python3 tools/quality/check_builder_preflight.py ${path}"
+
+  if [[ -z "${path}" ]]; then
+    echo "error: --preflight requires a path" >&2
+    record_gate "builder_preflight" "fail" 0 "path required"
+    EXIT_CODE=1
+    return 1
+  fi
+
+  add_step "builder_preflight ${path}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    note "builder_preflight dry-run (would check ${path})"
+    record_gate "builder_preflight" "skipped" 0 "dry-run"
+    return 0
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "error: python3 missing (builder_preflight)" >&2
+    record_gate "builder_preflight" "fail" 0 "python3 missing"
+    EXIT_CODE=1
+    return 1
+  fi
+  if [[ ! -f "${PREFLIGHT_CHECKER}" ]]; then
+    echo "error: checker missing: ${PREFLIGHT_CHECKER}" >&2
+    record_gate "builder_preflight" "fail" 0 "checker missing"
+    EXIT_CODE=1
+    return 1
+  fi
+
+  t0="$(date +%s)"
+  set +e
+  python3 "${PREFLIGHT_CHECKER}" --root "${ROOT_DIR}" "${path}"
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+
+  if [[ ${rc} -eq 0 ]]; then
+    record_gate "builder_preflight" "pass" "${dur}" "clear"
+    return 0
+  fi
+  if [[ ${rc} -eq 1 ]]; then
+    # warn-only: verify passes with note (plan §3)
+    note "builder_preflight warn-only (tok over warn, under fail) for ${path}"
+    record_gate "builder_preflight" "pass" "${dur}" "warn-only"
+    return 0
+  fi
+  # rc 2+ hard fail
+  echo "error: builder_preflight hard fail (exit ${rc}) for ${path}" >&2
+  record_gate "builder_preflight" "fail" "${dur}" "hard fail exit ${rc}"
+  EXIT_CODE=1
+  return 1
+}
+
 module_has_tests() {
   local mod="$1"
   [[ -d "${ROOT_DIR}/${mod}/src/test" ]]
@@ -893,8 +973,8 @@ finalize_gates() {
           fi
           ;;
         token_budget)
-          if [[ "${LANE}" == "quarantine" ]]; then
-            GATE_NOTE[$g]="quarantine lane"
+          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" ]]; then
+            GATE_NOTE[$g]="${LANE} lane"
           elif [[ "${LANE}" == "pitest" ]]; then
             GATE_NOTE[$g]="not in pitest lane"
           else
@@ -902,15 +982,28 @@ finalize_gates() {
           fi
           ;;
         no_live_llm_unit)
-          if [[ "${LANE}" == "quarantine" ]]; then
-            GATE_NOTE[$g]="quarantine lane"
+          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" ]]; then
+            GATE_NOTE[$g]="${LANE} lane"
           else
             GATE_NOTE[$g]="dry-run"
           fi
           ;;
-        *) GATE_NOTE[$g]="dry-run" ;;
+        *)
+          if [[ "${LANE}" == "preflight" ]]; then
+            GATE_NOTE[$g]="preflight lane"
+          else
+            GATE_NOTE[$g]="dry-run"
+          fi
+          ;;
       esac
     done
+    # builder_preflight only meaningful on preflight lane; dry-run may already record it
+    if [[ "${LANE}" == "preflight" && -z "${GATE_SEEN[builder_preflight]:-}" ]]; then
+      GATE_SEEN[builder_preflight]=1
+      GATE_STATUS[builder_preflight]="skipped"
+      GATE_DURATION[builder_preflight]=0
+      GATE_NOTE[builder_preflight]="dry-run"
+    fi
     return 0
   fi
 
@@ -965,8 +1058,20 @@ finalize_gates() {
   if [[ -z "${GATE_SEEN[no_live_llm_unit]:-}" ]]; then
     if [[ "${LANE}" == "quarantine" ]]; then
       record_gate "no_live_llm_unit" "skipped" 0 "quarantine lane"
+    elif [[ "${LANE}" == "preflight" ]]; then
+      record_gate "no_live_llm_unit" "skipped" 0 "preflight lane"
     else
       record_gate "no_live_llm_unit" "skipped" 0 "not run"
+    fi
+  fi
+
+  # builder_preflight (MUD-033): optional gate; only on --preflight lane
+  if [[ -z "${GATE_SEEN[builder_preflight]:-}" ]]; then
+    if [[ "${LANE}" == "preflight" ]]; then
+      record_gate "builder_preflight" "skipped" 0 "not run"
+    else
+      # not in default inventory — omit from dod-summary (additionalProperties OK)
+      :
     fi
   fi
 }
@@ -1097,7 +1202,18 @@ write_dod_summary() {
     if [[ -n "${GATE_NOTE[no_live_llm_unit]:-}" ]]; then
       printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[no_live_llm_unit]}")"
     fi
-    printf ' }\n'
+    # builder_preflight (MUD-033) only when recorded (preflight lane); optional additionalProperties
+    if [[ -n "${GATE_SEEN[builder_preflight]:-}" ]]; then
+      printf ' },\n'
+      printf '    "builder_preflight": { "status": "%s", "duration_s": %s' \
+        "${GATE_STATUS[builder_preflight]:-skipped}" "${GATE_DURATION[builder_preflight]:-0}"
+      if [[ -n "${GATE_NOTE[builder_preflight]:-}" ]]; then
+        printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[builder_preflight]}")"
+      fi
+      printf ' }\n'
+    else
+      printf ' }\n'
+    fi
 
     printf '  },\n'
     if [[ -n "${qcount}" ]]; then
@@ -1200,6 +1316,14 @@ while [[ $# -gt 0 ]]; do
       TOKEN_SOFT_CLI=1
       shift
       ;;
+    --preflight)
+      if [[ $# -lt 2 || -z "${2:-}" || "${2:0:1}" == "-" ]]; then
+        die_usage "--preflight requires a path argument"
+      fi
+      LANE="preflight"
+      PREFLIGHT_PATH="$2"
+      shift 2
+      ;;
     default|fast|--fast)
       LANE="default"
       shift
@@ -1235,6 +1359,29 @@ VERIFY_STARTED=1
 
 # --- lane body ---
 case "${LANE}" in
+  preflight)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "preflight lane does not take module args (got: ${MODULES[*]})"
+    fi
+    if [[ -z "${PREFLIGHT_PATH}" ]]; then
+      die_usage "--preflight requires a path"
+    fi
+    note "builder preflight only (MUD-033); not a product lane"
+    run_builder_preflight "${PREFLIGHT_PATH}" || true
+    # Skip all product gates: mark standard inventory as skipped for this lane.
+    record_gate "compile" "skipped" 0 "preflight lane"
+    record_gate "tests" "skipped" 0 "preflight lane"
+    record_gate "detekt" "skipped" 0 "preflight lane"
+    record_gate "konsist" "skipped" 0 "preflight lane"
+    record_gate "test_lock" "skipped" 0 "preflight lane"
+    record_gate "pitest" "skipped" 0 "preflight lane"
+    record_gate "token_budget" "skipped" 0 "preflight lane"
+    record_gate "no_live_llm_unit" "skipped" 0 "preflight lane"
+    # Write summary and exit early (do not run gradle / hard product gates).
+    write_dod_summary
+    print_human_summary
+    exit "${EXIT_CODE}"
+    ;;
   default)
     if [[ ${#MODULES[@]} -eq 0 ]]; then
       run_gradle compile :core:compileKotlin || true

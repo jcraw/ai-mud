@@ -60,7 +60,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 #### Q2 — hard ratchet (serial after Q1)
 - _(MUD-031 done — hard-on-touched default)_
 - _(MUD-032 done — no live LLM in unit tests)_
-- **MUD-033** — plan/brief token preflight (`med`) · **plan_review** · depends 030
+- _(MUD-033 done — plan/brief token preflight)_
 
 #### Q3 — split gods
 - **MUD-034** — god-file split umbrella (`med`) · open · depends 031 · spawns child tickets
@@ -76,11 +76,11 @@ _(complete — harness modernization closed MUD-025)_
 
 ## Plan review
 
-- **MUD-033** — plan/brief token preflight (`med`) · plan_review · plan `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md` · worker `tmp/workers/MUD-033` · grok · await Astra/Jason APPROVED → fresh impl
+_(empty)_
 
 ## Scheduled / In progress
 
-_(Live: none — MUD-033 in plan_review)_
+_(empty)_
 
 ## Blocked (awaiting Jason)
 
@@ -88,6 +88,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-033** — plan/brief token preflight (`med`) · done · `tools/quality/check_builder_preflight.py` D1/D2 (plan 2k/3.5k, brief 1.2k/2k, ceil chars/4) · exit 0/1/2 + `--allow-warn` · optional `./tools/verify_mud.sh --preflight <path>` (warn→pass+note; fail→verify fail; not on default lanes) · `docs/BUILDER_PREFLIGHT.md` + ORCH before APPROVED + DESIGN D1/D2 live · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-033/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md`
 - **MUD-032** — no live LLM in unit tests (`med`) · done · static `rg` gate `tools/quality/check_no_live_llm_unit.sh` · forbid `OpenAIClient(` / `OPENAI_API_KEY` / `openai.api.key` under `*/src/test/**` · hard-exclude `testbot/**` · empty allowlist · `no_live_llm_unit` hard on default/fast/core/full/pitest · skip quarantine · findings `LIVE_LLM_*` · `docs/NO_LIVE_LLM_UNIT.md` + AGENTS + DESIGN B2 + DOD_SUMMARY · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-032/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-032-no-live-llm-unit-tests.md`
 - **MUD-031** — token/structure **hard-on-touched** default (`high`) · done · invert 030: hard default on default/fast/core/full scoped git-diff `*_E` · soft opt-out `MUD_TOKEN_SOFT`/`--token-soft` · 55 overrides `ticket: MUD-034` + measured caps · new/Added ban · override E `metric > limit` · AGENTS+DESIGN+TOKEN_BUDGET_KT · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-031/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-031-token-hard-on-touched.md`
 - **MUD-030** — verify wire token pilot (`high`) · done · `run_token_budget` on default/fast/core/full (soft report-only → `findings[]` + `gates.token_budget`) · hard via `MUD_TOKEN_HARD=1` / `--token-hard` on scoped git-diff `*_E` only · quarantine+pitest skip · `docs/TOKEN_BUDGET_KT.md` + DOD_SUMMARY + AGENTS one-liner · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-030/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-030-verify-wire-token-pilot.md`
