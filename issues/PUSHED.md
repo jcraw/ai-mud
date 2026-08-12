@@ -98,7 +98,7 @@
 
 ### MUD-025 — modernization program closeout
 - **When:** 2026-08-11 18:25 MST
-- **SHA:** `6b9e0fb347410ecf8cb68b6a9ffe8d2b8b7f28b7` (bookkeep pending)
+- **SHA:** `6b9e0fb347410ecf8cb68b6a9ffe8d2b8b7f28b7` (bookkeep `e8868ff01a515cd1efcb2ea85e95e04a549de025`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** docs/MODERNIZATION_STATUS.md, TESTING/TEST_QUARANTINE/AGENTS quarantine 0 truth, KNOWN_ISSUES pointer, MUD-025 ticket+plan, board/handoff Wave G complete
