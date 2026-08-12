@@ -2,7 +2,7 @@
 id: MUD-034k
 area: engine
 title: Split combat surface + pure combat (Wave Q3)
-status: scheduled
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,7 +10,7 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: planning
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
@@ -39,13 +39,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt` | 3219 | 309 | 3219 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `CombatHandlers.kt`, `ClientCombatHandlers.kt`, `AttackResolver.kt`, `FleeResolver.kt`, `MonsterAIHandler.kt`, `CombatNarrator.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034k` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `CombatHandlers.kt`, `ClientCombatHandlers.kt`, `AttackResolver.kt`, `FleeResolver.kt`, `MonsterAIHandler.kt`, `CombatNarrator.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034k` when still needed _(N/A — all 6 host overrides removed)_
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -64,3 +64,15 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
+- Done 2026-08-12 by grok (fresh IMPL after Astra APPROVED plan).
+- Pure-move combat surface: Attack types+EntityLookup+AttackResolve* · FleeResult+FleeResolve* · MonsterAI* · CombatNarrator* · app/client Attack(+Prep/Hit/Miss)+SkillProgress parity · thin hosts.
+- Hosts: **3249→188** / **3432→151** / **3614→451** / **2794→308** / **2863→560** / **3219→459**.
+- All 6 host overrides **removed** (under global E; never raised; no Added override).
+- `./tools/verify_mud.sh --core` PASS · dod-summary `tmp/dod-summary.json` · closeout `tmp/workers/MUD-034k/CLOSEOUT.md`.
+- No `src/test/**` · no features/balance · no 034l–n · no git commit.
+
+## Plan gate
+- Path: `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` (mirror `tmp/workers/MUD-034k/PLAN.md`)
+- **APPROVED by Astra 2026-08-12 08:03 MST** → fresh IMPL session (do not resume plan session)
+- Scope OK: pure-move combat surface (6 hosts) · app/client parity lockstep · override remove/lower only · `--core` · no features / no 034l–n parallel
+

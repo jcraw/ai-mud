@@ -2,21 +2,22 @@
 id: MUD-034l
 area: engine
 title: Split social/trade/treasure handlers (Wave Q3)
-status: open
+status: in_progress
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
-assignee: ""
-worker: ""
-phase: backlog
+assignee: "grok"
+worker: "grok"
+phase: implementing
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
-worker_out_dir: ""
+plan: plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md
+worker_out_dir: tmp/workers/MUD-034l
+worker_pid: ""
 parent: MUD-034
 ---
 
@@ -63,3 +64,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
+
+## Drain note
+- 2026-08-12 08:24 MST clear-backlog: Turn 1 PLAN spawned (grok pid **1216892**). Prior **MUD-034k** done.
+
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` (mirror `tmp/workers/MUD-034l/PLAN.md`)
+- Phase: **implementing** — **APPROVED by Astra 2026-08-12 08:34 MST** → fresh impl session
+- Approach: pure-move social/trade/treasure split (Social+ClientSocial pair, Treasure pair, Trade app-only); thin facades; leave client social stubs; do not touch ClientTradeHandlers; remeasure lower/remove/retarget overrides to MUD-034l only; no features; `--core` green
+- next: **APPROVED by Astra 2026-08-12 08:34 MST** → fresh IMPL live (do not resume plan session)
