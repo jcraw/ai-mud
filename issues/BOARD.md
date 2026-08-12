@@ -59,7 +59,7 @@ _(empty — Wave E complete: MUD-016…018 done)_
 ### Wave G — finish modernization (Jason 2026-08-11)
 - **MUD-025** — modernization closeout docs/board quarantine 0 (`med`) · after 022–024
 - **Post-done:** allowlisted `git push origin master` after each (no force)
-- _(MUD-022…024 done; 024 pending Wave G push)_
+- _(MUD-022…024 done+pushed `54bcce4`; 025 planning)_
 
 ## Plan review
 
@@ -67,7 +67,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-025** — open · serial after 024 push
+- **MUD-025** — planning · docs/board closeout quarantine 0
 
 ## Blocked (awaiting Jason)
 

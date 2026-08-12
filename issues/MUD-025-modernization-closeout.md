@@ -2,15 +2,15 @@
 id: MUD-025
 area: docs
 title: Modernization program closeout (quarantine 0 + board)
-status: open
+status: scheduled
 priority: med
 created: 2026-08-11
 updated: 2026-08-11
 source: jason
 labels: [docs, chore, wave-g]
 assignee: ""
-worker: ""
-phase: backlog
+worker: grok
+phase: planning
 agent_eligible: true
 eligibility: agent_eligible
 needs_jason: ""

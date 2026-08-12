@@ -87,3 +87,11 @@
 - **Force:** no
 - **Included:** FloorItemDropApply + handlers (app/client/GameServer), FloorItemDropContractTest ×5, KNOWN_ISSUES drop residual fixed, test-lock 113, plan/board/handoff
 - **Excluded:** testbot/, tmp/, secrets
+
+### MUD-024 — V1 inventory/equip production write purge
+- **When:** 2026-08-11 18:06 MST
+- **SHA:** `54bcce4449fd7c5d218452eda18ac938d6e15c83`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** GiveItemApply + UseConsumableApply, equip V2 all surfaces, GUI buy addItemInstance, GiveItemContractTest, KNOWN_ISSUES/V2_REMOVAL/TODO residual notes, test-lock 114, plan/board/handoff
+- **Excluded:** testbot/, tmp/, secrets
