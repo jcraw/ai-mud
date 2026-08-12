@@ -109,3 +109,17 @@
 - Cron `AI MUD Wave G re-drain` (`cd5f9827-947e-4351-bdc4-78603d7d6fd2`) disarmed 2026-08-11 18:25 MST
 - Harness modernization Waves A–G closed; product playtest not a gate
 
+
+## Wave Q pushes (2026-08-11+)
+- Target tickets: MUD-026…038 (serial Q1 then Q2+)
+- Rule: one allowlisted push per done ticket (or batch when design+first impl land together)
+- Cron: `AI MUD Wave Q re-drain` id `fb01f053-1e6e-4afa-b908-56a8a761a1a0` every 20m
+- Rows below appended as each lands:
+
+### MUD-026 + MUD-027 — design lock + dod-summary v2
+- **When:** 2026-08-11 22:53 MST
+- **SHA:** `f123f5ebf33ebb637a882b3b58356411f60d3215`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** DESIGN + Wave Q tickets 026–038, dod_summary.schema.json v2, verify_mud findings[] + validate, docs/DOD_SUMMARY.md, AGENTS Verification, plan MUD-027, board/handoff
+- **Excluded:** testbot/, tmp/, secrets, *.kt product

@@ -1,13 +1,13 @@
-# ai-mud overnight / Wave G handoff
+# ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-11 (MUD-027 DONE — dod-summary v2; Wave G still complete)
-**Live:** none
-**Agent queue:** Wave Q — 026–027 done; next **MUD-028** (token report) → 029→038
+**Updated:** 2026-08-11 22:53 MST (MUD-026+027 PUSHED `f123f5e`)
+**Live:** none → launching MUD-028 PLAN
+**Agent queue:** Wave Q — 026–027 done+pushed; next **MUD-028** PLAN → 029→038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED**
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
-**MUD-027 closeout:** `tmp/workers/MUD-027/CLOSEOUT.md` · schema v2 + empty findings[] · `--core` PASS
+**MUD-027 closeout:** `tmp/workers/MUD-027/CLOSEOUT.md` · schema v2 + empty findings[] · `--core` PASS · pushed `f123f5e`
 
 ## Wave G goals
 1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE+PUSHED** `2b265ca`
@@ -26,5 +26,5 @@
 1. Live pid → wait
 2. plan_review → APPROVED + fresh IMPL
 3. done sans PUSHED row → allowlisted push
-4. next open Wave G → PLAN
-5. 022–025 all done+pushed → disarm cron; Live=none ← **COMPLETE; cron disarmed**
+4. next open Wave Q → PLAN (027→038 serial Q1 then Q2)
+5. only human_gated or Wave Q empty → disarm cron; Live=none
