@@ -59,8 +59,8 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 
 #### Q2 — hard ratchet (serial after Q1)
 - _(MUD-031 done — hard-on-touched default)_
-- **MUD-032** — no live LLM in unit tests (`med`) · open · depends 031
-- **MUD-033** — plan/brief token preflight (`med`) · open · depends 030 (may parallel 031/032)
+- _(MUD-032 done — no live LLM in unit tests)_
+- **MUD-033** — plan/brief token preflight (`med`) · **plan_review** · depends 030
 
 #### Q3 — split gods
 - **MUD-034** — god-file split umbrella (`med`) · open · depends 031 · spawns child tickets
@@ -76,11 +76,11 @@ _(complete — harness modernization closed MUD-025)_
 
 ## Plan review
 
-_(empty)_
+- **MUD-033** — plan/brief token preflight (`med`) · plan_review · plan `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md` · worker `tmp/workers/MUD-033` · grok · await Astra/Jason APPROVED → fresh impl
 
 ## Scheduled / In progress
 
-_(Live: none — next Q2 drain MUD-032)_
+_(Live: none — MUD-033 in plan_review)_
 
 ## Blocked (awaiting Jason)
 
@@ -88,6 +88,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-032** — no live LLM in unit tests (`med`) · done · static `rg` gate `tools/quality/check_no_live_llm_unit.sh` · forbid `OpenAIClient(` / `OPENAI_API_KEY` / `openai.api.key` under `*/src/test/**` · hard-exclude `testbot/**` · empty allowlist · `no_live_llm_unit` hard on default/fast/core/full/pitest · skip quarantine · findings `LIVE_LLM_*` · `docs/NO_LIVE_LLM_UNIT.md` + AGENTS + DESIGN B2 + DOD_SUMMARY · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-032/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-032-no-live-llm-unit-tests.md`
 - **MUD-031** — token/structure **hard-on-touched** default (`high`) · done · invert 030: hard default on default/fast/core/full scoped git-diff `*_E` · soft opt-out `MUD_TOKEN_SOFT`/`--token-soft` · 55 overrides `ticket: MUD-034` + measured caps · new/Added ban · override E `metric > limit` · AGENTS+DESIGN+TOKEN_BUDGET_KT · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-031/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-031-token-hard-on-touched.md`
 - **MUD-030** — verify wire token pilot (`high`) · done · `run_token_budget` on default/fast/core/full (soft report-only → `findings[]` + `gates.token_budget`) · hard via `MUD_TOKEN_HARD=1` / `--token-hard` on scoped git-diff `*_E` only · quarantine+pitest skip · `docs/TOKEN_BUDGET_KT.md` + DOD_SUMMARY + AGENTS one-liner · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-030/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-030-verify-wire-token-pilot.md`
 - **MUD-029** — touched-path quality mode (`high`) · done · `--files` / `--git-diff` / `--git-base` (default `origin/master`) on `check_token_budget_kt.py` · union when both · full-repo when neither · prod `src/main/**/*.kt` only · empty touch exit 0 · report-only · `docs/TOKEN_BUDGET_KT.md` · no verify wire (030) · no hard-on-touched (031) · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-029/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-029-touched-path-quality-mode.md`

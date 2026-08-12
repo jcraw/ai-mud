@@ -17,7 +17,7 @@ Compact verify artifact for agents. Prefer this over scraping Gradle logs.
 Top-level: `schema_version` (2), `tool`, `lane`, `result` (`PASS`|`FAIL`|`DRY_RUN`), `exit_code`, `generated_at`, `duration_s`, optional `dry_run`, `gates`, `quarantine_count`, `steps`, **`findings`**.
 
 **Gates** (fixed required keys): `compile`, `tests`, `detekt`, `konsist`, `test_lock`, `pitest`.  
-Optional (schema `additionalProperties`): **`token_budget`** (MUD-030 pilot) on default/fast/core/full; skipped on quarantine/pitest.  
+Optional (schema `additionalProperties`): **`token_budget`** (MUD-030/031) on default/fast/core/full (skipped quarantine/pitest); **`no_live_llm_unit`** (MUD-032) on default/fast/core/full/pitest (skipped quarantine).  
 Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest may include `mutation_score`.
 
 **Findings** (always present; may be empty):
@@ -26,7 +26,7 @@ Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest ma
 { "code": "TOKEN_FILE_E", "path": "app/…", "metric": 3200, "limit": 2500, "remediation": "split …" }
 ```
 
-Verify merges token/structure rows from the soft pilot checker on default/fast/core/full (scoped `--git-diff` by default; cap ~50). Empty `"findings": []` is valid when the touch set is clean or the lane skips token. Standalone report: `python3 tools/quality/check_token_budget_kt.py` → see `docs/TOKEN_BUDGET_KT.md`.
+Verify merges token/structure rows from the soft pilot checker on default/fast/core/full (scoped `--git-diff` by default; cap ~50). Live-LLM unit hits (when the gate fails) merge as `LIVE_LLM_*` rows (cap ~50). Empty `"findings": []` is valid when clean or lane skips those gates. Standalone: `python3 tools/quality/check_token_budget_kt.py` → `docs/TOKEN_BUDGET_KT.md`; `./tools/quality/check_no_live_llm_unit.sh` → `docs/NO_LIVE_LLM_UNIT.md`.
 
 ## Stable codes (reserved)
 
@@ -35,6 +35,8 @@ Verify merges token/structure rows from the soft pilot checker on default/fast/c
 | `TOKEN_FILE_W` / `TOKEN_FILE_E` | MUD-028/031 | file token budget warn/err |
 | `TOKEN_FN_W` / `TOKEN_FN_E` | MUD-028/031 | function token budget |
 | `STRUCTURE_*` | MUD-028+ | structure ceilings when wired |
+| `LIVE_LLM_OPENAI_CLIENT` | MUD-032 | unit test constructs `OpenAIClient(` |
+| `LIVE_LLM_API_KEY` | MUD-032 | unit test loads `OPENAI_API_KEY` / `openai.api.key` |
 | `DETEKT_NEW` | later | unbaselined detekt |
 | `TEST_LOCK` | later | lock mismatch (gate already fails) |
 | `DOD_SCHEMA` | validator | summary itself invalid |

@@ -1,0 +1,11 @@
+# no_live_llm_unit allowlist (MUD-032)
+# Paths or globs (repo-relative) of */src/test/**/*.kt files exempt from the
+# live-LLM unit-test gate. One entry per line. Blank lines and # comments OK.
+#
+# testbot/** is hard-excluded in tools/quality/check_no_live_llm_unit.sh —
+# do NOT list testbot here.
+#
+# Require a ticket id + short reason on the same line (review in PR):
+#   some/module/src/test/kotlin/.../FooTest.kt  # MUD-NNN temporary integration
+#
+# Empty by design for v1 — unit tests must mock LLMClient / use frozen fixtures.

@@ -107,7 +107,7 @@ Runtime schema: `config/quality/dod_summary.schema.json` (MUD-027); short ops no
 | ID | Gate | Hard? | Notes |
 |----|------|-------|-------|
 | B1 | A-tier full modules | hard | core+perception+memory+reasoning (green) |
-| B2 | `no_live_llm_unit` | hard | grep/Konsist-ish: unit tests must not call real OpenAI |
+| B2 | `no_live_llm_unit` | hard | **live (MUD-032):** `tools/quality/check_no_live_llm_unit.sh` static `rg`; forbid `OpenAIClient(`, `OPENAI_API_KEY`, `openai.api.key` under `*/src/test/**`; hard-exclude `testbot/**`; see `docs/NO_LIVE_LLM_UNIT.md` |
 | B3 | `handler_parity_smoke` | hard (phased) | contract tests that console/GUI/GameServer share apply for inventory/combat intents (extend MUD-019/023/024 pattern) |
 | B4 | `known_issues_regress` | hard | KNOWN_ISSUES fixed paths stay covered by named tests |
 | B5 | `dod_schema` | hard | dod-summary validates against `docs/or config schema` |

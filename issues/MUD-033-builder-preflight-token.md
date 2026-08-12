@@ -2,23 +2,22 @@
 id: MUD-033
 area: tooling
 title: Builder plan/brief token preflight (Wave Q2)
-status: open
+status: plan_review
 priority: med
 created: 2026-08-11
-updated: 2026-08-11
+updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, process]
-assignee: ""
-worker: ""
-phase: backlog
+assignee: "grok"
+worker: grok
+phase: plan_review
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-030]
 verify: "./tools/verify_mud.sh"
-plan: ""
+plan: plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md
 worker_out_dir: tmp/workers/MUD-033
 worker_pid: ""
----
 
 # MUD-033 — Plan/brief token preflight
 

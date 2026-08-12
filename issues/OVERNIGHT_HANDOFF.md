@@ -1,9 +1,9 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 (MUD-030 done — verify token pilot)
+**Updated:** 2026-08-12 (MUD-032 done — no live LLM unit gate)
 **Live:** none
 **Plan review:** _(empty)_
-**Agent queue:** Wave Q — 026–030 done; next **031** hard-on-touched → 032…038
+**Agent queue:** Wave Q — 026–032 done; next **033** preflight → 034…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED**
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
@@ -11,7 +11,9 @@
 **MUD-027 closeout:** `tmp/workers/MUD-027/CLOSEOUT.md` · schema v2 + empty findings[] · `--core` PASS · pushed `f123f5e`
 **MUD-028 closeout:** `tmp/workers/MUD-028/CLOSEOUT.md` · report-only checker + empty `overrides{}` · 55 god candidates · not wired to verify · `--core` PASS · **PUSHED** `1e93751` (bookkeep `565a262`)
 **MUD-029 closeout:** `tmp/workers/MUD-029/CLOSEOUT.md` · `--files` / `--git-diff` / `--git-base` path scope · report-only exit 0 · no verify wire (030) · no hard-on-touched (031) · `--core` PASS · **PUSHED** `ba06d2d`
-**MUD-030 closeout:** `tmp/workers/MUD-030/CLOSEOUT.md` · soft token on default/fast/core/full → findings[] + `gates.token_budget` · hard pilot `MUD_TOKEN_HARD=1`/`--token-hard` scoped `*_E` · quarantine/pitest skip · `--core` PASS · not pushed (Jason)
+**MUD-030 closeout:** `tmp/workers/MUD-030/CLOSEOUT.md` · soft token on default/fast/core/full → findings[] + `gates.token_budget` · hard pilot `MUD_TOKEN_HARD=1`/`--token-hard` scoped `*_E` · quarantine+pitest skip · `--core` PASS · **PUSHED** `d8463f4` (bookkeep `344cc2d`)
+**MUD-031 closeout:** `tmp/workers/MUD-031/CLOSEOUT.md` · hard-on-touched default · soft `MUD_TOKEN_SOFT`/`--token-soft` · 55 overrides `ticket: MUD-034` · new-file ban · AGENTS+DESIGN+TOKEN_BUDGET_KT · no product `*.kt` · `--core` PASS · **PUSHED** `51abb5d` (bookkeep `39a2103`)
+**MUD-032 closeout:** `tmp/workers/MUD-032/CLOSEOUT.md` · static `rg` B2 `no_live_llm_unit` · hard-exclude testbot · forbid `OpenAIClient(` + API key strings under `*/src/test/**` · hard default/fast/core/full/pitest · quarantine skip · `docs/NO_LIVE_LLM_UNIT.md` · no product `*.kt` · `--core` PASS · not pushed (Jason)
 
 ## Wave G goals
 1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE+PUSHED** `2b265ca`

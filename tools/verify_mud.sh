@@ -9,6 +9,8 @@
 #   git-diff *_E). Soft opt-out: MUD_TOKEN_SOFT=1 or --token-soft. MUD_TOKEN_HARD /
 #   --token-hard still accepted (redundant hard). Full-repo scope always soft.
 #   Skip quarantine/pitest. Checker always exit 0; verify owns hard policy.
+# MUD-032: no_live_llm_unit hard on default/fast/core/full/pitest (static rg; skip
+#   quarantine). Fail-closed if checker/rg missing. See docs/NO_LIVE_LLM_UNIT.md.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -19,6 +21,7 @@ cd "${ROOT_DIR}"
 
 GRADLEW="${ROOT_DIR}/gradlew"
 TEST_LOCK="${ROOT_DIR}/tools/test_lock.sh"
+NO_LIVE_LLM_CHECKER="${ROOT_DIR}/tools/quality/check_no_live_llm_unit.sh"
 TOKEN_CHECKER="${ROOT_DIR}/tools/quality/check_token_budget_kt.py"
 TOKEN_JSON_OUT="${ROOT_DIR}/tmp/token_budget_kt_verify.json"
 DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
@@ -44,6 +47,8 @@ PITEST_IN_FULL_LANE=0
 
 # Cap token findings merged into dod-summary (MUD-030/031).
 TOKEN_FINDINGS_CAP=50
+# Cap live-LLM unit findings merged into dod-summary (MUD-032).
+NO_LIVE_LLM_FINDINGS_CAP=50
 
 # Gate records (MUD-013): status pass|fail|skipped, wall-clock seconds, optional note
 declare -A GATE_SEEN=()
@@ -64,24 +69,27 @@ Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-soft] 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
                               With module args: :<m>:compileKotlin (+ :<m>:test if src/test exists)
-                              Then hard detekt + Konsist arch + test-lock + token (hard-on-touched).
-                              Bare run does NOT auto-run --core/--full unit suites.
+                              Then hard detekt + Konsist arch + test-lock + no_live_llm_unit
+                              + token (hard-on-touched). Bare run does NOT auto-run --core/--full.
                               PIT never runs (use --pitest).
   core    | --core            :core:test :perception:test :memory:test :reasoning:test
                               (default excludeTags quarantine; honest green)
-                              + detekt + Konsist arch + test-lock + token (hard-on-touched)
+                              + detekt + Konsist arch + test-lock + no_live_llm_unit
+                              + token (hard-on-touched)
                               PIT never runs (ticket drain stays free of PIT wall-time).
   full    | --full            Stable green set: core/perception/memory/reasoning tests +
                               compile-only action/llm/config. Default excludeTags quarantine.
-                              + detekt + Konsist arch + test-lock + token (hard-on-touched)
+                              + detekt + Konsist arch + test-lock + no_live_llm_unit
+                              + token (hard-on-touched)
                               PIT: skipped (core PIT >45s); use --pitest nightly — docs/PIT.md
   pitest  | --pitest          PIT mutation on pure modules only:
                               :core:pitest :perception:pitest :memory:pitest
-                              + detekt + Konsist arch + test-lock
+                              + detekt + Konsist arch + test-lock + no_live_llm_unit
                               Soft 60% (pass + note if below); hard fail if MUD_PITEST_HARD=1
                               Token budget: skipped (not in pitest lane).
   quarantine | --quarantine   :reasoning:test -Pmud.quarantineOnly=true (known debt; hard-fail OK)
-                              (no detekt / no Konsist / no test-lock / no PIT / no token — debt only)
+                              (no detekt / no Konsist / no test-lock / no no_live_llm_unit /
+                               no PIT / no token — debt only)
 
 Flags:
   --dry-run                   Print intended Gradle commands; do not run
@@ -91,11 +99,12 @@ Flags:
                               under MUD-031 default hard-on-touched (still accepted).
   -h | --help                 This help
 
-DoD summary (MUD-013 / MUD-027 v2 / MUD-031):
+DoD summary (MUD-013 / MUD-027 v2 / MUD-031 / MUD-032):
   Always writes compact JSON (pass/fail/skipped per gate, durations, quarantine_count)
   to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). schema_version 2 + findings[]
-  (token/structure rows when run; see docs/DOD_SUMMARY.md).
+  (token/structure + live-LLM rows when run; see docs/DOD_SUMMARY.md).
   gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
+  gates.no_live_llm_unit on default/fast/core/full/pitest (skipped quarantine).
   Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
 
@@ -108,6 +117,11 @@ Token budget (MUD-031 hard-on-touched; docs/TOKEN_BUDGET_KT.md):
   Overrides in config require burn-down ticket; new/Added files cannot use overrides;
   override caps may only lower over time. Quarantine and pitest skip token.
   Checker always exit 0; verify owns hard policy.
+
+No live LLM in unit tests (MUD-032; docs/NO_LIVE_LLM_UNIT.md):
+  Hard static rg gate on default/fast/core/full/pitest: forbids OpenAIClient(, OPENAI_API_KEY,
+  openai.api.key under */src/test/**/*.kt. Hard-excludes testbot/**. Empty allowlist v1.
+  Fail-closed if checker or rg missing. Skip quarantine.
 
 Exit codes:
   0  all hard steps green (or dry-run)
@@ -130,6 +144,7 @@ Requires Java 17 and ./gradlew at repo root.
 See docs/TEST_LOCK.md for unauthorized src/test edit policy.
 See docs/PIT.md for mutation testing (pure modules).
 See docs/TOKEN_BUDGET_KT.md for token/structure hard-on-touched.
+See docs/NO_LIVE_LLM_UNIT.md for unit-test live-LLM policy.
 EOF
 }
 
@@ -556,6 +571,84 @@ run_test_lock() {
   return 0
 }
 
+# Hard no-live-LLM unit gate (MUD-032). Static rg of */src/test/**; excludes testbot.
+# Fail-closed on missing checker/rg or any forbidden pattern. See docs/NO_LIVE_LLM_UNIT.md.
+run_no_live_llm_unit() {
+  local cmd_display="./tools/quality/check_no_live_llm_unit.sh"
+  local t0 t1 dur rc
+  local out_file line rel code rem
+  local hit_count=0
+
+  add_step "${cmd_display}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    note "no_live_llm_unit dry-run (would run hard static rg)"
+    return 0
+  fi
+  if [[ ! -x "${NO_LIVE_LLM_CHECKER}" ]]; then
+    echo "error: check_no_live_llm_unit.sh not found or not executable at ${NO_LIVE_LLM_CHECKER}" >&2
+    EXIT_CODE=1
+    record_gate "no_live_llm_unit" "fail" 0 "checker missing"
+    note "no_live_llm_unit hard fail: checker missing"
+    return 1
+  fi
+  if ! command -v rg >/dev/null 2>&1; then
+    echo "error: rg (ripgrep) required for no_live_llm_unit gate" >&2
+    EXIT_CODE=1
+    record_gate "no_live_llm_unit" "fail" 0 "rg missing"
+    note "no_live_llm_unit hard fail: rg missing"
+    return 1
+  fi
+
+  echo ">> ${cmd_display}"
+  out_file="$(mktemp)"
+  t0="$(date +%s)"
+  set +e
+  "${NO_LIVE_LLM_CHECKER}" >"${out_file}" 2>&1
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+  # Always show checker output (PASS line or hit list)
+  cat "${out_file}" || true
+
+  if [[ ${rc} -ne 0 ]]; then
+    # Parse hit lines: path:line: CODE  snippet → findings[]
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+      # Match: rel/path.kt:12: LIVE_LLM_OPENAI_CLIENT  snippet
+      if [[ "${line}" =~ ^([^:]+):([0-9]+):[[:space:]]+(LIVE_LLM_[A-Z_]+)[[:space:]]+(.*)$ ]]; then
+        rel="${BASH_REMATCH[1]}"
+        code="${BASH_REMATCH[3]}"
+        rem="${BASH_REMATCH[4]}"
+        if [[ "${hit_count}" -lt "${NO_LIVE_LLM_FINDINGS_CAP}" ]]; then
+          append_finding "${code}" "${rel}" "null" "null" \
+            "Remove live OpenAI from unit tests; mock LLMClient. ${rem}"
+        fi
+        hit_count=$((hit_count + 1))
+      fi
+    done < "${out_file}"
+    rm -f "${out_file}"
+    EXIT_CODE=1
+    record_gate "no_live_llm_unit" "fail" "${dur}" "hits=${hit_count}"
+    note "no_live_llm_unit HARD fail: ${hit_count} hit(s) (or checker error)"
+    return 1
+  fi
+  rm -f "${out_file}"
+  record_gate "no_live_llm_unit" "pass" "${dur}"
+  return 0
+}
+
+skip_no_live_llm_unit() {
+  local reason="$1"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] SKIP no_live_llm_unit (${reason})"
+  else
+    echo "SKIP no_live_llm_unit (${reason})"
+  fi
+  note "SKIP no_live_llm_unit (${reason})"
+  record_gate "no_live_llm_unit" "skipped" 0 "${reason}"
+}
+
 # Soft opt-out (MUD-031): --token-soft or MUD_TOKEN_SOFT=1 → report-only.
 token_soft_mode() {
   if [[ "${TOKEN_SOFT_CLI}" -eq 1 ]]; then
@@ -785,7 +878,7 @@ finalize_gates() {
   local g
 
   if [[ "${DRY_RUN}" -eq 1 ]]; then
-    for g in compile tests detekt konsist test_lock pitest token_budget; do
+    for g in compile tests detekt konsist test_lock pitest token_budget no_live_llm_unit; do
       GATE_SEEN[$g]=1
       GATE_STATUS[$g]="skipped"
       GATE_DURATION[$g]=0
@@ -804,6 +897,13 @@ finalize_gates() {
             GATE_NOTE[$g]="quarantine lane"
           elif [[ "${LANE}" == "pitest" ]]; then
             GATE_NOTE[$g]="not in pitest lane"
+          else
+            GATE_NOTE[$g]="dry-run"
+          fi
+          ;;
+        no_live_llm_unit)
+          if [[ "${LANE}" == "quarantine" ]]; then
+            GATE_NOTE[$g]="quarantine lane"
           else
             GATE_NOTE[$g]="dry-run"
           fi
@@ -858,6 +958,15 @@ finalize_gates() {
       record_gate "token_budget" "skipped" 0 "not in pitest lane"
     else
       record_gate "token_budget" "skipped" 0 "not run"
+    fi
+  fi
+
+  # no_live_llm_unit (MUD-032): optional gate; skip quarantine only
+  if [[ -z "${GATE_SEEN[no_live_llm_unit]:-}" ]]; then
+    if [[ "${LANE}" == "quarantine" ]]; then
+      record_gate "no_live_llm_unit" "skipped" 0 "quarantine lane"
+    else
+      record_gate "no_live_llm_unit" "skipped" 0 "not run"
     fi
   fi
 }
@@ -979,6 +1088,14 @@ write_dod_summary() {
       "${GATE_STATUS[token_budget]:-skipped}" "${GATE_DURATION[token_budget]:-0}"
     if [[ -n "${GATE_NOTE[token_budget]:-}" ]]; then
       printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[token_budget]}")"
+    fi
+    printf ' },\n'
+
+    # no_live_llm_unit (MUD-032; optional via additionalProperties — not in required known tuple)
+    printf '    "no_live_llm_unit": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[no_live_llm_unit]:-skipped}" "${GATE_DURATION[no_live_llm_unit]:-0}"
+    if [[ -n "${GATE_NOTE[no_live_llm_unit]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[no_live_llm_unit]}")"
     fi
     printf ' }\n'
 
@@ -1200,9 +1317,18 @@ if [[ "${LANE}" != "quarantine" ]]; then
   run_test_lock || true
 fi
 
+# No live LLM in unit tests (MUD-032) on default/fast/core/full/pitest — not quarantine.
+# Static rg; hard-excludes testbot/**. Fail-closed if checker/rg missing.
+# Placement: after test-lock, before token_budget. See docs/NO_LIVE_LLM_UNIT.md.
+if [[ "${LANE}" != "quarantine" ]]; then
+  run_no_live_llm_unit || true
+else
+  skip_no_live_llm_unit "quarantine lane"
+fi
+
 # Token/structure (MUD-031) on default/fast/core/full — hard-on-touched default.
 # Soft opt-out: MUD_TOKEN_SOFT=1 / --token-soft. Skip quarantine + pitest.
-# Placement: after test-lock, before PIT. See docs/TOKEN_BUDGET_KT.md.
+# Placement: after test-lock / no_live_llm_unit, before PIT. See docs/TOKEN_BUDGET_KT.md.
 case "${LANE}" in
   default|core|full)
     run_token_budget || true
