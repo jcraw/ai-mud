@@ -123,3 +123,11 @@
 - **Force:** no
 - **Included:** DESIGN + Wave Q tickets 026–038, dod_summary.schema.json v2, verify_mud findings[] + validate, docs/DOD_SUMMARY.md, AGENTS Verification, plan MUD-027, board/handoff
 - **Excluded:** testbot/, tmp/, secrets, *.kt product
+
+### MUD-028 — token/structure report-only checker
+- **When:** 2026-08-11 23:33 MST
+- **SHA:** `1e93751c388d870b61f0474a612b0474e970924f`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** tools/quality/check_token_budget_kt.py, config/quality/token_budget_kt.json, docs/TOKEN_BUDGET_KT.md, DESIGN A6/A7 + DOD_SUMMARY pointer, plan MUD-028, board/handoff
+- **Excluded:** testbot/, tmp/, secrets, product *.kt
