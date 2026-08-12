@@ -1,17 +1,52 @@
-# Kotlin token / structure budget (report-only)
+# Kotlin token / structure budget (report-only + verify pilot)
 
-**Ticket:** MUD-028 · **Touched-path:** MUD-029 (done) · **Hard fail:** MUD-031 · **Verify wire:** MUD-030  
+**Ticket:** MUD-028 · **Touched-path:** MUD-029 (done) · **Verify wire (pilot):** MUD-030 (done) · **Hard default:** MUD-031  
 **Design:** `docs/AGENT_QUALITY_GATES_DESIGN.md` A6/A7, §7.1–§7.2
 
 ## What it is
 
-Report-only measurement of prod Kotlin sources before hard ceilings. Does **not** fail CI or `./tools/verify_mud.sh` yet.
+Measurement of prod Kotlin sources (tokens primary, structure secondary). Standalone checker is always **exit 0** (`exit_policy: report_only`). **`./tools/verify_mud.sh`** owns soft vs hard policy (MUD-030 pilot).
 
 | Piece | Path |
 |-------|------|
 | Checker | `tools/quality/check_token_budget_kt.py` |
 | Config | `config/quality/token_budget_kt.json` |
 | Default JSON out | `tmp/token_budget_kt.json` (optional `--json-out`) |
+| Verify side JSON | `tmp/token_budget_kt_verify.json` (gitignored; written by verify) |
+
+## Verify pilot (MUD-030)
+
+| Lane | Token gate |
+|------|------------|
+| `default` / `fast` / `core` / `full` | **Run** (soft by default) |
+| `quarantine` | **Skip** (debt-only) |
+| `pitest` | **Skip** (not in ticket lane set) |
+| `--dry-run` | No checker invoke; `gates.token_budget` → `skipped` + dry-run note |
+
+| Mode | How | Exit / gate |
+|------|-----|-------------|
+| **Soft (default)** | `--git-diff` vs `MUD_TOKEN_GIT_BASE` (default `origin/master`) | Always soft-pass; merge W+E into `findings[]`; `gates.token_budget` = `pass` + note `E=n W=m scope=touched report-only` |
+| **Hard pilot** | `MUD_TOKEN_HARD=1` **or** `--token-hard` | Same **scoped** git-diff (never full-repo hard); **fail** if any finding code ends `_E`; warn `*_W` never hard-fails |
+| **Optional full soft** | `MUD_TOKEN_SCOPE=full` | No `--git-diff` (full-repo inventory); soft only. Hard+full → forced scoped + note |
+
+- Soft **never** sets verify `EXIT_CODE` from token alone.
+- Hard only counts **error-tier** codes (`TOKEN_*_E`, `STRUCTURE_*_E`) in the **touch** set.
+- Empty touch (docs-only, clean tree): 0 findings, soft 0 even under hard.
+- Checker crash / missing python or script: soft → skipped/pass + note; hard → fail closed.
+- Findings merge capped at ~50 rows (note if truncated).
+- Untracked new `.kt` still **not** in git-diff (MUD-029); stage or pass `--files` outside verify.
+
+```bash
+# Soft default (touched prod kt)
+./tools/verify_mud.sh --core
+
+# Pilot hard (scoped E-tier only)
+MUD_TOKEN_HARD=1 ./tools/verify_mud.sh --fast
+./tools/verify_mud.sh --core --token-hard
+
+# Soft full-repo inventory (noisy; soft only)
+MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
+```
 
 ## Run
 
@@ -143,15 +178,14 @@ See DESIGN §7.1:
 
 This ticket only **lists candidates**; it does not write overrides.
 
-## What this ticket does *not* do
+## What this does *not* do
 
 | Non-goal | Owner |
 |----------|--------|
-| Hard fail on breaches / hard-on-touched | MUD-031 |
-| Wire into `verify_mud.sh` / `MUD_TOKEN_HARD` | MUD-030 |
+| Hard default / hard-on-touched permanent | MUD-031 |
 | God-file product splits | later Q3 tickets |
-| Merge into `tmp/dod-summary.json` | MUD-030 (verify owns writer) |
-| Auto-include untracked files | agents pass `--files` |
+| Auto-include untracked files | agents pass `--files` / stage |
+| Checker non-zero exit | stays report_only; verify owns hard |
 
 ## Related
 

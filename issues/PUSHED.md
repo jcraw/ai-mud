@@ -131,3 +131,11 @@
 - **Force:** no
 - **Included:** tools/quality/check_token_budget_kt.py, config/quality/token_budget_kt.json, docs/TOKEN_BUDGET_KT.md, DESIGN A6/A7 + DOD_SUMMARY pointer, plan MUD-028, board/handoff
 - **Excluded:** testbot/, tmp/, secrets, product *.kt
+
+### MUD-029 — touched-path quality mode
+- **When:** 2026-08-12 00:13 MST
+- **SHA:** `ba06d2daf902f1bbf0a183d4be645a7e0ed5eb9d`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** tools/quality/check_token_budget_kt.py (--files/--git-diff/--git-base), docs/TOKEN_BUDGET_KT.md, plan MUD-029, board/handoff
+- **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__

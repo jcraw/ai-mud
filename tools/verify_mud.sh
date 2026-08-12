@@ -5,6 +5,8 @@
 # default/fast/core/full. PIT (MUD-014): --pitest lane only (core measured >45s → not on full).
 # MUD-013: per-gate status + durations → tmp/dod-summary.json (or $MUD_DOD_SUMMARY).
 # MUD-027: schema_version 2 + findings[] (empty until MUD-028+); post-write validate.
+# MUD-030: token/structure pilot — soft report-only on default/fast/core/full; hard via
+#   MUD_TOKEN_HARD=1 or --token-hard (scoped git-diff E-tier only). Skip quarantine/pitest.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -15,9 +17,13 @@ cd "${ROOT_DIR}"
 
 GRADLEW="${ROOT_DIR}/gradlew"
 TEST_LOCK="${ROOT_DIR}/tools/test_lock.sh"
+TOKEN_CHECKER="${ROOT_DIR}/tools/quality/check_token_budget_kt.py"
+TOKEN_JSON_OUT="${ROOT_DIR}/tmp/token_budget_kt_verify.json"
 DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
 LANE="default"
 DRY_RUN=0
+# Pilot hard token gate (MUD-030): CLI --token-hard or MUD_TOKEN_HARD=1. Soft default.
+TOKEN_HARD_CLI=0
 MODULES=()
 NOTES=()
 STEPS=()
@@ -32,6 +38,9 @@ PITEST_SOFT_THRESHOLD=60
 # Nightly / local deep gate: --pitest only. See docs/PIT.md.
 PITEST_IN_FULL_LANE=0
 
+# Cap token findings merged into dod-summary (MUD-030).
+TOKEN_FINDINGS_CAP=50
+
 # Gate records (MUD-013): status pass|fail|skipped, wall-clock seconds, optional note
 declare -A GATE_SEEN=()
 declare -A GATE_STATUS=()
@@ -40,45 +49,56 @@ declare -A GATE_NOTE=()
 # Optional numeric mutation score (min of modules) when pitest gate ran (MUD-014).
 GATE_MUTATION_SCORE=""
 
-# Findings rows for dod-summary v2 (MUD-027). Empty until MUD-028+ appends.
+# Findings rows for dod-summary v2 (MUD-027 / MUD-030 token merge).
 # Each element is a full JSON object string (no trailing commas).
 FINDINGS_JSON_PARTS=()
 
 usage() {
   cat <<'EOF'
-Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run]
+Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-hard]
 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
                               With module args: :<m>:compileKotlin (+ :<m>:test if src/test exists)
-                              Then hard detekt + Konsist arch + test-lock.
+                              Then hard detekt + Konsist arch + test-lock + token (soft).
                               Bare run does NOT auto-run --core/--full unit suites.
                               PIT never runs (use --pitest).
   core    | --core            :core:test :perception:test :memory:test :reasoning:test
                               (default excludeTags quarantine; honest green)
-                              + detekt + Konsist arch + test-lock
+                              + detekt + Konsist arch + test-lock + token (soft)
                               PIT never runs (ticket drain stays free of PIT wall-time).
   full    | --full            Stable green set: core/perception/memory/reasoning tests +
                               compile-only action/llm/config. Default excludeTags quarantine.
-                              + detekt + Konsist arch + test-lock
+                              + detekt + Konsist arch + test-lock + token (soft)
                               PIT: skipped (core PIT >45s); use --pitest nightly — docs/PIT.md
   pitest  | --pitest          PIT mutation on pure modules only:
                               :core:pitest :perception:pitest :memory:pitest
                               + detekt + Konsist arch + test-lock
                               Soft 60% (pass + note if below); hard fail if MUD_PITEST_HARD=1
+                              Token budget: skipped (not in pitest lane).
   quarantine | --quarantine   :reasoning:test -Pmud.quarantineOnly=true (known debt; hard-fail OK)
-                              (no detekt / no Konsist / no test-lock / no PIT — debt lane only)
+                              (no detekt / no Konsist / no test-lock / no PIT / no token — debt only)
 
 Flags:
   --dry-run                   Print intended Gradle commands; do not run
+  --token-hard                Pilot hard token gate (same as MUD_TOKEN_HARD=1): fail on
+                              error-tier (*_E) findings in scoped git-diff touch set only.
+                              Default is soft (report-only → findings[] / gates.token_budget).
   -h | --help                 This help
 
-DoD summary (MUD-013 / MUD-027 v2):
+DoD summary (MUD-013 / MUD-027 v2 / MUD-030):
   Always writes compact JSON (pass/fail/skipped per gate, durations, quarantine_count)
   to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). schema_version 2 + findings[]
-  (empty array until token/structure checkers; see docs/DOD_SUMMARY.md).
+  (token/structure rows from soft pilot when run; see docs/DOD_SUMMARY.md).
+  Optional gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
   Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
+
+Token budget pilot (MUD-030; docs/TOKEN_BUDGET_KT.md):
+  Soft default on default/fast/core/full: --git-diff vs MUD_TOKEN_GIT_BASE (origin/master).
+  MUD_TOKEN_HARD=1 or --token-hard: fail closed on *_E in that touch set (never full-repo hard).
+  MUD_TOKEN_SCOPE=full: soft full-repo inventory only; hard+full forces scoped + note.
+  Quarantine and pitest lanes skip token. Checker always exit 0; verify owns hard policy.
 
 Exit codes:
   0  all hard steps green (or dry-run)
@@ -93,10 +113,13 @@ Examples:
   ./tools/verify_mud.sh --pitest
   ./tools/verify_mud.sh --dry-run --pitest
   ./tools/verify_mud.sh --quarantine
+  MUD_TOKEN_HARD=1 ./tools/verify_mud.sh --fast
+  ./tools/verify_mud.sh --core --token-hard
 
 Requires Java 17 and ./gradlew at repo root.
 See docs/TEST_LOCK.md for unauthorized src/test edit policy.
 See docs/PIT.md for mutation testing (pure modules).
+See docs/TOKEN_BUDGET_KT.md for token/structure pilot.
 EOF
 }
 
@@ -523,6 +546,177 @@ run_test_lock() {
   return 0
 }
 
+# True when pilot hard token gate is requested (env or --token-hard). Soft is default.
+token_hard_mode() {
+  if [[ "${TOKEN_HARD_CLI}" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ "${MUD_TOKEN_HARD:-0}" == "1" || "${MUD_TOKEN_HARD:-}" == "true" || "${MUD_TOKEN_HARD:-}" == "yes" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Token/structure pilot (MUD-030). Soft report-only by default; hard only on *_E in scoped touch.
+# Checker always exits 0 — verify owns fail policy. See docs/TOKEN_BUDGET_KT.md.
+run_token_budget() {
+  local scope_mode="${MUD_TOKEN_SCOPE:-touched}"
+  local git_base="${MUD_TOKEN_GIT_BASE:-origin/master}"
+  local hard=0
+  local scope_label="touched"
+  local cmd_display
+  local t0 t1 dur rc
+  local merge_note="" e_count=0 w_count=0 merged=0 truncated=0
+  local line code fpath metric limit remediation
+  local note_msg
+  local -a checker_args
+
+  if token_hard_mode; then
+    hard=1
+  fi
+
+  # Hard never full-repo: force scoped git-diff + note if someone set SCOPE=full.
+  if [[ "${hard}" -eq 1 && "${scope_mode}" == "full" ]]; then
+    note "MUD_TOKEN_SCOPE=full ignored under hard mode (scoped git-diff only; avoid god-file cliff)"
+    scope_mode="touched"
+  fi
+
+  checker_args=(--root "${ROOT_DIR}" --quiet-stdout --json-out "${TOKEN_JSON_OUT}")
+  if [[ "${scope_mode}" == "full" ]]; then
+    scope_label="full"
+    cmd_display="python3 tools/quality/check_token_budget_kt.py --root . --quiet-stdout --json-out tmp/token_budget_kt_verify.json"
+  else
+    scope_label="touched"
+    checker_args+=(--git-diff --git-base "${git_base}")
+    cmd_display="python3 tools/quality/check_token_budget_kt.py --root . --git-diff --git-base ${git_base} --quiet-stdout --json-out tmp/token_budget_kt_verify.json"
+  fi
+
+  add_step "${cmd_display}"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    note "token_budget dry-run (would run soft/hard pilot; soft default)"
+    return 0
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    if [[ "${hard}" -eq 1 ]]; then
+      EXIT_CODE=1
+      record_gate "token_budget" "fail" 0 "python3 missing (hard mode)"
+      note "token_budget hard fail: python3 missing"
+      return 1
+    fi
+    record_gate "token_budget" "skipped" 0 "python3 missing"
+    note "token_budget skipped: python3 missing"
+    return 0
+  fi
+  if [[ ! -f "${TOKEN_CHECKER}" ]]; then
+    if [[ "${hard}" -eq 1 ]]; then
+      EXIT_CODE=1
+      record_gate "token_budget" "fail" 0 "checker missing (hard mode)"
+      note "token_budget hard fail: checker missing at tools/quality/check_token_budget_kt.py"
+      return 1
+    fi
+    record_gate "token_budget" "skipped" 0 "checker missing"
+    note "token_budget skipped: checker missing"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "${TOKEN_JSON_OUT}")"
+  echo ">> ${cmd_display}"
+  t0="$(date +%s)"
+  set +e
+  python3 "${TOKEN_CHECKER}" "${checker_args[@]}"
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+
+  # Checker contract is always 0; non-zero or missing JSON = crash / tooling break.
+  if [[ ${rc} -ne 0 || ! -s "${TOKEN_JSON_OUT}" ]]; then
+    if [[ "${hard}" -eq 1 ]]; then
+      EXIT_CODE=1
+      record_gate "token_budget" "fail" "${dur}" "checker crash or empty JSON (exit ${rc})"
+      note "token_budget hard fail: checker exit ${rc} or empty report"
+      return 1
+    fi
+    record_gate "token_budget" "pass" "${dur}" "checker unavailable (exit ${rc}); report-only soft"
+    note "token_budget soft: checker exit ${rc} or empty JSON — no findings merged"
+    return 0
+  fi
+
+  # Merge findings into dod-summary (cap TOKEN_FINDINGS_CAP). Count E/W for gate note.
+  # Fields: code, path, metric, limit, remediation (tab-separated; remediation may be empty).
+  while IFS=$'\t' read -r code fpath metric limit remediation || [[ -n "${code:-}" ]]; do
+    [[ -z "${code:-}" ]] && continue
+    if [[ "${code}" == "__META__" ]]; then
+      e_count="${fpath}"
+      w_count="${metric}"
+      merged="${limit}"
+      truncated="${remediation}"
+      continue
+    fi
+    append_finding "${code}" "${fpath}" "${metric}" "${limit}" "${remediation}"
+  done < <(
+    python3 - "${TOKEN_JSON_OUT}" "${TOKEN_FINDINGS_CAP}" <<'PY'
+import json, sys
+path, cap = sys.argv[1], int(sys.argv[2])
+with open(path, encoding="utf-8") as f:
+    data = json.load(f)
+findings = data.get("findings") or []
+e_count = sum(1 for r in findings if str(r.get("code", "")).endswith("_E"))
+w_count = sum(1 for r in findings if str(r.get("code", "")).endswith("_W"))
+rows = findings[:cap]
+truncated = 1 if len(findings) > cap else 0
+for r in rows:
+    code = str(r.get("code", ""))
+    fpath = str(r.get("path", ""))
+    metric = r.get("metric")
+    limit = r.get("limit")
+    rem = str(r.get("remediation", "")).replace("\t", " ").replace("\n", " ")
+    m = "" if metric is None else str(metric)
+    lim = "" if limit is None else str(limit)
+    print(f"{code}\t{fpath}\t{m}\t{lim}\t{rem}")
+print(f"__META__\t{e_count}\t{w_count}\t{len(rows)}\t{truncated}")
+PY
+  )
+
+  if [[ "${truncated}" -eq 1 ]]; then
+    merge_note="; findings truncated at ${TOKEN_FINDINGS_CAP}"
+    note "token_budget findings truncated at ${TOKEN_FINDINGS_CAP}"
+  fi
+
+  if [[ "${hard}" -eq 1 ]]; then
+    if [[ "${e_count}" -gt 0 ]]; then
+      EXIT_CODE=1
+      note_msg="E=${e_count} W=${w_count} scope=${scope_label} hard; MUD_TOKEN_HARD${merge_note}"
+      record_gate "token_budget" "fail" "${dur}" "${note_msg}"
+      note "token_budget HARD fail: ${e_count} error-tier finding(s) in ${scope_label} scope"
+      return 1
+    fi
+    note_msg="E=0 W=${w_count} scope=${scope_label} hard; no *_E${merge_note}"
+    record_gate "token_budget" "pass" "${dur}" "${note_msg}"
+    note "token_budget hard pass: E=0 W=${w_count} scope=${scope_label}"
+    return 0
+  fi
+
+  # Soft: always pass; never set EXIT_CODE from token alone.
+  note_msg="E=${e_count} W=${w_count} scope=${scope_label} report-only${merge_note}"
+  record_gate "token_budget" "pass" "${dur}" "${note_msg}"
+  note "token_budget soft: E=${e_count} W=${w_count} scope=${scope_label} (report-only)"
+  return 0
+}
+
+skip_token_budget() {
+  local reason="$1"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] SKIP token_budget (${reason})"
+  else
+    echo "SKIP token_budget (${reason})"
+  fi
+  note "SKIP token_budget (${reason})"
+  record_gate "token_budget" "skipped" 0 "${reason}"
+}
+
 module_has_tests() {
   local mod="$1"
   [[ -d "${ROOT_DIR}/${mod}/src/test" ]]
@@ -540,7 +734,7 @@ finalize_gates() {
   local g
 
   if [[ "${DRY_RUN}" -eq 1 ]]; then
-    for g in compile tests detekt konsist test_lock pitest; do
+    for g in compile tests detekt konsist test_lock pitest token_budget; do
       GATE_SEEN[$g]=1
       GATE_STATUS[$g]="skipped"
       GATE_DURATION[$g]=0
@@ -552,6 +746,15 @@ finalize_gates() {
             GATE_NOTE[$g]="nightly via --pitest (core PIT >45s)"
           else
             GATE_NOTE[$g]="not in lane"
+          fi
+          ;;
+        token_budget)
+          if [[ "${LANE}" == "quarantine" ]]; then
+            GATE_NOTE[$g]="quarantine lane"
+          elif [[ "${LANE}" == "pitest" ]]; then
+            GATE_NOTE[$g]="not in pitest lane"
+          else
+            GATE_NOTE[$g]="dry-run"
           fi
           ;;
         *) GATE_NOTE[$g]="dry-run" ;;
@@ -593,6 +796,17 @@ finalize_gates() {
       record_gate "pitest" "skipped" 0 "nightly via --pitest (core PIT >45s)"
     else
       record_gate "pitest" "skipped" 0 "not in lane"
+    fi
+  fi
+
+  # token_budget (MUD-030): optional gate; fill skipped when lane never ran it
+  if [[ -z "${GATE_SEEN[token_budget]:-}" ]]; then
+    if [[ "${LANE}" == "quarantine" ]]; then
+      record_gate "token_budget" "skipped" 0 "quarantine lane"
+    elif [[ "${LANE}" == "pitest" ]]; then
+      record_gate "token_budget" "skipped" 0 "not in pitest lane"
+    else
+      record_gate "token_budget" "skipped" 0 "not run"
     fi
   fi
 }
@@ -707,6 +921,14 @@ write_dod_summary() {
     if [[ -n "${GATE_NOTE[pitest]:-}" ]]; then
       printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[pitest]}")"
     fi
+    printf ' },\n'
+
+    # token_budget (MUD-030 pilot; optional via additionalProperties)
+    printf '    "token_budget": { "status": "%s", "duration_s": %s' \
+      "${GATE_STATUS[token_budget]:-skipped}" "${GATE_DURATION[token_budget]:-0}"
+    if [[ -n "${GATE_NOTE[token_budget]:-}" ]]; then
+      printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[token_budget]}")"
+    fi
     printf ' }\n'
 
     printf '  },\n'
@@ -800,6 +1022,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --dry-run)
       DRY_RUN=1
+      shift
+      ;;
+    --token-hard)
+      TOKEN_HARD_CLI=1
       shift
       ;;
     default|fast|--fast)
@@ -918,6 +1144,24 @@ fi
 if [[ "${LANE}" != "quarantine" ]]; then
   run_test_lock || true
 fi
+
+# Token/structure pilot (MUD-030) on default/fast/core/full only — soft report-only.
+# Hard via MUD_TOKEN_HARD=1 or --token-hard (scoped git-diff *_E). Skip quarantine + pitest.
+# Placement: after test-lock, before PIT. See docs/TOKEN_BUDGET_KT.md.
+case "${LANE}" in
+  default|core|full)
+    run_token_budget || true
+    ;;
+  quarantine)
+    skip_token_budget "quarantine lane"
+    ;;
+  pitest)
+    skip_token_budget "not in pitest lane"
+    ;;
+  *)
+    skip_token_budget "not in lane"
+    ;;
+esac
 
 # PIT (MUD-014): never on default/fast/core; full only if measured ≤45s (currently off).
 # --pitest lane already ran run_pitest above. Honest skip notes — never eternal stub.

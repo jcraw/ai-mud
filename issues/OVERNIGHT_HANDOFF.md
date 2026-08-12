@@ -1,16 +1,17 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 (MUD-029 done — touched-path mode)
-**Live:** none → next **MUD-030** PLAN (verify wire + pilot `MUD_TOKEN_HARD`)
+**Updated:** 2026-08-12 (MUD-030 done — verify token pilot)
+**Live:** none
 **Plan review:** _(empty)_
-**Agent queue:** Wave Q — 026–029 done; next **MUD-030** → 031→038
+**Agent queue:** Wave Q — 026–030 done; next **031** hard-on-touched → 032…038
 **Human-gated left:** **none** for harness; product play still later
-**Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** (next: PLAN 030 after push if needed)
+**Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED**
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
 **MUD-027 closeout:** `tmp/workers/MUD-027/CLOSEOUT.md` · schema v2 + empty findings[] · `--core` PASS · pushed `f123f5e`
 **MUD-028 closeout:** `tmp/workers/MUD-028/CLOSEOUT.md` · report-only checker + empty `overrides{}` · 55 god candidates · not wired to verify · `--core` PASS · **PUSHED** `1e93751` (bookkeep `565a262`)
-**MUD-029 closeout:** `tmp/workers/MUD-029/CLOSEOUT.md` · `--files` / `--git-diff` / `--git-base` path scope · report-only exit 0 · no verify wire (030) · no hard-on-touched (031) · `--core` PASS
+**MUD-029 closeout:** `tmp/workers/MUD-029/CLOSEOUT.md` · `--files` / `--git-diff` / `--git-base` path scope · report-only exit 0 · no verify wire (030) · no hard-on-touched (031) · `--core` PASS · **PUSHED** `ba06d2d`
+**MUD-030 closeout:** `tmp/workers/MUD-030/CLOSEOUT.md` · soft token on default/fast/core/full → findings[] + `gates.token_budget` · hard pilot `MUD_TOKEN_HARD=1`/`--token-hard` scoped `*_E` · quarantine/pitest skip · `--core` PASS · not pushed (Jason)
 
 ## Wave G goals
 1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE+PUSHED** `2b265ca`

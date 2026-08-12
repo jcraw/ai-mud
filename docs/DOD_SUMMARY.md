@@ -16,7 +16,8 @@ Compact verify artifact for agents. Prefer this over scraping Gradle logs.
 
 Top-level: `schema_version` (2), `tool`, `lane`, `result` (`PASS`|`FAIL`|`DRY_RUN`), `exit_code`, `generated_at`, `duration_s`, optional `dry_run`, `gates`, `quarantine_count`, `steps`, **`findings`**.
 
-**Gates** (fixed keys): `compile`, `tests`, `detekt`, `konsist`, `test_lock`, `pitest`.  
+**Gates** (fixed required keys): `compile`, `tests`, `detekt`, `konsist`, `test_lock`, `pitest`.  
+Optional (schema `additionalProperties`): **`token_budget`** (MUD-030 pilot) on default/fast/core/full; skipped on quarantine/pitest.  
 Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest may include `mutation_score`.
 
 **Findings** (always present; may be empty):
@@ -25,7 +26,7 @@ Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest ma
 { "code": "TOKEN_FILE_E", "path": "app/…", "metric": 3200, "limit": 2500, "remediation": "split …" }
 ```
 
-Empty `"findings": []` is valid until verify wires token/structure (MUD-030). Standalone report: `python3 tools/quality/check_token_budget_kt.py` → see `docs/TOKEN_BUDGET_KT.md` (MUD-028).
+Verify merges token/structure rows from the soft pilot checker on default/fast/core/full (scoped `--git-diff` by default; cap ~50). Empty `"findings": []` is valid when the touch set is clean or the lane skips token. Standalone report: `python3 tools/quality/check_token_budget_kt.py` → see `docs/TOKEN_BUDGET_KT.md`.
 
 ## Stable codes (reserved)
 
