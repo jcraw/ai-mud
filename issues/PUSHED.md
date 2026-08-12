@@ -79,3 +79,11 @@
 - **Force:** no
 - **Included:** GameConfig skillXpMultiplier 1.0f, SkillManagerTest un-quarantine+re-contract, TEST_QUARANTINE 0, test-lock, AGENTS/KNOWN_ISSUES posture, MUD-007/009 harness-done, Wave G tickets 022–025 + plan/board/handoff
 - **Excluded:** testbot/, tmp/, secrets
+
+### MUD-023 — Drop path → V2 InventoryComponent parity
+- **When:** 2026-08-11 17:26 MST
+- **SHA:** `85a1af10a8ce8fa40e4e2ce906f81229fb012b15`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** FloorItemDropApply + handlers (app/client/GameServer), FloorItemDropContractTest ×5, KNOWN_ISSUES drop residual fixed, test-lock 113, plan/board/handoff
+- **Excluded:** testbot/, tmp/, secrets
