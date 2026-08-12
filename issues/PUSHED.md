@@ -148,3 +148,5 @@
 - **Included:** tools/verify_mud.sh (run_token_budget soft+hard pilot), docs/TOKEN_BUDGET_KT.md + DOD_SUMMARY, AGENTS Verification, plan MUD-030, board/handoff
 - **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
 
+
+- **MUD-031** hard-on-touched default — `51abb5d` — 2026-08-12
