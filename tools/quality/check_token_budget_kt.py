@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-check_token_budget_kt.py — Kotlin token/structure report-only checker (MUD-028).
+check_token_budget_kt.py — Kotlin token/structure report-only checker (MUD-028/029).
 
-Scans prod `*/src/main/**/*.kt` under --root. Estimates tokens as ceil(chars/4)
-via max(0, (len+3)//4). Function spans and structure metrics are **heuristics**
-(not a full Kotlin parse). Always exits 0 (report-only); hard fail is MUD-031.
+Scans prod `*/src/main/**/*.kt` under --root (full-repo, or path-scoped via
+--files / --git-diff). Estimates tokens as ceil(chars/4) via max(0, (len+3)//4).
+Function spans and structure metrics are **heuristics** (not a full Kotlin parse).
+Always exits 0 (report-only); hard fail is MUD-031; verify wire is MUD-030.
 
 Does not write/merge tmp/dod-summary.json (verify owns that; MUD-030 wires).
 """
@@ -15,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,6 +39,23 @@ DEFAULT_THRESHOLDS: Dict[str, Any] = {
 
 # Cap noisy per-file function findings (file-level always kept).
 MAX_FN_FINDINGS_PER_FILE = 15
+
+# Directory segments excluded from prod scans (align with discover_kt_files).
+SKIP_DIR_SEGMENTS = frozenset(
+    {
+        "build",
+        "buildSrc",
+        ".git",
+        ".gradle",
+        "node_modules",
+        "tmp",
+        ".idea",
+        ".grok",
+    }
+)
+
+# Default git base for --git-diff (MUD-029). Override with --git-base.
+DEFAULT_GIT_BASE = "origin/master"
 
 # Kotlin function declaration start (heuristic — not PSI).
 # Matches: fun name, suspend fun, override fun, private/internal/protected/public fun,
@@ -92,20 +111,28 @@ def load_config(path: Path) -> Dict[str, Any]:
     return out
 
 
+def is_prod_main_kt(rel: str) -> bool:
+    """True if relative path is prod */src/main/**/*.kt (posix slashes)."""
+    rel = rel.replace("\\", "/")
+    if not rel.endswith(".kt"):
+        return False
+    parts = [p for p in rel.split("/") if p and p != "."]
+    if any(seg in SKIP_DIR_SEGMENTS for seg in parts):
+        return False
+    if "src" not in parts:
+        return False
+    si = parts.index("src")
+    if si + 1 >= len(parts) or parts[si + 1] != "main":
+        return False
+    # Exclude src/test (already handled by main check) and nested junk
+    return True
+
+
 def discover_kt_files(root: Path) -> List[Path]:
     """Prod Kotlin under */src/main/**/*.kt; exclude build/, buildSrc/, src/test."""
     results: List[Path] = []
     root = root.resolve()
-    skip_dirs = {
-        "build",
-        "buildSrc",
-        ".git",
-        ".gradle",
-        "node_modules",
-        "tmp",
-        ".idea",
-        ".grok",
-    }
+    skip_dirs = set(SKIP_DIR_SEGMENTS)
     for dirpath, dirnames, filenames in os.walk(root):
         p = Path(dirpath)
         try:
@@ -137,16 +164,182 @@ def discover_kt_files(root: Path) -> List[Path]:
                 rparts = fp.relative_to(root).parts
             except ValueError:
                 continue
-            if "src" not in rparts:
-                continue
-            si = rparts.index("src")
-            if si + 1 >= len(rparts) or rparts[si + 1] != "main":
-                continue
-            if any(seg in skip_dirs for seg in rparts):
+            rel_s = "/".join(rparts)
+            if not is_prod_main_kt(rel_s):
                 continue
             results.append(fp)
     results.sort(key=lambda x: str(x.relative_to(root)))
     return results
+
+
+def normalize_paths(root: Path, raws: Sequence[str]) -> List[Path]:
+    """
+    Resolve paths under --root; reject escapes outside root; keep existing
+    prod main `.kt` only. Missing/non-prod/outside paths are skipped (no fail).
+    """
+    root = root.resolve()
+    seen: set = set()
+    out: List[Path] = []
+    for raw in raws:
+        if not raw or not str(raw).strip():
+            continue
+        p = Path(raw)
+        if not p.is_absolute():
+            p = root / p
+        try:
+            rp = p.resolve()
+        except OSError:
+            continue
+        try:
+            rel = rp.relative_to(root)
+        except ValueError:
+            sys.stderr.write(
+                f"check_token_budget_kt: skip path outside root: {raw}\n"
+            )
+            continue
+        rel_s = str(rel).replace("\\", "/")
+        if not is_prod_main_kt(rel_s):
+            continue
+        if not rp.is_file():
+            continue
+        if rel_s in seen:
+            continue
+        seen.add(rel_s)
+        out.append(rp)
+    out.sort(key=lambda x: str(x.relative_to(root)))
+    return out
+
+
+def _git_rev_ok(root: Path, ref: str) -> bool:
+    r = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--verify", ref],
+        capture_output=True,
+        text=True,
+    )
+    return r.returncode == 0
+
+
+def resolve_git_base(root: Path, preferred: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Pick a usable git base. Tries preferred, then master, then HEAD~1.
+    Returns (resolved_ref, optional_one_line_warning). Missing all → (None, warn).
+    """
+    root = root.resolve()
+    ordered: List[str] = []
+    for cand in (preferred, "master", "HEAD~1"):
+        if cand not in ordered:
+            ordered.append(cand)
+    for base in ordered:
+        if _git_rev_ok(root, base):
+            warn = None
+            if base != preferred:
+                warn = (
+                    f"check_token_budget_kt: git base {preferred!r} missing; "
+                    f"using {base!r}"
+                )
+            return base, warn
+    warn = (
+        f"check_token_budget_kt: no usable git base "
+        f"(tried {', '.join(ordered)}); empty touch set"
+    )
+    return None, warn
+
+
+def git_touched_paths(
+    root: Path, base: str
+) -> Tuple[List[str], Optional[str], Optional[str]]:
+    """
+    Collect touched paths via `git diff --name-only --diff-filter=ACMR <base>`.
+    Untracked files are NOT included (pass --files for new untracked .kt).
+    Returns (rel_paths, resolved_base, warning_or_None). On git failure: empty + warn.
+    """
+    root = root.resolve()
+    resolved, warn = resolve_git_base(root, base)
+    if warn:
+        sys.stderr.write(warn + "\n")
+    if resolved is None:
+        return [], None, warn
+
+    r = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "diff",
+            "--name-only",
+            "--diff-filter=ACMR",
+            resolved,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0:
+        msg = (
+            f"check_token_budget_kt: git diff failed (rc={r.returncode}); "
+            "empty touch set"
+        )
+        sys.stderr.write(msg + "\n")
+        if r.stderr and r.stderr.strip():
+            sys.stderr.write(r.stderr.strip() + "\n")
+        return [], resolved, msg
+
+    paths = [
+        line.strip().replace("\\", "/")
+        for line in r.stdout.splitlines()
+        if line.strip()
+    ]
+    return paths, resolved, warn
+
+
+def resolve_scan_files(
+    root: Path,
+    files_args: Optional[Sequence[str]],
+    git_diff: bool,
+    git_base: str,
+) -> Tuple[List[Path], Dict[str, Any]]:
+    """
+    Resolve the file list for analysis.
+
+    - Neither --files nor --git-diff → full-repo discover (MUD-028 compat).
+    - Either or both → union of inputs, then prod-main filter (scope=touched).
+    """
+    root = root.resolve()
+    use_files = bool(files_args)
+    use_git = bool(git_diff)
+
+    if not use_files and not use_git:
+        files = discover_kt_files(root)
+        return files, {
+            "scope": "full",
+        }
+
+    raw_paths: List[str] = []
+    meta: Dict[str, Any] = {"scope": "touched"}
+
+    if use_files:
+        raw_paths.extend(str(p) for p in files_args or [])
+
+    if use_git:
+        gpaths, resolved_base, _warn = git_touched_paths(root, git_base)
+        raw_paths.extend(gpaths)
+        meta["git_base_requested"] = git_base
+        if resolved_base is not None:
+            meta["git_base"] = resolved_base
+
+    # Unique inputs (preserve order) for count
+    seen: set = set()
+    unique_raw: List[str] = []
+    for r in raw_paths:
+        key = str(r).replace("\\", "/")
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_raw.append(key)
+
+    meta["touched_input_count"] = len(unique_raw)
+    files = normalize_paths(root, unique_raw)
+    meta["touched_prod_kt_count"] = len(files)
+    return files, meta
 
 
 def strip_strings_and_comments(src: str) -> str:
@@ -613,28 +806,35 @@ def build_envelope(
     candidates: List[Dict[str, Any]],
     files_scanned: int,
     modules: List[str],
+    summary_extra: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     by_code: Dict[str, int] = {}
     for f in findings:
         by_code[f.code] = by_code.get(f.code, 0) + 1
     err_n = sum(1 for f in findings if f.code.endswith("_E"))
     warn_n = sum(1 for f in findings if f.code.endswith("_W"))
+    summary: Dict[str, Any] = {
+        "files_scanned": files_scanned,
+        "modules": modules,
+        "findings_total": len(findings),
+        "findings_error": err_n,
+        "findings_warn": warn_n,
+        "by_code": dict(sorted(by_code.items())),
+        "override_candidates": len(candidates),
+        "token_formula": "max(0, (len+3)//4)  # ceil(chars/4), raw UTF-8, no comment strip",
+        "structure_note": "LOC exact; cyclo/cognitive keyword+nest heuristics — not Detekt PSI",
+    }
+    if summary_extra:
+        # scope, git_base, touched_* counts, etc. (schema-free report tool)
+        for k, v in summary_extra.items():
+            if k not in summary:
+                summary[k] = v
     return {
         "tool": "check_token_budget_kt",
         "exit_policy": "report_only",
         "root": str(root),
         "config": str(cfg_path),
-        "summary": {
-            "files_scanned": files_scanned,
-            "modules": modules,
-            "findings_total": len(findings),
-            "findings_error": err_n,
-            "findings_warn": warn_n,
-            "by_code": dict(sorted(by_code.items())),
-            "override_candidates": len(candidates),
-            "token_formula": "max(0, (len+3)//4)  # ceil(chars/4), raw UTF-8, no comment strip",
-            "structure_note": "LOC exact; cyclo/cognitive keyword+nest heuristics — not Detekt PSI",
-        },
+        "summary": summary,
         "findings": [f.to_dict() for f in findings],
         "override_candidates": candidates,
     }
@@ -642,7 +842,11 @@ def build_envelope(
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Kotlin token/structure report-only checker (MUD-028). Always exits 0."
+        description=(
+            "Kotlin token/structure report-only checker (MUD-028/029). "
+            "Always exits 0. Path scope via --files and/or --git-diff; "
+            "neither → full-repo prod scan. Untracked new .kt: pass --files."
+        )
     )
     p.add_argument(
         "--root",
@@ -664,6 +868,39 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Do not print full JSON to stdout (still exit 0; use with --json-out)",
     )
+    p.add_argument(
+        "--files",
+        nargs="+",
+        default=None,
+        metavar="PATH",
+        help=(
+            "Explicit path(s) to analyze (repo-rel or under --root). "
+            "Only existing prod */src/main/**/*.kt kept; others skipped. "
+            "Use for untracked new .kt (not in git diff). "
+            "Union with --git-diff when both set."
+        ),
+    )
+    p.add_argument(
+        "--git-diff",
+        action="store_true",
+        help=(
+            "Analyze prod .kt touched vs git base "
+            f"(default base: {DEFAULT_GIT_BASE}). "
+            "Uses: git diff --name-only --diff-filter=ACMR <base>. "
+            "Untracked files not included — pass --files. "
+            "Union with --files when both set."
+        ),
+    )
+    p.add_argument(
+        "--git-base",
+        default=DEFAULT_GIT_BASE,
+        metavar="REF",
+        help=(
+            f"Git ref for --git-diff (default: {DEFAULT_GIT_BASE}). "
+            "If missing, falls back to master then HEAD~1 (one stderr warn); "
+            "still exit 0."
+        ),
+    )
     return p.parse_args(argv)
 
 
@@ -679,7 +916,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             cfg_path = cand
 
     cfg = load_config(cfg_path)
-    files = discover_kt_files(root)
+    files, scope_meta = resolve_scan_files(
+        root,
+        files_args=args.files,
+        git_diff=bool(args.git_diff),
+        git_base=str(args.git_base),
+    )
 
     all_findings: List[Finding] = []
     candidates: List[Dict[str, Any]] = []
@@ -704,6 +946,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         candidates=candidates,
         files_scanned=len(files),
         modules=modules_from_paths(rels),
+        summary_extra=scope_meta,
     )
 
     text = json.dumps(envelope, indent=2, ensure_ascii=False) + "\n"
@@ -720,13 +963,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     else:
         # Brief human line for smoke
         s = envelope["summary"]
+        scope = s.get("scope", "full")
         sys.stdout.write(
             f"check_token_budget_kt: files={s['files_scanned']} modules={len(s['modules'])} "
             f"findings={s['findings_total']} (E={s['findings_error']} W={s['findings_warn']}) "
-            f"override_candidates={s['override_candidates']} exit_policy=report_only\n"
+            f"override_candidates={s['override_candidates']} scope={scope} "
+            f"exit_policy=report_only\n"
         )
 
-    # Report-only: always 0 (even with E breaches)
+    # Report-only: always 0 (even with E breaches).
+    # Future: MUD_TOKEN_HARD / verify wire → MUD-030; hard-on-touched → MUD-031.
+    # Do not change exit policy in this ticket (MUD-029 path scope only).
     return 0
 
 

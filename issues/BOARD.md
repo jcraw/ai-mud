@@ -54,7 +54,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 #### Q1 — feedback shape (serial)
 - _(MUD-027 done — dod-summary v2 + findings[] pipe)_
 - _(MUD-028 done — token/structure report-only checker)_
-- **MUD-029** — touched-path mode (`high`) · open · depends 028
+- _(MUD-029 done — touched-path `--files` / `--git-diff`)_
 - **MUD-030** — wire into verify + pilot `MUD_TOKEN_HARD` (`high`) · open · depends 029
 
 #### Q2 — hard ratchet (serial after Q1)
@@ -80,7 +80,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-_(empty — next Q1: MUD-029 open)_
+_(empty — next Q1: MUD-030 open)_
 
 ## Blocked (awaiting Jason)
 
@@ -88,6 +88,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-029** — touched-path quality mode (`high`) · done · `--files` / `--git-diff` / `--git-base` (default `origin/master`) on `check_token_budget_kt.py` · union when both · full-repo when neither · prod `src/main/**/*.kt` only · empty touch exit 0 · report-only · `docs/TOKEN_BUDGET_KT.md` · no verify wire (030) · no hard-on-touched (031) · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-029/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-029-touched-path-quality-mode.md`
 - **MUD-028** — token/structure report-only checker (`high`) · done · `tools/quality/check_token_budget_kt.py` + `config/quality/token_budget_kt.json` (file tok W2000/E2500; fn 200/250; structure A7) · report-only exit 0 · 55 override_candidates on tree · `docs/TOKEN_BUDGET_KT.md` · DESIGN A6/A7 + §7.1 pointer · no verify hard-wire · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-028/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-028-token-budget-kt-report.md`
 - **MUD-027** — dod-summary v2 + finding codes (`high`) · done · `schema_version: 2` + always `findings[]` · `config/quality/dod_summary.schema.json` · `validate_dod_summary` (python3) · `docs/DOD_SUMMARY.md` · AGENTS Verification v2 clause · DESIGN §5 schema pointer · `--core` PASS · closeout `tmp/workers/MUD-027/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-027-dod-summary-v2-findings.md`
 - **MUD-026** — agent quality gates design lock (`high`) · done · DESIGN accepted · BOARD Wave Q · AGENTS pointer · OVERNIGHT note · `--core` PASS · Astra DIY
