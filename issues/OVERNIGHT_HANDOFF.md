@@ -1,7 +1,7 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 09:13 MST (drain · MUD-034m done+pushing · MUD-034n PLAN launching)
-**Live:** **MUD-034n** planning (detached PLAN · launching · `bypassPermissions`)
+**Updated:** 2026-08-12 09:17 MST (drain · MUD-034m PUSHED 8e4b8e2 · MUD-034n PLAN live pid 1230643)
+**Live:** **MUD-034n** planning (detached PLAN · pid 1230643 · bypassPermissions)
 **Plan review:** _(empty until 034n plan lands)_
 **Agent queue:** Wave Q — 026–034m done; **034n planning**; next Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
