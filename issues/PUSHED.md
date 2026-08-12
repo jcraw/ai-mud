@@ -90,7 +90,7 @@
 
 ### MUD-024 — V1 inventory/equip production write purge
 - **When:** 2026-08-11 18:06 MST
-- **SHA:** `54bcce4449fd7c5d218452eda18ac938d6e15c83`
+- **SHA:** `54bcce4449fd7c5d218452eda18ac938d6e15c83` (bookkeep `ba3fa98d3cb5156602e8bb7d78bb9c5456a2464f`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** GiveItemApply + UseConsumableApply, equip V2 all surfaces, GUI buy addItemInstance, GiveItemContractTest, KNOWN_ISSUES/V2_REMOVAL/TODO residual notes, test-lock 114, plan/board/handoff
