@@ -1,7 +1,7 @@
 # ai-mud overnight / Wave Q handoff
 
 **Updated:** 2026-08-12 07:36 MST (drain tick · MUD-034i PUSHED · MUD-034j IMPL live)
-**Live:** **MUD-034j** implementing (detached IMPL · pid **1199936** · supervisor 1199934 · )
+**Live:** **MUD-034j** implementing (detached IMPL · pid **1199936** · supervisor 1199934 · `bypassPermissions`)
 **Plan review:** _(empty — 034j APPROVED by Astra 2026-08-12 07:35 MST)_
 **Agent queue:** Wave Q — 026–034i done; **034j implementing**; next 034k–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
@@ -42,4 +42,4 @@
 3. done sans PUSHED row → allowlisted push
 4. next open Wave Q → PLAN (027→038 serial Q1 then Q2/Q3)
 5. only human_gated or Wave Q empty → disarm cron; Live=none
-**MUD-034j:** IMPL live pid 1199936 · APPROVED by Astra 2026-08-12 07:35 MST · skill data/mgr split · worker  · plan  · Perk/SkillDefinitions + SkillManager
+**MUD-034j:** IMPL live pid 1199936 · APPROVED by Astra 2026-08-12 07:35 MST · skill data/mgr split · worker `tmp/workers/MUD-034j` · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` · Perk/SkillDefinitions + SkillManager
