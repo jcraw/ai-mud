@@ -1,5 +1,6 @@
 # MUD-016 — required PR/push check: compile + core unit green + detekt + Konsist + test-lock
 # Quarantine excluded (default excludeTags). No secrets / no OpenAI.
+# MUD-032 no_live_llm_unit needs rg on the runner.
 name: Verify
 
 on:
@@ -22,16 +23,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Install ripgrep (no_live_llm_unit gate)
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
 
       - name: Verify (core)
         run: ./tools/verify_mud.sh --core
