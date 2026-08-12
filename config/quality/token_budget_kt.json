@@ -1364,77 +1364,11 @@
       }
     },
     "testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034f",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 9131
-        },
         "function": {
           "warn": 200,
-          "error": 7884
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 479
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 46
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 140
-        }
-      }
-    },
-    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestBotRunner.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 4420
-        },
-        "function": {
-          "warn": 200,
-          "error": 1137
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 92
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 17
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 66
-        }
-      }
-    },
-    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 2636
-        },
-        "function": {
-          "warn": 200,
-          "error": 425
+          "error": 456
         }
       },
       "structure": {
@@ -1452,20 +1386,70 @@
         },
         "cognitive": {
           "warn": 15,
-          "error": 35
+          "error": 25
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestBotRunner.kt": {
+      "ticket": "MUD-034f",
+      "tokens": {
+        "function": {
+          "warn": 200,
+          "error": 737
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/TestModels.kt": {
+      "ticket": "MUD-034f",
+      "tokens": {
+        "function": {
+          "warn": 200,
+          "error": 271
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
         }
       }
     },
     "testbot/src/main/kotlin/com/jcraw/mud/testbot/V3TestGameEngine.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034f",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 3616
-        },
         "function": {
           "warn": 200,
-          "error": 421
+          "error": 304
         }
       },
       "structure": {
@@ -1488,46 +1472,11 @@
       }
     },
     "testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/CodeValidationRules.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034f",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 7761
-        },
         "function": {
           "warn": 200,
-          "error": 2351
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 172
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 43
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 125
-        }
-      }
-    },
-    "testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/ValidationPrompts.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 5412
-        },
-        "function": {
-          "warn": 200,
-          "error": 914
+          "error": 495
         }
       },
       "structure": {
@@ -1545,7 +1494,34 @@
         },
         "cognitive": {
           "warn": 15,
-          "error": 44
+          "error": 25
+        }
+      }
+    },
+    "testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/ValidationPrompts.kt": {
+      "ticket": "MUD-034f",
+      "tokens": {
+        "function": {
+          "warn": 200,
+          "error": 513
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
         }
       }
     },

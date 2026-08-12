@@ -1,9 +1,9 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 05:13 MST (drain tick · MUD-034e done+push · MUD-034f PLAN launching)
-**Live:** **MUD-034f** planning (detached PLAN · pid 1156520 · `bypassPermissions`)
-**Plan review:** _(empty — awaiting 034f plan)_
-**Agent queue:** Wave Q — 026–034e done; **034f planning**; next 034g–n then Q4 035…038
+**Updated:** 2026-08-12 05:53 MST (drain tick · MUD-034f done · push+034g PLAN)
+**Live:** **MUD-034g** planning (detached PLAN · launching after 034f push)
+**Plan review:** _(empty — awaiting 034g plan)_
+**Agent queue:** Wave Q — 026–034f done; **034g planning**; next 034h–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
@@ -11,7 +11,8 @@
 
 **MUD-034e closeout:** `tmp/workers/MUD-034e/CLOSEOUT.md` · hosts 9827→539 / 9517→658 · both host overrides removed · client Craft still stubbed · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md` · **PUSHED** `66bb601`
 
-**MUD-034f:** PLAN live pid 1156520 · testbot god split · worker `tmp/workers/MUD-034f` · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md`
+**MUD-034f closeout:** `tmp/workers/MUD-034f/CLOSEOUT.md` · hosts 9131→1727 / 7761→741 / 5412→1556 / 4420→997 / 3616→1330 / 2636→940 · residual FN overrides lower+retarget MUD-034f · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md` · **PUSHED** _(SHA fill after push)_
+**MUD-034g:** PLAN launching · world gen cluster split · worker `tmp/workers/MUD-034g` · plan `plans/2026-08-12-ai-mud-MUD-034g-world-gen-cluster-split.md`
 **MUD-034d closeout:** `tmp/workers/MUD-034d/CLOSEOUT.md` · hosts 10257→4635 / 10127→2940 / 2730→1704 · MultiUserGame override removed · residual retarget MUD-034d · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md` · **PUSHED** `b6cce15` (bookkeep `d97f108`)
 **MUD-034c closeout:** `tmp/workers/MUD-034c/CLOSEOUT.md` · IntentRecognizer 10293→533 · override removed · Intent residual retarget MUD-034c · 17 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md` · **PUSHED** `bcbd1da`
 **MUD-034b closeout:** `tmp/workers/MUD-034b/CLOSEOUT.md` · GraphGenerator 11932→561 · override removed · 8 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md`

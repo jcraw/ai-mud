@@ -69,7 +69,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034c done — IntentRecognizer pure-move Direction/Say/Trade/LLM/Fallback; host 10293→533; override removed; Intent residual override retargeted MUD-034c)_
 - _(MUD-034d done — app runtime pure-move MU/Npc/Room/Quest/Death + GameServer Item/Nav/Social/Quest; MultiUserGame override removed; residual hosts retargeted MUD-034d)_
 - _(MUD-034e done — skill/quest handlers parity; both host overrides removed)_
-- **MUD-034f** — testbot god split (`med`) · **scheduled/planning** · grok · `tmp/workers/MUD-034f` · depends 034/031 · InputGen / validation / runner / V3 engine
+- _(MUD-034f done — testbot god split; residual FN overrides retargeted MUD-034f)_
 - **MUD-034g** — world gen cluster split (`med`) · open · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
 - **MUD-034h** — item handlers parity (`med`) · open · depends 034/031 · app+client
 - **MUD-034i** — movement handlers parity (`med`) · open · depends 034/031 · app+client
@@ -94,13 +94,14 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-034f** — testbot god split (`med`) · planning · grok · worker `tmp/workers/MUD-034f/` · PLAN launching
+_(empty)_
 
 ## Blocked (awaiting Jason)
 
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-034f** — testbot god split (`med`) · done · pure-move Models/V3 engine/Runner/ValPrompts/CodeVal/InputGen · hosts **9131→1727** / **7761→741** / **5412→1556** / **4420→997** / **3616→1330** / **2636→940** · residual FN overrides **lower+retarget MUD-034f** (never raised; no Added override) · no app/client · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034f/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md`
 - **MUD-034e** — skill/quest handlers parity (`med`) · done · pure-move Meta/Quest/Train/SkillUse(+heal/infer)/Craft(+results)/Interact(+harvest/fountain)/app Check · hosts **9827→539** / **9517→658** · both host overrides **removed** (under global E; never raised; no Added override) · client Craft still stubbed · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034e/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md`
 - **MUD-034d** — app runtime split (`med`) · done · pure-move: MultiUserFallbacks · MudGameNpc* · MudGameRoomDescribe · MudGameQuestSupport · MudGameDeathRespawn · GameServer Item/Nav/Social/Quest · hosts **10257→4635** / **10127→2940** / **2730→1704** · MultiUserGame override **removed** · residual hosts **retargeted MUD-034d** (lower-only; no Added override) · MU stubs/order preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034d/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md`
 - **MUD-034c** — intent recognizer split (`med`) · done · pure-move: Direction/Say/Trade/LlmPrompt*/LlmJsonMap*/LlmParse/Fallback* · host **10293→533** · IntentRecognizer override **removed** · Intent residual override **retargeted MUD-034c** (tok_E 2707; multi-file deferred) · public `parseIntent` preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034c/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md`

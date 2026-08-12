@@ -2,7 +2,7 @@
 id: MUD-034f
 area: tooling
 title: Split testbot god files (Wave Q3)
-status: scheduled
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: planning
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: "plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md"
 worker_out_dir: "tmp/workers/MUD-034f"
-worker_pid: "1156520"
 parent: MUD-034
 ---
 
@@ -40,13 +39,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `testbot/src/main/kotlin/com/jcraw/mud/testbot/validation/ValidationPrompts.kt` | 5412 | 414 | 5412 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `InputGenerator.kt`, `CodeValidationRules.kt`, `TestBotRunner.kt`, `V3TestGameEngine.kt`, `TestModels.kt`, `ValidationPrompts.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034f` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `InputGenerator.kt`, `CodeValidationRules.kt`, `TestBotRunner.kt`, `V3TestGameEngine.kt`, `TestModels.kt`, `ValidationPrompts.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family — **N/A** (testbot-only)
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034f` when still needed
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -61,7 +60,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
-- brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
+- session: implement (grok)
+- brief: plan APPROVED → fresh impl
+- worker_out: `tmp/workers/MUD-034f/` (PLAN.md + token_baseline.json + token_remeasure.json + CLOSEOUT.md)
 
 ## Resolution
+Done 2026-08-12. Pure-move testbot god split (Models→V3→Runner→ValPrompts→CodeVal→InputGen). All six hosts file_tok under global E2500; residual FN overrides lowered+retargeted `ticket: MUD-034f` only (never raised; no Added overrides). `--core` PASS. Closeout `tmp/workers/MUD-034f/CLOSEOUT.md`.
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md` (mirror `tmp/workers/MUD-034f/PLAN.md`)
+- Phase: **done** — **APPROVED by Astra 2026-08-12 05:28 MST** → fresh impl completed
