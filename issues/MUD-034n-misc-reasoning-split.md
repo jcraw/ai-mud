@@ -17,6 +17,7 @@ depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: ""
 worker_out_dir: tmp/workers/MUD-034n
+worker_pid: "1230643"
 parent: MUD-034
 ---
 
