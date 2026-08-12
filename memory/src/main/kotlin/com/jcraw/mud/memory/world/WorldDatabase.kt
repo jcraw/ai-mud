@@ -1,8 +1,23 @@
+@file:Suppress(
+    "ReturnCount",
+    "MagicNumber",
+    "MaxLineLength",
+    "TooManyFunctions",
+    "LongMethod",
+    "ComplexCondition",
+    "CyclomaticComplexMethod",
+    "NestedBlockDepth",
+    "LongParameterList",
+    "TooGenericExceptionCaught",
+    "SwallowedException",
+    "ThrowsCount",
+    "UnusedParameter"
+)
+
 package com.jcraw.mud.memory.world
 
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.SQLException
 
 /**
  * SQLite database for world generation system persistence
@@ -48,193 +63,10 @@ class WorldDatabase(
         val conn = connection ?: return
 
         conn.createStatement().use { stmt ->
-            // World seed table (singleton for global world state)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS world_seed (
-                    id INTEGER PRIMARY KEY CHECK (id = 1),
-                    seed_string TEXT NOT NULL,
-                    global_lore TEXT NOT NULL,
-                    starting_space_id TEXT
-                )
-                """.trimIndent()
-            )
-
-            try {
-                stmt.execute("ALTER TABLE world_seed ADD COLUMN starting_space_id TEXT")
-            } catch (e: SQLException) {
-                if (!e.message.orEmpty().contains("duplicate column name")) {
-                    throw e
-                }
-            }
-
-            // World chunks table (hierarchical structure)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS world_chunks (
-                    id TEXT PRIMARY KEY,
-                    level TEXT NOT NULL,
-                    parent_id TEXT,
-                    children TEXT NOT NULL,
-                    lore TEXT NOT NULL,
-                    biome_theme TEXT NOT NULL,
-                    size_estimate INTEGER NOT NULL,
-                    mob_density REAL NOT NULL,
-                    difficulty_level INTEGER NOT NULL,
-                    adjacency TEXT NOT NULL DEFAULT '{}',
-                    FOREIGN KEY (parent_id) REFERENCES world_chunks(id)
-                )
-                """.trimIndent()
-            )
-
-            try {
-                stmt.execute("ALTER TABLE world_chunks ADD COLUMN adjacency TEXT NOT NULL DEFAULT '{}'")
-            } catch (e: SQLException) {
-                if (!e.message.orEmpty().contains("duplicate column name")) {
-                    throw e
-                }
-            }
-
-            // Graph nodes table (V3 pre-generated topology)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS graph_nodes (
-                    id TEXT PRIMARY KEY,
-                    chunk_id TEXT NOT NULL,
-                    position_x INTEGER,
-                    position_y INTEGER,
-                    type TEXT NOT NULL,
-                    neighbors TEXT NOT NULL,
-                    FOREIGN KEY (chunk_id) REFERENCES world_chunks(id)
-                )
-                """.trimIndent()
-            )
-
-            // Space properties table (detailed space data)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS space_properties (
-                    chunk_id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL DEFAULT 'Unknown Location',
-                    description TEXT NOT NULL,
-                    exits TEXT NOT NULL,
-                    brightness INTEGER NOT NULL,
-                    terrain_type TEXT NOT NULL,
-                    traps TEXT NOT NULL,
-                    resources TEXT NOT NULL,
-                    entities TEXT NOT NULL,
-                    items_dropped TEXT NOT NULL,
-                    state_flags TEXT NOT NULL,
-                    is_safe_zone INTEGER NOT NULL DEFAULT 0,
-                    is_treasure_room INTEGER NOT NULL DEFAULT 0,
-                    FOREIGN KEY (chunk_id) REFERENCES world_chunks(id)
-                )
-                """.trimIndent()
-            )
-
-            // Add name column for existing databases
-            try {
-                stmt.execute("ALTER TABLE space_properties ADD COLUMN name TEXT NOT NULL DEFAULT 'Unknown Location'")
-            } catch (e: SQLException) {
-                if (!e.message.orEmpty().contains("duplicate column name")) {
-                    throw e
-                }
-            }
-
-            try {
-                stmt.execute("ALTER TABLE space_properties ADD COLUMN is_safe_zone INTEGER NOT NULL DEFAULT 0")
-            } catch (e: SQLException) {
-                if (!e.message.orEmpty().contains("duplicate column name")) {
-                    throw e
-                }
-            }
-
-            try {
-                stmt.execute("ALTER TABLE space_properties ADD COLUMN is_treasure_room INTEGER NOT NULL DEFAULT 0")
-            } catch (e: SQLException) {
-                if (!e.message.orEmpty().contains("duplicate column name")) {
-                    throw e
-                }
-            }
-
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS space_entities (
-                    id TEXT PRIMARY KEY,
-                    entity_type TEXT NOT NULL,
-                    entity_json TEXT NOT NULL
-                )
-                """.trimIndent()
-            )
-
-            // Respawn components table (mob respawn timers)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS respawn_components (
-                    entity_id TEXT PRIMARY KEY,
-                    space_id TEXT NOT NULL,
-                    respawn_turns INTEGER NOT NULL,
-                    last_killed INTEGER NOT NULL,
-                    original_entity_id TEXT NOT NULL
-                )
-                """.trimIndent()
-            )
-
-            // Corpses table (player death handling)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS corpses (
-                    id TEXT PRIMARY KEY,
-                    player_id TEXT NOT NULL,
-                    space_id TEXT NOT NULL,
-                    inventory TEXT NOT NULL,
-                    equipment TEXT NOT NULL,
-                    gold INTEGER NOT NULL,
-                    decay_timer INTEGER NOT NULL,
-                    looted INTEGER NOT NULL
-                )
-                """.trimIndent()
-            )
-
-            // Treasure rooms table (Brogue-style treasure selection)
-            // Note: No FK constraint on space_id to allow independent repository testing
-            // Application logic ensures space exists before creating treasure room
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS treasure_rooms (
-                    space_id TEXT PRIMARY KEY,
-                    room_type TEXT NOT NULL,
-                    biome_theme TEXT NOT NULL,
-                    currently_taken_item TEXT,
-                    has_been_looted INTEGER NOT NULL
-                )
-                """.trimIndent()
-            )
-
-            // Pedestals table (items in treasure rooms)
-            stmt.execute(
-                """
-                CREATE TABLE IF NOT EXISTS pedestals (
-                    id TEXT PRIMARY KEY,
-                    treasure_room_id TEXT NOT NULL,
-                    item_template_id TEXT NOT NULL,
-                    state TEXT NOT NULL,
-                    pedestal_index INTEGER NOT NULL,
-                    theme_description TEXT NOT NULL,
-                    FOREIGN KEY (treasure_room_id) REFERENCES treasure_rooms(space_id)
-                )
-                """.trimIndent()
-            )
-
-            // Create indices for common queries
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_parent ON world_chunks(parent_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_chunks_level ON world_chunks(level)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_graph_nodes_chunk ON graph_nodes(chunk_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_space_chunk ON space_properties(chunk_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_respawn_space ON respawn_components(space_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_space ON corpses(space_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_corpse_player ON corpses(player_id)")
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_pedestals_room ON pedestals(treasure_room_id)")
+            WorldSchemaSeedChunks.apply(stmt)
+            WorldSchemaGraphSpaces.apply(stmt)
+            WorldSchemaRespawnCorpse.apply(stmt)
+            WorldSchemaTreasure.apply(stmt)
         }
     }
 

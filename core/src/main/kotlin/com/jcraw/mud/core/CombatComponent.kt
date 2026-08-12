@@ -1,3 +1,19 @@
+@file:Suppress(
+    "ReturnCount",
+    "MagicNumber",
+    "MaxLineLength",
+    "TooManyFunctions",
+    "LongMethod",
+    "ComplexCondition",
+    "CyclomaticComplexMethod",
+    "NestedBlockDepth",
+    "LongParameterList",
+    "TooGenericExceptionCaught",
+    "SwallowedException",
+    "ThrowsCount",
+    "UnusedParameter"
+)
+
 package com.jcraw.mud.core
 
 import kotlinx.serialization.Serializable
@@ -117,54 +133,8 @@ data class CombatComponent(
      * @param effect Status effect to apply
      * @return New CombatComponent with effect applied
      */
-    fun applyStatus(effect: StatusEffect): CombatComponent {
-        val existingEffects = statusEffects.toMutableList()
-
-        // Check for existing effect of same type
-        val existingIndex = existingEffects.indexOfFirst { it.type == effect.type }
-
-        val newEffects = when (effect.type) {
-            StatusEffectType.POISON_DOT -> {
-                // DOT: Replace if same type and new magnitude is higher
-                if (existingIndex >= 0) {
-                    val existing = existingEffects[existingIndex]
-                    if (effect.magnitude > existing.magnitude) {
-                        existingEffects[existingIndex] = effect
-                    }
-                    existingEffects
-                } else {
-                    existingEffects + effect
-                }
-            }
-
-            StatusEffectType.STRENGTH_BOOST,
-            StatusEffectType.REGENERATION,
-            StatusEffectType.SHIELD -> {
-                // Buffs: Stack up to 3 of same type
-                val sameTypeCount = existingEffects.count { it.type == effect.type }
-                if (sameTypeCount < 3) {
-                    existingEffects + effect
-                } else {
-                    existingEffects // Already at cap, don't add
-                }
-            }
-
-            StatusEffectType.SLOW,
-            StatusEffectType.HIDDEN,
-            StatusEffectType.DEFENSIVE_STANCE,
-            StatusEffectType.WARINESS -> {
-                // Single-instance effects: Replace if exists
-                if (existingIndex >= 0) {
-                    existingEffects[existingIndex] = effect
-                    existingEffects
-                } else {
-                    existingEffects + effect
-                }
-            }
-        }
-
-        return copy(statusEffects = newEffects)
-    }
+    fun applyStatus(effect: StatusEffect): CombatComponent =
+        CombatStatusOps.apply(this, effect)
 
     /**
      * Remove status effect of specific type
@@ -172,9 +142,8 @@ data class CombatComponent(
      * @param type Type of effect to remove
      * @return New CombatComponent with effect removed
      */
-    fun removeStatus(type: StatusEffectType): CombatComponent {
-        return copy(statusEffects = statusEffects.filterNot { it.type == type })
-    }
+    fun removeStatus(type: StatusEffectType): CombatComponent =
+        CombatStatusOps.remove(this, type)
 
     /**
      * Process one tick of all status effects
@@ -186,39 +155,8 @@ data class CombatComponent(
      * @param gameTime Current game time (for logging/events)
      * @return Pair of (new CombatComponent, list of effects that were applied this tick)
      */
-    fun tickEffects(gameTime: Long): Pair<CombatComponent, List<EffectApplication>> {
-        val applications = mutableListOf<EffectApplication>()
-        var updatedComponent = this
-
-        // Process each effect
-        val updatedEffects = statusEffects.mapNotNull { effect ->
-            // Apply effect based on type
-            when (effect.type) {
-                StatusEffectType.POISON_DOT -> {
-                    // Apply damage
-                    updatedComponent = updatedComponent.applyDamage(effect.magnitude, DamageType.POISON)
-                    applications.add(EffectApplication(effect.type, effect.magnitude, EffectResult.DAMAGE))
-                }
-                StatusEffectType.REGENERATION -> {
-                    // Apply healing
-                    updatedComponent = updatedComponent.heal(effect.magnitude)
-                    applications.add(EffectApplication(effect.type, effect.magnitude, EffectResult.HEALING))
-                }
-                else -> {
-                    // Other effects don't apply per-tick damage/healing
-                    applications.add(EffectApplication(effect.type, effect.magnitude, EffectResult.ACTIVE))
-                }
-            }
-
-            // Tick the effect (decrement duration)
-            effect.tick()
-        }
-
-        // Update with new effects list (expired effects removed by tick() returning null)
-        updatedComponent = updatedComponent.copy(statusEffects = updatedEffects)
-
-        return updatedComponent to applications
-    }
+    fun tickEffects(gameTime: Long): Pair<CombatComponent, List<EffectApplication>> =
+        CombatTickOps.tick(this, gameTime)
 
     /**
      * Check if entity has specific status effect active
@@ -226,9 +164,8 @@ data class CombatComponent(
      * @param type Type of effect to check
      * @return True if effect is present
      */
-    fun hasStatusEffect(type: StatusEffectType): Boolean {
-        return statusEffects.any { it.type == type }
-    }
+    fun hasStatusEffect(type: StatusEffectType): Boolean =
+        CombatStatusOps.has(this, type)
 
     /**
      * Get total magnitude of all effects of a specific type
@@ -237,9 +174,8 @@ data class CombatComponent(
      * @param type Type of effect
      * @return Sum of all magnitudes for that type
      */
-    fun getStatusEffectMagnitude(type: StatusEffectType): Int {
-        return statusEffects.filter { it.type == type }.sumOf { it.magnitude }
-    }
+    fun getStatusEffectMagnitude(type: StatusEffectType): Int =
+        CombatStatusOps.magnitude(this, type)
 
     /**
      * Check if entity is alive
