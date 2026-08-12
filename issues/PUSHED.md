@@ -82,7 +82,7 @@
 
 ### MUD-023 — Drop path → V2 InventoryComponent parity
 - **When:** 2026-08-11 17:26 MST
-- **SHA:** `85a1af10a8ce8fa40e4e2ce906f81229fb012b15`
+- **SHA:** `85a1af10a8ce8fa40e4e2ce906f81229fb012b15` (bookkeep `3a60b388379689450b6792b0550b06434f9f1273`)
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** FloorItemDropApply + handlers (app/client/GameServer), FloorItemDropContractTest ×5, KNOWN_ISSUES drop residual fixed, test-lock 113, plan/board/handoff

@@ -2,15 +2,15 @@
 id: MUD-024
 area: engine
 title: Purge V1 inventory/equip production write paths
-status: open
+status: scheduled
 priority: med
 created: 2026-08-11
 updated: 2026-08-11
 source: jason
 labels: [chore, inventory, v2, wave-g]
 assignee: ""
-worker: ""
-phase: backlog
+worker: grok
+phase: planning
 agent_eligible: true
 eligibility: agent_eligible
 needs_jason: ""

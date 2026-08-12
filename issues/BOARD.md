@@ -57,18 +57,18 @@ _(empty — Wave E complete: MUD-016…018 done)_
 - _(Wave F complete — MUD-019…021 done)_
 
 ### Wave G — finish modernization (Jason 2026-08-11)
-- **MUD-024** — V1 inventory/equip production write purge (`med`) · after 023
 - **MUD-025** — modernization closeout docs/board quarantine 0 (`med`) · after 022–024
 - **Post-done:** allowlisted `git push origin master` after each (no force)
-- _(MUD-023 done)_
+- _(MUD-022…023 done+pushed)_
 
 ## Plan review
 
-_(empty)_
+_(empty — MUD-024 PLAN spawning)_
 
 ## Scheduled / In progress
 
-- **MUD-024…025** — open · serial after 023 (023 done)
+- **MUD-024** — V1 inventory/equip production write purge (`med`) · planning (Grok) · after 023 done+pushed
+- **MUD-025** — open · serial after 024
 
 ## Blocked (awaiting Jason)
 
