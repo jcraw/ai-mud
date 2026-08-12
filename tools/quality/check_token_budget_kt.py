@@ -62,7 +62,8 @@ SKIP_DIR_SEGMENTS = frozenset(
 DEFAULT_GIT_BASE = "origin/master"
 
 # Burn-down ticket id required on each overrides{} entry (MUD-031).
-TICKET_RE = re.compile(r"^MUD-\d+$")
+# Allow optional letter suffix for Wave Q3 children (e.g. MUD-034a).
+TICKET_RE = re.compile(r"^MUD-\d+[a-z]?$")
 
 # Kotlin function declaration start (heuristic — not PSI).
 # Matches: fun name, suspend fun, override fun, private/internal/protected/public fun,

@@ -341,15 +341,15 @@
       }
     },
     "client/src/main/kotlin/com/jcraw/mud/client/EngineGameClient.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034a",
       "tokens": {
         "file": {
           "warn": 2000,
-          "error": 14209
+          "error": 6282
         },
         "function": {
           "warn": 200,
-          "error": 1455
+          "error": 1091
         }
       },
       "structure": {
@@ -367,7 +367,7 @@
         },
         "cognitive": {
           "warn": 15,
-          "error": 31
+          "error": 25
         }
       }
     },
@@ -558,15 +558,15 @@
       }
     },
     "client/src/main/kotlin/com/jcraw/mud/client/ui/MainGameScreen.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034a",
       "tokens": {
         "file": {
           "warn": 2000,
-          "error": 3033
+          "error": 590
         },
         "function": {
           "warn": 200,
-          "error": 701
+          "error": 477
         }
       },
       "structure": {

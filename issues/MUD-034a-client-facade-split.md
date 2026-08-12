@@ -2,7 +2,7 @@
 id: MUD-034a
 area: client
 title: Split EngineGameClient facade (Wave Q3)
-status: in_progress
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: ""
 worker: grok
-phase: implementing
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md
 worker_out_dir: tmp/workers/MUD-034a
-worker_pid: ""
 parent: MUD-034
 ---
 
@@ -36,13 +35,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `client/src/main/kotlin/com/jcraw/mud/client/ui/MainGameScreen.kt` | 3033 | 328 | 3033 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `EngineGameClient.kt`, `MainGameScreen.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034a` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `EngineGameClient.kt`, `MainGameScreen.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family (MainGameScreen = GUI-only; no app pair; handler contracts unchanged)
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034a` when still needed
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -57,12 +56,26 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
-- brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
+- session: grok fresh impl 2026-08-12
+- brief: plan under `plans/` APPROVED by Astra → fresh impl
 
 ## Resolution
+Behavior-preserving client facade split complete.
+
+**Hosts (before → after file tokens):**
+- `EngineGameClient.kt`: **14209 → 6282** (LOC ~1204 → 474) — residual override lowered, `ticket: MUD-034a`
+- `MainGameScreen.kt`: **3033 → 590** (LOC ~344 → 73) — residual override lowered (fn residual for composable root), `ticket: MUD-034a`
+
+**Extracts (all ≤ global file E2500, no overrides):**
+- UI: `ui/StatusBar.kt`, `ui/GameLogWindow.kt`, `ui/GameInputField.kt`
+- `ClientItemTemplateCache.kt`, `ClientSpaceContent.kt`, `ClientSpaceDescribe.kt`, `ClientFrontierExpansion.kt`
+- `ClientQuestDeathSupport.kt`, `ClientNpcCombat.kt`, `ClientNpcAttack.kt`
+- Optional `ClientIntentRouter` **not shipped** — `processIntent` stays on facade so residual override covers FN_E (global fn E250 blocks large when-dispatch on Added files)
+
+**Overrides:** lowered only (never raised); no Added-file overrides; ticket retarget `MUD-034` → `MUD-034a`. Tool `TICKET_RE` widened to `^MUD-\d+[a-z]?$` so child tickets validate. Compose detekt: `FunctionNaming.ignoreAnnotated: ['Composable']`.
+
+**Verify:** `./tools/verify_mud.sh --core` PASS · `tmp/dod-summary.json` · remeasure `tmp/workers/MUD-034a/token_remeasure.json` · closeout `tmp/workers/MUD-034a/CLOSEOUT.md`
 
 ## Plan
 - Path: `plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md` (mirror `tmp/workers/MUD-034a/PLAN.md`)
-- Phase: **implementing** — **APPROVED by Astra 2026-08-12 02:53 MST** → fresh impl session
-- Approach: pure moves — MainGameScreen composables first, then ClientItemTemplateCache / ClientSpaceContent / ClientRespawnFlow|QuestDeath / ClientNpcCombat; optional ClientIntentRouter; remeasure lower/remove overrides only; ticket MUD-034a residual; no app hosts; `--core` green
+- Phase: **done** — APPROVED by Astra 2026-08-12 02:53 MST → fresh impl session green

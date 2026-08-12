@@ -1,7 +1,7 @@
 # MUD-034a Plan — Client facade split (Wave Q3)
 
-**Ticket:** MUD-034a · **Phase:** implementing (APPROVED) · **Worker:** grok  
-**Status:** APPROVED by Astra 2026-08-12 02:53 MST → fresh IMPL session
+**Ticket:** MUD-034a · **Phase:** done · **Worker:** grok  
+**Status:** DONE 2026-08-12 (APPROVED by Astra 2026-08-12 02:53 MST → fresh IMPL green)
 **Plan:** `plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md`  
 **Mirror:** `tmp/workers/MUD-034a/PLAN.md`  
 **Depends:** MUD-034 (done), MUD-031 (done) · **Parent:** MUD-034  

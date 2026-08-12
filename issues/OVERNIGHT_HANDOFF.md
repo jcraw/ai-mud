@@ -1,15 +1,17 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 02:53 MST (MUD-034 done closeout commit · MUD-034a APPROVED → fresh IMPL)
-**Live:** **MUD-034a** implementing (fresh IMPL)
+**Updated:** 2026-08-12 03:33 MST (MUD-034a done+push · MUD-034b APPROVED → fresh IMPL)
+**Live:** **MUD-034b** implementing (fresh IMPL)
 **Plan review:** _(empty)_
-**Agent queue:** Wave Q — 026–034 done; **034a implementing**; next 034b–n then Q4 035…038
+**Agent queue:** Wave Q — 026–034a done; **034b implementing**; next 034c–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
 
-**MUD-034a:** APPROVED by Astra 2026-08-12 02:53 MST · fresh IMPL · client facade pure-move split EngineGameClient + MainGameScreen
+**MUD-034b:** APPROVED by Astra 2026-08-12 03:33 MST · fresh IMPL · GraphGenerator layout/MST/edges/typing pure-move split
+**MUD-034a closeout:** `tmp/workers/MUD-034a/CLOSEOUT.md` · EngineGameClient 14209→6282 · MainGameScreen 3033→590 · 10 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md`
+**MUD-034a (prior live note superseded):** APPROVED by Astra 2026-08-12 02:53 MST · fresh IMPL · client facade pure-move split EngineGameClient + MainGameScreen
 **MUD-034 closeout:** `tmp/workers/MUD-034/CLOSEOUT.md` · RANKED_GODS 55 hosts · 14 children **034a–n** · tickets-only · no product god extract · no override raise · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034-god-file-split-program.md`
 **MUD-033 closeout:** `tmp/workers/MUD-033/CLOSEOUT.md` · D1/D2 `check_builder_preflight.py` · optional `--preflight` · ORCH approve step · `--core` PASS · **PUSHED** `0c21049` (bookkeep `f0a66b0`)
 **MUD-032 closeout:** `tmp/workers/MUD-032/CLOSEOUT.md` · **PUSHED** `4d24440`

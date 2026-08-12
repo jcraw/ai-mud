@@ -2,7 +2,6 @@ package com.jcraw.mud.client
 
 import com.jcraw.mud.client.handlers.*
 import com.jcraw.mud.core.*
-import com.jcraw.mud.client.SpaceEntitySupport
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.perception.IntentRecognizer
 import com.jcraw.mud.reasoning.*
@@ -17,18 +16,17 @@ import com.jcraw.mud.memory.social.SqliteSocialEventRepository
 import com.jcraw.mud.memory.item.ItemDatabase
 import com.jcraw.mud.memory.item.SQLiteItemRepository
 import com.jcraw.sophia.llm.OpenAIClient
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.runBlocking
-import java.nio.file.Files
-import java.nio.file.Paths
 
 /**
  * Real game client implementation that wraps the actual game engine.
  * Integrates with the existing MudGame logic but exposes it through the GameClient interface.
+ *
+ * Heavy clusters live in Client* extract objects (MUD-034a); this stays the GameClient surface.
  */
 class EngineGameClient(
     private val apiKey: String? = null
@@ -37,11 +35,11 @@ class EngineGameClient(
     private val _events = MutableSharedFlow<GameEvent>(replay = 10)
     internal var worldState: WorldState
     internal var running = true
-    private var respawnState: RespawnState? = null
+    internal var respawnState: ClientQuestDeathSupport.RespawnState? = null
     internal var lastConversationNpcId: String? = null
 
     // Engine components
-    private val llmClient: OpenAIClient?
+    internal val llmClient: OpenAIClient?
     internal val descriptionGenerator: RoomDescriptionGenerator?
     internal val npcInteractionGenerator: NPCInteractionGenerator?
     internal val combatNarrator: CombatNarrator?
@@ -52,7 +50,7 @@ class EngineGameClient(
     private val intentRecognizer: IntentRecognizer
     internal val sceneryGenerator: SceneryDescriptionGenerator
     private val questGenerator: QuestGenerator
-    private val questTracker: QuestTracker
+    internal val questTracker: QuestTracker
 
     // Combat System V2 components
     internal val turnQueue: com.jcraw.mud.reasoning.combat.TurnQueueManager?
@@ -66,7 +64,13 @@ class EngineGameClient(
     private val itemDatabase = ItemDatabase(DatabaseConfig.ITEMS_DB)
     internal val itemRepository = SQLiteItemRepository(itemDatabase)
     internal val recipeRepository = com.jcraw.mud.memory.item.SQLiteRecipeRepository(itemDatabase)
-    internal val itemTemplateCache: MutableMap<String, ItemTemplate> = loadItemTemplateCache()
+    internal val itemTemplateCache: MutableMap<String, ItemTemplate> = ClientItemTemplateCache.load(
+        itemRepository = itemRepository,
+        itemJson = itemJson,
+        onWarning = { msg ->
+            emitEvent(GameEvent.System(msg, GameEvent.MessageLevel.WARNING))
+        }
+    )
 
     // Social system components
     private val socialDatabase: SocialDatabase
@@ -102,9 +106,9 @@ class EngineGameClient(
     private val mobSpawner: com.jcraw.mud.reasoning.world.MobSpawner
     private val spacePopulator: com.jcraw.mud.reasoning.world.SpacePopulator
     private val respawnChecker: com.jcraw.mud.reasoning.world.RespawnChecker
-    private val spacePopulationService: com.jcraw.mud.reasoning.world.SpacePopulationService
+    internal val spacePopulationService: com.jcraw.mud.reasoning.world.SpacePopulationService
     private val worldStateSeeder: com.jcraw.mud.reasoning.world.WorldStateSeeder?
-    private val playerRespawnService: PlayerRespawnService
+    internal val playerRespawnService: PlayerRespawnService
     internal val treasureRoomHandler: com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
 
     // World System V3 components (graph-based navigation)
@@ -316,7 +320,7 @@ class EngineGameClient(
         if (text.isBlank()) return
 
         respawnState?.let {
-            handleRespawnInput(text)
+            ClientQuestDeathSupport.handleRespawnInput(this, text)
             return
         }
 
@@ -325,7 +329,9 @@ class EngineGameClient(
         // Parse intent - V3 uses space-based context
         val space = worldState.getCurrentSpace()
         val spaceContext = space?.description
-        val exitsWithNames = worldState.getCurrentGraphNode()?.let { buildExitsWithNames(it) }
+        val exitsWithNames = worldState.getCurrentGraphNode()?.let {
+            ClientSpaceContent.buildExitsWithNames(this, it)
+        }
         val intent = runBlocking {
             intentRecognizer.parseIntent(text, spaceContext, exitsWithNames)
         }
@@ -335,12 +341,12 @@ class EngineGameClient(
 
         // Advance game time after player action (Combat V2)
         val speedLevel = skillManager.getSkillComponent(worldState.player.id)?.getEffectiveLevel("Speed") ?: 0
-        val baseCost = getBaseCostForIntent(intent)
+        val baseCost = ClientNpcCombat.getBaseCostForIntent(intent)
         val actionCost = com.jcraw.mud.reasoning.combat.ActionCosts.calculateCost(baseCost, speedLevel)
         worldState = worldState.advanceTime(actionCost)
 
         // Process NPC turns after player action (Combat V2)
-        processNPCTurns()
+        ClientNpcCombat.processNPCTurns(this)
     }
 
     override fun observeEvents(): Flow<GameEvent> = _events.asSharedFlow()
@@ -359,384 +365,42 @@ class EngineGameClient(
         }
     }
 
-    private fun loadItemTemplateCache(): MutableMap<String, ItemTemplate> {
-        val existing = itemRepository.findAllTemplates().getOrElse { emptyMap() }
-        if (existing.isNotEmpty()) {
-            return existing.toMutableMap()
-        }
+    // --- Thin delegates to extract objects (handlers keep EngineGameClient API) ---
 
-        val templates = loadTemplatesFromResource()
-        if (templates.isNotEmpty()) {
-            itemRepository.saveTemplates(templates).onFailure {
-                emitEvent(
-                    GameEvent.System(
-                        "Warning: failed to seed item templates (${it.message})",
-                        GameEvent.MessageLevel.WARNING
-                    )
-                )
-            }
-        }
-        return templates.associateBy { it.id }.toMutableMap()
-    }
+    internal fun getItemTemplate(templateId: String): ItemTemplate =
+        ClientItemTemplateCache.getItemTemplate(templateId, itemTemplateCache, itemRepository)
 
-    private fun loadTemplatesFromResource(): List<ItemTemplate> {
-        val resourceCandidates = listOf(
-            "item_templates.json",
-            "memory/src/main/resources/item_templates.json"
-        )
+    internal fun loadSpace(spaceId: String): SpacePropertiesComponent? =
+        ClientSpaceContent.loadSpace(this, spaceId)
 
-        for (resource in resourceCandidates) {
-            val jsonText = readResourceText(resource)
-            if (jsonText != null) {
-                return runCatching {
-                    itemJson.decodeFromString<List<ItemTemplate>>(jsonText)
-                }.getOrElse { emptyList() }
-            }
-        }
-
-        return emptyList()
-    }
-
-    private fun readResourceText(path: String): String? {
-        val classLoaderStream = EngineGameClient::class.java.classLoader.getResourceAsStream(path)
-        if (classLoaderStream != null) {
-            return classLoaderStream.bufferedReader().use { it.readText() }
-        }
-
-        val filePath = Paths.get(path)
-        return if (Files.exists(filePath)) {
-            Files.readString(filePath)
-        } else {
-            null
-        }
-    }
-
-    internal fun getItemTemplate(templateId: String): ItemTemplate {
-        return itemTemplateCache[templateId]
-            ?: itemRepository.findTemplateById(templateId).getOrNull()?.also {
-                itemTemplateCache[templateId] = it
-            }
-            ?: createFallbackTemplate(templateId)
-    }
-
-    private fun createFallbackTemplate(templateId: String): ItemTemplate {
-        val displayName = templateId.split('_').joinToString(" ") { token ->
-            token.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
-        }.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
-
-        val fallback = ItemTemplate(
-            id = templateId,
-            name = displayName,
-            type = ItemType.MISC,
-            tags = emptyList(),
-            properties = mapOf("value" to "10"),
-            rarity = Rarity.COMMON,
-            description = "A $displayName."
-        )
-        itemTemplateCache[templateId] = fallback
-        return fallback
-    }
-
-    internal fun loadSpace(spaceId: String): SpacePropertiesComponent? = runBlocking {
-        spacePropertiesRepository.findByChunkId(spaceId)
-    }.getOrNull()?.also { loaded ->
-        worldState = worldState.updateSpace(spaceId, loaded)
-    }
-
-    internal fun loadEntity(entityId: String): Entity? = runBlocking {
-        spaceEntityRepository.findById(entityId)
-    }.getOrNull()
+    internal fun loadEntity(entityId: String): Entity? =
+        ClientSpaceContent.loadEntity(this, entityId)
 
     internal fun currentSpace(): SpacePropertiesComponent? =
-        loadSpace(worldState.player.currentRoomId)
+        ClientSpaceContent.currentSpace(this)
 
-    internal fun ensureSpaceContent(spaceId: String) {
-        val generator = worldGenerator ?: return
-        val currentSpace = worldState.getSpace(spaceId) ?: return
-        if (currentSpace.description.isNotEmpty() && !currentSpace.descriptionStale) return
-        val node = ensureGraphNodeLoaded(spaceId) ?: return
+    internal fun ensureSpaceContent(spaceId: String) =
+        ClientSpaceContent.ensureSpaceContent(this, spaceId)
 
-        val chunk = worldState.getChunk(node.chunkId) ?: runBlocking {
-            worldChunkRepository.findById(node.chunkId).getOrNull()
-        }?.also { loaded ->
-            worldState = worldState.addChunk(node.chunkId, loaded)
-        } ?: return
+    internal fun describeCurrentRoom() =
+        ClientSpaceContent.describeCurrentRoom(this)
 
-        val filledSpace = runBlocking {
-            generator.fillSpaceContent(currentSpace, node, chunk)
-        }.getOrElse {
-            emitEvent(
-                GameEvent.System(
-                    "Failed to describe $spaceId: ${it.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-            return
-        }
+    internal fun handlePlayerMovement(movementLabel: String, treasureExitMessage: String? = null) =
+        ClientSpaceContent.handlePlayerMovement(this, movementLabel, treasureExitMessage)
 
-        worldState = worldState.updateSpace(spaceId, filledSpace.withDescription(filledSpace.description))
-        spacePropertiesRepository.save(filledSpace, spaceId).onFailure {
-            emitEvent(
-                GameEvent.System(
-                    "Failed to persist description for $spaceId: ${it.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-        }
-    }
+    internal fun ensureGraphNodeLoaded(spaceId: String): GraphNodeComponent? =
+        ClientSpaceContent.ensureGraphNodeLoaded(this, spaceId)
 
-    private fun populateSpaceIfNeeded(spaceId: String) {
-        val space = worldState.getSpace(spaceId) ?: return
-        if (space.stateFlags["populated"] == true) return
-        if (space.entities.isNotEmpty()) return
-        if (space.isSafeZone) return
+    internal fun trackQuests(action: QuestAction) =
+        ClientQuestDeathSupport.trackQuests(this, action)
 
-        val node = ensureGraphNodeLoaded(spaceId) ?: return
-        val chunk = worldState.getChunk(node.chunkId) ?: worldChunkRepository.findById(node.chunkId).getOrElse {
-            emitEvent(
-                GameEvent.System(
-                    "Failed to load chunk ${node.chunkId}: ${it.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-            null
-        } ?: return
-
-        val populationResult = runBlocking {
-            spacePopulationService.populateSpace(spaceId, space, chunk)
-        }
-
-        populationResult.onSuccess { (populatedSpace, spawnedEntities) ->
-            val flaggedSpace = populatedSpace.copy(
-                stateFlags = populatedSpace.stateFlags + ("populated" to true)
-            )
-
-            var updatedWorld = worldState.updateSpace(spaceId, flaggedSpace)
-            spawnedEntities.forEach { entity ->
-                spaceEntityRepository.save(entity).onFailure {
-                    emitEvent(
-                        GameEvent.System(
-                            "Failed to persist entity ${entity.id}: ${it.message}",
-                            GameEvent.MessageLevel.WARNING
-                        )
-                    )
-                }
-                updatedWorld = updatedWorld.updateEntity(entity)
-            }
-
-            spacePropertiesRepository.save(flaggedSpace, spaceId).onFailure {
-                emitEvent(
-                    GameEvent.System(
-                        "Failed to persist space $spaceId: ${it.message}",
-                        GameEvent.MessageLevel.WARNING
-                    )
-                )
-            }
-
-            worldState = updatedWorld
-        }.onFailure { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Population failed for $spaceId: ${error.message}",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-        }
-    }
-
-    internal fun describeCurrentRoom() {
-        // V3-only: Use space-based description
-        val currentRoomId = worldState.player.currentRoomId
-        ensureSpaceContent(currentRoomId)
-        populateSpaceIfNeeded(currentRoomId)
-        val space = worldState.getCurrentSpace()
-
-        if (space == null) {
-            emitEvent(GameEvent.System("Error: No current space", GameEvent.MessageLevel.ERROR))
-            return
-        }
-
-        describeWorldV2Space(space, currentRoomId)
-    }
+    internal fun handlePlayerDeath() =
+        ClientQuestDeathSupport.handlePlayerDeath(this)
 
     /**
-     * Describes a World V2 procedurally generated space.
+     * Intent when-dispatch — stays on facade (residual override) so global FN_E
+     * is not applied to a new-file process() (MUD-034a optional router skipped).
      */
-    private fun describeWorldV2Space(space: com.jcraw.mud.core.SpacePropertiesComponent, spaceId: String) {
-        val narrativeText = buildString {
-            appendLine("\n${space.description}")
-            if (space.isTreasureRoom) {
-                appendTreasureRoomStatus(this, spaceId)
-            }
-
-            // V3: Show exits from graph, not from space.exits (LLM-generated exits are unreliable)
-            val graphNode = worldState.getGraphNode(spaceId)
-            if (graphNode != null) {
-                val visibleEdges = graphNode.getVisibleEdges(worldState.player.revealedExits)
-                if (visibleEdges.isNotEmpty()) {
-                    appendLine("\nExits:")
-                    visibleEdges.forEach { edge ->
-                        appendLine("  - ${edge.direction}")
-                    }
-                }
-            }
-
-            // Show entities
-            if (space.entities.isNotEmpty()) {
-                appendLine("\nYou see:")
-                space.entities.forEach { entityId ->
-                    val entity = loadEntity(entityId)
-                    val name = when (entity) {
-                        is Entity.NPC -> entity.name
-                        else -> SpaceEntitySupport.getStub(entityId).displayName
-                    }
-                    appendLine("  - $name")
-                }
-            }
-
-            // Show resources
-            if (space.resources.isNotEmpty()) {
-                appendLine("\nResources:")
-                space.resources.forEach { resource ->
-                    val desc = resource.description.ifBlank { resource.templateId }
-                    appendLine("  - $desc (quantity ${resource.quantity})")
-                }
-            }
-
-            // Show dropped items
-            if (space.itemsDropped.isNotEmpty()) {
-                appendLine("\nItems on the ground:")
-                space.itemsDropped.forEach { item ->
-                    appendLine("  - ${item.templateId} (x${item.quantity})")
-                }
-            }
-        }
-
-        emitEvent(GameEvent.Narrative(narrativeText))
-
-        // Update status
-        emitEvent(GameEvent.StatusUpdate(
-            hp = worldState.player.health,
-            maxHp = worldState.player.maxHealth,
-            location = worldState.getSpace(spaceId)?.name ?: spaceId
-        ))
-    }
-
-    private fun appendTreasureRoomStatus(builder: StringBuilder, spaceId: String) {
-        val treasureRoom = worldState.getTreasureRoom(spaceId)
-        builder.appendLine()
-        val takenItem = treasureRoom?.currentlyTakenItem
-        when {
-            treasureRoom == null -> builder.appendLine("(Treasure room data failed to load.)")
-            treasureRoom.hasBeenLooted -> builder.appendLine("Only dust-coated pedestals remain; the room has been looted.")
-            takenItem == null -> builder.appendLine("Five pedestals hum with magic. Claim one treasure via 'examine pedestals'—the others will seal away.")
-            else -> {
-                val itemName = itemRepository.findTemplateById(takenItem)
-                    .getOrNull()
-                    ?.name
-                    ?: takenItem
-                builder.appendLine("The other treasures are sealed while you hold the $itemName. Return it to swap your choice.")
-            }
-        }
-    }
-
-    internal fun handlePlayerMovement(movementLabel: String, treasureExitMessage: String? = null) {
-        emitEvent(GameEvent.Narrative("You move $movementLabel."))
-        treasureExitMessage?.let { emitEvent(GameEvent.Narrative(it)) }
-        val currentSpaceId = worldState.player.currentRoomId
-        ensureSpaceContent(currentSpaceId)
-        worldState.getCurrentGraphNode()?.let { maybeExpandFrontier(it) }
-        trackQuests(QuestAction.VisitedRoom(currentSpaceId))
-        describeCurrentRoom()
-    }
-
-    internal fun ensureGraphNodeLoaded(spaceId: String): GraphNodeComponent? {
-        worldState.getGraphNode(spaceId)?.let { return it }
-        val node = runBlocking { graphNodeRepository.findById(spaceId).getOrNull() } ?: return null
-        worldState = worldState.updateGraphNode(spaceId, node)
-        return node
-    }
-
-    private fun maybeExpandFrontier(currentNode: GraphNodeComponent) {
-        if (currentNode.type !is com.jcraw.mud.core.world.NodeType.Frontier) return
-        val chunkId = currentNode.chunkId
-        val chunk = worldState.getChunk(chunkId) ?: runBlocking {
-            worldChunkRepository.findById(chunkId).getOrNull()
-        }?.also { worldState = worldState.addChunk(chunkId, it) } ?: return
-
-        val hasGeneratedExit = currentNode.neighbors.any { edge ->
-            worldState.getGraphNode(edge.targetId) != null
-        }
-        if (hasGeneratedExit) return
-
-        val generator = worldGenerator ?: return
-        runBlocking {
-            val context = com.jcraw.mud.core.world.GenerationContext(
-                seed = (chunkId.hashCode().toLong() + System.currentTimeMillis()).toString(),
-                globalLore = chunk.lore,
-                parentChunk = chunk,
-                parentChunkId = chunk.parentId,
-                level = com.jcraw.mud.core.world.ChunkLevel.SUBZONE,
-                direction = "frontier_expansion"
-            )
-
-            val result = generator.generateChunk(context)
-            result.onSuccess { genResult ->
-                worldChunkRepository.save(genResult.chunk, genResult.chunkId)
-                worldState = worldState.addChunk(genResult.chunkId, genResult.chunk)
-
-                genResult.graphNodes.forEach { node ->
-                    graphNodeRepository.save(node)
-                    worldState = worldState.updateGraphNode(node.id, node)
-
-                    val spaceStub = generator.generateSpaceStub(node, genResult.chunk)
-                    spaceStub.onSuccess { space ->
-                        spacePropertiesRepository.save(space, node.id)
-                        worldState = worldState.updateSpace(node.id, space)
-                    }.onFailure {
-                        emitEvent(
-                            GameEvent.System(
-                                "Failed to seed space ${node.id}: ${it.message}",
-                                GameEvent.MessageLevel.WARNING
-                            )
-                        )
-                    }
-                }
-
-                val hubNode = genResult.graphNodes.find { it.type is com.jcraw.mud.core.world.NodeType.Hub }
-                if (hubNode != null) {
-                    val edgeDirection = "frontier passage"
-                    val newEdge = com.jcraw.mud.core.world.EdgeData(
-                        targetId = hubNode.id,
-                        direction = edgeDirection,
-                        hidden = false
-                    )
-
-                    val updatedFrontier = currentNode.copy(neighbors = currentNode.neighbors + newEdge)
-                    graphNodeRepository.update(updatedFrontier)
-                    worldState = worldState.updateGraphNode(updatedFrontier.id, updatedFrontier)
-                    emitEvent(GameEvent.System("A new horizon opens beyond the frontier.", GameEvent.MessageLevel.INFO))
-                }
-            }.onFailure { error ->
-                emitEvent(
-                    GameEvent.System(
-                        "Frontier generation failed: ${error.message}",
-                        GameEvent.MessageLevel.WARNING
-                    )
-                )
-            }
-        }
-    }
-
-    private fun buildExitsWithNames(node: GraphNodeComponent): Map<Direction, String> =
-        node.neighbors.mapNotNull { edge ->
-            val direction = Direction.fromString(edge.direction) ?: return@mapNotNull null
-            val targetName = worldState.getSpace(edge.targetId)?.name
-                ?: loadSpace(edge.targetId)?.name
-                ?: edge.targetId
-            direction to targetName
-        }.toMap()
-
     private suspend fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.Move -> ClientMovementHandlers.handleMove(this, intent.direction)
@@ -750,33 +414,7 @@ class EngineGameClient(
             is Intent.Trade -> ClientTradeHandlers.handleTrade(this, intent)
             is Intent.UseItem -> emitEvent(GameEvent.System("Advanced item use not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Inventory -> ClientItemHandlers.handleInventory(this)
-            is Intent.Take -> {
-                // Check if in treasure room and item matches a pedestal item
-                val spaceId = worldState.player.currentRoomId
-                val treasureRoom = worldState.getTreasureRoom(spaceId)
-                if (treasureRoom != null && !treasureRoom.hasBeenLooted) {
-                    // Check if target matches any pedestal item (by template ID or item name)
-                    val matchesPedestal = treasureRoom.pedestals.any { pedestal ->
-                        val template = itemTemplateCache[pedestal.itemTemplateId]
-                        val itemName = template?.name ?: ""
-                        val templateId = pedestal.itemTemplateId
-
-                        itemName.lowercase().contains(intent.target.lowercase()) ||
-                        templateId.lowercase().contains(intent.target.lowercase())
-                    }
-
-                    if (matchesPedestal) {
-                        // Route to treasure handler
-                        ClientTreasureRoomHandlers.handleTakeTreasure(this, intent.target)
-                    } else {
-                        // Regular floor item
-                        ClientItemHandlers.handleTake(this, intent.target)
-                    }
-                } else {
-                    // Not in treasure room or already looted - regular take
-                    ClientItemHandlers.handleTake(this, intent.target)
-                }
-            }
+            is Intent.Take -> dispatchTake(intent)
             is Intent.TakeAll -> ClientItemHandlers.handleTakeAll(this)
             is Intent.Drop -> ClientItemHandlers.handleDrop(this, intent.target)
             is Intent.Give -> ClientItemHandlers.handleGive(this, intent.itemTarget, intent.npcTarget)
@@ -810,395 +448,27 @@ class EngineGameClient(
             is Intent.LootCorpse -> emitEvent(GameEvent.System("Corpse looting not yet integrated", GameEvent.MessageLevel.WARNING))
             is Intent.Invalid -> emitEvent(GameEvent.System(intent.message, GameEvent.MessageLevel.WARNING))
         }
-
-        // Sync player max HP after every action (handles skill level-ups)
-        syncPlayerMaxHp()
+        ClientQuestDeathSupport.syncPlayerMaxHp(this)
     }
 
-    /**
-     * Synchronize player max HP with current skill levels.
-     * Updates max HP based on Vitality, Endurance, and Constitution skills.
-     * Preserves current HP percentage when max HP changes.
-     */
-    private suspend fun syncPlayerMaxHp() {
-        val player = worldState.player
-        val skillComponent = skillManager.getSkillComponent(player.id)
-        val correctMaxHp = player.calculateMaxHp(skillComponent)
-
-        if (player.maxHealth != correctMaxHp) {
-            val updatedPlayer = player.updateMaxHp(correctMaxHp)
-            worldState = worldState.updatePlayer(updatedPlayer)
-            emitEvent(GameEvent.System(
-                "Your maximum health has changed: ${player.maxHealth} → $correctMaxHp HP",
-                GameEvent.MessageLevel.INFO
-            ))
-        }
-    }
-
-    internal fun trackQuests(action: QuestAction) {
-        val (updatedPlayer, updatedWorld) = questTracker.updateQuestsAfterAction(
-            worldState.player,
-            worldState,
-            action
-        )
-
-        // Check if any quest objectives were completed
-        if (updatedPlayer != worldState.player) {
-            updatedPlayer.activeQuests.forEach { quest ->
-                val oldQuest = worldState.player.getQuest(quest.id)
-                if (oldQuest != null) {
-                    // Check for newly completed objectives
-                    quest.objectives.zip(oldQuest.objectives).forEach { (newObj, oldObj) ->
-                        if (newObj.isCompleted && !oldObj.isCompleted) {
-                            emitEvent(GameEvent.Quest("\n✓ Quest objective completed: ${newObj.description}"))
-                        }
-                    }
-
-                    // Check if quest just completed
-                    if (quest.status == QuestStatus.COMPLETED &&
-                        oldQuest.status == QuestStatus.ACTIVE) {
-                        emitEvent(GameEvent.Quest("\n🎉 Quest completed: ${quest.title}\nUse 'claim ${quest.id}' to collect your reward!"))
-                    }
-                }
+    private fun dispatchTake(intent: Intent.Take) {
+        val spaceId = worldState.player.currentRoomId
+        val treasureRoom = worldState.getTreasureRoom(spaceId)
+        if (treasureRoom != null && !treasureRoom.hasBeenLooted) {
+            val matchesPedestal = treasureRoom.pedestals.any { pedestal ->
+                val template = itemTemplateCache[pedestal.itemTemplateId]
+                val itemName = template?.name ?: ""
+                val templateId = pedestal.itemTemplateId
+                itemName.lowercase().contains(intent.target.lowercase()) ||
+                    templateId.lowercase().contains(intent.target.lowercase())
             }
-
-            // Update both player and world state (world may have NPC disposition changes)
-            worldState = updatedWorld.updatePlayer(updatedPlayer)
-        }
-    }
-
-    internal fun handlePlayerDeath() {
-        if (respawnState != null) return
-
-        val pending = playerRespawnService.createPendingRespawn(
-            worldState = worldState,
-            playerId = worldState.player.id,
-            spawnSpaceIdOverride = worldState.gameProperties["starting_space"]
-        ).getOrElse { error ->
-            emitEvent(
-                GameEvent.System(
-                    "Failed to process permadeath: ${error.message}",
-                    GameEvent.MessageLevel.ERROR
-                )
-            )
-            running = false
-            return
-        }
-
-        respawnState = RespawnState.AwaitingConfirmation(pending)
-        emitEvent(GameEvent.Combat("\n${pending.deathResult.narration}"))
-        emitEvent(GameEvent.System("Continue as new character? (Y/N)", GameEvent.MessageLevel.INFO))
-    }
-
-    private fun handleRespawnInput(rawInput: String) {
-        val state = respawnState ?: return
-        val input = rawInput.trim()
-
-        when (state) {
-            is RespawnState.AwaitingConfirmation -> {
-                when (input.lowercase()) {
-                    "y", "yes" -> {
-                        respawnState = RespawnState.AwaitingName(state.pending)
-                        emitEvent(GameEvent.System("Name your new character:", GameEvent.MessageLevel.INFO))
-                    }
-                    "n", "no" -> {
-                        emitEvent(GameEvent.System("You accept your fate. Game over.", GameEvent.MessageLevel.INFO))
-                        respawnState = null
-                        running = false
-                    }
-                    else -> emitEvent(GameEvent.System("Please answer Y or N.", GameEvent.MessageLevel.WARNING))
-                }
-            }
-            is RespawnState.AwaitingName -> {
-                if (input.isBlank()) {
-                    emitEvent(GameEvent.System("Name cannot be blank.", GameEvent.MessageLevel.WARNING))
-                    return
-                }
-
-                val outcome = playerRespawnService.completeRespawn(worldState, state.pending, input)
-                outcome.onFailure { error ->
-                    emitEvent(GameEvent.System("Failed to respawn: ${error.message}", GameEvent.MessageLevel.ERROR))
-                }.onSuccess { result ->
-                    worldState = result.worldState
-                    respawnState = null
-                    lastConversationNpcId = null
-                    emitEvent(GameEvent.System(result.respawnMessage))
-                    emitEvent(
-                        GameEvent.StatusUpdate(
-                            hp = worldState.player.health,
-                            maxHp = worldState.player.maxHealth,
-                            location = worldState.player.currentRoomId
-                        )
-                    )
-                    describeCurrentRoom()
-                }
-            }
-        }
-    }
-
-    /**
-     * Process NPC turns (Combat V2)
-     * Handles NPC actions whose turn has come based on action timer
-     */
-    private fun processNPCTurns() {
-        println("[PROCESS NPC DEBUG] Called processNPCTurns(), turnQueue=${turnQueue != null}, monsterAIHandler=${monsterAIHandler != null}")
-        val queue = turnQueue ?: return
-        val aiHandler = monsterAIHandler ?: return
-
-        // Process all NPCs whose turn has come
-        while (true) {
-            val currentTime = worldState.gameTime
-            val nextEntry = queue.peek()
-
-            println("[PROCESS NPC DEBUG] currentTime=$currentTime, queueSize=${queue.size()}, nextEntry=$nextEntry")
-
-            if (nextEntry == null) break
-
-            // Check if it's time for this entity to act
-            if (nextEntry.second > currentTime) {
-                println("[PROCESS NPC DEBUG] NPC not ready yet: timerEnd=${nextEntry.second} > currentTime=$currentTime")
-                break // No more entities ready to act
-            }
-
-            // Dequeue the entity
-            val entityId = queue.dequeue(currentTime) ?: break
-
-            val spaceId = worldState.findSpaceContainingEntity(entityId)
-            val npc = worldState.getEntity(entityId) as? com.jcraw.mud.core.Entity.NPC
-
-            if (npc == null || spaceId == null) {
-                // NPC not found (died or fled), skip
-                continue
-            }
-
-            val playerSpaceId = worldState.player.currentRoomId
-            if (spaceId != playerSpaceId) {
-                // NPC not in player's room, re-enqueue for later
-                val skillComponent = npc.components[com.jcraw.mud.core.ComponentType.SKILL] as? com.jcraw.mud.core.SkillComponent
-                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
-                val cost = com.jcraw.mud.reasoning.combat.SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
-                queue.enqueue(entityId, currentTime + cost)
-                continue
-            }
-
-            // Get AI decision
-            val decision = runBlocking {
-                aiHandler.decideAction(entityId, worldState)
-            }
-
-            // Execute the decision
-            executeNPCDecision(npc, decision)
-
-            // Re-enqueue the NPC for next turn (if not dead)
-            val combatComponent = npc.components[com.jcraw.mud.core.ComponentType.COMBAT] as? com.jcraw.mud.core.CombatComponent
-            if (combatComponent == null || !combatComponent.isDead()) {
-                val skillComponent = npc.components[com.jcraw.mud.core.ComponentType.SKILL] as? com.jcraw.mud.core.SkillComponent
-                val speedLevel = skillComponent?.getEffectiveLevel("Speed") ?: 0
-                val cost = com.jcraw.mud.reasoning.combat.SpeedCalculator.calculateActionCost("melee_attack", speedLevel)
-                queue.enqueue(entityId, currentTime + cost)
-            }
-        }
-    }
-
-    /**
-     * Execute an NPC's AI decision
-     */
-    private fun executeNPCDecision(npc: com.jcraw.mud.core.Entity.NPC, decision: com.jcraw.mud.reasoning.combat.AIDecision) {
-        when (decision) {
-            is com.jcraw.mud.reasoning.combat.AIDecision.Attack -> {
-                emitEvent(GameEvent.Combat("\n${npc.name} attacks you!"))
-                executeNPCAttack(npc)
-            }
-            is com.jcraw.mud.reasoning.combat.AIDecision.Defend -> {
-                emitEvent(GameEvent.Combat("\n${npc.name} takes a defensive stance."))
-            }
-            is com.jcraw.mud.reasoning.combat.AIDecision.UseItem -> {
-                emitEvent(GameEvent.Combat("\n${npc.name} attempts to use an item."))
-            }
-            is com.jcraw.mud.reasoning.combat.AIDecision.Flee -> {
-                emitEvent(GameEvent.Combat("\n${npc.name} attempts to flee!"))
-            }
-            is com.jcraw.mud.reasoning.combat.AIDecision.Wait -> {
-                emitEvent(GameEvent.Combat("\n${npc.name} waits, watching carefully."))
-            }
-            is com.jcraw.mud.reasoning.combat.AIDecision.Error -> {
-                // Silent error, NPC does nothing
-            }
-        }
-    }
-
-    /**
-     * Execute NPC attack on player
-     */
-    private fun executeNPCAttack(npc: com.jcraw.mud.core.Entity.NPC) {
-        val resolver = attackResolver
-        if (resolver != null) {
-            val result = runBlocking {
-                resolver.resolveAttack(
-                    attackerId = npc.id,
-                    defenderId = worldState.player.id,
-                    action = "${npc.name} attacks",
-                    worldState = worldState,
-                    skillManager = skillManager
-                )
-            }
-
-            when (result) {
-                is com.jcraw.mud.reasoning.combat.AttackResult.Hit -> {
-                    // Apply damage to player
-                    val newPlayer = worldState.player.takeDamage(result.damage)
-                    worldState = worldState.updatePlayer(newPlayer)
-
-                    // Generate narrative with LLM flavor text + damage line
-                    val flavorText = if (llmClient != null) {
-                        runBlocking {
-                            generateNPCAttackNarration(npc.name, result.damage, newPlayer.isDead())
-                        }
-                    } else {
-                        "${npc.name} strikes with deadly precision!"
-                    }
-                    val damageLine = "${npc.name} hits you for ${result.damage} damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"
-                    emitEvent(GameEvent.Combat("$flavorText\n$damageLine"))
-
-                    // Process skill progression for defender (player) - they failed to defend
-                    processNPCAttackSkillProgression(result, defenderSuccess = false)
-
-                    // Check if player died
-                    if (newPlayer.isDead()) {
-                        handlePlayerDeath()
-                    }
-                }
-                is com.jcraw.mud.reasoning.combat.AttackResult.Miss -> {
-                    val narrative = if (result.wasDodged) {
-                        "You dodge ${npc.name}'s attack!"
-                    } else {
-                        "${npc.name} misses you!"
-                    }
-                    emitEvent(GameEvent.Combat(narrative))
-
-                    // Process skill progression for defender (player) - they succeeded in defending!
-                    processNPCAttackSkillProgression(result, defenderSuccess = true)
-                }
-                is com.jcraw.mud.reasoning.combat.AttackResult.Failure -> {
-                    // Silent failure, fall back to simple damage
-                    val damage = (1..6).random()
-                    val newPlayer = worldState.player.takeDamage(damage)
-                    worldState = worldState.updatePlayer(newPlayer)
-                    emitEvent(GameEvent.Combat("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"))
-
-                    if (newPlayer.isDead()) {
-                        handlePlayerDeath()
-                    }
-                }
+            if (matchesPedestal) {
+                ClientTreasureRoomHandlers.handleTakeTreasure(this, intent.target)
+            } else {
+                ClientItemHandlers.handleTake(this, intent.target)
             }
         } else {
-            // Fallback to simple damage
-            val damage = (1..6).random()
-            val newPlayer = worldState.player.takeDamage(damage)
-            worldState = worldState.updatePlayer(newPlayer)
-            emitEvent(GameEvent.Combat("${npc.name} hits you for $damage damage! (HP: ${newPlayer.health}/${newPlayer.maxHealth})"))
-
-            if (newPlayer.isDead()) {
-                handlePlayerDeath()
-            }
+            ClientItemHandlers.handleTake(this, intent.target)
         }
-    }
-
-    /**
-     * Process skill progression when NPC attacks player
-     * Similar to MudGameEngine.processNPCAttackSkillProgression
-     */
-    private fun processNPCAttackSkillProgression(
-        attackResult: com.jcraw.mud.reasoning.combat.AttackResult,
-        defenderSuccess: Boolean
-    ) {
-        val playerId = worldState.player.id
-        val skillMgr = skillManager ?: return
-
-        // Process defender skills (PLAYER) - grant XP for defensive skills used
-        attackResult.defenderSkillsUsed.forEach { skillName ->
-            val result = skillMgr.attemptSkillProgress(
-                entityId = playerId,
-                skillName = skillName,
-                baseXp = 10L,
-                success = defenderSuccess
-            )
-
-            // Display skill events (unlocks, level-ups) to player
-            result.onSuccess { events ->
-                events.forEach { event ->
-                    when (event) {
-                        is com.jcraw.mud.core.SkillEvent.SkillUnlocked -> {
-                            emitEvent(GameEvent.System("🎉 Unlocked $skillName (lucky progression)!", GameEvent.MessageLevel.INFO))
-                        }
-                        is com.jcraw.mud.core.SkillEvent.LevelUp -> {
-                            val method = if (event.oldLevel == 0) "(lucky progression)" else "(lucky level-up)"
-                            emitEvent(GameEvent.System("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel} $method", GameEvent.MessageLevel.INFO))
-                            if (event.isAtPerkMilestone) {
-                                emitEvent(GameEvent.System("⚡ Milestone reached! Use 'choose perk for $skillName' to select a perk.", GameEvent.MessageLevel.INFO))
-                            }
-                        }
-                        is com.jcraw.mud.core.SkillEvent.XpGained -> {
-                            // Silent - reduces spam, player can check 'skills' command for XP
-                        }
-                        is com.jcraw.mud.core.SkillEvent.PerkUnlocked -> {
-                            emitEvent(GameEvent.System("⚡ Applied perk: ${event.perk.name}", GameEvent.MessageLevel.INFO))
-                        }
-                        is com.jcraw.mud.core.SkillEvent.SkillCheckAttempt -> {
-                            // Not relevant for combat skill progression
-                        }
-                    }
-                }
-            }
-        }
-
-        // Note: We don't process NPC attacker skills unless enableNPCLuckyProgression is true
-        // This matches the console behavior
-    }
-
-    /**
-     * Determine the base action cost for an intent type (Combat V2)
-     */
-    private fun getBaseCostForIntent(intent: Intent): Int {
-        return when (intent) {
-            is Intent.Attack -> com.jcraw.mud.reasoning.combat.ActionCosts.MELEE_ATTACK
-            is Intent.Move, is Intent.Travel -> com.jcraw.mud.reasoning.combat.ActionCosts.MOVE
-            is Intent.Use, is Intent.UseItem -> com.jcraw.mud.reasoning.combat.ActionCosts.ITEM_USE
-            is Intent.Talk, is Intent.Say, is Intent.Persuade, is Intent.Intimidate -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
-            is Intent.Check -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
-            is Intent.Pickpocket -> com.jcraw.mud.reasoning.combat.ActionCosts.HIDE
-            // Most other actions are relatively quick
-            else -> com.jcraw.mud.reasoning.combat.ActionCosts.SOCIAL
-        }
-    }
-
-    /**
-     * Generate LLM narration for NPC attack
-     */
-    private suspend fun generateNPCAttackNarration(npcName: String, damage: Int, isDeath: Boolean): String {
-        val client = llmClient ?: return "$npcName strikes with deadly force!"
-
-        val deathContext = if (isDeath) " The blow is fatal." else ""
-        val systemPrompt = "You are a vivid combat narrator for a fantasy game."
-        val userContext = """Generate a single short sentence (10-15 words) describing how $npcName attacks the player, dealing $damage damage.$deathContext
-Be vivid and visceral, from the NPC's perspective. Just the action description, no damage numbers."""
-
-        return try {
-            val response = client.chatCompletion(
-                modelId = "gpt-4o-mini",
-                systemPrompt = systemPrompt,
-                userContext = userContext,
-                temperature = 0.8
-            )
-            val text = response.choices.firstOrNull()?.message?.content ?: "$npcName strikes with deadly force!"
-            text.trim().removeSuffix(".")
-        } catch (e: Exception) {
-            "$npcName strikes with brutal force!"
-        }
-    }
-
-    private sealed interface RespawnState {
-        data class AwaitingConfirmation(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
-        data class AwaitingName(val pending: PlayerRespawnService.PendingRespawn) : RespawnState
     }
 }

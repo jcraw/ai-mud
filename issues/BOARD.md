@@ -64,8 +64,8 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 
 #### Q3 — split gods (umbrella done; children open)
 - _(MUD-034 done — ranked list + 14 children 034a–n; tickets-only)_
-- **MUD-034a** — client facade split (`med`) · **in_progress** · grok · plan APPROVED · `tmp/workers/MUD-034a` · depends 034/031 · `EngineGameClient` + `MainGameScreen`
-- **MUD-034b** — graph generator split (`med`) · open · depends 034/031 · `GraphGenerator`
+- _(MUD-034a done — client facade pure-move extracts; residual override lowered)_
+- **MUD-034b** — graph generator split (`med`) · **in_progress** · grok · plan APPROVED · `tmp/workers/MUD-034b` · depends 034/031 · `GraphGenerator`
 - **MUD-034c** — intent recognizer split (`med`) · open · depends 034/031 · `IntentRecognizer` + `Intent`
 - **MUD-034d** — app runtime split (`med`) · open · depends 034/031 · `MudGameEngine` / `GameServer` / `MultiUserGame`
 - **MUD-034e** — skill/quest handlers parity (`med`) · open · depends 034/031 · app+client
@@ -94,7 +94,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-034a** — client facade split (`med`) · in_progress / implementing · plan APPROVED by Astra · worker `tmp/workers/MUD-034a/` · fresh IMPL · hosts EngineGameClient + MainGameScreen
+- **MUD-034b** — graph generator layout/MST split (`med`) · in_progress / implementing · plan APPROVED by Astra · worker `tmp/workers/MUD-034b/` · fresh IMPL · host GraphGenerator
 
 ## Blocked (awaiting Jason)
 
@@ -102,6 +102,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-034a** — client facade split (`med`) · done · pure-move extracts: UI `StatusBar`/`GameLogWindow`/`GameInputField` + `ClientItemTemplateCache`/`ClientSpaceContent`/`ClientSpaceDescribe`/`ClientFrontierExpansion`/`ClientQuestDeathSupport`/`ClientNpcCombat`/`ClientNpcAttack` · hosts **14209→6282** / **3033→590** · overrides lower+retarget `MUD-034a` only (no raise; no Added override) · intent router stayed on facade (global FN_E) · TICKET_RE allows `MUD-034a` · Compose `FunctionNaming` ignoreAnnotated · `--core` PASS · closeout `tmp/workers/MUD-034a/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md`
 - **MUD-034** — god-file split umbrella (`med`) · done · ranked 55 override hosts → `tmp/workers/MUD-034/RANKED_GODS.md` + full JSON · 14 children **034a–n** filed (letter suffix; 035–038 free) · tickets-only close (no product god extract) · no override raise · BOARD Q3 lists children · TOKEN_BUDGET_KT pointer · `--core` PASS · closeout `tmp/workers/MUD-034/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034-god-file-split-program.md`
 - **MUD-033** — plan/brief token preflight (`med`) · done · `tools/quality/check_builder_preflight.py` D1/D2 (plan 2k/3.5k, brief 1.2k/2k, ceil chars/4) · exit 0/1/2 + `--allow-warn` · optional `./tools/verify_mud.sh --preflight <path>` (warn→pass+note; fail→verify fail; not on default lanes) · `docs/BUILDER_PREFLIGHT.md` + ORCH before APPROVED + DESIGN D1/D2 live · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-033/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md`
 - **MUD-032** — no live LLM in unit tests (`med`) · done · static `rg` gate `tools/quality/check_no_live_llm_unit.sh` · forbid `OpenAIClient(` / `OPENAI_API_KEY` / `openai.api.key` under `*/src/test/**` · hard-exclude `testbot/**` · empty allowlist · `no_live_llm_unit` hard on default/fast/core/full/pitest · skip quarantine · findings `LIVE_LLM_*` · `docs/NO_LIVE_LLM_UNIT.md` + AGENTS + DESIGN B2 + DOD_SUMMARY · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-032/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-032-no-live-llm-unit-tests.md`

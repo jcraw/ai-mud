@@ -12,6 +12,11 @@ config:
   warningsAsErrors: false
 
 # Keep default rule set active. Optional light overrides only if baseline is unusable.
+# Compose uses PascalCase for @Composable functions (MUD-034a UI extracts).
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']
 # style:
 #   MaxLineLength:
 #     active: true
