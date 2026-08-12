@@ -1,7 +1,7 @@
 # ai-mud overnight / Wave Q handoff
 
 **Updated:** 2026-08-12 08:53 MST (drain · MUD-034l PUSHED · MUD-034m plan APPROVED · IMPL launching)
-**Live:** **MUD-034m** implementing (detached IMPL · launching · `bypassPermissions`)
+**Live:** **MUD-034m** implementing (detached IMPL · pid 1225281 · bypassPermissions)
 **Plan review:** _(empty — 034m APPROVED by Astra 2026-08-12 08:53 MST)_
 **Agent queue:** Wave Q — 026–034l done; **034m implementing**; next 034n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later

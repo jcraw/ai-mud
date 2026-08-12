@@ -17,7 +17,7 @@ depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md
 worker_out_dir: tmp/workers/MUD-034m
-worker_pid: ""
+worker_pid: "1225281"
 parent: MUD-034
 ---
 
