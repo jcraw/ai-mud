@@ -259,7 +259,7 @@
 
 ### MUD-034i — movement handlers pure-move split (+ MUD-034j IMPL launch)
 - **When:** 2026-08-12 07:35 MST
-- **SHA:** _(fill after push)_
+- **SHA:** `76a15b68cb9b455e709439d346d93740211eb0c3`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** app+client movement handler pure-move extracts + thin hosts, token_budget both host overrides removed, plan MUD-034i, board/ticket/handoff, 034j APPROVED+IMPL launch
