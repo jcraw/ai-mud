@@ -185,37 +185,6 @@
         }
       }
     },
-    "app/src/main/kotlin/com/jcraw/app/handlers/SkillQuestHandlers.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 9827
-        },
-        "function": {
-          "warn": 200,
-          "error": 2218
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 176
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 29
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 86
-        }
-      }
-    },
     "app/src/main/kotlin/com/jcraw/app/handlers/SocialHandlers.kt": {
       "ticket": "MUD-034",
       "tokens": {
@@ -430,37 +399,6 @@
         "cognitive": {
           "warn": 15,
           "error": 34
-        }
-      }
-    },
-    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientSkillQuestHandlers.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 9517
-        },
-        "function": {
-          "warn": 200,
-          "error": 2394
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 180
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 25
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 81
         }
       }
     },

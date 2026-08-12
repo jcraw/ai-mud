@@ -1,15 +1,16 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 04:54 MST (drain tick · MUD-034d done+push · MUD-034e APPROVED → fresh IMPL)
-**Live:** **MUD-034e** implementing (detached IMPL · pid 1149155 · `bypassPermissions`)
-**Plan review:** _(empty)_
-**Agent queue:** Wave Q — 026–034d done; **034e implementing**; next 034f–n then Q4 035…038
+**Updated:** 2026-08-12 05:13 MST (drain tick · MUD-034e done+push · MUD-034f PLAN launching)
+**Live:** **MUD-034f** planning (detached PLAN · launching)
+**Plan review:** _(empty — awaiting 034f plan)_
+**Agent queue:** Wave Q — 026–034e done; **034f planning**; next 034g–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
 
-**MUD-034e:** APPROVED by Astra 2026-08-12 04:54 MST · fresh IMPL · skill/quest handlers parity pure-move split · worker `tmp/workers/MUD-034e` · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md`
+**MUD-034e closeout:** `tmp/workers/MUD-034e/CLOSEOUT.md` · hosts 9827→539 / 9517→658 · both host overrides removed · client Craft still stubbed · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md` · **PUSHED** _(SHA fill after push)_
+**MUD-034f:** PLAN launching · testbot god split · worker `tmp/workers/MUD-034f` · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md`
 **MUD-034d closeout:** `tmp/workers/MUD-034d/CLOSEOUT.md` · hosts 10257→4635 / 10127→2940 / 2730→1704 · MultiUserGame override removed · residual retarget MUD-034d · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md` · **PUSHED** `b6cce15` (bookkeep `d97f108`)
 **MUD-034c closeout:** `tmp/workers/MUD-034c/CLOSEOUT.md` · IntentRecognizer 10293→533 · override removed · Intent residual retarget MUD-034c · 17 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md` · **PUSHED** `bcbd1da`
 **MUD-034b closeout:** `tmp/workers/MUD-034b/CLOSEOUT.md` · GraphGenerator 11932→561 · override removed · 8 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md`
