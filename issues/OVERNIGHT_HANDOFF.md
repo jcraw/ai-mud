@@ -1,15 +1,17 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 03:53 MST (MUD-034b done+push · MUD-034c APPROVED → fresh IMPL)
-**Live:** **MUD-034c** implementing (fresh IMPL)
-**Plan review:** _(empty)_
-**Agent queue:** Wave Q — 026–034b done; **034c implementing**; next 034d–n then Q4 035…038
+**Updated:** 2026-08-12 04:13 MST (MUD-034c done+push · MUD-034d PLAN launching)
+**Live:** **MUD-034d** planning
+**Plan review:** _(empty — awaiting 034d plan)_
+**Agent queue:** Wave Q — 026–034c done; **034d planning**; next 034e–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
 
-**MUD-034c:** APPROVED by Astra 2026-08-12 03:53 MST · fresh IMPL · IntentRecognizer/Intent domain pure-move split
+**MUD-034d:** PLAN launching 2026-08-12 04:13 MST · app runtime MudGameEngine/GameServer/MultiUserGame pure-move split
+**MUD-034c closeout:** `tmp/workers/MUD-034c/CLOSEOUT.md` · IntentRecognizer 10293→533 · override removed · Intent residual retarget MUD-034c · 17 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md` · **PUSHED** `bcbd1da`
+**MUD-034c (prior live note superseded):** APPROVED by Astra 2026-08-12 03:53 MST · fresh IMPL · IntentRecognizer/Intent domain pure-move split
 **MUD-034b closeout:** `tmp/workers/MUD-034b/CLOSEOUT.md` · GraphGenerator 11932→561 · override removed · 8 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md`
 **MUD-034a closeout:** `tmp/workers/MUD-034a/CLOSEOUT.md` · EngineGameClient 14209→6282 · MainGameScreen 3033→590 · 10 extracts · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034a-client-facade-split.md`
 **MUD-034 closeout:** `tmp/workers/MUD-034/CLOSEOUT.md` · RANKED_GODS 55 hosts · 14 children **034a–n** · tickets-only · no product god extract · no override raise · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034-god-file-split-program.md`

@@ -194,3 +194,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034c fresh IMPL launched same drain tick after push
 
+### MUD-034c — IntentRecognizer pure-move domain split
+- **When:** 2026-08-12 04:13 MST
+- **SHA:** `bcbd1da4c84d2805d262c0288fcf879401f66855`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** perception IntentRecognizer extracts (17 new kt) + thin host, token_budget IntentRecognizer removed + Intent residual retarget MUD-034c, plan already on tree, board/ticket done
+- **Excluded:** tmp/, secrets, __pycache__, testbot/, app/client product beyond this family
+- **Note:** next drain = MUD-034d PLAN (app runtime MudGameEngine/GameServer/MultiUserGame)
+
