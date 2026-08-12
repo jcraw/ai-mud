@@ -178,7 +178,7 @@
 
 ### MUD-034a — client facade pure-move split (+ MUD-034b APPROVED)
 - **When:** 2026-08-12 03:33 MST
-- **SHA:** 
+- **SHA:** `33e23d6417b2e88508252b139932da1f2dccb5f1`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** EngineGameClient/MainGameScreen extracts (10 new client kt), token_budget lower/retarget MUD-034a, detekt Compose FunctionNaming ignoreAnnotated, TICKET_RE letter suffix, plan MUD-034a, plan MUD-034b APPROVED, board/handoff
