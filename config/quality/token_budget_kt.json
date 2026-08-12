@@ -123,37 +123,6 @@
         }
       }
     },
-    "app/src/main/kotlin/com/jcraw/app/handlers/MovementHandlers.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 5770
-        },
-        "function": {
-          "warn": 200,
-          "error": 819
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 90
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 31
-        }
-      }
-    },
     "app/src/main/kotlin/com/jcraw/app/handlers/SocialHandlers.kt": {
       "ticket": "MUD-034",
       "tokens": {
@@ -306,37 +275,6 @@
         "cognitive": {
           "warn": 15,
           "error": 79
-        }
-      }
-    },
-    "client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientMovementHandlers.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 4738
-        },
-        "function": {
-          "warn": 200,
-          "error": 924
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 90
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 34
         }
       }
     },

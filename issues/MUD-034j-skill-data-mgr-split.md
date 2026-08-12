@@ -2,21 +2,22 @@
 id: MUD-034j
 area: engine
 title: Split skill definitions/manager (Wave Q3)
-status: open
+status: in_progress
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
-assignee: ""
-worker: ""
-phase: backlog
+assignee: "grok"
+worker: "grok"
+phase: implementing
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
-worker_out_dir: ""
+plan: plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md
+worker_out_dir: tmp/workers/MUD-034j
+worker_pid: ""
 parent: MUD-034
 ---
 
@@ -61,3 +62,11 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
+
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` (mirror `tmp/workers/MUD-034j/PLAN.md`)
+- Phase: **implementing** — **APPROVED by Astra 2026-08-12 07:35 MST** → fresh impl session
+- Preflight: PLAN tok=1721 clear (W2000/F3500)
+- Approach: pure-move skill data/mgr (PerkDefinitions category maps + SkillDefinitions catalogs/StarterSkillSets + SkillManager XP/unlock/check fragments); thin public facades; stable API names; remeasure lower/remove/retarget overrides to MUD-034j only; no app/client handlers; no features; `--core` green
+- next: **APPROVED by Astra 2026-08-12 07:35 MST** → fresh IMPL live (do not resume plan session)

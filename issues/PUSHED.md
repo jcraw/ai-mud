@@ -257,3 +257,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034i fresh IMPL launching same drain tick after push
 
+### MUD-034i — movement handlers pure-move split (+ MUD-034j IMPL launch)
+- **When:** 2026-08-12 07:35 MST
+- **SHA:** _(fill after push)_
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** app+client movement handler pure-move extracts + thin hosts, token_budget both host overrides removed, plan MUD-034i, board/ticket/handoff, 034j APPROVED+IMPL launch
+- **Excluded:** tmp/, secrets, __pycache__, testbot/
+- **Note:** MUD-034j fresh IMPL launching same drain tick after push
+

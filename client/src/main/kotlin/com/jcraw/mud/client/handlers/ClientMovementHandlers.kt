@@ -1,451 +1,49 @@
+@file:Suppress(
+    "ReturnCount",
+    "MagicNumber",
+    "MaxLineLength",
+    "TooManyFunctions",
+    "LongMethod",
+    "ComplexCondition",
+    "CyclomaticComplexMethod",
+    "NestedBlockDepth",
+    "LongParameterList"
+)
+
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
-import com.jcraw.mud.core.*
-import com.jcraw.mud.reasoning.QuestAction
-import com.jcraw.mud.reasoning.treasureroom.TreasureRoomExitLogic
-import com.jcraw.mud.reasoning.combat.FleeResolver
-import com.jcraw.mud.reasoning.combat.FleeResult
-import com.jcraw.mud.reasoning.combat.AttackResult
-import kotlinx.coroutines.runBlocking
+import com.jcraw.mud.core.Direction
+import com.jcraw.mud.core.GameEvent
 
 /**
- * Handles movement, exploration, and searching in the GUI client.
+ * Thin facade for client movement handlers.
+ * Public handle* names preserved for EngineGameClient dispatch; bodies live in cluster extracts.
+ * Interact stub stays here (intentional app/client parity gap — app Interact is SkillQuest).
  */
 object ClientMovementHandlers {
 
-    fun handleMove(game: EngineGameClient, direction: Direction) {
-        // Check for hostile entities in current room
-        val currentSpaceId = game.worldState.player.currentRoomId
-        val hostiles = getHostileEntitiesInRoom(game, currentSpaceId)
+    fun handleMove(game: EngineGameClient, direction: Direction) =
+        ClientMovementMoveHandlers.handleMove(game, direction)
 
-        if (hostiles.isNotEmpty()) {
-            // Attempt to flee instead of free movement
-            handleFlee(game, direction, hostiles)
-            return
-        }
+    fun handleLook(game: EngineGameClient, target: String?) =
+        ClientMovementLookHandlers.handleLook(game, target)
 
-        // No hostiles - normal movement
-        performMove(game, direction)
-    }
-
-    private fun performMove(game: EngineGameClient, direction: Direction) {
-        val previousSpaceId = game.worldState.player.currentRoomId
-        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
-        val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
-        val newState = game.worldState.movePlayerV3(direction, playerSkills)
-        if (newState == null) {
-            game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-        game.worldState = newState
-        // Treasure room exit finalization disabled - players can return and swap anytime
-        // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-        game.handlePlayerMovement(direction.displayName, null)
-    }
-
-    private fun handleFlee(game: EngineGameClient, direction: Direction, hostiles: List<String>) = runBlocking {
-        game.emitEvent(GameEvent.Combat("⚠️  Hostile creatures block your path! You attempt to flee..."))
-
-        // Create FleeResolver
-        val attackResolver = game.attackResolver
-        if (attackResolver == null) {
-            game.emitEvent(GameEvent.System("Flee system unavailable. Allowing movement.", GameEvent.MessageLevel.WARNING))
-            performMove(game, direction)
-            return@runBlocking
-        }
-
-        val fleeResolver = FleeResolver(attackResolver)
-
-        // Resolve flee attempt
-        val result = fleeResolver.resolveFlee(
-            fleeingEntityId = game.worldState.player.id,
-            pursuers = hostiles,
-            targetDirection = direction,
-            worldState = game.worldState,
-            skillManager = game.skillManager
-        )
-
-        // Process skill progression
-        processFleeSkillProgression(game, result)
-
-        // Handle result
-        when (result) {
-            is FleeResult.Success -> {
-                game.emitEvent(GameEvent.Combat("✅ Flee SUCCESS! You escape to safety."))
-                performMove(game, direction)
-            }
-            is FleeResult.Failure -> {
-                game.emitEvent(GameEvent.Combat("❌ Flee FAILED! You are intercepted!"))
-
-                // Narrate free attacks
-                result.freeAttacks.forEach { attack ->
-                    when (attack) {
-                        is AttackResult.Hit -> {
-                            val attacker = game.worldState.getEntity(attack.attackerId)
-                            game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} strikes you for ${attack.damage} damage!", attack.damage))
-
-                            // Update player health
-                            game.worldState = game.worldState.updatePlayer(
-                                game.worldState.player.copy(
-                                    health = game.worldState.player.health - attack.damage
-                                )
-                            )
-                        }
-                        is AttackResult.Miss -> {
-                            val attacker = game.worldState.getEntity(attack.attackerId)
-                            game.emitEvent(GameEvent.Combat("The ${attacker?.name ?: "enemy"} swings at you but misses!"))
-                        }
-                        else -> {}
-                    }
-                }
-
-                // Check for player death
-                if (game.worldState.player.health <= 0) {
-                    game.emitEvent(GameEvent.Combat("💀 You have been slain!"))
-                    // TODO: Trigger player death/respawn logic
-                }
-            }
-            is FleeResult.Error -> {
-                game.emitEvent(GameEvent.System("Flee attempt failed: ${result.reason}", GameEvent.MessageLevel.ERROR))
-                game.emitEvent(GameEvent.System("Allowing movement as fallback.", GameEvent.MessageLevel.INFO))
-                performMove(game, direction)
-            }
-        }
-    }
-
-    private fun getHostileEntitiesInRoom(game: EngineGameClient, spaceId: String): List<String> {
-        val turnQueue = game.turnQueue ?: return emptyList()
-        val entitiesInRoom = game.worldState.getEntitiesInSpace(spaceId)
-
-        // Any NPC in the turn queue is considered actively engaged in combat
-        return entitiesInRoom
-            .filterIsInstance<Entity.NPC>()
-            .filter { npc -> turnQueue.contains(npc.id) }
-            .map { it.id }
-    }
-
-    private fun processFleeSkillProgression(game: EngineGameClient, result: FleeResult) {
-        val skillManager = game.skillManager
-
-        // Flee entity gains Escape XP
-        if (result.escapeSkillUsed) {
-            skillManager.attemptSkillProgress(
-                entityId = result.fleeingEntityId,
-                skillName = "Escape",
-                baseXp = 10L,
-                success = result is FleeResult.Success
-            )
-        }
-
-        // Pursuers gain Pursuit XP
-        result.pursuitSkillsUsed.forEach { (pursuerId, pursuitLevel) ->
-            if (pursuitLevel > 0) {
-                skillManager.attemptSkillProgress(
-                    entityId = pursuerId,
-                    skillName = "Pursuit",
-                    baseXp = 10L,
-                    success = result is FleeResult.Failure
-                )
-            }
-        }
-    }
-
-    fun handleLook(game: EngineGameClient, target: String?) {
-        // V3-only: Use space-based navigation
-        val space = game.worldState.getCurrentSpace()
-        if (space == null) {
-            game.emitEvent(GameEvent.System("Error: No current space", GameEvent.MessageLevel.ERROR))
-            return
-        }
-
-        if (target == null) {
-            game.describeCurrentRoom()
-
-            // Show ground items
-            val groundItems = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
-                .filterIsInstance<Entity.Item>()
-                .filter { it.isPickupable }
-
-            if (groundItems.isNotEmpty()) {
-                val itemsList = buildString {
-                    appendLine()
-                    appendLine("Items on the ground:")
-                    groundItems.forEach { item ->
-                        appendLine("  - ${item.name}")
-                    }
-                }
-                game.emitEvent(GameEvent.Narrative(itemsList))
-            } else {
-                game.emitEvent(GameEvent.Narrative("\nYou don't see any items here."))
-            }
-            return
-        }
-
-        val lower = target.lowercase()
-
-        // Check entities in space
-        val entities = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
-        entities.find { e ->
-            e.name.lowercase().contains(lower) || e.id.lowercase().contains(lower)
-        }?.let { entity ->
-            game.emitEvent(GameEvent.Narrative(entity.description))
-            return
-        }
-
-        // Check inventory
-        game.worldState.player.inventory.find { item ->
-            item.name.lowercase().contains(lower) || item.id.lowercase().contains(lower)
-        }?.let { item ->
-            game.emitEvent(GameEvent.Narrative(item.description))
-            return
-        }
-
-        // Check equipped weapon
-        val equippedWeapon = game.worldState.player.equippedWeapon
-        if (equippedWeapon != null &&
-            (equippedWeapon.name.lowercase().contains(lower) || equippedWeapon.id.lowercase().contains(lower))) {
-            game.emitEvent(GameEvent.Narrative(equippedWeapon.description + " (equipped)"))
-            return
-        }
-
-        // Check equipped armor
-        val equippedArmor = game.worldState.player.equippedArmor
-        if (equippedArmor != null &&
-            (equippedArmor.name.lowercase().contains(lower) || equippedArmor.id.lowercase().contains(lower))) {
-            game.emitEvent(GameEvent.Narrative(equippedArmor.description + " (equipped)"))
-            return
-        }
-
-        val sceneryDescription = runBlocking {
-            game.sceneryGenerator.describeScenery(target, space, space.description)
-        }
-
-        if (sceneryDescription != null) {
-            game.emitEvent(GameEvent.Narrative(sceneryDescription))
-        } else {
-            game.emitEvent(GameEvent.System("You don't see that here.", GameEvent.MessageLevel.INFO))
-        }
-    }
-
-    fun handleSearch(game: EngineGameClient, target: String?) {
-        // V3-only: Use space-based navigation
-        val space = game.worldState.getCurrentSpace()
-        val node = game.worldState.getCurrentGraphNode()
-        if (space == null || node == null) {
-            game.emitEvent(GameEvent.System("Error: No current space", GameEvent.MessageLevel.ERROR))
-            return
-        }
-
-        val searchMessage = "You search the area carefully${if (target != null) ", focusing on the $target" else ""}..."
-
-        // Perform a Wisdom (Perception) skill check to find hidden items
-        val result = game.skillCheckResolver.checkPlayer(
-            game.worldState.player,
-            StatType.WISDOM,
-            Difficulty.MEDIUM
-        )
-
-        val narrative = buildString {
-            appendLine(searchMessage)
-            appendLine()
-            appendLine("Rolling Perception check...")
-            appendLine("d20 roll: ${result.roll} + WIS modifier: ${result.modifier} = ${result.total} vs DC ${result.dc}")
-            appendLine()
-
-            if (result.isCriticalSuccess) {
-                appendLine("🎲 CRITICAL SUCCESS! (Natural 20)")
-            } else if (result.isCriticalFailure) {
-                appendLine("💀 CRITICAL FAILURE! (Natural 1)")
-            }
-
-            if (result.success) {
-                appendLine("✅ Success!")
-                appendLine()
-
-                // V3: Check entities in space
-                val entities = game.worldState.getEntitiesInSpace(game.worldState.player.currentRoomId)
-                val hiddenItems = entities.filterIsInstance<Entity.Item>().filter { !it.isPickupable }
-                val pickupableItems = entities.filterIsInstance<Entity.Item>().filter { it.isPickupable }
-
-                var foundSomething = false
-
-                if (pickupableItems.isNotEmpty()) {
-                    foundSomething = true
-                    appendLine("You find the following items:")
-                    pickupableItems.forEach { item ->
-                        appendLine("  - ${item.name}: ${item.description}")
-                    }
-                }
-
-                if (hiddenItems.isNotEmpty()) {
-                    foundSomething = true
-                    appendLine()
-                    appendLine("You also notice some interesting features:")
-                    hiddenItems.forEach { item ->
-                        appendLine("  - ${item.name}: ${item.description}")
-                    }
-                }
-
-                val hiddenExits = node.neighbors.filter { edge ->
-                    val edgeId = edge.edgeId(node.id)
-                    edge.hidden && !game.worldState.player.hasRevealedExit(edgeId)
-                }
-                if (hiddenExits.isNotEmpty()) {
-                    foundSomething = true
-                    val firstExit = hiddenExits.first()
-                    val edgeId = firstExit.edgeId(node.id)
-                    val updatedPlayer = game.worldState.player.revealExit(edgeId)
-                    game.worldState = game.worldState.updatePlayer(updatedPlayer)
-
-                    appendLine()
-                    appendLine("Hidden exits:")
-                    hiddenExits.forEach { exit ->
-                        appendLine("  - ${exit.direction} (now marked on your map)")
-                    }
-                }
-
-                if (!foundSomething) {
-                    appendLine("You don't find anything hidden here.")
-                }
-            } else {
-                appendLine("❌ Failure!")
-                appendLine("You don't find anything of interest.")
-            }
-        }
-
-        game.emitEvent(GameEvent.Narrative(narrative))
-    }
+    fun handleSearch(game: EngineGameClient, target: String?) =
+        ClientMovementSearchHandlers.handleSearch(game, target)
 
     fun handleInteract(game: EngineGameClient, target: String) {
-        game.emitEvent(GameEvent.System("Interaction system not yet implemented. (Target: $target)", GameEvent.MessageLevel.INFO))
+        game.emitEvent(
+            GameEvent.System(
+                "Interaction system not yet implemented. (Target: $target)",
+                GameEvent.MessageLevel.INFO
+            )
+        )
     }
 
-    fun handleTravel(game: EngineGameClient, rawDirection: String) {
-        val normalized = rawDirection.trim()
-        if (normalized.isEmpty()) {
-            game.emitEvent(GameEvent.System("Travel where?", GameEvent.MessageLevel.WARNING))
-            return
-        }
+    fun handleTravel(game: EngineGameClient, rawDirection: String) =
+        ClientMovementTravelHandlers.handleTravel(game, rawDirection)
 
-        Direction.fromString(normalized)?.let {
-            handleMove(game, it)
-            return
-        }
-
-        val previousSpaceId = game.worldState.player.currentRoomId
-        val previousTreasureRoom = game.worldState.getTreasureRoom(previousSpaceId)
-        val playerSkills = game.skillManager.getSkillComponent(game.worldState.player.id)
-        val edgeMove = game.worldState.movePlayerByExit(normalized, playerSkills)
-        if (edgeMove != null) {
-            game.worldState = edgeMove
-            // Treasure room exit finalization disabled - players can return and swap anytime
-            // val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-            game.handlePlayerMovement(normalized, null)
-            return
-        }
-
-        val space = game.worldState.getCurrentSpace()
-        if (space == null) {
-            game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-
-        val resolvedExit = space.resolveExit(normalized, game.worldState.player, playerSkills)
-        if (resolvedExit == null) {
-            game.emitEvent(GameEvent.System("You can't go that way.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-
-        val fallback = game.worldState.movePlayerByExit(resolvedExit.direction, playerSkills)
-        if (fallback != null) {
-            game.worldState = fallback
-            val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-            game.handlePlayerMovement(resolvedExit.direction, treasureExitMessage)
-            return
-        }
-
-        val targetNode = game.ensureGraphNodeLoaded(resolvedExit.targetId)
-        if (targetNode == null) {
-            game.emitEvent(GameEvent.System("That passage isn't available yet.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-
-        val targetSpace = game.loadSpace(resolvedExit.targetId)
-            ?: game.worldState.getSpace(resolvedExit.targetId)
-        if (targetSpace == null) {
-            game.emitEvent(GameEvent.System("That passage feels incomplete.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-
-        val updatedPlayer = game.worldState.player.moveToRoom(resolvedExit.targetId)
-        game.worldState = game.worldState
-            .updatePlayer(updatedPlayer)
-            .updateSpace(resolvedExit.targetId, targetSpace)
-            .updateGraphNode(resolvedExit.targetId, targetNode)
-        val treasureExitMessage = finalizeTreasureRoomExit(game, previousSpaceId, previousTreasureRoom)
-        game.handlePlayerMovement(resolvedExit.direction, treasureExitMessage)
-    }
-
-    fun handleScout(game: EngineGameClient, rawDirection: String?) {
-        val space = game.worldState.getCurrentSpace()
-        if (space == null) {
-            game.emitEvent(GameEvent.System("You are not in a known space.", GameEvent.MessageLevel.ERROR))
-            return
-        }
-
-        val player = game.worldState.player
-        val playerSkills = game.skillManager.getSkillComponent(player.id)
-        if (rawDirection.isNullOrBlank()) {
-            val visible = space.getVisibleExits(player, playerSkills)
-            if (visible.isEmpty()) {
-                game.emitEvent(GameEvent.Narrative("You don't notice any obvious exits."))
-            } else {
-                val text = buildString {
-                    appendLine("Visible exits:")
-                    visible.forEach { exit ->
-                        appendLine("  - ${exit.direction}: ${exit.describeWithConditions(player, playerSkills)}")
-                    }
-                }
-                game.emitEvent(GameEvent.Narrative(text))
-            }
-            return
-        }
-
-        val resolved = space.resolveExit(rawDirection, player, playerSkills)
-        if (resolved == null) {
-            game.emitEvent(GameEvent.System("You can't find any exit matching \"$rawDirection\".", GameEvent.MessageLevel.INFO))
-            return
-        }
-
-        val description = buildString {
-            appendLine("You examine the ${resolved.direction}:")
-            appendLine("  ${resolved.description}")
-            if (resolved.conditions.isNotEmpty()) {
-                val unmet = resolved.conditions.filterNot { it.meetsCondition(player, playerSkills) }
-                if (unmet.isNotEmpty()) {
-                    appendLine("  Requirements: ${unmet.joinToString(", ") { it.describe() }}")
-                }
-            }
-
-            val destSpace = game.loadSpace(resolved.targetId) ?: game.worldState.getSpace(resolved.targetId)
-            if (destSpace != null && destSpace.description.isNotBlank()) {
-                appendLine()
-                appendLine("Ahead you sense: ${destSpace.description.lines().first()}")
-            }
-        }
-
-        game.emitEvent(GameEvent.Narrative(description))
-    }
-
-    private fun finalizeTreasureRoomExit(
-        game: EngineGameClient,
-        previousSpaceId: String,
-        previousTreasureRoom: TreasureRoomComponent?
-    ): String? {
-        val treasureRoom = previousTreasureRoom ?: return null
-        val result = TreasureRoomExitLogic.finalizeExit(treasureRoom, game.itemRepository) ?: return null
-        game.worldState = game.worldState.updateTreasureRoom(previousSpaceId, result.updatedComponent)
-        return result.narration
-    }
+    fun handleScout(game: EngineGameClient, rawDirection: String?) =
+        ClientMovementScoutHandlers.handleScout(game, rawDirection)
 }
