@@ -166,3 +166,13 @@
 - **Force:** no
 - **Included:** tools/quality/check_builder_preflight.py, docs/BUILDER_PREFLIGHT.md, verify --preflight, ORCH/DESIGN pointers, plan MUD-033, board/handoff
 - **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
+
+### MUD-034 — god-file split umbrella (tickets-only) + children 034a–n filed
+- **When:** 2026-08-12 02:53 MST
+- **SHA:** 
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** issues/MUD-034 + 034a–n tickets, plans MUD-034 + 034a (APPROVED), BOARD/handoff, docs/TOKEN_BUDGET_KT.md pointer
+- **Excluded:** tmp/, secrets, product *.kt, token_budget_kt.json (unchanged), __pycache__
+- **Note:** MUD-034a fresh IMPL launched same drain tick after push
+
