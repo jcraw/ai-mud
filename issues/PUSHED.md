@@ -266,3 +266,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034j fresh IMPL launching same drain tick after push
 
+
+### MUD-034j — skill data/mgr pure-move split (+ MUD-034k PLAN launch)
+- **When:** 2026-08-12 07:53 MST
+- **SHA:** `_(fill after push)_`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** skill data/mgr pure-move extracts (PerkTrees*/SkillCatalog*/SkillManager* + thin hosts), token_budget all 3 host overrides removed, plan MUD-034j, board/ticket/handoff, 034k scheduled
+- **Excluded:** tmp/, secrets, __pycache__, app/client product, testbot/
+- **Note:** MUD-034k fresh PLAN launching same drain tick after push

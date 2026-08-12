@@ -73,8 +73,8 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034g done — world gen cluster pure-move; residual overrides retargeted MUD-034g)_
 - _(MUD-034h done — item handlers parity; both host overrides removed)_
 - _(MUD-034i done — movement handlers parity; both host overrides removed)_
-- **MUD-034j** — skill data/mgr split (`med`) · **in_progress** · grok · plan APPROVED · `tmp/workers/MUD-034j` · depends 034/031 · Perk/SkillDefinitions + SkillManager
-- **MUD-034k** — combat surface split (`med`) · open · depends 034/031 · handlers + AttackResolver/Flee/AI/Narrator
+- _(MUD-034j done — skill data/mgr split; all 3 host overrides removed)_
+- **MUD-034k** — combat surface split (`med`) · **scheduled/planning** · grok · `tmp/workers/MUD-034k` · depends 034/031 · handlers + AttackResolver/Flee/AI/Narrator
 - **MUD-034l** — social/trade/treasure split (`med`) · open · depends 034/031 · app+client pairs
 - **MUD-034m** — memory + core split (`med`) · open · depends 034/031 · SQLite* / WorldDatabase / WorldState
 - **MUD-034n** — misc reasoning split (`med`) · open · depends 034/031 · disposition/NPC/pickpocket/gens
@@ -94,13 +94,14 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-034j** — skill data/mgr split (`med`) · in_progress / implementing · plan APPROVED by Astra · worker `tmp/workers/MUD-034j/` · fresh IMPL · hosts PerkDefinitions + SkillDefinitions + SkillManager
+- **MUD-034k** — combat surface split (`med`) · scheduled / planning · worker `tmp/workers/MUD-034k/` · fresh PLAN launching · CombatHandlers + ClientCombat + Attack/Flee/MonsterAI + CombatNarrator
 
 ## Blocked (awaiting Jason)
 
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-034j** — skill data/mgr split (`med`) · done · pure-move PerkTrees* (21 keys) + SkillCatalog*/SkillDefinition/StarterSkillSets + SkillManager XP/lucky/unlock/check multi-file · hosts **7304→378** / **4419→582** / **5594→1254** · all 3 host overrides **removed** (under global E; never raised; no Added override) · API stable · no app/client · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034j/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md`
 - **MUD-034i** — movement handlers parity (`med`) · done · pure-move Move(+Flee)/app PostMove(+Populate/Frontier)/TreasureExit/Look/Search(+success)/Travel/Scout lockstep · hosts **5770→266** / **4738→398** · both host overrides **removed** (under global E; never raised; no Added override) · client Interact stub kept · post-move gap (ClientSpaceContent) preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034i/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034i-movement-handlers-split.md`
 - **MUD-034h** — item handlers parity (`med`) · done · pure-move Inventory(+format)/Take/DropGive/Equip/Consumable lockstep + app Loot multi-file · hosts **6253→366** / **4667→335** · both host overrides **removed** (under global E; never raised; no Added override) · CorpseHandlers + client loot stub left · consumable named `ItemConsumableHandlers` (no ItemUseHandlers clash) · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034h/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034h-item-handlers-split.md`
 - **MUD-034g** — world gen cluster split (`med`) · done · pure-move 7 hosts + 32 extracts (ER/MS/WG/EL/TG/HEP/DI) · hosts **7653→2063** / **6327→3162** / **3906→2308** / **3316→1385** / **3016→919** / **2894→1157** / **2597→1685** · ExitLinker+MobSpawner overrides **removed** · residual hosts **lower+retarget MUD-034g** (never raised; no Added override) · parity N/A · no app/client · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034g/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034g-world-gen-cluster-split.md`

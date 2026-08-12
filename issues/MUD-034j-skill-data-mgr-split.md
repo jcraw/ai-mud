@@ -2,7 +2,7 @@
 id: MUD-034j
 area: engine
 title: Split skill definitions/manager (Wave Q3)
-status: in_progress
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: implementing
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md
 worker_out_dir: tmp/workers/MUD-034j
-worker_pid: "1199936"
 parent: MUD-034
 ---
 
@@ -37,13 +36,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/skill/SkillManager.kt` | 5594 | 510 | 5594 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `PerkDefinitions.kt`, `SkillDefinitions.kt`, `SkillManager.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034j` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `PerkDefinitions.kt`, `SkillDefinitions.kt`, `SkillManager.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family (N/A handlers — API stable)
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034j` when still needed (all 3 hosts under global E → **removed**)
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -62,11 +61,9 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
-
+Done 2026-08-12. Pure-move skill data/mgr split: PerkTrees* (21 keys) + SkillCatalog*/SkillDefinition/StarterSkillSets + SkillManager XP/lucky/unlock/check multi-file fragments; thin public facades; all 3 host overrides **removed** (7304/4419/5594 → ~378/582/1254 under global E); no Added overrides; no `src/test/**`; `--core` PASS. Closeout: `tmp/workers/MUD-034j/CLOSEOUT.md` · dod-summary `tmp/dod-summary.json`.
 
 ## Plan
 - Path: `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` (mirror `tmp/workers/MUD-034j/PLAN.md`)
-- Phase: **implementing** — **APPROVED by Astra 2026-08-12 07:35 MST** → fresh impl session
-- Preflight: PLAN tok=1721 clear (W2000/F3500)
-- Approach: pure-move skill data/mgr (PerkDefinitions category maps + SkillDefinitions catalogs/StarterSkillSets + SkillManager XP/unlock/check fragments); thin public facades; stable API names; remeasure lower/remove/retarget overrides to MUD-034j only; no app/client handlers; no features; `--core` green
-- next: **APPROVED by Astra 2026-08-12 07:35 MST** → fresh IMPL live (do not resume plan session)
+- Phase: **done** — APPROVED by Astra 2026-08-12 07:35 MST → fresh IMPL complete
+- Verify: `./tools/verify_mud.sh --core` exit 0

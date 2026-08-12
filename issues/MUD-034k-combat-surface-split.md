@@ -2,21 +2,21 @@
 id: MUD-034k
 area: engine
 title: Split combat surface + pure combat (Wave Q3)
-status: open
+status: scheduled
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
-assignee: ""
-worker: ""
-phase: backlog
+assignee: "grok"
+worker: "grok"
+phase: planning
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
-worker_out_dir: ""
+plan: plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md
+worker_out_dir: tmp/workers/MUD-034k
 parent: MUD-034
 ---
 
