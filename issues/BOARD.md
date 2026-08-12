@@ -28,7 +28,7 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
    - **Q0:** MUD-026 design lock
    - **Q1 serial:** MUD-027 → 028 → 029 → 030 (dod v2 · token report · touched · verify pilot)
    - **Q2 serial:** MUD-031 hard-on-touched → 032 no-live-LLM · 033 preflight (033∥ok after 030)
-   - **Q3:** MUD-034 god-file split umbrella → child split tickets
+   - **Q3:** MUD-034 god-file split umbrella → children **034a–n** (open)
    - **Q4:** MUD-035 PIT raise · 036 dup · 037 parity contracts · 038 headless smoke
    - **Post-done:** allowlisted `git push origin master` after each (no force)
    - **Policy:** token-primary ceilings; hard-on-touched before new features; PIT 80% after splits; E-tier not core-blocking yet
@@ -62,8 +62,22 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-032 done — no live LLM in unit tests)_
 - _(MUD-033 done — plan/brief token preflight)_
 
-#### Q3 — split gods
-- **MUD-034** — god-file split umbrella (`med`) · open · depends 031 · spawns child tickets
+#### Q3 — split gods (umbrella done; children open)
+- _(MUD-034 done — ranked list + 14 children 034a–n; tickets-only)_
+- **MUD-034a** — client facade split (`med`) · **in_progress** · grok · plan APPROVED · `tmp/workers/MUD-034a` · depends 034/031 · `EngineGameClient` + `MainGameScreen`
+- **MUD-034b** — graph generator split (`med`) · open · depends 034/031 · `GraphGenerator`
+- **MUD-034c** — intent recognizer split (`med`) · open · depends 034/031 · `IntentRecognizer` + `Intent`
+- **MUD-034d** — app runtime split (`med`) · open · depends 034/031 · `MudGameEngine` / `GameServer` / `MultiUserGame`
+- **MUD-034e** — skill/quest handlers parity (`med`) · open · depends 034/031 · app+client
+- **MUD-034f** — testbot god split (`med`) · open · depends 034/031 · InputGen / validation / runner / V3 engine
+- **MUD-034g** — world gen cluster split (`med`) · open · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
+- **MUD-034h** — item handlers parity (`med`) · open · depends 034/031 · app+client
+- **MUD-034i** — movement handlers parity (`med`) · open · depends 034/031 · app+client
+- **MUD-034j** — skill data/mgr split (`med`) · open · depends 034/031 · Perk/SkillDefinitions + SkillManager
+- **MUD-034k** — combat surface split (`med`) · open · depends 034/031 · handlers + AttackResolver/Flee/AI/Narrator
+- **MUD-034l** — social/trade/treasure split (`med`) · open · depends 034/031 · app+client pairs
+- **MUD-034m** — memory + core split (`med`) · open · depends 034/031 · SQLite* / WorldDatabase / WorldState
+- **MUD-034n** — misc reasoning split (`med`) · open · depends 034/031 · disposition/NPC/pickpocket/gens
 
 #### Q4 — strength / product-adjacent
 - **MUD-035** — PIT threshold raise toward 80% (`med`) · open · depends 034
@@ -80,7 +94,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-_(empty)_
+- **MUD-034a** — client facade split (`med`) · in_progress / implementing · plan APPROVED by Astra · worker `tmp/workers/MUD-034a/` · fresh IMPL · hosts EngineGameClient + MainGameScreen
 
 ## Blocked (awaiting Jason)
 
@@ -88,6 +102,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-034** — god-file split umbrella (`med`) · done · ranked 55 override hosts → `tmp/workers/MUD-034/RANKED_GODS.md` + full JSON · 14 children **034a–n** filed (letter suffix; 035–038 free) · tickets-only close (no product god extract) · no override raise · BOARD Q3 lists children · TOKEN_BUDGET_KT pointer · `--core` PASS · closeout `tmp/workers/MUD-034/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034-god-file-split-program.md`
 - **MUD-033** — plan/brief token preflight (`med`) · done · `tools/quality/check_builder_preflight.py` D1/D2 (plan 2k/3.5k, brief 1.2k/2k, ceil chars/4) · exit 0/1/2 + `--allow-warn` · optional `./tools/verify_mud.sh --preflight <path>` (warn→pass+note; fail→verify fail; not on default lanes) · `docs/BUILDER_PREFLIGHT.md` + ORCH before APPROVED + DESIGN D1/D2 live · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-033/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-033-builder-preflight-token.md`
 - **MUD-032** — no live LLM in unit tests (`med`) · done · static `rg` gate `tools/quality/check_no_live_llm_unit.sh` · forbid `OpenAIClient(` / `OPENAI_API_KEY` / `openai.api.key` under `*/src/test/**` · hard-exclude `testbot/**` · empty allowlist · `no_live_llm_unit` hard on default/fast/core/full/pitest · skip quarantine · findings `LIVE_LLM_*` · `docs/NO_LIVE_LLM_UNIT.md` + AGENTS + DESIGN B2 + DOD_SUMMARY · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-032/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-032-no-live-llm-unit-tests.md`
 - **MUD-031** — token/structure **hard-on-touched** default (`high`) · done · invert 030: hard default on default/fast/core/full scoped git-diff `*_E` · soft opt-out `MUD_TOKEN_SOFT`/`--token-soft` · 55 overrides `ticket: MUD-034` + measured caps · new/Added ban · override E `metric > limit` · AGENTS+DESIGN+TOKEN_BUDGET_KT · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-031/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-031-token-hard-on-touched.md`

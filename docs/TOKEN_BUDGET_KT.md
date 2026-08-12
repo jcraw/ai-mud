@@ -127,7 +127,7 @@ Tokens are **primary**; structure metrics are **secondary**.
 
 ## Overrides (MUD-031)
 
-`config/quality/token_budget_kt.json` → `overrides` map. Known god files carry temporary higher caps with a **required** burn-down ticket (umbrella **MUD-034** until per-file split tickets land).
+`config/quality/token_budget_kt.json` → `overrides` map. Known god files carry temporary higher caps with a **required** burn-down ticket. Ranked inventory + split children: `tmp/workers/MUD-034/RANKED_GODS.md` and issues **MUD-034a**…**034n** (umbrella MUD-034 done tickets-only).
 
 ```json
 "overrides": {
@@ -202,7 +202,7 @@ Good enough for agent feedback and burn-down lists; not a compiler frontend.
 
 | Non-goal | Owner |
 |----------|--------|
-| God-file product splits | MUD-034+ (Wave Q3) |
+| God-file product splits | MUD-034a…n (Wave Q3 children; umbrella MUD-034 done) |
 | Auto-include untracked files | agents pass `--files` / stage |
 | Checker non-zero exit | stays report_only; verify owns hard |
 | Full-repo hard fail | never; scoped touch only |
