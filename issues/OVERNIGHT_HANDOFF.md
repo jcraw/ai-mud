@@ -1,7 +1,7 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 07:53 MST (drain tick · MUD-034j PUSHED · MUD-034k PLAN launching)
-**Live:** **MUD-034k** planning (detached PLAN · launching)
+**Updated:** 2026-08-12 07:54 MST (drain tick · MUD-034j PUSHED · MUD-034k PLAN live)
+**Live:** **MUD-034k** planning (detached PLAN · pid **1207216** · supervisor 1207213 · `bypassPermissions`)
 **Plan review:** _(empty — awaiting 034k plan)_
 **Agent queue:** Wave Q — 026–034j done; **034k planning**; next 034l–n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
@@ -42,5 +42,5 @@
 3. done sans PUSHED row → allowlisted push
 4. next open Wave Q → PLAN (027→038 serial Q1 then Q2/Q3)
 5. only human_gated or Wave Q empty → disarm cron; Live=none
-**MUD-034j closeout:** `tmp/workers/MUD-034j/CLOSEOUT.md` · hosts 7304→378 / 4419→582 / 5594→1254 · all 3 host overrides **removed** · API stable · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` · **PUSHED** 
-**MUD-034k:** PLAN launching · combat surface split · worker `tmp/workers/MUD-034k` · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · CombatHandlers + ClientCombat + Attack/Flee/MonsterAI + Narrator
+**MUD-034j closeout:** `tmp/workers/MUD-034j/CLOSEOUT.md` · hosts 7304→378 / 4419→582 / 5594→1254 · all 3 host overrides **removed** · API stable · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` · **PUSHED** `0d86055`
+**MUD-034k:** PLAN live pid 1207216 · combat surface split · worker `tmp/workers/MUD-034k` · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · CombatHandlers + ClientCombat + Attack/Flee/MonsterAI + Narrator
