@@ -203,3 +203,21 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/, app/client product beyond this family
 - **Note:** next drain = MUD-034d PLAN (app runtime MudGameEngine/GameServer/MultiUserGame)
 
+### MUD-034d — app runtime pure-move split (+ MUD-034e APPROVED)
+- **When:** 2026-08-12 04:54 MST
+- **SHA:** 
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** MudGameEngine/GameServer/MultiUserGame extracts (12 new app kt), token_budget MultiUserGame removed + residual lower/retarget MUD-034d, plan MUD-034d, plan MUD-034e APPROVED, board/handoff/tickets
+- **Excluded:** tmp/, secrets, __pycache__, testbot/, client product, handlers/*
+- **Note:** MUD-034e fresh IMPL launched same drain tick after push
+
+### MUD-034d — app runtime pure-move split (+ MUD-034e APPROVED)
+- **When:** 2026-08-12 04:54 MST
+- **SHA:** `b6cce15156bc33d2729a49e78b7dc61c9d6ac6dc`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** MudGameEngine/GameServer/MultiUserGame extracts (12 new app kt), token_budget MultiUserGame removed + residual lower/retarget MUD-034d, plan MUD-034d, plan MUD-034e APPROVED, board/handoff/tickets
+- **Excluded:** tmp/, secrets, __pycache__, testbot/, client product, handlers/*
+- **Note:** MUD-034e fresh IMPL launched same drain tick after push
+
