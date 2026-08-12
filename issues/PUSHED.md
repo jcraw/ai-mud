@@ -241,7 +241,7 @@
 
 ### MUD-034g — world gen cluster pure-move split (+ MUD-034h PLAN launch)
 - **When:** 2026-08-12 06:34 MST
-- **SHA:** 
+- **SHA:** `4af1816a75ddda5dde48d495e0b7754629614a18`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** reasoning world gen pure-move extracts (7 hosts + 32 extracts), token_budget ExitLinker+MobSpawner removed + residual lower/retarget MUD-034g, plan MUD-034g, board/ticket/handoff, 034h scheduled
