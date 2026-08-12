@@ -150,3 +150,11 @@
 
 
 - **MUD-031** hard-on-touched default — `51abb5d` — 2026-08-12
+
+### MUD-032 — no live LLM in unit tests
+- **When:** 2026-08-12 02:13 MST
+- **SHA:** `4d244404a8e80aeba54e887817ac157e2d717006`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** tools/quality/check_no_live_llm_unit.sh, allowlist, verify wire, docs/NO_LIVE_LLM_UNIT.md, AGENTS+DESIGN+DOD_SUMMARY, plan MUD-032, board/handoff; MUD-033 plan staged plan_review
+- **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
