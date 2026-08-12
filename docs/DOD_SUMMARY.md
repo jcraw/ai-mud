@@ -25,7 +25,7 @@ Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest ma
 { "code": "TOKEN_FILE_E", "path": "app/…", "metric": 3200, "limit": 2500, "remediation": "split …" }
 ```
 
-Empty `"findings": []` is valid until MUD-028+ populates token/structure rows.
+Empty `"findings": []` is valid until verify wires token/structure (MUD-030). Standalone report: `python3 tools/quality/check_token_budget_kt.py` → see `docs/TOKEN_BUDGET_KT.md` (MUD-028).
 
 ## Stable codes (reserved)
 

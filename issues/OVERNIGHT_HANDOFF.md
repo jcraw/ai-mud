@@ -1,13 +1,14 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-11 22:53 MST (MUD-026+027 PUSHED `f123f5e`)
-**Live:** none → launching MUD-028 PLAN
-**Agent queue:** Wave Q — 026–027 done+pushed; next **MUD-028** PLAN → 029→038
+**Updated:** 2026-08-11 (MUD-028 done — report-only token checker)
+**Live:** none → next **MUD-029** PLAN (touched-path mode)
+**Agent queue:** Wave Q — 026–028 done; next **MUD-029** → 030→038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED**
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
 **Design:** token ceilings + anti-gaming; ratchet beyond detekt baseline
 **MUD-027 closeout:** `tmp/workers/MUD-027/CLOSEOUT.md` · schema v2 + empty findings[] · `--core` PASS · pushed `f123f5e`
+**MUD-028 closeout:** `tmp/workers/MUD-028/CLOSEOUT.md` · report-only checker + empty `overrides{}` · 55 god candidates · not wired to verify · `--core` PASS
 
 ## Wave G goals
 1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE+PUSHED** `2b265ca`

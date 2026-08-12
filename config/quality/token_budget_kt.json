@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Kotlin src/main token + structure ceilings (MUD-028 report-only; hard fail later MUD-031). Thresholds from docs/AGENT_QUALITY_GATES_DESIGN.md A6/A7 + §7.1/§7.2.",
+  "tokens": {
+    "file": { "warn": 2000, "error": 2500 },
+    "function": { "warn": 200, "error": 250 }
+  },
+  "structure": {
+    "file_loc": { "warn": 700, "error": 1100 },
+    "fn_loc": { "warn": 55, "error": 90 },
+    "cyclo": { "warn": 10, "error": 16 },
+    "cognitive": { "warn": 15, "error": 25 }
+  },
+  "overrides": {}
+}

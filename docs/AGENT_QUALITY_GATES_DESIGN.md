@@ -96,8 +96,8 @@ Runtime schema: `config/quality/dod_summary.schema.json` (MUD-027); short ops no
 | A3 | `detekt_new` | hard | Detekt; **baseline stays for legacy**; new IDs fail | maxIssues 0 unbaselined |
 | A4 | `konsist_arch` | hard | existing ModuleBoundaryTest | empty residual preferred |
 | A5 | `test_lock` | hard | existing test_lock.sh | manifest match |
-| A6 | **`token_budget_src`** | hard on **touched** prod `.kt` | new `tools/check_token_budget_kt.py` (chars/4) | file **warn 2.0k / err 2.5k tok**; fn **warn 200 / err 250 tok** · path overrides JSON for known gods during burn-down |
-| A7 | **`structure_kt`** | hard on touched | new checker and/or Detekt without baseline for *touched files only* | fn LOC W55/E90; cyclo W10/E16; cognitive W15/E25; file LOC W700/E1100 (secondary to tokens) |
+| A6 | **`token_budget_src`** | hard on **touched** prod `.kt` | **`tools/quality/check_token_budget_kt.py`** (chars/4; MUD-028 report-only — see `docs/TOKEN_BUDGET_KT.md`) | file **warn 2.0k / err 2.5k tok**; fn **warn 200 / err 250 tok** · path overrides JSON for known gods during burn-down |
+| A7 | **`structure_kt`** | hard on touched | same checker (structure secondary; MUD-028 report-only) and/or Detekt without baseline for *touched files only* | fn LOC W55/E90; cyclo W10/E16; cognitive W15/E25; file LOC W700/E1100 (secondary to tokens) |
 | A8 | **`findings_json`** | hard if any E | unify A3–A7 into remediation JSON | stable `code` enum |
 
 **Jam analogue:** `check_quality_gates.py` + `check_token_budget_gates.py` + selector JSON.
@@ -170,7 +170,8 @@ Estimate: `tokens ≈ ceil(chars / 4)` (OpenClaw / jam convention). Prod `src/ma
 **Overrides file:** `config/quality/token_budget_kt.json`  
 - List today’s offenders (`GraphGenerator`, `EngineGameClient`, …) with temporary higher caps  
 - Each override **requires** a burn-down ticket id  
-- New files: **no** override privilege — must meet target
+- New files: **no** override privilege — must meet target  
+- **Tool (MUD-028):** `tools/quality/check_token_budget_kt.py` + usage `docs/TOKEN_BUDGET_KT.md` (report-only; hard fail MUD-031; verify wire MUD-030)
 
 ### 7.2 Structure (secondary)
 

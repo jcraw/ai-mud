@@ -53,7 +53,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 
 #### Q1 — feedback shape (serial)
 - _(MUD-027 done — dod-summary v2 + findings[] pipe)_
-- **MUD-028** — token/structure report-only checker (`high`) · open · depends 027
+- _(MUD-028 done — token/structure report-only checker)_
 - **MUD-029** — touched-path mode (`high`) · open · depends 028
 - **MUD-030** — wire into verify + pilot `MUD_TOKEN_HARD` (`high`) · open · depends 029
 
@@ -80,7 +80,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-_(empty — next Q1: MUD-028 open)_
+_(empty — next Q1: MUD-029 open)_
 
 ## Blocked (awaiting Jason)
 
@@ -88,6 +88,7 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-028** — token/structure report-only checker (`high`) · done · `tools/quality/check_token_budget_kt.py` + `config/quality/token_budget_kt.json` (file tok W2000/E2500; fn 200/250; structure A7) · report-only exit 0 · 55 override_candidates on tree · `docs/TOKEN_BUDGET_KT.md` · DESIGN A6/A7 + §7.1 pointer · no verify hard-wire · no product `*.kt` · `--core` PASS · closeout `tmp/workers/MUD-028/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-028-token-budget-kt-report.md`
 - **MUD-027** — dod-summary v2 + finding codes (`high`) · done · `schema_version: 2` + always `findings[]` · `config/quality/dod_summary.schema.json` · `validate_dod_summary` (python3) · `docs/DOD_SUMMARY.md` · AGENTS Verification v2 clause · DESIGN §5 schema pointer · `--core` PASS · closeout `tmp/workers/MUD-027/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-027-dod-summary-v2-findings.md`
 - **MUD-026** — agent quality gates design lock (`high`) · done · DESIGN accepted · BOARD Wave Q · AGENTS pointer · OVERNIGHT note · `--core` PASS · Astra DIY
 - **MUD-025** — modernization program closeout (`med`) · done · docs/board only · quarantine **0** truth · `TESTING.md` 644 green · `docs/MODERNIZATION_STATUS.md` one-pager · Wave G complete · Open empty (harness) · OVERNIGHT Live=none · pushed `6b9e0fb` · `--core` exit 0 · closeout `tmp/workers/MUD-025/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-025-modernization-closeout.md`
