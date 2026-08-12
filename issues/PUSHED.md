@@ -158,3 +158,11 @@
 - **Force:** no
 - **Included:** tools/quality/check_no_live_llm_unit.sh, allowlist, verify wire, docs/NO_LIVE_LLM_UNIT.md, AGENTS+DESIGN+DOD_SUMMARY, plan MUD-032, board/handoff; MUD-033 plan staged plan_review
 - **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
+
+### MUD-033 — builder plan/brief token preflight
+- **When:** 2026-08-12 02:26 MST
+- **SHA:** `0c210495cf8a4c1d2c2534943c495a7702b9f6f1`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** tools/quality/check_builder_preflight.py, docs/BUILDER_PREFLIGHT.md, verify --preflight, ORCH/DESIGN pointers, plan MUD-033, board/handoff
+- **Excluded:** testbot/, tmp/, secrets, product *.kt, __pycache__
