@@ -269,7 +269,7 @@
 
 ### MUD-034j — skill data/mgr pure-move split (+ MUD-034k PLAN launch)
 - **When:** 2026-08-12 07:53 MST
-- **SHA:** `_(fill after push)_`
+- **SHA:** `0d860559cc3ea3beeb19f59ff219347c4084a514`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** skill data/mgr pure-move extracts (PerkTrees*/SkillCatalog*/SkillManager* + thin hosts), token_budget all 3 host overrides removed, plan MUD-034j, board/ticket/handoff, 034k scheduled
