@@ -169,7 +169,7 @@
 
 ### MUD-034 — god-file split umbrella (tickets-only) + children 034a–n filed
 - **When:** 2026-08-12 02:53 MST
-- **SHA:** 
+- **SHA:** `a5acb9c04cad5142f596b896d30536594a335562`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** issues/MUD-034 + 034a–n tickets, plans MUD-034 + 034a (APPROVED), BOARD/handoff, docs/TOKEN_BUDGET_KT.md pointer
