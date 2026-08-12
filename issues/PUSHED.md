@@ -285,3 +285,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034l fresh IMPL launching same drain tick after push
 
+### MUD-034l — social/trade/treasure pure-move split (+ MUD-034m IMPL launch)
+- **When:** 2026-08-12 08:53 MST
+- **SHA:** `_(fill after push)_`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** social/trade/treasure pure-move extracts (Social+ClientSocial dialogue/disposition, Treasure take/return/examine lockstep, Trade buy/sell/list app-only) + thin hosts, token_budget all 5 host overrides removed, plan MUD-034l, board/ticket/handoff, 034m APPROVED+IMPL launch
+- **Excluded:** tmp/, secrets, __pycache__, testbot/
+- **Note:** MUD-034m fresh IMPL launching same drain tick after push
+

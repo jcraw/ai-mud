@@ -1,9 +1,9 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 08:34 MST (drain · MUD-034k PUSHED · MUD-034l plan APPROVED · IMPL launching)
-**Live:** **MUD-034l** implementing (detached IMPL · launching · `bypassPermissions`)
-**Plan review:** _(empty — 034l APPROVED by Astra 2026-08-12 08:34 MST)_
-**Agent queue:** Wave Q — 026–034k done; **034l implementing**; next 034m–n then Q4 035…038
+**Updated:** 2026-08-12 08:53 MST (drain · MUD-034l PUSHED · MUD-034m plan APPROVED · IMPL launching)
+**Live:** **MUD-034m** implementing (detached IMPL · launching · `bypassPermissions`)
+**Plan review:** _(empty — 034m APPROVED by Astra 2026-08-12 08:53 MST)_
+**Agent queue:** Wave Q — 026–034l done; **034m implementing**; next 034n then Q4 035…038
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
@@ -44,4 +44,5 @@
 5. only human_gated or Wave Q empty → disarm cron; Live=none
 **MUD-034j closeout:** `tmp/workers/MUD-034j/CLOSEOUT.md` · hosts 7304→378 / 4419→582 / 5594→1254 · all 3 host overrides **removed** · API stable · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` · **PUSHED** `0d86055`
 **MUD-034k closeout:** `tmp/workers/MUD-034k/CLOSEOUT.md` · hosts 3249→188 / 3432→151 / 3614→451 / 2794→308 / 2863→560 / 3219→459 · all 6 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · **PUSHED** `746d3db`
-**MUD-034l:** IMPL launching · APPROVED by Astra 2026-08-12 08:34 MST · social/trade/treasure split · worker `tmp/workers/MUD-034l` · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` · fresh session (not plan resume)
+**MUD-034l closeout:** `tmp/workers/MUD-034l/CLOSEOUT.md` · hosts 3491→311 / 2879→587 / 2545→208 / 3125→219 / 3274→240 · all 5 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` · **PUSHED** _(SHA fill after push)_
+**MUD-034m:** IMPL launching · APPROVED by Astra 2026-08-12 08:53 MST · memory + core split · worker `tmp/workers/MUD-034m` · plan `plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md` · fresh session (not plan resume)

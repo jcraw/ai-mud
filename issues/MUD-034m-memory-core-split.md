@@ -2,21 +2,22 @@
 id: MUD-034m
 area: engine
 title: Split memory repos + core gods (Wave Q3)
-status: open
+status: in_progress
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
-assignee: ""
-worker: ""
-phase: backlog
+assignee: "grok"
+worker: "grok"
+phase: implementing
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
-worker_out_dir: ""
+plan: plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md
+worker_out_dir: tmp/workers/MUD-034m
+worker_pid: ""
 parent: MUD-034
 ---
 
@@ -61,7 +62,17 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
+- session: plan 2026-08-12 (grok) — PLAN ONLY; not impl approval
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
+
+## Drain note
+- 2026-08-12 08:42 MST clear-backlog: Turn 1 PLAN spawned after MUD-034l done.
 ## Resolution
+
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md` (mirror `tmp/workers/MUD-034m/PLAN.md`)
+- Phase: **implementing** — **APPROVED by Astra 2026-08-12 08:53 MST** → fresh impl session
+- Approach: pure-move memory repos + core gods split (Skill/Item/Combat repos → WorldDatabase schema → Narration → WorldState member delegates → CombatComponent ops); thin facades; keep public FQCN/members; remeasure lower/remove/retarget overrides to MUD-034m only; no features; parity N/A; `--core` green
+- next: **APPROVED by Astra 2026-08-12 08:53 MST** → fresh IMPL live (do not resume plan session)

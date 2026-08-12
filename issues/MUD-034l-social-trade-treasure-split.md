@@ -2,7 +2,7 @@
 id: MUD-034l
 area: engine
 title: Split social/trade/treasure handlers (Wave Q3)
-status: in_progress
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: implementing
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md
 worker_out_dir: tmp/workers/MUD-034l
-worker_pid: ""
 parent: MUD-034
 ---
 
@@ -39,13 +38,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientTreasureRoomHandlers.kt` | 3274 | 260 | 3274 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `SocialHandlers.kt`, `ClientSocialHandlers.kt`, `TradeHandlers.kt`, `TreasureRoomHandlers.kt`, `ClientTreasureRoomHandlers.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034l` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `SocialHandlers.kt`, `ClientSocialHandlers.kt`, `TradeHandlers.kt`, `TreasureRoomHandlers.kt`, `ClientTreasureRoomHandlers.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034l` when still needed _(N/A — all 5 host overrides removed)_
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -64,13 +63,18 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
+- Done 2026-08-12 by grok (fresh IMPL after Astra APPROVED plan).
+- Pure-move social/trade/treasure: SocialNpcResolve+Dialogue+Disposition · ClientSocialNpcResolve+Dialogue · Treasure/ClientTreasure PedestalSupport+Take/Return/Examine · TradeMerchantSupport+Buy/Sell/ListStock · thin hosts.
+- Hosts: **3491→311** / **2879→587** / **2545→208** / **3125→219** / **3274→240**.
+- All 5 host overrides **removed** (under global E; never raised; no Added override).
+- Client social stubs + public `isQuestion` kept. `ClientTradeHandlers` untouched (gap in CLOSEOUT).
+- `./tools/verify_mud.sh --core` PASS · dod-summary `tmp/dod-summary.json` · closeout `tmp/workers/MUD-034l/CLOSEOUT.md`.
+- No `src/test/**` · no features · no 034m/n · no git commit.
 
 ## Drain note
 - 2026-08-12 08:24 MST clear-backlog: Turn 1 PLAN spawned (grok pid **1216892**). Prior **MUD-034k** done.
 
-
 ## Plan
 - Path: `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` (mirror `tmp/workers/MUD-034l/PLAN.md`)
-- Phase: **implementing** — **APPROVED by Astra 2026-08-12 08:34 MST** → fresh impl session
-- Approach: pure-move social/trade/treasure split (Social+ClientSocial pair, Treasure pair, Trade app-only); thin facades; leave client social stubs; do not touch ClientTradeHandlers; remeasure lower/remove/retarget overrides to MUD-034l only; no features; `--core` green
-- next: **APPROVED by Astra 2026-08-12 08:34 MST** → fresh IMPL live (do not resume plan session)
+- **APPROVED by Astra 2026-08-12 08:34 MST** → fresh IMPL session (do not resume plan session)
+- Scope OK: pure-move social/trade/treasure (5 hosts) · Social+Treasure parity lockstep · Trade app-only · override remove/lower only · `--core` · no features / no 034m/n parallel
