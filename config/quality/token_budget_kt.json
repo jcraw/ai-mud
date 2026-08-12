@@ -1518,37 +1518,6 @@
         }
       }
     },
-    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/worldgen/GraphGenerator.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 11932
-        },
-        "function": {
-          "warn": 200,
-          "error": 1226
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 95
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 20
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 75
-        }
-      }
-    },
     "testbot/src/main/kotlin/com/jcraw/mud/testbot/InputGenerator.kt": {
       "ticket": "MUD-034",
       "tokens": {

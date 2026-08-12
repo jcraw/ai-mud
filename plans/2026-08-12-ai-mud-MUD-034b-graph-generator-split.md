@@ -1,7 +1,7 @@
 # MUD-034b Plan — GraphGenerator layout/MST split (Wave Q3)
 
 **Ticket:** MUD-034b · **Phase:** implementing (APPROVED) · **Worker:** grok  
-**Status:** APPROVED by Astra 2026-08-12 03:33 MST → fresh IMPL session
+**Status:** DONE (impl complete 2026-08-12) · was APPROVED by Astra 2026-08-12 03:33 MST
 **Plan / mirror:** `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md` · `tmp/workers/MUD-034b/PLAN.md`  
 **Depends:** MUD-034, MUD-031 (done) · **Parent:** MUD-034 · **Prior:** 034a done (do not reopen)  
 **Verify (post-impl):** `./tools/verify_mud.sh --core`  

@@ -2,21 +2,22 @@
 id: MUD-034c
 area: engine
 title: Split IntentRecognizer by domain (Wave Q3)
-status: open
+status: in_progress
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: ""
-worker: ""
-phase: backlog
+worker: grok
+phase: implementing
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
-worker_out_dir: ""
+plan: plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md
+worker_out_dir: tmp/workers/MUD-034c
+worker_pid: ""
 parent: MUD-034
 ---
 
@@ -56,7 +57,14 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
+- session: planning spawn 2026-08-12 ~03:46 MST (clear-backlog)
+- brief: `tmp/workers/MUD-034c/PLAN_BRIEF.md`
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034c-intent-recognizer-split.md` (mirror `tmp/workers/MUD-034c/PLAN.md`)
+- Phase: **implementing** — **APPROVED by Astra 2026-08-12 03:53 MST** → fresh impl session
+- Preflight: PLAN tok=1503 clear (W2000/F3500)
+- Approach: pure-move IntentRecognizer clusters (Direction/Say/Trade/LlmPrompt*/LlmJsonMap*/LlmParse/Fallback*) + multi-file sealed Intent by domain; thin parseIntent; remeasure lower/remove/retarget overrides to MUD-034c; no features; `--core` green
 
 ## Resolution

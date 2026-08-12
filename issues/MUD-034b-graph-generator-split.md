@@ -2,7 +2,7 @@
 id: MUD-034b
 area: engine
 title: Split GraphGenerator layout/MST (Wave Q3)
-status: in_progress
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: ""
 worker: grok
-phase: implementing
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md
 worker_out_dir: tmp/workers/MUD-034b
-worker_pid: ""
 parent: MUD-034
 ---
 
@@ -35,13 +34,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/worldgen/GraphGenerator.kt` | 11932 | 1058 | 11932 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `GraphGenerator.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034b` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `GraphGenerator.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family (**N/A** — reasoning-only)
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034b` when still needed (**override removed** — host under global E)
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -56,13 +55,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: grok plan turn spawned 2026-08-12 ~03:28 MST · pid 1116875
-- brief: `tmp/workers/MUD-034b/PLAN_BRIEF.md` · PLAN ONLY → plan_review → Astra approve → fresh impl
-- worker_out_dir: tmp/workers/MUD-034b
+- session: grok impl fresh 2026-08-12 · plan APPROVED by Astra 03:33 MST
+- worker_out_dir: `tmp/workers/MUD-034b`
+- closeout: `tmp/workers/MUD-034b/CLOSEOUT.md`
 
 ## Resolution
+Pure-move split complete. Host **11932 → 561** tokens; GraphGenerator override **removed**. Extracts: GraphLayoutNodes, GraphMst, GraphEdgeDirections + direction geometry/assign/fix/unique fragments, GraphNodeTyping. Public API `GraphGenerator(rng, difficultyLevel)` + `generate` preserved; RNG order preserved. `--core` PASS. No tests edited. No commit.
 
 ## Plan
 - Path: `plans/2026-08-12-ai-mud-MUD-034b-graph-generator-split.md` (mirror `tmp/workers/MUD-034b/PLAN.md`)
-- Phase: **implementing** — **APPROVED by Astra 2026-08-12 03:33 MST** → fresh impl session
-- Approach: pure moves — GraphLayoutNodes → GraphMst → GraphEdgeDirections (fragment FN peaks) → GraphNodeTyping; thin generate pipeline; remeasure lower/remove/retarget GraphGenerator override only to MUD-034b; no app/client hosts; no algorithm change; `--core` green
+- Phase: **done** — APPROVED by Astra 2026-08-12 03:33 MST → impl complete
