@@ -70,7 +70,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034d done — app runtime pure-move MU/Npc/Room/Quest/Death + GameServer Item/Nav/Social/Quest; MultiUserGame override removed; residual hosts retargeted MUD-034d)_
 - _(MUD-034e done — skill/quest handlers parity; both host overrides removed)_
 - _(MUD-034f done — testbot god split; residual FN overrides retargeted MUD-034f)_
-- **MUD-034g** — world gen cluster split (`med`) · open · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
+- **MUD-034g** — world gen cluster split (`med`) · **scheduled/planning** · grok · `tmp/workers/MUD-034g` · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
 - **MUD-034h** — item handlers parity (`med`) · open · depends 034/031 · app+client
 - **MUD-034i** — movement handlers parity (`med`) · open · depends 034/031 · app+client
 - **MUD-034j** — skill data/mgr split (`med`) · open · depends 034/031 · Perk/SkillDefinitions + SkillManager
