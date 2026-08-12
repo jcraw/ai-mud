@@ -221,3 +221,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/, client product, handlers/*
 - **Note:** MUD-034e fresh IMPL launched same drain tick after push
 
+### MUD-034e — skill/quest handlers pure-move split (+ MUD-034f PLAN launch)
+- **When:** 2026-08-12 05:13 MST
+- **SHA:** `66bb601a5c71402507ee6e3f25ad2cd47f595344`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** SkillQuest/ClientSkillQuest extracts (24 new kt) + thin hosts, token_budget both host overrides removed, board/ticket/handoff, 034f scheduled
+- **Excluded:** tmp/, secrets, __pycache__, testbot/
+- **Note:** MUD-034f fresh PLAN launched same drain tick after push
+

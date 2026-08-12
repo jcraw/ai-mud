@@ -17,6 +17,7 @@ depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: "plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md"
 worker_out_dir: "tmp/workers/MUD-034f"
+worker_pid: "1156520"
 parent: MUD-034
 ---
 
