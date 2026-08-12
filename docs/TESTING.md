@@ -549,17 +549,17 @@ We don't aim for line coverage metrics. Instead, we aim for:
 
 ## Current Test Status
 
-**Baseline:** 2026-08-10 (MUD-008). Full list of quarantined tests: [`docs/TEST_QUARANTINE.md`](TEST_QUARANTINE.md).
+**Baseline:** 2026-08-10 (MUD-008). Quarantine history + cleared list: [`docs/TEST_QUARANTINE.md`](TEST_QUARANTINE.md). Program status: [`docs/MODERNIZATION_STATUS.md`](MODERNIZATION_STATUS.md).
 
 | Module (verify `--core` / `--full`) | Count | Notes |
 |-------------------------------------|------:|-------|
 | core | 462 | green |
 | perception | 56 | green |
 | memory | 321 | green |
-| reasoning (default excludeTags) | 621 | green; 23 `@Tag("quarantine")` excluded |
-| reasoning (quarantine lane) | 23 | known debt; hard-fail OK (`--quarantine`) |
+| reasoning (default excludeTags) | 644 | green; quarantine count **0** (post-MUD-022) |
+| reasoning (quarantine lane) | 0 | empty set → exit 0 (`--quarantine`) |
 
-Default / full lanes use JUnit `excludeTags("quarantine")`. Do not weaken asserts to clear quarantine — repair wave is MUD-017.
+Default / full lanes use JUnit `excludeTags("quarantine")`. Repair wave complete: MUD-017 → 020 → 021 → **022** (quarantine **0**).
 
 **Test Migration Complete:** All legacy shell scripts have been migrated to proper Kotlin tests and deleted.
 

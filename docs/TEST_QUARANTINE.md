@@ -3,7 +3,7 @@
 **Ticket:** MUD-008 · **Repair wave:** MUD-017 (slice 1) · **MUD-020 (slice 2)** · **MUD-021 (slice 3)** · **MUD-022 (SkillManager clear 2026-08-11)**  
 **Baseline date:** 2026-08-10 · **Post-slice-1 count:** 20 · **Post-slice-2 count:** 12 · **Post-slice-3 count:** 8 · **Post-MUD-022 count:** **0**
 
-Known failing tests are tagged `@Tag("quarantine")` and **excluded by default** from green verify lanes. They remain runnable and hard-fail on the quarantine lane. Do **not** weaken asserts to force green.
+**Active quarantine count: 0** (post-MUD-022). When present, failing tests are tagged `@Tag("quarantine")` and **excluded by default** from green verify lanes; the quarantine lane runs only those tags (empty set → exit 0). Do **not** weaken asserts to force green. Ops: **`AGENTS.md`**.
 
 ## How tags work
 

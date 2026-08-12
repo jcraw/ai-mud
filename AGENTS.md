@@ -62,7 +62,7 @@ Every lane writes compact **`tmp/dod-summary.json`** (override: `$MUD_DOD_SUMMAR
 
 **N=3 then escalate:** agents may re-run a failed verify up to **3** times for transient/env flakiness, then escalate to a human. The verify script does **not** auto-retry.
 
-Quarantine list + baseline counts: **`docs/TEST_QUARANTINE.md`** (8 tagged after MUD-021 slice 3; was 12 after MUD-020, 20 after MUD-017, 23 as of 2026-08-10).
+Quarantine list + baseline counts: **`docs/TEST_QUARANTINE.md`** (quarantine **0** after MUD-022; was 8 after MUD-021, 12 after MUD-020, 20 after MUD-017, 23 as of 2026-08-10).
 
 **Detekt** is live on default/fast/core/full/pitest (`./gradlew detekt`). Legacy soft via baseline; mass baseline regen = **Jason/explicit only**. See **`docs/DETEKT.md`**. **Konsist** architecture tests are live on default/fast/core/full/pitest (`:core:test --tests 'com.jcraw.mud.architecture.*'`); exceptions → **`docs/KONSIST.md`**. **Test-lock** is live on default/fast/core/full/pitest (`./tools/test_lock.sh --check`); unauthorized `src/test` edits fail closed — see **`docs/TEST_LOCK.md`**. **PIT** mutation on pure modules (`:core` / `:perception` / `:memory`) via `./tools/verify_mud.sh --pitest` only (default/fast/core never; full skips — core measured &gt;45s). Soft 60%; hard opt-in `MUD_PITEST_HARD=1`. See **`docs/PIT.md`**.
 

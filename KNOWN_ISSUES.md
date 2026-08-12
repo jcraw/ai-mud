@@ -29,5 +29,6 @@
 - ~~Floor-item drop V1/V2 mismatch~~ — **fixed MUD-023**: pure `FloorItemDropApply` removes from V2 `InventoryComponent` + dual-writes floor entity/`itemsDropped` (console + GUI + GameServer).
 - ~~V1 inventory/equip **Success writes** (give / equip legacy / use / GUI buy)~~ — **fixed MUD-024**: `GiveItemApply` / `UseConsumableApply` + V2 equip on all surfaces; GUI buy uses `addItemInstance`. Residual: deprecated **fields** still on `PlayerState` (display/read fallbacks OK); field hard-delete optional follow-up.
 - Multi-user treasure not retested
+- **Modernization program (Wave A–G) closed** — gates on, quarantine **0**; residual human-only only → [`docs/MODERNIZATION_STATUS.md`](docs/MODERNIZATION_STATUS.md)
 
 **Ticket**: `issues/MUD-007-treasure-inventory-gui.md` · plan `plans/2026-08-10-ai-mud-MUD-007-treasure-inventory-gui.md`
