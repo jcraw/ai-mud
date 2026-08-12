@@ -95,3 +95,17 @@
 - **Force:** no
 - **Included:** GiveItemApply + UseConsumableApply, equip V2 all surfaces, GUI buy addItemInstance, GiveItemContractTest, KNOWN_ISSUES/V2_REMOVAL/TODO residual notes, test-lock 114, plan/board/handoff
 - **Excluded:** testbot/, tmp/, secrets
+
+### MUD-025 — modernization program closeout
+- **When:** 2026-08-11 18:25 MST
+- **SHA:** `6b9e0fb347410ecf8cb68b6a9ffe8d2b8b7f28b7` (bookkeep pending)
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** docs/MODERNIZATION_STATUS.md, TESTING/TEST_QUARANTINE/AGENTS quarantine 0 truth, KNOWN_ISSUES pointer, MUD-025 ticket+plan, board/handoff Wave G complete
+- **Excluded:** testbot/, tmp/, secrets, *.kt
+
+## Wave G complete
+- All of MUD-022 · 023 · 024 · 025 done + pushed
+- Cron `AI MUD Wave G re-drain` (`cd5f9827-947e-4351-bdc4-78603d7d6fd2`) disarmed 2026-08-11 18:25 MST
+- Harness modernization Waves A–G closed; product playtest not a gate
+
