@@ -17,7 +17,7 @@ depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md
 worker_out_dir: tmp/workers/MUD-034j
-worker_pid: ""
+worker_pid: "1199936"
 parent: MUD-034
 ---
 
