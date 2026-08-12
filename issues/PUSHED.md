@@ -185,3 +185,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, testbot/
 - **Note:** MUD-034b fresh IMPL launched same drain tick after push
 
+### MUD-034b — GraphGenerator pure-move layout/MST split (+ MUD-034c APPROVED)
+- **When:** 2026-08-12 03:53 MST
+- **SHA:** `2217271b687465ecbc35fb71b64778a62e31a6aa`
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** GraphGenerator extracts (8 new reasoning worldgen kt), token_budget GraphGenerator override removed, plan MUD-034b done, plan MUD-034c APPROVED, board/handoff
+- **Excluded:** tmp/, secrets, __pycache__, testbot/
+- **Note:** MUD-034c fresh IMPL launched same drain tick after push
+
