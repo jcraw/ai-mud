@@ -2,7 +2,7 @@
 id: MUD-034h
 area: engine
 title: Split item handlers parity (Wave Q3)
-status: scheduled
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,7 +10,7 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: planning
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
@@ -35,13 +35,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `client/src/main/kotlin/com/jcraw/mud/client/handlers/ClientItemHandlers.kt` | 4667 | 402 | 4667 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `ItemHandlers.kt`, `ClientItemHandlers.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034h` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `ItemHandlers.kt`, `ClientItemHandlers.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034h` when still needed (both overrides **removed**)
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -56,7 +56,16 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
-- brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
+- session: implement phase complete 2026-08-12 (grok)
+- plan: `plans/2026-08-12-ai-mud-MUD-034h-item-handlers-split.md` (mirror `tmp/workers/MUD-034h/PLAN.md`)
+- baseline: `tmp/workers/MUD-034h/token_baseline.json`
+- remeasure: `tmp/workers/MUD-034h/token_remeasure.json`
+- closeout: `tmp/workers/MUD-034h/CLOSEOUT.md`
 
 ## Resolution
+Behavior-preserving pure-move parity split complete. Hosts thin facades (**6253→366** / **4667→335**). Both host overrides **removed** (under global E). Clusters: Inventory(+format)/Take/DropGive/Equip/Consumable lockstep + app Loot multi-file. `./tools/verify_mud.sh --core` PASS (E=0 W=15). No `src/test/**`. CorpseHandlers + client loot stub left untouched; ItemUseHandlers name clash avoided via `ItemConsumableHandlers`.
+
+## Plan
+- Path: `plans/2026-08-12-ai-mud-MUD-034h-item-handlers-split.md` (mirror `tmp/workers/MUD-034h/PLAN.md`)
+- Phase: **done** — APPROVED by Astra 2026-08-12 06:53 MST → fresh impl complete
+- Approach: pure-move item handler parity clusters (Inventory/Take/DropGive/Equip/Consumable + app Loot); thin facades; lockstep app↔client; leave CorpseHandlers + client loot stub; remeasure lower/remove overrides; no features; `--core` green
