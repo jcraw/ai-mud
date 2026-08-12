@@ -296,7 +296,7 @@
 
 ### MUD-034m — memory/core pure-move split (+ MUD-034n PLAN launch)
 - **When:** 2026-08-12 09:13 MST
-- **SHA:** `_(fill after push)_`
+- **SHA:** `8e4b8e20efb67a8eb01be01552273aba226ec13d`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** memory+core pure-move extracts (Skill/Item/Combat repos, World schema, Narration variants, WorldState nav/entities/items, CombatStatus/Tick ops) + thin hosts, token_budget all 7 host overrides removed, plan MUD-034m, board/ticket/handoff, 034n PLAN launch
