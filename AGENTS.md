@@ -58,7 +58,7 @@ Default entrypoint: **`./tools/verify_mud.sh`** (also the ticket `verify:` field
 | PIT | `./tools/verify_mud.sh --pitest` | Pure-module PIT (`:core` / `:perception` / `:memory`) + detekt + Konsist arch + test-lock; soft 60% (see **`docs/PIT.md`**) |
 | Quarantine | `./tools/verify_mud.sh --quarantine` | `:reasoning:test -Pmud.quarantineOnly=true` — debt only; hard-fail OK (no detekt / no Konsist / no test-lock / no PIT) |
 
-Every lane writes compact **`tmp/dod-summary.json`** (override: `$MUD_DOD_SUMMARY`) with per-gate `pass|fail|skipped`, durations, `quarantine_count`, and `exit_code`. Cite this path in closeout. Human `== verify_mud ==` summary still prints (`dod_summary:` line).
+Every lane writes compact **`tmp/dod-summary.json`** (override: `$MUD_DOD_SUMMARY`) with **schema_version 2**, per-gate `pass|fail|skipped`, durations, `quarantine_count`, `exit_code`, and optional **`findings[]`** (may be empty; see `docs/DOD_SUMMARY.md`). Cite this path in closeout. Human `== verify_mud ==` summary still prints (`dod_summary:` line).
 
 **N=3 then escalate:** agents may re-run a failed verify up to **3** times for transient/env flakiness, then escalate to a human. The verify script does **not** auto-retry.
 
@@ -67,6 +67,8 @@ Quarantine list + baseline counts: **`docs/TEST_QUARANTINE.md`** (quarantine **0
 **Detekt** is live on default/fast/core/full/pitest (`./gradlew detekt`). Legacy soft via baseline; mass baseline regen = **Jason/explicit only**. See **`docs/DETEKT.md`**. **Konsist** architecture tests are live on default/fast/core/full/pitest (`:core:test --tests 'com.jcraw.mud.architecture.*'`); exceptions → **`docs/KONSIST.md`**. **Test-lock** is live on default/fast/core/full/pitest (`./tools/test_lock.sh --check`); unauthorized `src/test` edits fail closed — see **`docs/TEST_LOCK.md`**. **PIT** mutation on pure modules (`:core` / `:perception` / `:memory`) via `./tools/verify_mud.sh --pitest` only (default/fast/core never; full skips — core measured &gt;45s). Soft 60%; hard opt-in `MUD_PITEST_HARD=1`. See **`docs/PIT.md`**.
 
 Help / dry-run: `./tools/verify_mud.sh --help`, `./tools/verify_mud.sh --dry-run` (dry-run still emits parseable dod-summary with `dry_run: true`).
+
+**Agent-native gate program (Wave Q):** accepted design **`docs/AGENT_QUALITY_GATES_DESIGN.md`** (token-primary ceilings, hard-on-touched, anti-gaming, compact findings). Implement only via board tickets **MUD-026…038** — do not invent thresholds ad hoc.
 
 ## Protected / Secrets
 

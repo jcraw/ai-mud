@@ -17,13 +17,21 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
 
 ## Drain order (spare capacity)
 
-1. **Wave A — ops:** MUD-003 → 004 → 005 → 006 (serial)
-2. **Wave B — truth + one fix:** MUD-008, MUD-007 (MUD-009 = Jason git calls)
-3. **Wave C — gates 30d:** MUD-010, 011, 012 → 013
-4. **Wave D — gates 60d:** MUD-014 (done), 015 (done)
-5. **Wave E — later:** MUD-016 CI (done), 017 quarantine slice-1 (done; residual 20 → follow-up), 018 CLAUDE deprecation (done)
-6. **Wave F — product + quarantine drip:** MUD-019 → 020 → 021 (serial; push GitHub after each done)
-7. **Wave G — finish modernization:** MUD-022 → 023 → 024 → 025 (serial; push after each done)
+1. **Wave A — ops:** MUD-003 → 004 → 005 → 006 (serial) · done
+2. **Wave B — truth + one fix:** MUD-008, MUD-007 (MUD-009 = Jason git calls) · done
+3. **Wave C — gates 30d:** MUD-010, 011, 012 → 013 · done
+4. **Wave D — gates 60d:** MUD-014, 015 · done
+5. **Wave E — later:** MUD-016…018 · done
+6. **Wave F — product + quarantine drip:** MUD-019 → 020 → 021 · done
+7. **Wave G — finish modernization:** MUD-022 → 023 → 024 → 025 · done
+8. **Wave Q — agent-native gates** (Jason 2026-08-11 · design `docs/AGENT_QUALITY_GATES_DESIGN.md`):
+   - **Q0:** MUD-026 design lock
+   - **Q1 serial:** MUD-027 → 028 → 029 → 030 (dod v2 · token report · touched · verify pilot)
+   - **Q2 serial:** MUD-031 hard-on-touched → 032 no-live-LLM · 033 preflight (033∥ok after 030)
+   - **Q3:** MUD-034 god-file split umbrella → child split tickets
+   - **Q4:** MUD-035 PIT raise · 036 dup · 037 parity contracts · 038 headless smoke
+   - **Post-done:** allowlisted `git push origin master` after each (no force)
+   - **Policy:** token-primary ceilings; hard-on-touched before new features; PIT 80% after splits; E-tier not core-blocking yet
 
 ## How agents use this
 
@@ -37,28 +45,34 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
 
 ## Open (backlog)
 
-### Wave A — agent ops
-_(empty — Wave A complete)_
+### Wave Q — agent-native quality gates (active)
+Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 
-### Wave B — health + fan-facing
-_(empty — MUD-007 done on automated/harness criteria; playtest not a gate)_
+#### Q0 — design lock
+- _(MUD-026 done — design accepted + pointers)_
 
-### Wave C — quality gates (DIGEST-025 ~30d)
-_(empty — Wave C complete: MUD-010…013 done)_
+#### Q1 — feedback shape (serial)
+- _(MUD-027 done — dod-summary v2 + findings[] pipe)_
+- **MUD-028** — token/structure report-only checker (`high`) · open · depends 027
+- **MUD-029** — touched-path mode (`high`) · open · depends 028
+- **MUD-030** — wire into verify + pilot `MUD_TOKEN_HARD` (`high`) · open · depends 029
 
-### Wave D — quality gates (~60d)
-_(empty — Wave D complete: MUD-014, 015 done)_
+#### Q2 — hard ratchet (serial after Q1)
+- **MUD-031** — token/structure **hard-on-touched** default (`high`) · open · depends 030
+- **MUD-032** — no live LLM in unit tests (`med`) · open · depends 031
+- **MUD-033** — plan/brief token preflight (`med`) · open · depends 030 (may parallel 031/032)
 
-### Wave E — later
-_(empty — Wave E complete: MUD-016…018 done)_
+#### Q3 — split gods
+- **MUD-034** — god-file split umbrella (`med`) · open · depends 031 · spawns child tickets
 
-### Wave F — product + quarantine drip (Jason 2026-08-11)
-- **Post-done:** allowlisted `git push origin master` after each ticket closeout (no force)
-- _(Wave F complete — MUD-019…021 done)_
+#### Q4 — strength / product-adjacent
+- **MUD-035** — PIT threshold raise toward 80% (`med`) · open · depends 034
+- **MUD-036** — duplication gate handlers (`low`) · open · depends 031
+- **MUD-037** — handler parity contracts (`med`) · open · depends 031
+- **MUD-038** — headless command smoke (`low`) · open · depends 031 · not core-blocking
 
-### Wave G — finish modernization (Jason 2026-08-11)
-- **Post-done:** allowlisted `git push origin master` after each (no force)
-- _(Wave G complete — MUD-022…025 done+pushed; 025 `6b9e0fb`)_
+### Waves A–G
+_(complete — harness modernization closed MUD-025)_
 
 ## Plan review
 
@@ -66,7 +80,7 @@ _(empty)_
 
 ## Scheduled / In progress
 
-_(empty)_
+_(empty — next Q1: MUD-028 open)_
 
 ## Blocked (awaiting Jason)
 
@@ -74,6 +88,8 @@ _(empty — harness posture: no Jason playtest blockers)_
 
 ## Recently done
 
+- **MUD-027** — dod-summary v2 + finding codes (`high`) · done · `schema_version: 2` + always `findings[]` · `config/quality/dod_summary.schema.json` · `validate_dod_summary` (python3) · `docs/DOD_SUMMARY.md` · AGENTS Verification v2 clause · DESIGN §5 schema pointer · `--core` PASS · closeout `tmp/workers/MUD-027/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-027-dod-summary-v2-findings.md`
+- **MUD-026** — agent quality gates design lock (`high`) · done · DESIGN accepted · BOARD Wave Q · AGENTS pointer · OVERNIGHT note · `--core` PASS · Astra DIY
 - **MUD-025** — modernization program closeout (`med`) · done · docs/board only · quarantine **0** truth · `TESTING.md` 644 green · `docs/MODERNIZATION_STATUS.md` one-pager · Wave G complete · Open empty (harness) · OVERNIGHT Live=none · pushed `6b9e0fb` · `--core` exit 0 · closeout `tmp/workers/MUD-025/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-025-modernization-closeout.md`
 - **MUD-024** — V1 inventory/equip production write purge (`med`) · done · pure `GiveItemApply` + `UseConsumableApply`; equip V2 all surfaces (GameServer ported; legacy branches deleted); GUI buy → `addItemInstance`; grep gate 0 V1 mutators in app/client/reasoning main; exceptions core defs + testbot; KNOWN_ISSUES give/V1 writes fixed; field delete residual; `--core` exit 0 · test-lock 114 · closeout `tmp/workers/MUD-024/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-024-v1-inventory-write-purge.md`
 - **MUD-023** — drop → V2 inventory parity (`high`) · done · pure `FloorItemDropApply` + thin console/GUI/GameServer `handleDrop`; V2 `removeItem` + floor entity props + `itemsDropped`; no V1-only Success; contract tests ×5 (incl. equip clear + drop→take round-trip); KNOWN_ISSUES drop residual fixed (give/V1 purge → MUD-024); `--core` exit 0 · test-lock 113 · closeout `tmp/workers/MUD-023/CLOSEOUT.md` · plan `plans/2026-08-11-ai-mud-MUD-023-drop-v2-inventory-parity.md`

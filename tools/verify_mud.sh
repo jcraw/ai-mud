@@ -4,6 +4,7 @@
 # Detekt (MUD-010) + Konsist arch (MUD-011) + test-lock (MUD-012) are real on
 # default/fast/core/full. PIT (MUD-014): --pitest lane only (core measured >45s → not on full).
 # MUD-013: per-gate status + durations → tmp/dod-summary.json (or $MUD_DOD_SUMMARY).
+# MUD-027: schema_version 2 + findings[] (empty until MUD-028+); post-write validate.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -39,6 +40,10 @@ declare -A GATE_NOTE=()
 # Optional numeric mutation score (min of modules) when pitest gate ran (MUD-014).
 GATE_MUTATION_SCORE=""
 
+# Findings rows for dod-summary v2 (MUD-027). Empty until MUD-028+ appends.
+# Each element is a full JSON object string (no trailing commas).
+FINDINGS_JSON_PARTS=()
+
 usage() {
   cat <<'EOF'
 Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run]
@@ -68,9 +73,11 @@ Flags:
   --dry-run                   Print intended Gradle commands; do not run
   -h | --help                 This help
 
-DoD summary (MUD-013):
+DoD summary (MUD-013 / MUD-027 v2):
   Always writes compact JSON (pass/fail/skipped per gate, durations, quarantine_count)
-  to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). Human == verify_mud == kept.
+  to tmp/dod-summary.json (override with MUD_DOD_SUMMARY). schema_version 2 + findings[]
+  (empty array until token/structure checkers; see docs/DOD_SUMMARY.md).
+  Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
 
 Exit codes:
@@ -141,6 +148,133 @@ json_escape() {
   s="${s//$'\r'/\\r}"
   s="${s//$'\t'/\\t}"
   printf '%s' "${s}"
+}
+
+# Append one finding object for dod-summary findings[] (MUD-027; used by MUD-028+).
+# Usage: append_finding CODE PATH METRIC LIMIT REMEDIATION
+# METRIC/LIMIT: number string or empty/null → JSON null.
+append_finding() {
+  local code="$1"
+  local fpath="$2"
+  local metric="${3:-}"
+  local limit="${4:-}"
+  local remediation="${5:-}"
+  local metric_json limit_json
+
+  if [[ -z "${metric}" || "${metric}" == "null" ]]; then
+    metric_json="null"
+  else
+    metric_json="${metric}"
+  fi
+  if [[ -z "${limit}" || "${limit}" == "null" ]]; then
+    limit_json="null"
+  else
+    limit_json="${limit}"
+  fi
+
+  FINDINGS_JSON_PARTS+=(
+    "$(printf '{ "code": "%s", "path": "%s", "metric": %s, "limit": %s, "remediation": "%s" }' \
+      "$(json_escape "${code}")" \
+      "$(json_escape "${fpath}")" \
+      "${metric_json}" \
+      "${limit_json}" \
+      "$(json_escape "${remediation}")")"
+  )
+}
+
+# Light post-write shape validation for dod-summary v2. Fail closed → EXIT_CODE=1.
+# Prefer python3 stdlib json; bash fallback if python missing.
+validate_dod_summary() {
+  local path="$1"
+  local ok=0
+  local err=""
+
+  if [[ ! -s "${path}" ]]; then
+    EXIT_CODE=1
+    note "dod-summary schema invalid (missing or empty: ${path})"
+    return 1
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    if err="$(python3 - "${path}" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+except Exception as e:
+    print(f"json load: {e}")
+    sys.exit(2)
+
+if data.get("schema_version") != 2:
+    print(f"schema_version want 2 got {data.get('schema_version')!r}")
+    sys.exit(2)
+
+gates = data.get("gates")
+if not isinstance(gates, dict):
+    print("gates must be object")
+    sys.exit(2)
+
+known = ("compile", "tests", "detekt", "konsist", "test_lock", "pitest")
+ok_status = {"pass", "fail", "skipped"}
+for g in known:
+    if g not in gates:
+        print(f"missing gate {g}")
+        sys.exit(2)
+    entry = gates[g]
+    if not isinstance(entry, dict):
+        print(f"gate {g} not object")
+        sys.exit(2)
+    st = entry.get("status")
+    if st not in ok_status:
+        print(f"gate {g} bad status {st!r}")
+        sys.exit(2)
+    dur = entry.get("duration_s")
+    if not isinstance(dur, (int, float)) or isinstance(dur, bool):
+        print(f"gate {g} bad duration_s {dur!r}")
+        sys.exit(2)
+
+findings = data.get("findings")
+if not isinstance(findings, list):
+    print("findings must be array")
+    sys.exit(2)
+for i, row in enumerate(findings):
+    if not isinstance(row, dict):
+        print(f"findings[{i}] not object")
+        sys.exit(2)
+    for key in ("code", "path", "remediation"):
+        if not isinstance(row.get(key), str):
+            print(f"findings[{i}].{key} must be string")
+            sys.exit(2)
+    for key in ("metric", "limit"):
+        v = row.get(key)
+        if v is not None and (not isinstance(v, (int, float)) or isinstance(v, bool)):
+            print(f"findings[{i}].{key} must be number or null")
+            sys.exit(2)
+sys.exit(0)
+PY
+)"; then
+      ok=1
+    else
+      EXIT_CODE=1
+      note "dod-summary schema invalid${err:+: ${err}}"
+      return 1
+    fi
+  else
+    # Bash fallback: minimal presence checks (no full JSON parse)
+    if grep -q '"schema_version": 2' "${path}" \
+      && grep -q '"findings"' "${path}" \
+      && grep -q '"gates"' "${path}"; then
+      ok=1
+    else
+      EXIT_CODE=1
+      note "dod-summary schema invalid (bash fallback; install python3 for full check)"
+      return 1
+    fi
+  fi
+
+  [[ "${ok}" -eq 1 ]] || return 1
+  return 0
 }
 
 # Cheap quarantine count: live @Tag scan → doc fallback. Never runs quarantine suite.
@@ -463,10 +597,10 @@ finalize_gates() {
   fi
 }
 
-# Emit compact dod-summary.json (pure bash; no jq required).
+# Emit compact dod-summary.json (pure bash; no jq required). schema_version 2 + findings[] (MUD-027).
 write_dod_summary() {
   local result result_json duration_s generated_at qcount
-  local steps_json="" i s
+  local steps_json="" findings_json="" i s
   local out_dir
 
   [[ "${VERIFY_STARTED}" -eq 1 ]] || return 0
@@ -497,12 +631,22 @@ write_dod_summary() {
     done
   fi
 
+  # findings[] always present (empty OK until MUD-028+)
+  if [[ ${#FINDINGS_JSON_PARTS[@]} -gt 0 ]]; then
+    findings_json="${FINDINGS_JSON_PARTS[0]}"
+    i=1
+    while [[ ${i} -lt ${#FINDINGS_JSON_PARTS[@]} ]]; do
+      findings_json="${findings_json}, ${FINDINGS_JSON_PARTS[${i}]}"
+      i=$((i + 1))
+    done
+  fi
+
   out_dir="$(dirname "${DOD_SUMMARY_PATH}")"
   mkdir -p "${out_dir}"
 
   {
     printf '{\n'
-    printf '  "schema_version": 1,\n'
+    printf '  "schema_version": 2,\n'
     printf '  "tool": "verify_mud",\n'
     printf '  "lane": "%s",\n' "$(json_escape "${LANE}")"
     printf '  "result": "%s",\n' "$(json_escape "${result}")"
@@ -572,12 +716,17 @@ write_dod_summary() {
       printf '  "quarantine_count": null,\n'
     fi
     if [[ -n "${steps_json}" ]]; then
-      printf '  "steps": [%s]\n' "${steps_json}"
+      printf '  "steps": [%s],\n' "${steps_json}"
     else
-      printf '  "steps": []\n'
+      printf '  "steps": [],\n'
     fi
+    # Always emit findings key (empty array valid) — MUD-027
+    printf '  "findings": [%s]\n' "${findings_json}"
     printf '}\n'
   } > "${DOD_SUMMARY_PATH}"
+
+  # Fail closed on invalid summary shape (python3 preferred; bash fallback)
+  validate_dod_summary "${DOD_SUMMARY_PATH}" || true
 }
 
 print_human_summary() {

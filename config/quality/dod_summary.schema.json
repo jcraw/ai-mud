@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-mud.local/schemas/dod_summary.schema.json",
+  "title": "AI MUD dod-summary v2",
+  "description": "Compact machine DoD written by tools/verify_mud.sh (MUD-013, MUD-027). schema_version 2 adds top-level findings[]. Stable finding codes (documented; not all emitted yet): TOKEN_FILE_W, TOKEN_FILE_E, TOKEN_FN_W, TOKEN_FN_E, STRUCTURE_* (MUD-028+), DETEKT_NEW, TEST_LOCK, DOD_SCHEMA.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "lane",
+    "result",
+    "exit_code",
+    "generated_at",
+    "duration_s",
+    "gates",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 2,
+      "description": "Always 2 for this schema (Wave Q v2)."
+    },
+    "tool": {
+      "type": "string",
+      "const": "verify_mud"
+    },
+    "lane": {
+      "type": "string",
+      "description": "default|fast|core|full|pitest|quarantine"
+    },
+    "result": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "DRY_RUN"]
+    },
+    "exit_code": {
+      "type": "integer"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "UTC ISO-8601 timestamp"
+    },
+    "duration_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "gates": {
+      "type": "object",
+      "description": "Fixed gate keys; each has status + duration_s; optional note / mutation_score",
+      "required": ["compile", "tests", "detekt", "konsist", "test_lock", "pitest"],
+      "properties": {
+        "compile": { "$ref": "#/$defs/gate" },
+        "tests": { "$ref": "#/$defs/gate" },
+        "detekt": { "$ref": "#/$defs/gate" },
+        "konsist": { "$ref": "#/$defs/gate" },
+        "test_lock": { "$ref": "#/$defs/gate" },
+        "pitest": { "$ref": "#/$defs/gate" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/gate" }
+    },
+    "quarantine_count": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "steps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "findings": {
+      "type": "array",
+      "description": "Compact agent-actionable findings. Empty array when no scrapable debt (default until MUD-028+).",
+      "items": { "$ref": "#/$defs/finding" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "gate": {
+      "type": "object",
+      "required": ["status", "duration_s"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"]
+        },
+        "duration_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "note": {
+          "type": "string"
+        },
+        "mutation_score": {
+          "type": "number",
+          "description": "Optional; pitest gate only (min of modules)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": ["code", "path", "metric", "limit", "remediation"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Stable finding code (e.g. TOKEN_FILE_E, STRUCTURE_FN_LOC_E, DOD_SCHEMA)"
+        },
+        "path": {
+          "type": "string",
+          "description": "Repo-relative path, or empty string if N/A"
+        },
+        "metric": {
+          "type": ["number", "null"],
+          "description": "Observed value, or null when not applicable"
+        },
+        "limit": {
+          "type": ["number", "null"],
+          "description": "Threshold/limit, or null when not applicable"
+        },
+        "remediation": {
+          "type": "string",
+          "description": "Short agent-actionable fix string"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
