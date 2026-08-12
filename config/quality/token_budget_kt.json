@@ -805,68 +805,6 @@
         }
       }
     },
-    "perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 2707
-        },
-        "function": {
-          "warn": 200,
-          "error": 250
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 90
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 25
-        }
-      }
-    },
-    "perception/src/main/kotlin/com/jcraw/mud/perception/IntentRecognizer.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 10293
-        },
-        "function": {
-          "warn": 200,
-          "error": 2827
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 219
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 45
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 338
-        }
-      }
-    },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/CombatNarrator.kt": {
       "ticket": "MUD-034",
       "tokens": {
@@ -1701,6 +1639,37 @@
         "cognitive": {
           "warn": 15,
           "error": 44
+        }
+      }
+    },
+    "perception/src/main/kotlin/com/jcraw/mud/perception/Intent.kt": {
+      "ticket": "MUD-034c",
+      "tokens": {
+        "file": {
+          "warn": 2000,
+          "error": 2707
+        },
+        "function": {
+          "warn": 200,
+          "error": 250
+        }
+      },
+      "structure": {
+        "file_loc": {
+          "warn": 700,
+          "error": 1100
+        },
+        "fn_loc": {
+          "warn": 55,
+          "error": 90
+        },
+        "cyclo": {
+          "warn": 10,
+          "error": 16
+        },
+        "cognitive": {
+          "warn": 15,
+          "error": 25
         }
       }
     }
