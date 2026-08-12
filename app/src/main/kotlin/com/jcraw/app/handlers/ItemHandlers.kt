@@ -7,8 +7,10 @@ import com.jcraw.mud.core.ItemType
 import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.GOLD_TEMPLATE_ID
+import com.jcraw.mud.core.PlayerState
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 
 /**
@@ -257,57 +259,24 @@ object ItemHandlers {
     }
 
     fun handleDrop(game: MudGame, target: String) {
-        // V3: Use entity storage
         val spaceId = game.worldState.player.currentRoomId
+        val player = game.worldState.player
+        val templates = floorDropTemplates(game.itemRepository, player)
 
-        // Find the item in inventory
-        var item = game.worldState.player.inventory.find { invItem ->
-            invItem.name.lowercase().contains(target.lowercase()) ||
-            invItem.id.lowercase().contains(target.lowercase())
-        }
-
-        // Check if item is equipped weapon
-        var isEquippedWeapon = false
-        if (item == null && game.worldState.player.equippedWeapon != null) {
-            if (game.worldState.player.equippedWeapon!!.name.lowercase().contains(target.lowercase()) ||
-                game.worldState.player.equippedWeapon!!.id.lowercase().contains(target.lowercase())) {
-                item = game.worldState.player.equippedWeapon
-                isEquippedWeapon = true
+        when (val result = FloorItemDropApply.apply(
+            world = game.worldState,
+            player = player,
+            spaceId = spaceId,
+            target = target,
+            templates = templates
+        )) {
+            is FloorItemDropApply.Result.Success -> {
+                game.worldState = result.world
+                println("You drop the ${result.itemName}.")
             }
-        }
-
-        // Check if item is equipped armor
-        var isEquippedArmor = false
-        if (item == null && game.worldState.player.equippedArmor != null) {
-            if (game.worldState.player.equippedArmor!!.name.lowercase().contains(target.lowercase()) ||
-                game.worldState.player.equippedArmor!!.id.lowercase().contains(target.lowercase())) {
-                item = game.worldState.player.equippedArmor
-                isEquippedArmor = true
+            is FloorItemDropApply.Result.Failure -> {
+                println(result.message)
             }
-        }
-
-        if (item == null) {
-            println("You don't have that.")
-            return
-        }
-
-        // Unequip if needed
-        val updatedPlayer = when {
-            isEquippedWeapon -> game.worldState.player.copy(equippedWeapon = null)
-            isEquippedArmor -> game.worldState.player.copy(equippedArmor = null)
-            else -> game.worldState.player.removeFromInventory(item.id)
-        }
-
-        // V3 path: use entity storage
-        val newState = game.worldState
-            .updatePlayer(updatedPlayer)
-            .addEntityToSpace(spaceId, item)
-
-        if (newState != null) {
-            game.worldState = newState
-            println("You drop the ${item.name}.")
-        } else {
-            println("Something went wrong.")
         }
     }
 
@@ -732,6 +701,25 @@ internal fun floorTakeTemplates(
     }
     if (templates.isEmpty()) {
         itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    }
+    return templates
+}
+
+/**
+ * Templates for floor drop: full catalog for name-match; fallback per inventory templateId.
+ */
+internal fun floorDropTemplates(
+    itemRepository: ItemRepository,
+    player: PlayerState
+): Map<String, ItemTemplate> {
+    val templates = mutableMapOf<String, ItemTemplate>()
+    itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    if (templates.isEmpty()) {
+        player.inventoryComponent.items.forEach { instance ->
+            itemRepository.findTemplateById(instance.templateId).getOrNull()?.let {
+                templates[it.id] = it
+            }
+        }
     }
     return templates
 }

@@ -4,6 +4,7 @@ import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.perception.Intent
 import com.jcraw.mud.reasoning.*
+import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 import com.jcraw.mud.memory.MemoryManager
 import com.jcraw.mud.memory.social.SocialDatabase
@@ -579,48 +580,44 @@ class GameServer(
         playerState: PlayerState,
         itemId: String
     ): Triple<String, WorldState, GameEvent?> {
-        // V3: Get current space ID
         val spaceId = playerState.currentRoomId
+        val templates = buildFloorDropTemplates(playerState)
 
-        // First check inventory
-        var item = playerState.inventory.find { it.name.equals(itemId, ignoreCase = true) }
-        var isEquippedWeapon = false
-        var isEquippedArmor = false
-
-        // Check equipped weapon
-        if (item == null && playerState.equippedWeapon != null &&
-            playerState.equippedWeapon!!.name.equals(itemId, ignoreCase = true)) {
-            item = playerState.equippedWeapon
-            isEquippedWeapon = true
-        }
-
-        // Check equipped armor
-        if (item == null && playerState.equippedArmor != null &&
-            playerState.equippedArmor!!.name.equals(itemId, ignoreCase = true)) {
-            item = playerState.equippedArmor
-            isEquippedArmor = true
-        }
-
-        return if (item != null) {
-            val updatedPlayer = when {
-                isEquippedWeapon -> playerState.copy(equippedWeapon = null)
-                isEquippedArmor -> playerState.copy(equippedArmor = null)
-                else -> playerState.removeFromInventory(item.id)
+        return when (val result = FloorItemDropApply.apply(
+            world = worldState,
+            player = playerState,
+            spaceId = spaceId,
+            target = itemId,
+            templates = templates
+        )) {
+            is FloorItemDropApply.Result.Success -> {
+                val event = GameEvent.GenericAction(
+                    playerId = playerId,
+                    playerName = playerState.name,
+                    actionDescription = "drops ${result.itemName}",
+                    roomId = spaceId,
+                    excludePlayer = playerId
+                )
+                Triple("You drop the ${result.itemName}.", result.world, event)
             }
-            val newWorldState = worldState.updatePlayer(updatedPlayer).addEntityToSpace(spaceId, item)
-
-            val event = GameEvent.GenericAction(
-                playerId = playerId,
-                playerName = playerState.name,
-                actionDescription = "drops ${item.name}",
-                roomId = spaceId,
-                excludePlayer = playerId
-            )
-
-            Triple("You drop the ${item.name}.", newWorldState, event)
-        } else {
-            Triple("You don't have that item.", worldState, null)
+            is FloorItemDropApply.Result.Failure -> {
+                Triple(result.message, worldState, null)
+            }
         }
+    }
+
+    private fun buildFloorDropTemplates(player: PlayerState): Map<String, ItemTemplate> {
+        val repo = itemRepository ?: return emptyMap()
+        val templates = mutableMapOf<String, ItemTemplate>()
+        repo.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+        if (templates.isEmpty()) {
+            player.inventoryComponent.items.forEach { instance ->
+                repo.findTemplateById(instance.templateId).getOrNull()?.let {
+                    templates[it.id] = it
+                }
+            }
+        }
+        return templates
     }
 
     private fun handleGive(

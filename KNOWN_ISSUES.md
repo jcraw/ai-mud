@@ -25,7 +25,8 @@
 - [ ] Leave room with item still in inventory
 
 **Residual risk**:
-- ~~Floor-item take V1/V2 mismatch~~ — **fixed MUD-019**: pure `FloorItemTakeApply` writes V2 `InventoryComponent` (console + GUI + GameServer). Residual: **drop** still V1 entity inventory; legacy floor entities with **no templateId and no name-match** fail closed (no V1-only write).
+- ~~Floor-item take V1/V2 mismatch~~ — **fixed MUD-019**: pure `FloorItemTakeApply` writes V2 `InventoryComponent` (console + GUI + GameServer). Legacy floor entities with **no templateId and no name-match** fail closed (no V1-only write).
+- ~~Floor-item drop V1/V2 mismatch~~ — **fixed MUD-023**: pure `FloorItemDropApply` removes from V2 `InventoryComponent` + dual-writes floor entity/`itemsDropped` (console + GUI + GameServer). Residual: **give** / corpse edges and V1 field purge → **MUD-024**.
 - Multi-user treasure not retested
 
 **Ticket**: `issues/MUD-007-treasure-inventory-gui.md` · plan `plans/2026-08-10-ai-mud-MUD-007-treasure-inventory-gui.md`

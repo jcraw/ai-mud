@@ -65,6 +65,7 @@ c760ed61d417673be22840c2585c44b29971704e7f94b6292b394ec7a1fb2ee4  reasoning/src/
 6022ddc79cacbcb27e9e794786ee909d24ca8e62389610927748088318158d0a  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/combat/SpeedCalculatorTest.kt
 b94a76d04470a02254c2bd417655027aad137c3e8ef729efd519b48c839d9035  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/combat/TurnQueueManagerTest.kt
 2ae18f8d8bee82be2596762e29caca2e95522ef60a97d82605faf76950689206  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/death/PlayerRespawnServiceTest.kt
+6fd36a40005973152af36beb715e6935a5ef028cb8f942a34ff07e952ed82516  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/inventory/FloorItemDropContractTest.kt
 19bb5de82d661514e495a241a21f3374b2a30fd4a297d6c93271dda48d196f5e  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/inventory/FloorItemTakeContractTest.kt
 cea7266bf3ba170d1c5619dcdd8902639770fe95724d26051e4870398fd3057b  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/items/ItemUseHandlerTest.kt
 70740022e9b4b8cdc3e66d74a59a0c248c3ff61d96905bae3cfdf5edc042b1e2  reasoning/src/test/kotlin/com/jcraw/mud/reasoning/loot/LootGeneratorTest.kt

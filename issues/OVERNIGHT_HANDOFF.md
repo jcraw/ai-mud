@@ -1,15 +1,15 @@
 # ai-mud overnight / Wave G handoff
 
-**Updated:** 2026-08-11 16:45 MST
-**Live:** none (MUD-022 done+pushing this tick; MUD-023 PLAN next)
-**Agent queue:** MUD-023 → 024 → 025 (serial)
+**Updated:** 2026-08-11 17:26 MST
+**Live:** none
+**Agent queue:** MUD-024 → 025 (serial)
 **Human-gated left:** **none** (harness posture — no Jason playtest blockers)
 **Cron:** AI MUD Wave G re-drain (`cd5f9827`) every 20m
 **Posture:** Jason 2026-08-11 — quality gates / unit tests / modern harness only; product play later
 
 ## Wave G goals
-1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE** (this tick push)
-2. **MUD-023** drop → V2 inventory parity — next PLAN
+1. **MUD-022** SkillManager quarantine ×8 → 0 — **DONE+PUSHED** `2b265ca`
+2. **MUD-023** drop → V2 inventory parity — **DONE** (push this tick)
 3. **MUD-024** V1 inventory/equip production write purge
 4. **MUD-025** docs/board closeout quarantine 0
 

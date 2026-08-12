@@ -4,6 +4,7 @@ import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.*
 import com.jcraw.mud.core.repository.ItemRepository
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
 
 /**
@@ -273,26 +274,23 @@ object ClientItemHandlers {
 
     fun handleDrop(game: EngineGameClient, target: String) {
         val spaceId = game.worldState.player.currentRoomId
+        val player = game.worldState.player
+        val templates = floorDropTemplates(game.itemRepository, player)
 
-        val item = game.worldState.player.inventory.find { invItem ->
-            invItem.name.lowercase().contains(target.lowercase()) ||
-            invItem.id.lowercase().contains(target.lowercase())
-        }
-
-        if (item == null) {
-            game.emitEvent(GameEvent.System("You don't have that.", GameEvent.MessageLevel.WARNING))
-            return
-        }
-
-        val newState = game.worldState
-            .updatePlayer(game.worldState.player.removeFromInventory(item.id))
-            .addEntityToSpace(spaceId, item)
-
-        if (newState != null) {
-            game.worldState = newState
-            game.emitEvent(GameEvent.Narrative("You drop the ${item.name}."))
-        } else {
-            game.emitEvent(GameEvent.System("Something went wrong.", GameEvent.MessageLevel.ERROR))
+        when (val result = FloorItemDropApply.apply(
+            world = game.worldState,
+            player = player,
+            spaceId = spaceId,
+            target = target,
+            templates = templates
+        )) {
+            is FloorItemDropApply.Result.Success -> {
+                game.worldState = result.world
+                game.emitEvent(GameEvent.Narrative("You drop the ${result.itemName}."))
+            }
+            is FloorItemDropApply.Result.Failure -> {
+                game.emitEvent(GameEvent.System(result.message, GameEvent.MessageLevel.WARNING))
+            }
         }
     }
 
@@ -476,6 +474,23 @@ internal fun floorTakeTemplates(
     }
     if (templates.isEmpty()) {
         itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    }
+    return templates
+}
+
+/** Templates for floor drop: full catalog for name-match; fallback per inventory templateId. */
+internal fun floorDropTemplates(
+    itemRepository: ItemRepository,
+    player: PlayerState
+): Map<String, ItemTemplate> {
+    val templates = mutableMapOf<String, ItemTemplate>()
+    itemRepository.findAllTemplates().getOrNull()?.let { templates.putAll(it) }
+    if (templates.isEmpty()) {
+        player.inventoryComponent.items.forEach { instance ->
+            itemRepository.findTemplateById(instance.templateId).getOrNull()?.let {
+                templates[it.id] = it
+            }
+        }
     }
     return templates
 }
