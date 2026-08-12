@@ -278,7 +278,7 @@
 
 ### MUD-034k — combat surface pure-move split (+ MUD-034l IMPL launch)
 - **When:** 2026-08-12 08:34 MST
-- **SHA:** `_(fill after push)_`
+- **SHA:** `746d3dbd5a927649816161fff0718114de4249b8`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** combat surface pure-move extracts (Attack/Flee/MonsterAI/Narrator + app/client attack lockstep) + thin hosts, token_budget all 6 host overrides removed, plan MUD-034k, board/ticket/handoff, 034l APPROVED+IMPL launch

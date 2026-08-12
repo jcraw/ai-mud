@@ -43,5 +43,5 @@
 4. next open Wave Q → PLAN (027→038 serial Q1 then Q2/Q3)
 5. only human_gated or Wave Q empty → disarm cron; Live=none
 **MUD-034j closeout:** `tmp/workers/MUD-034j/CLOSEOUT.md` · hosts 7304→378 / 4419→582 / 5594→1254 · all 3 host overrides **removed** · API stable · no app/client · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034j-skill-data-mgr-split.md` · **PUSHED** `0d86055`
-**MUD-034k closeout:** `tmp/workers/MUD-034k/CLOSEOUT.md` · hosts 3249→188 / 3432→151 / 3614→451 / 2794→308 / 2863→560 / 3219→459 · all 6 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · **PUSHED** _(SHA fill after push)_
+**MUD-034k closeout:** `tmp/workers/MUD-034k/CLOSEOUT.md` · hosts 3249→188 / 3432→151 / 3614→451 / 2794→308 / 2863→560 / 3219→459 · all 6 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · **PUSHED** `746d3db`
 **MUD-034l:** IMPL launching · APPROVED by Astra 2026-08-12 08:34 MST · social/trade/treasure split · worker `tmp/workers/MUD-034l` · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` · fresh session (not plan resume)
