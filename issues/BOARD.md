@@ -70,8 +70,8 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034d done — app runtime pure-move MU/Npc/Room/Quest/Death + GameServer Item/Nav/Social/Quest; MultiUserGame override removed; residual hosts retargeted MUD-034d)_
 - _(MUD-034e done — skill/quest handlers parity; both host overrides removed)_
 - _(MUD-034f done — testbot god split; residual FN overrides retargeted MUD-034f)_
-- **MUD-034g** — world gen cluster split (`med`) · **scheduled/planning** · grok · `tmp/workers/MUD-034g` · depends 034/031 · WorldGenerator + dungeon/town/exit/mob
-- **MUD-034h** — item handlers parity (`med`) · open · depends 034/031 · app+client
+- _(MUD-034g done — world gen cluster pure-move; residual overrides retargeted MUD-034g)_
+- **MUD-034h** — item handlers parity (`med`) · **scheduled/planning** · grok · `tmp/workers/MUD-034h` · depends 034/031 · app+client
 - **MUD-034i** — movement handlers parity (`med`) · open · depends 034/031 · app+client
 - **MUD-034j** — skill data/mgr split (`med`) · open · depends 034/031 · Perk/SkillDefinitions + SkillManager
 - **MUD-034k** — combat surface split (`med`) · open · depends 034/031 · handlers + AttackResolver/Flee/AI/Narrator
@@ -101,6 +101,7 @@ _(empty)_
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-034g** — world gen cluster split (`med`) · done · pure-move 7 hosts + 32 extracts (ER/MS/WG/EL/TG/HEP/DI) · hosts **7653→2063** / **6327→3162** / **3906→2308** / **3316→1385** / **3016→919** / **2894→1157** / **2597→1685** · ExitLinker+MobSpawner overrides **removed** · residual hosts **lower+retarget MUD-034g** (never raised; no Added override) · parity N/A · no app/client · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034g/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034g-world-gen-cluster-split.md`
 - **MUD-034f** — testbot god split (`med`) · done · pure-move Models/V3 engine/Runner/ValPrompts/CodeVal/InputGen · hosts **9131→1727** / **7761→741** / **5412→1556** / **4420→997** / **3616→1330** / **2636→940** · residual FN overrides **lower+retarget MUD-034f** (never raised; no Added override) · no app/client · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034f/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034f-testbot-god-split.md`
 - **MUD-034e** — skill/quest handlers parity (`med`) · done · pure-move Meta/Quest/Train/SkillUse(+heal/infer)/Craft(+results)/Interact(+harvest/fountain)/app Check · hosts **9827→539** / **9517→658** · both host overrides **removed** (under global E; never raised; no Added override) · client Craft still stubbed · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034e/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034e-skill-quest-handlers-split.md`
 - **MUD-034d** — app runtime split (`med`) · done · pure-move: MultiUserFallbacks · MudGameNpc* · MudGameRoomDescribe · MudGameQuestSupport · MudGameDeathRespawn · GameServer Item/Nav/Social/Quest · hosts **10257→4635** / **10127→2940** / **2730→1704** · MultiUserGame override **removed** · residual hosts **retargeted MUD-034d** (lower-only; no Added override) · MU stubs/order preserved · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034d/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034d-app-runtime-split.md`

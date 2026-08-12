@@ -239,3 +239,12 @@
 - **Excluded:** tmp/, secrets, __pycache__, app/client product
 - **Note:** MUD-034g fresh PLAN launched same drain tick after push
 
+### MUD-034g — world gen cluster pure-move split (+ MUD-034h PLAN launch)
+- **When:** 2026-08-12 06:34 MST
+- **SHA:** _(fill after push)_
+- **Branch:** master → origin
+- **Force:** no
+- **Included:** reasoning world gen pure-move extracts (7 hosts + 32 extracts), token_budget ExitLinker+MobSpawner removed + residual lower/retarget MUD-034g, plan MUD-034g, board/ticket/handoff, 034h scheduled
+- **Excluded:** tmp/, secrets, __pycache__, app/client product, testbot/
+- **Note:** MUD-034h fresh PLAN launching same drain tick after push
+

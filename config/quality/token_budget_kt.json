@@ -1147,46 +1147,15 @@
       }
     },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/DungeonInitializer.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034g",
       "tokens": {
         "file": {
           "warn": 2000,
-          "error": 6327
+          "error": 3161
         },
         "function": {
           "warn": 200,
-          "error": 930
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 90
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 25
-        }
-      }
-    },
-    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/ExitLinker.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 3316
-        },
-        "function": {
-          "warn": 200,
-          "error": 250
+          "error": 669
         }
       },
       "structure": {
@@ -1209,17 +1178,7 @@
       }
     },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/ExitResolver.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 2597
-        },
-        "function": {
-          "warn": 200,
-          "error": 423
-        }
-      },
+      "ticket": "MUD-034g",
       "structure": {
         "file_loc": {
           "warn": 700,
@@ -1240,15 +1199,11 @@
       }
     },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/HiddenExitPlacer.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034g",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 2894
-        },
         "function": {
           "warn": 200,
-          "error": 1544
+          "error": 417
         }
       },
       "structure": {
@@ -1258,38 +1213,7 @@
         },
         "fn_loc": {
           "warn": 55,
-          "error": 120
-        },
-        "cyclo": {
-          "warn": 10,
-          "error": 16
-        },
-        "cognitive": {
-          "warn": 15,
-          "error": 25
-        }
-      }
-    },
-    "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/MobSpawner.kt": {
-      "ticket": "MUD-034",
-      "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 3016
-        },
-        "function": {
-          "warn": 200,
-          "error": 1130
-        }
-      },
-      "structure": {
-        "file_loc": {
-          "warn": 700,
-          "error": 1100
-        },
-        "fn_loc": {
-          "warn": 55,
-          "error": 95
+          "error": 90
         },
         "cyclo": {
           "warn": 10,
@@ -1302,12 +1226,8 @@
       }
     },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/TownGenerator.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034g",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 3906
-        },
         "function": {
           "warn": 200,
           "error": 1164
@@ -1333,15 +1253,11 @@
       }
     },
     "reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/WorldGenerator.kt": {
-      "ticket": "MUD-034",
+      "ticket": "MUD-034g",
       "tokens": {
-        "file": {
-          "warn": 2000,
-          "error": 7653
-        },
         "function": {
           "warn": 200,
-          "error": 1020
+          "error": 511
         }
       },
       "structure": {

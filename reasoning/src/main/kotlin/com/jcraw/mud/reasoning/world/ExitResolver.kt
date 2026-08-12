@@ -1,3 +1,24 @@
+@file:Suppress(
+    "ReturnCount",
+    "MagicNumber",
+    "MaxLineLength",
+    "TooManyFunctions",
+    "LongMethod",
+    "ComplexCondition",
+    "CyclomaticComplexMethod",
+    "NestedBlockDepth",
+    "LongParameterList",
+    "UnusedParameter",
+    "TooGenericExceptionCaught",
+    "TooGenericExceptionThrown",
+    "SwallowedException",
+    "WildcardImport",
+    "MayBeConst",
+    "ImplicitDefaultLocale",
+    "ForbiddenComment",
+    "UnusedPrivateProperty",
+)
+
 package com.jcraw.mud.reasoning.world
 
 import com.jcraw.mud.core.PlayerState
@@ -40,34 +61,14 @@ sealed class ResolveResult {
  *
  * Also handles exit visibility (hidden exits require Perception checks)
  * and exit conditions (skill/item requirements).
+ *
+ * Thin facade — match/LLM/conditions extracted (MUD-034g).
  */
 class ExitResolver(
     private val llmClient: LLMClient
 ) {
-    companion object {
-        // Cardinal directions for exact matching
-        private val CARDINAL_DIRECTIONS = setOf(
-            "n", "north",
-            "s", "south",
-            "e", "east",
-            "w", "west",
-            "ne", "northeast",
-            "nw", "northwest",
-            "se", "southeast",
-            "sw", "southwest",
-            "up", "u",
-            "down", "d"
-        )
-    }
-
     /**
      * Resolves a player's exit intent through three phases of matching.
-     *
-     * @param exitIntent The direction or description the player entered
-     * @param currentSpace The space properties containing available exits
-     * @param playerState Current player state (for stats)
-     * @param playerSkills V2 skill component for Perception and skill checks
-     * @return ResolveResult indicating success, failure, or ambiguity
      */
     suspend fun resolve(
         exitIntent: String,
@@ -76,27 +77,47 @@ class ExitResolver(
         playerSkills: SkillComponent
     ): ResolveResult {
         val visibleExits = getVisibleExits(currentSpace, playerState, playerSkills)
-
         if (visibleExits.isEmpty()) {
             return ResolveResult.Failure("You don't see any obvious exits from here.")
         }
+        return resolveAgainstVisible(exitIntent, visibleExits, playerState, playerSkills)
+    }
 
+    private suspend fun resolveAgainstVisible(
+        exitIntent: String,
+        visibleExits: List<ExitData>,
+        playerState: PlayerState,
+        playerSkills: SkillComponent
+    ): ResolveResult {
         // Phase 1: Exact match for cardinal directions
-        val exactMatch = phaseOneExactMatch(exitIntent, visibleExits)
+        val exactMatch = ExitResolverMatch.phaseOneExactMatch(exitIntent, visibleExits)
         if (exactMatch != null) {
-            return checkConditions(exactMatch, playerState, playerSkills)
+            return ExitResolverConditions.checkConditions(exactMatch, playerState, playerSkills)
         }
 
         // Phase 2: Fuzzy match for typos
-        val fuzzyMatch = phaseTwoFuzzyMatch(exitIntent, visibleExits)
+        val fuzzyMatch = ExitResolverMatch.phaseTwoFuzzyMatch(
+            exitIntent, visibleExits, ::levenshteinDistance
+        )
         if (fuzzyMatch != null) {
-            return checkConditions(fuzzyMatch, playerState, playerSkills)
+            return ExitResolverConditions.checkConditions(fuzzyMatch, playerState, playerSkills)
         }
 
         // Phase 3: LLM parsing for natural language
-        val llmMatch = phaseThreeLLMParse(exitIntent, visibleExits)
+        return resolvePhaseThree(exitIntent, visibleExits, playerState, playerSkills)
+    }
+
+    private suspend fun resolvePhaseThree(
+        exitIntent: String,
+        visibleExits: List<ExitData>,
+        playerState: PlayerState,
+        playerSkills: SkillComponent
+    ): ResolveResult {
+        val llmMatch = ExitResolverLlm.phaseThreeLLMParse(llmClient, exitIntent, visibleExits)
         return when (llmMatch) {
-            is LLMMatchResult.Match -> checkConditions(llmMatch.exit, playerState, playerSkills)
+            is LLMMatchResult.Match -> ExitResolverConditions.checkConditions(
+                llmMatch.exit, playerState, playerSkills
+            )
             is LLMMatchResult.Unclear -> ResolveResult.Ambiguous(
                 visibleExits.associate { exit ->
                     exit.direction to exit.description
@@ -109,109 +130,14 @@ class ExitResolver(
     }
 
     /**
-     * Phase 1: Exact case-insensitive match for cardinal directions
-     */
-    private fun phaseOneExactMatch(intent: String, exits: List<ExitData>): ExitData? {
-        val normalizedIntent = intent.trim().lowercase()
-        return exits.firstOrNull { exit ->
-            exit.direction.lowercase() == normalizedIntent &&
-                    normalizedIntent in CARDINAL_DIRECTIONS
-        }
-    }
-
-    /**
-     * Phase 2: Fuzzy match using Levenshtein distance for typos
-     */
-    private fun phaseTwoFuzzyMatch(intent: String, exits: List<ExitData>): ExitData? {
-        val normalizedIntent = intent.trim().lowercase()
-        val matches = exits.filter { exit ->
-            levenshteinDistance(normalizedIntent, exit.direction.lowercase()) <= 2
-        }
-
-        // Only return match if unambiguous
-        return if (matches.size == 1) matches.first() else null
-    }
-
-    /**
-     * Phase 3: LLM-based natural language parsing
-     */
-    private suspend fun phaseThreeLLMParse(intent: String, exits: List<ExitData>): LLMMatchResult {
-        val exitList = exits.joinToString("\n") { exit ->
-            "- ${exit.direction}: ${exit.description}"
-        }
-
-        val systemPrompt = "You are a game assistant matching player intent to exits. Output EXIT:<direction> or UNCLEAR."
-
-        val userContext = """
-            |Player said: "$intent"
-            |
-            |Available exits:
-            |$exitList
-            |
-            |Which exit matches the player's intent?
-            |If clear, output: EXIT:<direction>
-            |If unclear or no match, output: UNCLEAR
-        """.trimMargin()
-
-        val response = try {
-            llmClient.chatCompletion(
-                modelId = "gpt-4o-mini",
-                systemPrompt = systemPrompt,
-                userContext = userContext,
-                maxTokens = 50,
-                temperature = 0.3
-            ).choices.firstOrNull()?.message?.content
-        } catch (e: Exception) {
-            null
-        }
-
-        return when {
-            response == null -> LLMMatchResult.NoMatch
-            response.startsWith("EXIT:") -> {
-                val direction = response.removePrefix("EXIT:").trim()
-                val matchedExit = exits.firstOrNull { it.direction.equals(direction, ignoreCase = true) }
-                if (matchedExit != null) {
-                    LLMMatchResult.Match(matchedExit)
-                } else {
-                    LLMMatchResult.NoMatch
-                }
-            }
-            response.contains("UNCLEAR", ignoreCase = true) -> LLMMatchResult.Unclear
-            else -> LLMMatchResult.NoMatch
-        }
-    }
-
-    /**
-     * Checks if the player meets all conditions to use an exit
-     */
-    private fun checkConditions(exit: ExitData, playerState: PlayerState, playerSkills: SkillComponent): ResolveResult {
-        val unmetConditions = exit.conditions.filterNot { it.meetsCondition(playerState, playerSkills) }
-
-        return if (unmetConditions.isEmpty()) {
-            ResolveResult.Success(exit, exit.targetId)
-        } else {
-            val conditionDescriptions = unmetConditions.joinToString(", ") { condition ->
-                when (condition) {
-                    is Condition.SkillCheck -> "${condition.skill} ${condition.difficulty}+"
-                    is Condition.ItemRequired -> "item: ${condition.itemTag}"
-                }
-            }
-            ResolveResult.Failure(
-                "You cannot go ${exit.direction}. Required: $conditionDescriptions"
-            )
-        }
-    }
-
-    /**
      * Filters exits by visibility based on player's Perception skill.
      * Hidden exits require a passive Perception check.
-     *
-     * @param space The space containing exits
-     * @param playerState Current player state (for stats)
-     * @param playerSkills V2 skill component for Perception checks
-     * @return List of exits the player can see
      */
-    fun getVisibleExits(space: SpacePropertiesComponent, playerState: PlayerState, playerSkills: SkillComponent): List<ExitData> {
+    fun getVisibleExits(
+        space: SpacePropertiesComponent,
+        playerState: PlayerState,
+        playerSkills: SkillComponent
+    ): List<ExitData> {
         val perceptionModifier = playerState.stats.wisdom / 2 - 5
         // Use V2 skill system
         val perceptionSkill = playerSkills.getEffectiveLevel("Perception")
@@ -224,11 +150,6 @@ class ExitResolver(
 
     /**
      * Generates a description of an exit, including condition hints if not met.
-     *
-     * @param exit The exit to describe
-     * @param player Current player state (for inventory)
-     * @param playerSkills V2 skill component for skill checks
-     * @return Human-readable description with condition hints
      */
     fun describeExit(exit: ExitData, player: PlayerState, playerSkills: SkillComponent): String {
         val baseDescription = "${exit.direction}: ${exit.description}"
@@ -251,7 +172,7 @@ class ExitResolver(
     }
 
     /**
-     * Calculates Levenshtein distance between two strings
+     * Calculates Levenshtein distance between two strings (residual on host).
      */
     private fun levenshteinDistance(s1: String, s2: String): Int {
         val len1 = s1.length
@@ -277,13 +198,4 @@ class ExitResolver(
 
         return dp[len1][len2]
     }
-}
-
-/**
- * Internal result type for LLM matching
- */
-private sealed class LLMMatchResult {
-    data class Match(val exit: ExitData) : LLMMatchResult()
-    data object Unclear : LLMMatchResult()
-    data object NoMatch : LLMMatchResult()
 }

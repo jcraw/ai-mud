@@ -2,7 +2,7 @@
 id: MUD-034g
 area: engine
 title: Split world gen cluster (Wave Q3)
-status: scheduled
+status: done
 priority: med
 created: 2026-08-12
 updated: 2026-08-12
@@ -10,14 +10,13 @@ source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: planning
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
 plan: "plans/2026-08-12-ai-mud-MUD-034g-world-gen-cluster-split.md"
 worker_out_dir: "tmp/workers/MUD-034g"
-worker_pid: "1170293"
 parent: MUD-034
 ---
 
@@ -41,13 +40,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/world/HiddenExitPlacer.kt` | 2894 | 240 | 2894 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `WorldGenerator.kt`, `DungeonInitializer.kt`, `TownGenerator.kt`, `ExitLinker.kt`, `ExitResolver.kt`, `MobSpawner.kt`, `HiddenExitPlacer.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034g` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `WorldGenerator.kt`, `DungeonInitializer.kt`, `TownGenerator.kt`, `ExitLinker.kt`, `ExitResolver.kt`, `MobSpawner.kt`, `HiddenExitPlacer.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family (N/A — reasoning-only)
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034g` when still needed
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -62,7 +61,11 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
-- brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
+- session: grok impl 2026-08-12
+- brief: plan under `plans/` APPROVED → fresh impl
 
 ## Resolution
+- Plan APPROVED by Astra 2026-08-12 06:07 MST
+- Pure-move split complete; ExitLinker + MobSpawner overrides removed; residual hosts retargeted **MUD-034g** (lower-only)
+- `./tools/verify_mud.sh --core` PASS
+- Closeout: `tmp/workers/MUD-034g/CLOSEOUT.md` · dod-summary `tmp/dod-summary.json`
