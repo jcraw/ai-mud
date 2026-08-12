@@ -250,7 +250,7 @@
 
 ### MUD-034h — item handlers pure-move split (+ MUD-034i IMPL launch)
 - **When:** 2026-08-12 07:13 MST
-- **SHA:** _(fill after push)_
+- **SHA:** `4fae2901888cabbb0fe0bb1588b22eaa8a54fc53`
 - **Branch:** master → origin
 - **Force:** no
 - **Included:** app+client item handler pure-move extracts + thin hosts, token_budget both host overrides removed, plan MUD-034h, board/ticket/handoff, 034i APPROVED+IMPL launch
