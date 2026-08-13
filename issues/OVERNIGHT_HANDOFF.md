@@ -1,9 +1,9 @@
 # ai-mud overnight / Wave Q handoff
 
-**Updated:** 2026-08-12 09:17 MST (drain · MUD-034m PUSHED 8e4b8e2 · MUD-034n PLAN live pid 1230643)
-**Live:** **MUD-034n** planning (detached PLAN · pid 1230643 · bypassPermissions)
-**Plan review:** _(empty until 034n plan lands)_
-**Agent queue:** Wave Q — 026–034m done; **034n planning**; next Q4 035…038
+**Updated:** 2026-08-13 (MUD-034n FINISH done · Q3 children closed)
+**Live:** _(none — 034n done; do not start 035–038 in this session)_
+**Plan review:** _(empty)_
+**Agent queue:** Wave Q — 026–034n done; next Q4 035…038 (not started here)
 **Human-gated left:** **none** for harness; product play still later
 **Cron:** Wave Q re-drain `fb01f053` every 20m — **ARMED** · game_jam clear-backlog `13126055` also armed
 **Posture:** Jason 2026-08-11 night — accepted `docs/AGENT_QUALITY_GATES_DESIGN.md` (token-first, hard-on-touched, PIT 80% after splits)
@@ -46,4 +46,4 @@
 **MUD-034k closeout:** `tmp/workers/MUD-034k/CLOSEOUT.md` · hosts 3249→188 / 3432→151 / 3614→451 / 2794→308 / 2863→560 / 3219→459 · all 6 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md` · **PUSHED** `746d3db`
 **MUD-034l closeout:** `tmp/workers/MUD-034l/CLOSEOUT.md` · hosts 3491→311 / 2879→587 / 2545→208 / 3125→219 / 3274→240 · all 5 host overrides **removed** · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md` · **PUSHED** `8ee174c4cdcc55fde63ebd0a8f4b6fd4156f0c8e`
 **MUD-034m closeout:** `tmp/workers/MUD-034m/CLOSEOUT.md` · hosts 2564→602 / 3215→622 / 2641→700 / 2506→689 / 2967→434 / 3762→2331 / 2599→1877 · all 7 host overrides **removed** · combat stubs empty · WorldState/CombatComponent members kept · parity N/A · `--core` PASS · plan `plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md` · **PUSHED** 
-**MUD-034n:** PLAN launching · misc reasoning leftovers split · worker `tmp/workers/MUD-034n` · brief `tmp/workers/MUD-034n/PLAN_BRIEF.md` · plan target `plans/2026-08-12-ai-mud-MUD-034n-misc-reasoning-split.md`
+**MUD-034n:** IMPL live pid 1232542 · misc reasoning leftovers split · worker `tmp/workers/MUD-034n` · plan `plans/2026-08-12-ai-mud-MUD-034n-misc-reasoning-split.md` · APPROVED 09:22 MST

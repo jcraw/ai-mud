@@ -28,7 +28,7 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
    - **Q0:** MUD-026 design lock
    - **Q1 serial:** MUD-027 → 028 → 029 → 030 (dod v2 · token report · touched · verify pilot)
    - **Q2 serial:** MUD-031 hard-on-touched → 032 no-live-LLM · 033 preflight (033∥ok after 030)
-   - **Q3:** MUD-034 god-file split umbrella → children **034a–n** (open)
+   - **Q3:** MUD-034 god-file split umbrella → children **034a–n** (done)
    - **Q4:** MUD-035 PIT raise · 036 dup · 037 parity contracts · 038 headless smoke
    - **Post-done:** allowlisted `git push origin master` after each (no force)
    - **Policy:** token-primary ceilings; hard-on-touched before new features; PIT 80% after splits; E-tier not core-blocking yet
@@ -62,7 +62,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-032 done — no live LLM in unit tests)_
 - _(MUD-033 done — plan/brief token preflight)_
 
-#### Q3 — split gods (umbrella done; children open)
+#### Q3 — split gods (umbrella done; children done)
 - _(MUD-034 done — ranked list + 14 children 034a–n; tickets-only)_
 - _(MUD-034a done — client facade pure-move extracts; residual override lowered)_
 - _(MUD-034b done — GraphGenerator pure-move layout/MST/edges/typing; override removed)_
@@ -77,7 +77,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-034k done — combat surface pure-move; all 6 host overrides removed)_
 - _(MUD-034l done — social/trade/treasure pure-move; all 5 host overrides removed)_
 - _(MUD-034m done — memory/core pure-move; all 7 host overrides removed)_
-- **MUD-034n** — misc reasoning split (`med`) · **planning** · grok · launching · `tmp/workers/MUD-034n` · depends 034/031 · disposition/NPC/pickpocket/gens
+- _(MUD-034n done — misc reasoning pure-move; all 7 host overrides removed)_
 
 #### Q4 — strength / product-adjacent
 - **MUD-035** — PIT threshold raise toward 80% (`med`) · open · depends 034
@@ -94,13 +94,14 @@ _(empty)_
 
 ## Scheduled / In progress
 
-- **MUD-034n** — misc reasoning split (`med`) · planning · launching · worker `tmp/workers/MUD-034n/` · disposition/NPC/pickpocket/gens
+_(empty)_
 
 ## Blocked (awaiting Jason)
 
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-034n** — misc reasoning split (`med`) · done · pure-move Disposition* · NPCKnowledge* · Pickpocket* · NPCGenerator* · Quest*Gen · TownMerchant* · TreasureRoom*+Complete · hosts **3667→1575** / **3028→1241** / **3572→1225** / **3372→421** / **2975→491** / **2523→711** / **2572→1097** · all 7 host overrides **removed** (under global E; never raised; no Added override) · finish split `completeRoomDescription` 252→TreasureRoomComplete 202 · parity N/A · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034n/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034n-misc-reasoning-split.md`
 - **MUD-034m** — memory + core split (`med`) · done · pure-move SkillRepo* · ItemRepo* · CombatRepo* · WorldSchema* · Narration*Variants+Support · WorldStateNav/Entities/Items · CombatStatusOps/TickOps · hosts **2564→602** / **3215→622** / **2641→700** / **2506→689** / **2967→434** / **3762→2331** / **2599→1877** · all 7 host overrides **removed** (under global E; never raised; no Added override) · combat stubs empty · WorldState/CombatComponent members kept · parity N/A · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034m/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md`
 - **MUD-034l** — social/trade/treasure split (`med`) · done · pure-move SocialNpcResolve+Dialogue+Disposition · ClientSocialNpcResolve+Dialogue · Treasure/ClientTreasure PedestalSupport+Take/Return/Examine lockstep · TradeMerchantSupport+Buy/Sell/ListStock (app only) · hosts **3491→311** / **2879→587** / **2545→208** / **3125→219** / **3274→240** · all 5 host overrides **removed** (under global E; never raised; no Added override) · client social stubs + public `isQuestion` kept · ClientTradeHandlers untouched · FQCN stable · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034l/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md`
 - **MUD-034k** — combat surface split (`med`) · done · pure-move Attack types+EntityLookup+AttackResolve* · FleeResult+FleeResolve* · MonsterAI* · CombatNarrator* · app/client Attack(+Prep/Hit/Miss)+SkillProgress lockstep · hosts **3249→188** / **3432→151** / **3614→451** / **2794→308** / **2863→560** / **3219→459** · all 6 host overrides **removed** (under global E; never raised; no Added override) · FQCN stable · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034k/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034k-combat-surface-split.md`

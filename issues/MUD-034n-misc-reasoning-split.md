@@ -2,22 +2,22 @@
 id: MUD-034n
 area: engine
 title: Split misc reasoning leftovers (Wave Q3)
-status: scheduled
+status: done
 priority: med
 created: 2026-08-12
-updated: 2026-08-12
+updated: 2026-08-13
 source: jason
 labels: [quality-gates, wave-q, refactor, god-file-split]
 assignee: "grok"
 worker: "grok"
-phase: planning
+phase: done
 agent_eligible: true
 eligibility: agent_eligible
 depends_on: [MUD-034, MUD-031]
 verify: "./tools/verify_mud.sh --core"
-plan: ""
+plan: plans/2026-08-12-ai-mud-MUD-034n-misc-reasoning-split.md
 worker_out_dir: tmp/workers/MUD-034n
-worker_pid: "1230643"
+worker_pid: ""
 parent: MUD-034
 ---
 
@@ -41,13 +41,13 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 | `reasoning/src/main/kotlin/com/jcraw/mud/reasoning/treasureroom/TreasureRoomDescriptionGenerator.kt` | 2572 | 211 | 2572 |
 
 ## Acceptance
-- [ ] Behavior-preserving extract of `DispositionManager.kt`, `NPCKnowledgeManager.kt`, `PickpocketHandler.kt`, `NPCGenerator.kt`, `QuestGenerator.kt`, `TownMerchantTemplates.kt`, `TreasureRoomDescriptionGenerator.kt` (pure moves / thin public entrypoints; no feature work)
-- [ ] Console+GUI **parity** where app/client pairs exist in this family
-- [ ] `./tools/verify_mud.sh --core` exit 0
-- [ ] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
-- [ ] Retarget remaining override `ticket` from `MUD-034` → `MUD-034n` when still needed
-- [ ] New extracted `.kt` files meet global E (no override grandfather)
-- [ ] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
+- [x] Behavior-preserving extract of `DispositionManager.kt`, `NPCKnowledgeManager.kt`, `PickpocketHandler.kt`, `NPCGenerator.kt`, `QuestGenerator.kt`, `TownMerchantTemplates.kt`, `TreasureRoomDescriptionGenerator.kt` (pure moves / thin public entrypoints; no feature work)
+- [x] Console+GUI **parity** where app/client pairs exist in this family _(N/A — reasoning leftovers; no app/client pairs)_
+- [x] `./tools/verify_mud.sh --core` exit 0
+- [x] Remeasure with `check_token_budget_kt.py --files <touched>` then **lower or remove** overrides for reduced hosts (never raise; no new/Added override)
+- [x] Retarget remaining override `ticket` from `MUD-034` → `MUD-034n` when still needed _(N/A — all 7 host overrides removed)_
+- [x] New extracted `.kt` files meet global E (no override grandfather)
+- [x] No unauthorized `src/test/**` edits unless explicitly scoped + `MUD_ALLOW_TEST_CHANGES=1 ./tools/test_lock.sh --write`
 
 ## Non-goals
 - Raising override caps
@@ -62,7 +62,15 @@ Token hard-on-touched (MUD-031) grandfathers oversized hosts under `ticket: MUD-
 - Serial one live builder per tree
 
 ## Builder
-- session: _(fill when spawned)_
+- session: plan 2026-08-12 (grok) APPROVED Astra 09:22 MST; IMPL then FINISH 2026-08-13
 - brief: plan under `plans/` if substantial → Astra/Jason APPROVED → fresh impl
 
 ## Resolution
+- Done 2026-08-13 by grok (FINISH after supervisor-killed IMPL; Astra APPROVED plan 2026-08-12).
+- Pure-move misc reasoning: Disposition* · NPCKnowledge* · Pickpocket* · NPCGenerator* · Quest*Gen · TownMerchant* · TreasureRoom*+Complete · thin hosts.
+- Hosts: **3667→1575** / **3028→1241** / **3572→1225** / **3372→421** / **2975→491** / **2523→711** / **2572→1097**.
+- All 7 host overrides **removed** (under global E; never raised; no Added override).
+- Finish split: `completeRoomDescription` 252 → `TreasureRoomComplete` (`complete` 202). Parity N/A.
+- `./tools/verify_mud.sh --core` PASS · dod-summary `tmp/dod-summary.json` · closeout `tmp/workers/MUD-034n/CLOSEOUT.md`.
+- No `src/test/**` · no features · no 035–038 · no git commit.
+
