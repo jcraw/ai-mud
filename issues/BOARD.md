@@ -29,7 +29,7 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
    - **Q1 serial:** MUD-027 → 028 → 029 → 030 (dod v2 · token report · touched · verify pilot)
    - **Q2 serial:** MUD-031 hard-on-touched → 032 no-live-LLM · 033 preflight (033∥ok after 030)
    - **Q3:** MUD-034 god-file split umbrella → children **034a–n** (done)
-   - **Q4:** _(MUD-035 done — PIT schedule 60→70→80, live stay R0)_ · 036 dup · _(037 done)_ · 038 headless smoke
+   - **Q4:** _(MUD-035 done — PIT schedule 60→70→80, live stay R0)_ · _(036 done)_ · _(037 done)_ · _(038 done — optional `--smoke`)_
    - **Post-done:** allowlisted `git push origin master` after each (no force)
    - **Policy:** token-primary ceilings; hard-on-touched before new features; PIT 80% after splits; E-tier not core-blocking yet
 
@@ -83,7 +83,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 - _(MUD-035 done — PIT schedule 60→70→80; live stay R0 min 9.8%)_
 - _(MUD-036 done — duplication_kt warn-only on app/client handlers; `DUP_BLOCK_W`; R0; no handler merge)_
 - _(MUD-037 done — handler parity contracts: EquipItemApply / CombatHitApply / EmoteApply + use/equip/hit/emote contracts)_
-- **MUD-038** — headless command smoke (`low`) · open · depends 031 · not core-blocking
+- _(MUD-038 done — fixture + `tools/smoke_commands.sh` + optional `--smoke`; not on `--core`)_
 
 ### Waves A–G
 _(complete — harness modernization closed MUD-025)_
@@ -101,6 +101,7 @@ _(empty)_
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-038** — headless command smoke (`low`) · done · fixture `CommandSmokeWorld` + `CommandSmokeKt` + `tools/smoke_commands.sh` (`MUD_DATA_DIR` temp; `env -u OPENAI_API_KEY`; look/take/inv/attack) · optional `./tools/verify_mud.sh --smoke` (`gates.command_smoke`; not on `--core`) · `DatabaseConfig` data-dir override only · `docs/COMMAND_SMOKE.md` · no `src/test` · `--core` PASS · closeout `tmp/workers/MUD-038/CLOSEOUT.md` · plan `plans/2026-08-16-ai-mud-MUD-038-headless-command-smoke.md`
 - **MUD-036** — duplication gate handlers (`low`) · done · `check_duplication_kt.py` jam-style 10-line block clone on `app/**/handlers` ↔ `client/**/handlers` · `DUP_BLOCK_W` live / `DUP_BLOCK_E` reserved · warn-only on default/fast/core/full (`gates.duplication_kt` pass even when W>0) · skip quarantine/pitest · missing checker → skip · crash/empty JSON → fail · R0→R1/R2 documented only · no product `*.kt` / no handler merge / no `src/test` · `--core` PASS W=19 · closeout `tmp/workers/MUD-036/CLOSEOUT.md` · plan `plans/2026-08-16-ai-mud-MUD-036-duplication-gate-handlers.md`
 - **MUD-035** — PIT threshold raise schedule toward 80% (`med`) · done · docs+plumb R0–R2b (60 soft → 70 soft → 80 hard opt-in then default) · live stay **60/60/`HARD_DEFAULT=0`** (remeasured min **9.8%** << 72; splits ≠ headroom) · PIT stays off fast/core/full · nightly YAML docs-only · no `src/test` / lock / mutator / workflow · `--pitest` PASS (soft note) · `MUD_PITEST_HARD=1` FAIL · closeout `tmp/workers/MUD-035/CLOSEOUT.md` · plan `plans/2026-08-16-ai-mud-MUD-035-pit-threshold-raise.md`
 - **MUD-037** — handler parity contracts (`med`) · done · keep take/drop; add `EquipItemApply` + `UseConsumableContractTest` + `CombatHitApply` + `EmoteApply` · wire console+GUI (+ GameServer equip) · MU Attack/Emote stay stub · no GUI redesign · test-lock regen · `--core` PASS · plan `plans/2026-08-16-ai-mud-MUD-037-handler-parity-contracts.md`

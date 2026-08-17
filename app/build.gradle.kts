@@ -31,13 +31,24 @@ dependencies {
     testImplementation(project(":testbot"))
 }
 
+val commandSmoke = findProperty("commandSmoke")?.toString() == "1"
+
 application {
     // Define the Fully Qualified Name for the application main class
     // (Note that Kotlin compiles `App.kt` to a class with FQN `com.example.app.AppKt`.)
-    mainClass = "com.jcraw.app.AppKt"
+    // MUD-038: -PcommandSmoke=1 runs headless CommandSmokeKt (no API key).
+    mainClass = if (commandSmoke) {
+        "com.jcraw.app.CommandSmokeKt"
+    } else {
+        "com.jcraw.app.AppKt"
+    }
 
-    // Pass OpenAI API key from local.properties to the application
-    applicationDefaultJvmArgs = listOf(
-        "-Dopenai.api.key=${localProperties.getProperty("openai.api.key", "")}"
-    )
+    // Pass OpenAI API key from local.properties to the application (never for smoke).
+    applicationDefaultJvmArgs = if (commandSmoke) {
+        emptyList()
+    } else {
+        listOf(
+            "-Dopenai.api.key=${localProperties.getProperty("openai.api.key", "")}"
+        )
+    }
 }

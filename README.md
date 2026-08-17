@@ -99,6 +99,7 @@ gradle build
 ./tools/verify_mud.sh --core       # core + perception + memory + green :reasoning
 ./tools/verify_mud.sh --full       # stable green set (includes green :reasoning)
 ./tools/verify_mud.sh --quarantine # @Tag(quarantine) debt only (hard-fail OK)
+./tools/verify_mud.sh --smoke      # optional headless look/take/inv/attack (not on --core)
 ./tools/verify_mud.sh --help
 ```
 PRs and pushes to `master`/`main` run GitHub Actions [`.github/workflows/verify.yml`](.github/workflows/verify.yml) → `./tools/verify_mud.sh --core` (quarantine excluded; no live OpenAI).

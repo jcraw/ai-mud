@@ -14,6 +14,9 @@
 # MUD-033: optional --preflight PATH (builder plan/brief token only; not on default
 #   lanes). Checker exit 2 → fail; exit 1 warn → pass+note; 0 → pass.
 #   See docs/BUILDER_PREFLIGHT.md.
+# MUD-038: optional --smoke (headless look/take/inv/attack). Not on default/fast/
+#   core/full/pitest/quarantine. Missing script → fail on --smoke only.
+#   See docs/COMMAND_SMOKE.md.
 # MUD-036: duplication_kt warn-only on default/fast/core/full (app/client handlers).
 #   Checker always exit 0; W never sets EXIT_CODE. Missing checker → skip.
 #   Crash / empty JSON → fail. Skip quarantine/pitest/preflight.
@@ -34,6 +37,7 @@ TOKEN_JSON_OUT="${ROOT_DIR}/tmp/token_budget_kt_verify.json"
 DUP_CHECKER="${ROOT_DIR}/tools/quality/check_duplication_kt.py"
 DUP_JSON_OUT="${ROOT_DIR}/tmp/duplication_kt_verify.json"
 PREFLIGHT_CHECKER="${ROOT_DIR}/tools/quality/check_builder_preflight.py"
+SMOKE_SCRIPT="${ROOT_DIR}/tools/smoke_commands.sh"
 DOD_SUMMARY_PATH="${MUD_DOD_SUMMARY:-${ROOT_DIR}/tmp/dod-summary.json}"
 LANE="default"
 DRY_RUN=0
@@ -81,7 +85,7 @@ FINDINGS_JSON_PARTS=()
 usage() {
   cat <<'EOF'
 Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-soft] [--token-hard]
-                             | --preflight <path>
+                             | --preflight <path> | --smoke
 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
@@ -113,6 +117,10 @@ Lanes (pick one; default if omitted):
                               Not on default/fast/core/full/pitest/quarantine.
                               Checker exit 2 → fail; 1 warn → pass+note; 0 → pass.
                               See docs/BUILDER_PREFLIGHT.md.
+  --smoke                     Headless look/take/inventory/attack (MUD-038 / E1).
+                              Not on default/fast/core/full/pitest/quarantine.
+                              Missing tools/smoke_commands.sh → fail this lane only.
+                              See docs/COMMAND_SMOKE.md.
 
 Flags:
   --dry-run                   Print intended Gradle commands; do not run
@@ -129,6 +137,7 @@ DoD summary (MUD-013 / MUD-027 v2 / MUD-031 / MUD-032):
   gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
   gates.no_live_llm_unit on default/fast/core/full/pitest (skipped quarantine).
   gates.duplication_kt on default/fast/core/full (warn-only; skipped quarantine/pitest).
+  gates.command_smoke on --smoke only (skipped other lanes; not in required tuple).
   Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
 
@@ -152,6 +161,11 @@ Builder preflight (MUD-033; docs/BUILDER_PREFLIGHT.md):
   Standalone: python3 tools/quality/check_builder_preflight.py <path>
   Not forced on default/fast/core/full (historical plans often warn-band).
 
+Headless command smoke (MUD-038; docs/COMMAND_SMOKE.md):
+  Optional only via --smoke. Fixture world + null LLM; no OpenAI.
+  Standalone: ./tools/smoke_commands.sh (MUD_DATA_DIR temp; env -u OPENAI_API_KEY).
+  Not on default/fast/core/full/pitest/quarantine.
+
 Duplication (MUD-036 warn-only; docs/DUPLICATION_KT.md):
   Warn-only on default/fast/core/full: app/**/handlers ↔ client/**/handlers block clones.
   W never fails verify. Missing python3/checker → skip. Crash/empty JSON → fail.
@@ -172,6 +186,8 @@ Examples:
   ./tools/verify_mud.sh --quarantine
   ./tools/verify_mud.sh --preflight plans/YYYY-MM-DD-….md
   ./tools/verify_mud.sh --preflight plans/….md --dry-run
+  ./tools/verify_mud.sh --smoke
+  ./tools/verify_mud.sh --dry-run --smoke
   MUD_TOKEN_SOFT=1 ./tools/verify_mud.sh --fast
   ./tools/verify_mud.sh --core --token-soft
   MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
@@ -182,6 +198,7 @@ See docs/PIT.md for mutation testing (pure modules).
 See docs/TOKEN_BUDGET_KT.md for token/structure hard-on-touched.
 See docs/NO_LIVE_LLM_UNIT.md for unit-test live-LLM policy.
 See docs/BUILDER_PREFLIGHT.md for plan/brief token preflight.
+See docs/COMMAND_SMOKE.md for optional headless command smoke.
 See docs/DUPLICATION_KT.md for handler block-clone (warn-only).
 EOF
 }
@@ -1072,6 +1089,50 @@ run_builder_preflight() {
   return 1
 }
 
+# Headless command smoke (MUD-038). Optional --smoke only. See docs/COMMAND_SMOKE.md.
+run_command_smoke() {
+  local t0 t1 dur rc=0
+  local cmd_display="./tools/smoke_commands.sh"
+
+  add_step "command_smoke"
+  if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "[dry-run] ${cmd_display}"
+    note "command_smoke dry-run (would run ${cmd_display})"
+    record_gate "command_smoke" "skipped" 0 "dry-run"
+    return 0
+  fi
+
+  if [[ ! -f "${SMOKE_SCRIPT}" ]]; then
+    echo "error: smoke script missing: ${SMOKE_SCRIPT}" >&2
+    record_gate "command_smoke" "fail" 0 "script missing"
+    EXIT_CODE=1
+    return 1
+  fi
+  if [[ ! -x "${SMOKE_SCRIPT}" ]]; then
+    echo "error: smoke script not executable: ${SMOKE_SCRIPT}" >&2
+    record_gate "command_smoke" "fail" 0 "script not executable"
+    EXIT_CODE=1
+    return 1
+  fi
+
+  t0="$(date +%s)"
+  set +e
+  "${SMOKE_SCRIPT}"
+  rc=$?
+  set -e
+  t1="$(date +%s)"
+  dur=$((t1 - t0))
+
+  if [[ ${rc} -eq 0 ]]; then
+    record_gate "command_smoke" "pass" "${dur}" "look/take/inv/attack"
+    return 0
+  fi
+  echo "error: command_smoke failed (exit ${rc})" >&2
+  record_gate "command_smoke" "fail" "${dur}" "exit ${rc}"
+  EXIT_CODE=1
+  return 1
+}
+
 module_has_tests() {
   local mod="$1"
   [[ -d "${ROOT_DIR}/${mod}/src/test" ]]
@@ -1104,7 +1165,7 @@ finalize_gates() {
           fi
           ;;
         token_budget)
-          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" ]]; then
+          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" || "${LANE}" == "smoke" ]]; then
             GATE_NOTE[$g]="${LANE} lane"
           elif [[ "${LANE}" == "pitest" ]]; then
             GATE_NOTE[$g]="not in pitest lane"
@@ -1113,14 +1174,14 @@ finalize_gates() {
           fi
           ;;
         no_live_llm_unit)
-          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" ]]; then
+          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" || "${LANE}" == "smoke" ]]; then
             GATE_NOTE[$g]="${LANE} lane"
           else
             GATE_NOTE[$g]="dry-run"
           fi
           ;;
         duplication_kt)
-          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" ]]; then
+          if [[ "${LANE}" == "quarantine" || "${LANE}" == "preflight" || "${LANE}" == "smoke" ]]; then
             GATE_NOTE[$g]="${LANE} lane"
           elif [[ "${LANE}" == "pitest" ]]; then
             GATE_NOTE[$g]="not in pitest lane"
@@ -1129,8 +1190,8 @@ finalize_gates() {
           fi
           ;;
         *)
-          if [[ "${LANE}" == "preflight" ]]; then
-            GATE_NOTE[$g]="preflight lane"
+          if [[ "${LANE}" == "preflight" || "${LANE}" == "smoke" ]]; then
+            GATE_NOTE[$g]="${LANE} lane"
           else
             GATE_NOTE[$g]="dry-run"
           fi
@@ -1143,6 +1204,13 @@ finalize_gates() {
       GATE_STATUS[builder_preflight]="skipped"
       GATE_DURATION[builder_preflight]=0
       GATE_NOTE[builder_preflight]="dry-run"
+    fi
+    # command_smoke only meaningful on --smoke; dry-run may already record it
+    if [[ "${LANE}" == "smoke" && -z "${GATE_SEEN[command_smoke]:-}" ]]; then
+      GATE_SEEN[command_smoke]=1
+      GATE_STATUS[command_smoke]="skipped"
+      GATE_DURATION[command_smoke]=0
+      GATE_NOTE[command_smoke]="dry-run"
     fi
     return 0
   fi
@@ -1200,6 +1268,8 @@ finalize_gates() {
       record_gate "no_live_llm_unit" "skipped" 0 "quarantine lane"
     elif [[ "${LANE}" == "preflight" ]]; then
       record_gate "no_live_llm_unit" "skipped" 0 "preflight lane"
+    elif [[ "${LANE}" == "smoke" ]]; then
+      record_gate "no_live_llm_unit" "skipped" 0 "smoke lane"
     else
       record_gate "no_live_llm_unit" "skipped" 0 "not run"
     fi
@@ -1213,6 +1283,8 @@ finalize_gates() {
       record_gate "duplication_kt" "skipped" 0 "not in pitest lane"
     elif [[ "${LANE}" == "preflight" ]]; then
       record_gate "duplication_kt" "skipped" 0 "preflight lane"
+    elif [[ "${LANE}" == "smoke" ]]; then
+      record_gate "duplication_kt" "skipped" 0 "smoke lane"
     else
       record_gate "duplication_kt" "skipped" 0 "not run"
     fi
@@ -1227,13 +1299,23 @@ finalize_gates() {
       :
     fi
   fi
+
+  # command_smoke (MUD-038): optional gate; only on --smoke lane
+  if [[ -z "${GATE_SEEN[command_smoke]:-}" ]]; then
+    if [[ "${LANE}" == "smoke" ]]; then
+      record_gate "command_smoke" "skipped" 0 "not run"
+    else
+      # not in default inventory — omit from dod-summary (additionalProperties OK)
+      :
+    fi
+  fi
 }
 
 # Emit compact dod-summary.json (pure bash; no jq required). schema_version 2 + findings[] (MUD-027).
 write_dod_summary() {
   local result result_json duration_s generated_at qcount
   local steps_json="" findings_json="" i s
-  local out_dir
+  local out_dir extras extra_g ei
 
   [[ "${VERIFY_STARTED}" -eq 1 ]] || return 0
   [[ "${DOD_WRITTEN}" -eq 0 ]] || return 0
@@ -1363,17 +1445,33 @@ write_dod_summary() {
     if [[ -n "${GATE_NOTE[duplication_kt]:-}" ]]; then
       printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[duplication_kt]}")"
     fi
-    # builder_preflight (MUD-033) only when recorded (preflight lane); optional additionalProperties
+    # Optional extra gates (preflight / smoke) via additionalProperties
+    extras=()
     if [[ -n "${GATE_SEEN[builder_preflight]:-}" ]]; then
-      printf ' },\n'
-      printf '    "builder_preflight": { "status": "%s", "duration_s": %s' \
-        "${GATE_STATUS[builder_preflight]:-skipped}" "${GATE_DURATION[builder_preflight]:-0}"
-      if [[ -n "${GATE_NOTE[builder_preflight]:-}" ]]; then
-        printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[builder_preflight]}")"
-      fi
+      extras+=("builder_preflight")
+    fi
+    if [[ -n "${GATE_SEEN[command_smoke]:-}" ]]; then
+      extras+=("command_smoke")
+    fi
+    if [[ ${#extras[@]} -eq 0 ]]; then
       printf ' }\n'
     else
-      printf ' }\n'
+      printf ' },\n'
+      ei=0
+      while [[ ${ei} -lt ${#extras[@]} ]]; do
+        extra_g="${extras[${ei}]}"
+        printf '    "%s": { "status": "%s", "duration_s": %s' \
+          "${extra_g}" "${GATE_STATUS[${extra_g}]:-skipped}" "${GATE_DURATION[${extra_g}]:-0}"
+        if [[ -n "${GATE_NOTE[${extra_g}]:-}" ]]; then
+          printf ', "note": "%s"' "$(json_escape "${GATE_NOTE[${extra_g}]}")"
+        fi
+        if [[ ${ei} -lt $((${#extras[@]} - 1)) ]]; then
+          printf ' },\n'
+        else
+          printf ' }\n'
+        fi
+        ei=$((ei + 1))
+      done
     fi
 
     printf '  },\n'
@@ -1485,6 +1583,10 @@ while [[ $# -gt 0 ]]; do
       PREFLIGHT_PATH="$2"
       shift 2
       ;;
+    --smoke)
+      LANE="smoke"
+      shift
+      ;;
     default|fast|--fast)
       LANE="default"
       shift
@@ -1540,6 +1642,25 @@ case "${LANE}" in
     record_gate "no_live_llm_unit" "skipped" 0 "preflight lane"
     record_gate "duplication_kt" "skipped" 0 "preflight lane"
     # Write summary and exit early (do not run gradle / hard product gates).
+    write_dod_summary
+    print_human_summary
+    exit "${EXIT_CODE}"
+    ;;
+  smoke)
+    if [[ ${#MODULES[@]} -gt 0 ]]; then
+      die_usage "smoke lane does not take module args (got: ${MODULES[*]})"
+    fi
+    note "command smoke only (MUD-038); not a product lane; not on --core"
+    run_command_smoke || true
+    record_gate "compile" "skipped" 0 "smoke lane"
+    record_gate "tests" "skipped" 0 "smoke lane"
+    record_gate "detekt" "skipped" 0 "smoke lane"
+    record_gate "konsist" "skipped" 0 "smoke lane"
+    record_gate "test_lock" "skipped" 0 "smoke lane"
+    record_gate "pitest" "skipped" 0 "smoke lane"
+    record_gate "token_budget" "skipped" 0 "smoke lane"
+    record_gate "no_live_llm_unit" "skipped" 0 "smoke lane"
+    record_gate "duplication_kt" "skipped" 0 "smoke lane"
     write_dod_summary
     print_human_summary
     exit "${EXIT_CODE}"

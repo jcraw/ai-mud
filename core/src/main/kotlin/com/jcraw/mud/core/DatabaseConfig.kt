@@ -11,9 +11,17 @@ import java.nio.file.Paths
 object DatabaseConfig {
     /**
      * Root data directory for all persistent storage.
-     * This is relative to the working directory when the application is launched.
+     * Override with `MUD_DATA_DIR` or `-Dmud.data.dir` before first access.
+     * Default remains `data` (relative to the process working directory).
      */
-    private val DATA_DIR: Path = Paths.get("data")
+    private val DATA_DIR: Path by lazy { resolveDataDir() }
+
+    private fun resolveDataDir(): Path {
+        val override = System.getenv("MUD_DATA_DIR")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: System.getProperty("mud.data.dir")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: "data"
+        return Paths.get(override)
+    }
 
     /**
      * Initialize the data directory (create if doesn't exist).

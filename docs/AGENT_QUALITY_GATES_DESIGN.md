@@ -139,7 +139,7 @@ Runtime schema: `config/quality/dod_summary.schema.json` (MUD-027); short ops no
 
 | ID | Gate | Hard? | Notes |
 |----|------|-------|-------|
-| E1 | headless command script | hard when product phase | scripted `look/take/inv/attack` without GUI |
+| E1 | headless command script | hard when product phase | scripted `look/take/inv/attack` without GUI — **live optional:** `tools/smoke_commands.sh` + `./tools/verify_mud.sh --smoke` (MUD-038; `docs/COMMAND_SMOKE.md`; **not** on `--core`) |
 | E2 | testbot golden playthrough | soft/nightly | LLM cost; mock where possible |
 | E3 | multi-user local smoke | soft | two sessions same world |
 

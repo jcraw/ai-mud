@@ -17,7 +17,7 @@ Compact verify artifact for agents. Prefer this over scraping Gradle logs.
 Top-level: `schema_version` (2), `tool`, `lane`, `result` (`PASS`|`FAIL`|`DRY_RUN`), `exit_code`, `generated_at`, `duration_s`, optional `dry_run`, `gates`, `quarantine_count`, `steps`, **`findings`**.
 
 **Gates** (fixed required keys): `compile`, `tests`, `detekt`, `konsist`, `test_lock`, `pitest`.  
-Optional (schema `additionalProperties`): **`token_budget`** (MUD-030/031) on default/fast/core/full (skipped quarantine/pitest); **`no_live_llm_unit`** (MUD-032) on default/fast/core/full/pitest (skipped quarantine); **`duplication_kt`** (MUD-036) on default/fast/core/full (warn-only; skipped quarantine/pitest).  
+Optional (schema `additionalProperties`): **`token_budget`** (MUD-030/031) on default/fast/core/full (skipped quarantine/pitest); **`no_live_llm_unit`** (MUD-032) on default/fast/core/full/pitest (skipped quarantine); **`duplication_kt`** (MUD-036) on default/fast/core/full (warn-only; skipped quarantine/pitest); **`command_smoke`** (MUD-038 / E1) on `--smoke` only (skipped other lanes; not on `--core`).  
 Each: `status` ∈ `pass|fail|skipped`, `duration_s`, optional `note`; pitest may include `mutation_score`.
 
 **Findings** (always present; may be empty):

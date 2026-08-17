@@ -57,6 +57,7 @@ Default entrypoint: **`./tools/verify_mud.sh`** (also the ticket `verify:` field
 | Full | `./tools/verify_mud.sh --full` | Stable green set including green `:reasoning` (exclude quarantine); no testbot thrash; + detekt + Konsist arch + test-lock + no_live_llm_unit + token hard-on-touched + duplication_kt warn-only; PIT skipped (core &gt;45s — use `--pitest`) |
 | PIT | `./tools/verify_mud.sh --pitest` | Pure-module PIT (`:core` / `:perception` / `:memory`) + detekt + Konsist arch + test-lock + no_live_llm_unit; soft 60% (see **`docs/PIT.md`**); token + duplication_kt skipped |
 | Quarantine | `./tools/verify_mud.sh --quarantine` | `:reasoning:test -Pmud.quarantineOnly=true` — debt only; hard-fail OK (no detekt / no Konsist / no test-lock / no no_live_llm_unit / no PIT / no token / no duplication_kt) |
+| Smoke | `./tools/verify_mud.sh --smoke` | Headless look/take/inv/attack (MUD-038 / E1). Optional; **not** on `--core`. See `docs/COMMAND_SMOKE.md`. |
 
 Every lane writes compact **`tmp/dod-summary.json`** (override: `$MUD_DOD_SUMMARY`) with **schema_version 2**, per-gate `pass|fail|skipped`, durations, `quarantine_count`, `exit_code`, and optional **`findings[]`** (may be empty; see `docs/DOD_SUMMARY.md`). Cite this path in closeout. Human `== verify_mud ==` summary still prints (`dod_summary:` line).
 
