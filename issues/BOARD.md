@@ -82,7 +82,7 @@ Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
 #### Q4 — strength / product-adjacent
 - **MUD-035** — PIT threshold raise toward 80% (`med`) · open · depends 034
 - **MUD-036** — duplication gate handlers (`low`) · open · depends 031
-- **MUD-037** — handler parity contracts (`med`) · open · depends 031
+- _(MUD-037 done — handler parity contracts: EquipItemApply / CombatHitApply / EmoteApply + use/equip/hit/emote contracts)_
 - **MUD-038** — headless command smoke (`low`) · open · depends 031 · not core-blocking
 
 ### Waves A–G
@@ -101,6 +101,7 @@ _(empty)_
 _(empty — harness posture: no Jason playtest blockers)_ 
 
 ## Recently done
+- **MUD-037** — handler parity contracts (`med`) · done · keep take/drop; add `EquipItemApply` + `UseConsumableContractTest` + `CombatHitApply` + `EmoteApply` · wire console+GUI (+ GameServer equip) · MU Attack/Emote stay stub · no GUI redesign · test-lock regen · `--core` PASS · plan `plans/2026-08-16-ai-mud-MUD-037-handler-parity-contracts.md`
 - **MUD-034n** — misc reasoning split (`med`) · done · pure-move Disposition* · NPCKnowledge* · Pickpocket* · NPCGenerator* · Quest*Gen · TownMerchant* · TreasureRoom*+Complete · hosts **3667→1575** / **3028→1241** / **3572→1225** / **3372→421** / **2975→491** / **2523→711** / **2572→1097** · all 7 host overrides **removed** (under global E; never raised; no Added override) · finish split `completeRoomDescription` 252→TreasureRoomComplete 202 · parity N/A · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034n/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034n-misc-reasoning-split.md`
 - **MUD-034m** — memory + core split (`med`) · done · pure-move SkillRepo* · ItemRepo* · CombatRepo* · WorldSchema* · Narration*Variants+Support · WorldStateNav/Entities/Items · CombatStatusOps/TickOps · hosts **2564→602** / **3215→622** / **2641→700** / **2506→689** / **2967→434** / **3762→2331** / **2599→1877** · all 7 host overrides **removed** (under global E; never raised; no Added override) · combat stubs empty · WorldState/CombatComponent members kept · parity N/A · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034m/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034m-memory-core-split.md`
 - **MUD-034l** — social/trade/treasure split (`med`) · done · pure-move SocialNpcResolve+Dialogue+Disposition · ClientSocialNpcResolve+Dialogue · Treasure/ClientTreasure PedestalSupport+Take/Return/Examine lockstep · TradeMerchantSupport+Buy/Sell/ListStock (app only) · hosts **3491→311** / **2879→587** / **2545→208** / **3125→219** / **3274→240** · all 5 host overrides **removed** (under global E; never raised; no Added override) · client social stubs + public `isQuestion` kept · ClientTradeHandlers untouched · FQCN stable · no `src/test/**` · `--core` PASS · closeout `tmp/workers/MUD-034l/CLOSEOUT.md` · plan `plans/2026-08-12-ai-mud-MUD-034l-social-trade-treasure-split.md`

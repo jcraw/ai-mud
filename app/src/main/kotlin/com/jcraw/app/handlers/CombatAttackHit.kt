@@ -20,6 +20,7 @@ import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.reasoning.QuestAction
 import com.jcraw.mud.reasoning.combat.AttackResult
 import com.jcraw.mud.reasoning.combat.CombatBehavior
+import com.jcraw.mud.reasoning.combat.CombatHitApply
 import com.jcraw.mud.reasoning.combat.DeathHandler
 import kotlinx.coroutines.runBlocking
 
@@ -29,10 +30,10 @@ import kotlinx.coroutines.runBlocking
 internal object CombatAttackHit {
 
     fun apply(game: MudGame, prep: CombatAttackPrep.Prepared, attackResult: AttackResult.Hit) {
-        val updatedNpc = prep.npc.withComponent(attackResult.updatedDefenderCombat) as Entity.NPC
-        game.worldState = game.worldState.replaceEntityInSpace(
-            prep.spaceId, prep.npc.id, updatedNpc
-        ) ?: game.worldState
+        val applied = CombatHitApply.apply(game.worldState, prep.spaceId, prep.npc, attackResult)
+        if (applied is CombatHitApply.Result.Success) {
+            game.worldState = applied.world
+        }
         println("\n${narrateHit(game, prep.playerInventory, prep.templates, prep.npc, attackResult)}")
         println(
             CombatSkillProgressHandlers.getHealthDescriptor(

@@ -17,6 +17,7 @@ import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.core.SocialEvent
 import com.jcraw.mud.core.SpacePropertiesComponent
+import com.jcraw.mud.reasoning.EmoteApply
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
 
@@ -168,16 +169,24 @@ internal object ClientSocialDialogueHandlers {
     ) {
         val (entityId, npcCandidate) = resolved
         val npc = game.loadEntity(entityId) as? Entity.NPC ?: npcCandidate
-        val emoteTypeEnum = game.emoteHandler.parseEmoteKeyword(emoteType)
-        if (emoteTypeEnum == null) {
-            game.emitEvent(GameEvent.System("Unknown emote: $emoteType", GameEvent.MessageLevel.WARNING))
-            return
+        val spaceId = game.worldState.player.currentRoomId
+        when (val result = EmoteApply.apply(game.worldState, spaceId, npc, emoteType, game.emoteHandler)) {
+            is EmoteApply.Result.Success -> persistEmoteSuccess(game, result)
+            is EmoteApply.Result.Failure -> game.emitEvent(
+                GameEvent.System(result.message, GameEvent.MessageLevel.WARNING)
+            )
         }
-        val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-        game.spaceEntityRepository.save(updatedNpc).onFailure {
-            println("Warning: failed to persist NPC state: ${it.message}")
+    }
+
+    private fun persistEmoteSuccess(game: EngineGameClient, result: EmoteApply.Result.Success) {
+        game.worldState = result.world
+        val updated = result.world.getEntity(result.npcId) as? Entity.NPC
+        if (updated != null) {
+            game.spaceEntityRepository.save(updated).onFailure {
+                println("Warning: failed to persist NPC state: ${it.message}")
+            }
         }
-        game.emitEvent(GameEvent.Narrative(narrative))
+        game.emitEvent(GameEvent.Narrative(result.narrative))
     }
 
     private suspend fun applyAskKnowledge(

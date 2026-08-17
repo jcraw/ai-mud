@@ -17,6 +17,7 @@ import com.jcraw.mud.core.ComponentType
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.SocialComponent
 import com.jcraw.mud.core.SocialEvent
+import com.jcraw.mud.reasoning.EmoteApply
 import com.jcraw.mud.reasoning.QuestAction
 import kotlinx.coroutines.runBlocking
 
@@ -134,14 +135,13 @@ internal object SocialDialogueHandlers {
 
     private fun applyEmote(game: MudGame, npc: Entity.NPC, emoteType: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val emoteTypeEnum = game.emoteHandler.parseEmoteKeyword(emoteType)
-        if (emoteTypeEnum == null) {
-            println("\nUnknown emote: $emoteType")
-            return
+        when (val result = EmoteApply.apply(game.worldState, spaceId, npc, emoteType, game.emoteHandler)) {
+            is EmoteApply.Result.Success -> {
+                game.worldState = result.world
+                println("\n${result.narrative}")
+            }
+            is EmoteApply.Result.Failure -> println("\n${result.message}")
         }
-        val (narrative, updatedNpc) = game.emoteHandler.processEmote(npc, emoteTypeEnum, "You")
-        game.worldState = game.worldState.replaceEntityInSpace(spaceId, npc.id, updatedNpc) ?: game.worldState
-        println("\n$narrative")
     }
 
     private suspend fun applyAskKnowledge(game: MudGame, spaceId: String, npc: Entity.NPC, topic: String) {

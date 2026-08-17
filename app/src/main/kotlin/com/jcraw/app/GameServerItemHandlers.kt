@@ -4,6 +4,7 @@ package com.jcraw.app
 
 import com.jcraw.mud.core.*
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.EquipItemApply
 import com.jcraw.mud.reasoning.inventory.FloorItemDropApply
 import com.jcraw.mud.reasoning.inventory.GiveItemApply
 import com.jcraw.mud.reasoning.inventory.UseConsumableApply
@@ -151,48 +152,14 @@ object GameServerItemHandlers {
         playerState: PlayerState,
         itemId: String
     ): Triple<String, WorldState, GameEvent?> {
-        val inv = playerState.inventoryComponent
-        val query = itemId.lowercase()
         val templates = buildFloorDropTemplates(server, playerState)
-        val instance = findEquipInstance(inv, templates, query, itemId)
-        val template = instance?.let {
-            templates[it.templateId]
-                ?: server.itemRepository?.findTemplateById(it.templateId)?.getOrNull()
-        }
-        return equipResult(server, playerState, inv, instance, template)
-    }
-
-    private fun findEquipInstance(
-        inv: InventoryComponent,
-        templates: Map<String, ItemTemplate>,
-        query: String,
-        itemId: String
-    ) = inv.items.find { instance ->
-        val template = templates[instance.templateId]
-        (template?.name?.lowercase()?.contains(query) == true) ||
-            instance.templateId.lowercase().contains(query) ||
-            instance.id.equals(query, ignoreCase = true) ||
-            (template?.name?.equals(itemId, ignoreCase = true) == true)
-    }
-
-    private fun equipResult(
-        server: GameServer,
-        playerState: PlayerState,
-        inv: InventoryComponent,
-        instance: ItemInstance?,
-        template: ItemTemplate?
-    ): Triple<String, WorldState, GameEvent?> {
-        val slot = template?.equipSlot
-        val updated = if (instance != null && slot != null) inv.equip(instance, slot) else null
-        return when {
-            instance == null -> Triple("You don't have that item.", server.worldState, null)
-            template == null -> Triple("Error: Item template not found", server.worldState, null)
-            slot == null -> Triple("You can't equip that.", server.worldState, null)
-            updated == null -> Triple("Error: Could not equip item", server.worldState, null)
-            else -> {
-                val player = playerState.copy(inventoryComponent = updated)
-                Triple("You equip the ${template.name}.", server.worldState.updatePlayer(player), null)
-            }
+        return when (val result = EquipItemApply.apply(playerState, itemId, templates)) {
+            is EquipItemApply.Result.Success -> Triple(
+                "You equip the ${result.itemName}.",
+                server.worldState.updatePlayer(result.player),
+                null
+            )
+            is EquipItemApply.Result.Failure -> Triple(result.message, server.worldState, null)
         }
     }
 
