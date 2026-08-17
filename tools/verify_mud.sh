@@ -45,8 +45,10 @@ VERIFY_STARTED=0
 DOD_WRITTEN=0
 SCRIPT_START_S="$(date +%s)"
 
-# Soft mutation threshold (day-one). Hard fail only when MUD_PITEST_HARD=1 or -Pmud.pitestHard=true.
-PITEST_SOFT_THRESHOLD=60
+# PIT schedule R0 — live stay 60/60/HARD_DEFAULT=0. Next 70 then 80: docs/PIT.md
+PITEST_SOFT_THRESHOLD=60          # R0; next 70 then 80 — docs/PIT.md
+PITEST_HARD_THRESHOLD=60          # hard-opt-in bar; may later exceed soft (R2a)
+PITEST_HARD_DEFAULT=0             # 1 = --pitest always hard (R2b only)
 # Measured 2026-08-11: :core:pitest wall ~130s (PIT analysis ~125s) → full never runs PIT.
 # Nightly / local deep gate: --pitest only. See docs/PIT.md.
 PITEST_IN_FULL_LANE=0
@@ -92,7 +94,8 @@ Lanes (pick one; default if omitted):
   pitest  | --pitest          PIT mutation on pure modules only:
                               :core:pitest :perception:pitest :memory:pitest
                               + detekt + Konsist arch + test-lock + no_live_llm_unit
-                              Soft 60% (pass + note if below); hard fail if MUD_PITEST_HARD=1
+                              Soft 60% now (R0; next 70/80 — docs/PIT.md); hard fail if
+                              MUD_PITEST_HARD=1 (or PITEST_HARD_DEFAULT=1 at R2b)
                               Token budget: skipped (not in pitest lane).
   quarantine | --quarantine   :reasoning:test -Pmud.quarantineOnly=true (known debt; hard-fail OK)
                               (no detekt / no Konsist / no test-lock / no no_live_llm_unit /
@@ -440,8 +443,11 @@ parse_pitest_module_score() {
   printf '%s' "${score}"
 }
 
-# True when hard mutation threshold is requested (env or -Pmud.pitestHard=true in env GRADLE_OPTS not required).
+# True when hard mutation threshold is requested (R2b default, env, or -Pmud.pitestHard=true).
 pitest_hard_mode() {
+  if [[ "${PITEST_HARD_DEFAULT}" -eq 1 ]]; then
+    return 0
+  fi
   if [[ "${MUD_PITEST_HARD:-0}" == "1" || "${MUD_PITEST_HARD:-}" == "true" ]]; then
     return 0
   fi
@@ -457,18 +463,18 @@ pitest_hard_mode() {
 }
 
 # Run pure-module PIT (:core :perception :memory). Fail-closed on task error / unparseable / 0 mutations.
-# Soft 60%: pass + note if min score below; hard mode (MUD_PITEST_HARD=1) fails if min < 60.
+# Soft note uses PITEST_SOFT_THRESHOLD. Hard-opt-in (MUD_PITEST_HARD / R2b default) fails if min < PITEST_HARD_THRESHOLD.
 run_pitest() {
   local cmd_display="./gradlew :core:pitest :perception:pitest :memory:pitest"
   local t0 t1 dur rc
   local score_core score_perc score_mem min_score
-  local note_msg hard_note
+  local note_msg below_soft
   local s c p m
 
   add_step "${cmd_display}"
   if [[ "${DRY_RUN}" -eq 1 ]]; then
     echo "[dry-run] ${cmd_display}"
-    note "pitest dry-run (would run pure modules; soft threshold ${PITEST_SOFT_THRESHOLD}%)"
+    note "pitest dry-run (would run pure modules; soft ${PITEST_SOFT_THRESHOLD}% hard ${PITEST_HARD_THRESHOLD}% default=${PITEST_HARD_DEFAULT})"
     return 0
   fi
   if [[ ! -x "${GRADLEW}" ]]; then
@@ -525,16 +531,22 @@ run_pitest() {
   fi
 
   GATE_MUTATION_SCORE="${min_score}"
-  note_msg="core=${score_core} perception=${score_perc} memory=${score_mem} (min); soft threshold ${PITEST_SOFT_THRESHOLD}%"
+  note_msg="core=${score_core} perception=${score_perc} memory=${score_mem} (min); soft ${PITEST_SOFT_THRESHOLD}% (schedule R0; next 70 when min≥72) — docs/PIT.md"
+  below_soft=0
 
   if awk -v s="${min_score}" -v t="${PITEST_SOFT_THRESHOLD}" 'BEGIN { exit !(s + 0 < t) }'; then
+    below_soft=1
     note_msg="${note_msg}; below ${PITEST_SOFT_THRESHOLD}% soft threshold"
-    if pitest_hard_mode; then
-      EXIT_CODE=1
-      record_gate "pitest" "fail" "${dur}" "${note_msg}; MUD_PITEST_HARD=1"
-      note "PIT hard fail: min mutation_score ${min_score} < ${PITEST_SOFT_THRESHOLD}"
-      return 1
-    fi
+  fi
+
+  if pitest_hard_mode && awk -v s="${min_score}" -v t="${PITEST_HARD_THRESHOLD}" 'BEGIN { exit !(s + 0 < t) }'; then
+    EXIT_CODE=1
+    record_gate "pitest" "fail" "${dur}" "${note_msg}; hard threshold ${PITEST_HARD_THRESHOLD}%"
+    note "PIT hard fail: min mutation_score ${min_score} < ${PITEST_HARD_THRESHOLD}"
+    return 1
+  fi
+
+  if [[ "${below_soft}" -eq 1 ]]; then
     note "PIT soft: min mutation_score ${min_score} below ${PITEST_SOFT_THRESHOLD}% (not failing)"
   else
     note "PIT min mutation_score ${min_score} (core/perception/memory)"
@@ -1437,7 +1449,7 @@ case "${LANE}" in
     if [[ ${#MODULES[@]} -gt 0 ]]; then
       die_usage "pitest lane does not take module args (got: ${MODULES[*]})"
     fi
-    note "PIT pure modules only (core/perception/memory); STRONGER mutators; soft ${PITEST_SOFT_THRESHOLD}%"
+    note "PIT pure modules only (core/perception/memory); STRONGER mutators; soft ${PITEST_SOFT_THRESHOLD}% hard ${PITEST_HARD_THRESHOLD}% default=${PITEST_HARD_DEFAULT}"
     run_pitest || true
     ;;
   *)
