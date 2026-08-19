@@ -1,15 +1,3 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
@@ -18,104 +6,74 @@ import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.TreasureRoomComponent
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
-import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalOps
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalSupport as PedestalPures
 
 /**
- * Return-to-pedestal for [ClientTreasureRoomHandlers] facade (MUD-034l pure-move).
+ * Return-to-pedestal for [ClientTreasureRoomHandlers] facade (MUD-039 pures).
  */
 internal object ClientTreasureReturnHandlers {
 
     fun handleReturnTreasure(game: EngineGameClient, itemTarget: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val treasureRoomComponent = game.worldState.getTreasureRoom(spaceId)
-        if (treasureRoomComponent == null) {
+        val room = game.worldState.getTreasureRoom(spaceId)
+        if (room == null) {
             game.emitEvent(GameEvent.System("This isn't a treasure room.", GameEvent.MessageLevel.WARNING))
             return
         }
-        val templates = ClientTreasurePedestalSupport.buildItemTemplatesMap(game, treasureRoomComponent)
-        val itemInstance = findReturnItem(game, itemTarget, templates) ?: return
-        applyReturn(game, spaceId, treasureRoomComponent, itemInstance, templates)
-    }
-
-    private fun findReturnItem(
-        game: EngineGameClient,
-        itemTarget: String,
-        templates: Map<String, ItemTemplate>
-    ): ItemInstance? {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val itemInstance = playerInventory.items.find { instance ->
-            val template = templates[instance.templateId]
-            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true ||
-                instance.templateId.lowercase().contains(itemTarget.lowercase())
-        }
-        if (itemInstance == null) {
+        val templates = ClientTreasurePedestalSupport.buildItemTemplatesMap(game, room)
+        val item = PedestalPures.findInventoryItem(
+            game.worldState.player.inventoryComponent.items, templates, itemTarget
+        )
+        if (item == null) {
             game.emitEvent(
-                GameEvent.System(
-                    "You don't have that item in your inventory.",
-                    GameEvent.MessageLevel.WARNING
-                )
+                GameEvent.System("You don't have that item in your inventory.", GameEvent.MessageLevel.WARNING)
             )
-            return null
+            return
         }
-        return itemInstance
+        applyReturn(game, spaceId, room, item, templates)
     }
 
     private fun applyReturn(
         game: EngineGameClient,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
-        itemInstance: ItemInstance,
+        room: TreasureRoomComponent,
+        item: ItemInstance,
         templates: Map<String, ItemTemplate>
     ) {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val result = game.treasureRoomHandler.returnItemToPedestal(
-            treasureRoom = treasureRoomComponent,
-            playerInventory = playerInventory,
-            itemInstanceId = itemInstance.id,
-            itemTemplates = templates
+        val applied = TreasurePedestalOps.returnAndApply(
+            game.treasureRoomHandler, game.worldState, spaceId, room, item.id, templates
         )
-        when (result) {
-            is TreasureRoomHandler.TreasureRoomResult.Success ->
-                emitReturnSuccess(game, spaceId, treasureRoomComponent, itemInstance, result)
+        game.worldState = applied.world
+        when (val result = applied.result) {
+            is TreasureRoomHandler.TreasureRoomResult.Success -> emitReturn(game, spaceId, room, item, result)
             is TreasureRoomHandler.TreasureRoomResult.Failure ->
                 game.emitEvent(GameEvent.System(result.reason, GameEvent.MessageLevel.WARNING))
         }
     }
 
-    private fun emitReturnSuccess(
+    private fun emitReturn(
         game: EngineGameClient,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
-        itemInstance: ItemInstance,
+        room: TreasureRoomComponent,
+        item: ItemInstance,
         result: TreasureRoomHandler.TreasureRoomResult.Success
     ) {
-        game.worldState = TreasureRoomStateApply.applySuccess(
-            world = game.worldState,
-            spaceId = spaceId,
-            player = game.worldState.player,
-            success = result
-        )
-        emitReturnNarration(game, treasureRoomComponent, itemInstance, result)
-        ClientTreasurePedestalSupport.emitStatusUpdate(game, spaceId)
-    }
-
-    private fun emitReturnNarration(
-        game: EngineGameClient,
-        treasureRoomComponent: TreasureRoomComponent,
-        itemInstance: ItemInstance,
-        result: TreasureRoomHandler.TreasureRoomResult.Success
-    ) {
-        val pedestalDesc = ClientTreasurePedestalSupport.getPedestalDescription(
-            treasureRoomComponent, itemInstance.templateId
-        )
-        game.emitEvent(GameEvent.Narrative("You return the ${result.itemName} to its $pedestalDesc."))
-        val barrierType = ClientTreasurePedestalSupport.getBarrierTypeForBiome(
-            treasureRoomComponent.biomeTheme
+        game.emitEvent(
+            GameEvent.Narrative(
+                TreasurePedestalOps.returnToPedestalLine(
+                    result.itemName,
+                    PedestalPures.getPedestalDescription(room, item.templateId)
+                )
+            )
         )
         game.emitEvent(
             GameEvent.Narrative(
-                "\nThe $barrierType shimmer and fade, revealing the other treasures once more. You may choose again."
+                TreasurePedestalOps.returnBarrierNarrative(
+                    PedestalPures.getBarrierTypeForBiome(room.biomeTheme)
+                )
             )
         )
+        ClientTreasurePedestalSupport.emitStatusUpdate(game, spaceId)
     }
 }

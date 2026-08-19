@@ -1,42 +1,23 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.reasoning.combat.AttackResult
-import kotlinx.coroutines.runBlocking
+import com.jcraw.mud.reasoning.combat.CombatHandlerPures
 
 /**
- * Attack orchestration for [CombatHandlers] facade (MUD-034k pure-move).
+ * Attack orchestration for [CombatHandlers] facade (MUD-039).
  */
 internal object CombatAttackHandlers {
 
     fun handleAttack(game: MudGame, target: String?) {
         val prep = CombatAttackPrep.prepare(game, target) ?: return
-
-        val attackResult = runBlocking {
-            game.attackResolver.resolveAttack(
-                attackerId = game.worldState.player.id,
-                defenderId = prep.npc.id,
-                action = "attack ${prep.npc.name} with ${prep.weaponName}",
-                worldState = game.worldState,
-                skillManager = game.skillManager,
-                attackerEquipped = prep.attackerEquipped,
-                defenderEquipped = prep.defenderEquipped,
-                templates = prep.templates
-            )
-        }
-
+        val attackResult = CombatHandlerPures.resolvePlayerAttack(
+            game.attackResolver,
+            game.worldState.player.id,
+            prep,
+            game.worldState,
+            game.skillManager
+        )
         when (attackResult) {
             is AttackResult.Hit -> CombatAttackHit.apply(game, prep, attackResult)
             is AttackResult.Miss -> CombatAttackMiss.apply(game, prep.npc, prep.spaceId, attackResult)

@@ -1,109 +1,67 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
-import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.TreasureRoomComponent
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
-import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalOps
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalSupport as PedestalPures
 
 /**
- * Take-from-pedestal for [TreasureRoomHandlers] facade (MUD-034l pure-move).
+ * Take-from-pedestal for [TreasureRoomHandlers] facade (MUD-039 pures).
  */
 internal object TreasureTakeHandlers {
 
     fun handleTakeTreasure(game: MudGame, itemTarget: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val treasureRoomComponent = game.worldState.getTreasureRoom(spaceId)
-        if (treasureRoomComponent == null) {
+        val room = game.worldState.getTreasureRoom(spaceId)
+        if (room == null) {
             println("This isn't a treasure room. Use 'take' for regular items.")
             return
         }
-        val templates = TreasurePedestalSupport.buildItemTemplatesMap(game, treasureRoomComponent)
-        val itemTemplateId = resolveTakeTarget(itemTarget, templates, treasureRoomComponent) ?: return
-        applyTake(game, spaceId, treasureRoomComponent, itemTemplateId, templates)
-    }
-
-    private fun resolveTakeTarget(
-        itemTarget: String,
-        templates: Map<String, ItemTemplate>,
-        treasureRoomComponent: TreasureRoomComponent
-    ): String? {
-        val itemTemplateId = TreasurePedestalSupport.findItemTemplateByName(
-            itemTarget, templates, treasureRoomComponent
-        )
+        val templates = TreasurePedestalSupport.buildItemTemplatesMap(game, room)
+        val itemTemplateId = PedestalPures.findItemTemplateByName(itemTarget, templates, room)
         if (itemTemplateId == null) {
-            println("That item is not on any pedestal in this room.")
-            println(
-                "Available items: ${
-                    TreasurePedestalSupport.getAvailableItemNames(treasureRoomComponent, templates).joinToString(", ")
-                }"
-            )
-            return null
+            println(PedestalPures.availableItemsLine(room, templates))
+            return
         }
-        return itemTemplateId
+        applyTake(game, spaceId, room, itemTemplateId, templates)
     }
 
     private fun applyTake(
         game: MudGame,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
+        room: TreasureRoomComponent,
         itemTemplateId: String,
-        templates: Map<String, ItemTemplate>
+        templates: Map<String, com.jcraw.mud.core.ItemTemplate>
     ) {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val result = game.treasureRoomHandler.takeItemFromPedestal(
-            treasureRoom = treasureRoomComponent,
-            playerInventory = playerInventory,
-            itemTemplateId = itemTemplateId,
-            itemTemplates = templates
+        val applied = TreasurePedestalOps.takeAndApply(
+            game.treasureRoomHandler, game.worldState, spaceId, room, itemTemplateId, templates
         )
-        when (result) {
-            is TreasureRoomHandler.TreasureRoomResult.Success ->
-                emitTakeSuccess(game, spaceId, treasureRoomComponent, itemTemplateId, result)
-            is TreasureRoomHandler.TreasureRoomResult.Failure ->
-                println(result.reason)
+        game.worldState = applied.world
+        when (val result = applied.result) {
+            is TreasureRoomHandler.TreasureRoomResult.Success -> printTakeSuccess(room, itemTemplateId, result)
+            is TreasureRoomHandler.TreasureRoomResult.Failure -> println(result.reason)
         }
     }
 
-    private fun emitTakeSuccess(
-        game: MudGame,
-        spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
+    private fun printTakeSuccess(
+        room: TreasureRoomComponent,
         itemTemplateId: String,
         result: TreasureRoomHandler.TreasureRoomResult.Success
     ) {
-        game.worldState = TreasureRoomStateApply.applySuccess(
-            world = game.worldState,
-            spaceId = spaceId,
-            player = game.worldState.player,
-            success = result
+        println(
+            TreasurePedestalOps.takeFromPedestalLine(
+                result.itemName,
+                PedestalPures.getPedestalDescription(room, itemTemplateId)
+            )
         )
-        val pedestalDesc = TreasurePedestalSupport.getPedestalDescription(
-            treasureRoomComponent, itemTemplateId
-        )
-        println("You take the ${result.itemName} from its $pedestalDesc.")
-        emitTakeBarriers(treasureRoomComponent, result)
-    }
-
-    private fun emitTakeBarriers(
-        treasureRoomComponent: TreasureRoomComponent,
-        result: TreasureRoomHandler.TreasureRoomResult.Success
-    ) {
         if (result.treasureRoomComponent.currentlyTakenItem == null) return
-        val barrierType = TreasurePedestalSupport.getBarrierTypeForBiome(treasureRoomComponent.biomeTheme)
-        println("\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away.")
-        println("You may return to this room at any time to swap your choice for a different treasure.")
+        println(
+            TreasurePedestalOps.takeBarrierNarrative(
+                result.itemName,
+                PedestalPures.getBarrierTypeForBiome(room.biomeTheme)
+            )
+        )
+        println(TreasurePedestalOps.takeSwapHint())
     }
 }

@@ -1,22 +1,13 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
+@file:Suppress("ReturnCount")
 
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.Entity
-import com.jcraw.mud.core.WorldState
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.inventory.EntityNameMatch
 import com.jcraw.mud.reasoning.inventory.FloorItemTakeApply
+import com.jcraw.mud.reasoning.inventory.FloorItemTakeBatch
 
 /**
  * Floor take / take-all for [ItemHandlers] facade.
@@ -30,9 +21,10 @@ object ItemTakeHandlers {
             TreasureRoomHandlers.handleTakeTreasure(game, target)
             return
         }
-        val item = findFloorItem(game, spaceId, target)
+        val entities = game.worldState.getEntitiesInSpace(spaceId)
+        val item = EntityNameMatch.findItem(entities, target)
         if (item == null) {
-            reportMissingTakeTarget(game, spaceId, target)
+            reportMissingTakeTarget(entities, target)
             return
         }
         if (!item.isPickupable) {
@@ -51,9 +43,13 @@ object ItemTakeHandlers {
             println("There are no items to take here.")
             return
         }
-        val (takenCount, takenEntityIds, currentState) = takeAllItems(game, spaceId, items)
-        game.worldState = currentState
-        finishTakeAll(game, takenCount, takenEntityIds)
+        val batch = FloorItemTakeBatch.takeMany(game.worldState, spaceId, items) { item ->
+            floorTakeTemplates(game.itemRepository, item)
+        }
+        game.worldState = batch.world
+        batch.taken.forEach { taken -> println("You take the ${taken.itemName}.") }
+        batch.failed.forEach { fail -> println(fail.message) }
+        finishTakeAll(game, batch.taken.size, batch.taken.map { it.floorEntityId })
     }
 
     private fun finishTakeAll(game: MudGame, takenCount: Int, takenEntityIds: List<String>) {
@@ -64,18 +60,8 @@ object ItemTakeHandlers {
         }
     }
 
-    private fun findFloorItem(game: MudGame, spaceId: String, target: String): Entity.Item? =
-        game.worldState.getEntitiesInSpace(spaceId)
-            .filterIsInstance<Entity.Item>()
-            .find { entity ->
-                entity.name.lowercase().contains(target.lowercase()) ||
-                    entity.id.lowercase().contains(target.lowercase())
-            }
-
-    private fun reportMissingTakeTarget(game: MudGame, spaceId: String, target: String) {
-        val entities = game.worldState.getEntitiesInSpace(spaceId)
-        val isScenery = entities.any { it.name.lowercase().contains(target.lowercase()) }
-        if (isScenery) {
+    private fun reportMissingTakeTarget(entities: List<Entity>, target: String) {
+        if (EntityNameMatch.anyNameContains(entities, target)) {
             println("That's part of the environment and can't be taken.")
         } else {
             println("You don't see that here.")
@@ -84,67 +70,14 @@ object ItemTakeHandlers {
 
     private fun applyFloorTake(game: MudGame, spaceId: String, item: Entity.Item) {
         val templates = floorTakeTemplates(game.itemRepository, item)
-        when (val result = FloorItemTakeApply.apply(
-            world = game.worldState,
-            player = game.worldState.player,
-            spaceId = spaceId,
-            floorItem = item,
-            templates = templates
-        )) {
+        when (val result = FloorItemTakeBatch.apply(game.worldState, spaceId, item, templates)) {
             is FloorItemTakeApply.Result.Success -> {
                 game.worldState = result.world
                 println("You take the ${result.itemName}.")
                 game.trackQuests(QuestAction.CollectedItem(item.id))
             }
-            is FloorItemTakeApply.Result.Failure -> {
-                println(result.message)
-            }
+            is FloorItemTakeApply.Result.Failure -> println(result.message)
         }
     }
 
-    private fun takeAllItems(
-        game: MudGame,
-        spaceId: String,
-        items: List<Entity.Item>
-    ): Triple<Int, List<String>, WorldState> {
-        var takenCount = 0
-        var currentState = game.worldState
-        val takenEntityIds = mutableListOf<String>()
-        items.forEach { item ->
-            when (val outcome = tryTakeOne(game, currentState, spaceId, item)) {
-                is TakeOne.Ok -> {
-                    currentState = outcome.world
-                    println("You take the ${outcome.itemName}.")
-                    takenCount++
-                    takenEntityIds.add(item.id)
-                }
-                is TakeOne.Fail -> println(outcome.message)
-            }
-        }
-        return Triple(takenCount, takenEntityIds, currentState)
-    }
-
-    private sealed class TakeOne {
-        data class Ok(val world: WorldState, val itemName: String) : TakeOne()
-        data class Fail(val message: String) : TakeOne()
-    }
-
-    private fun tryTakeOne(
-        game: MudGame,
-        world: WorldState,
-        spaceId: String,
-        item: Entity.Item
-    ): TakeOne {
-        val templates = floorTakeTemplates(game.itemRepository, item)
-        return when (val result = FloorItemTakeApply.apply(
-            world = world,
-            player = world.player,
-            spaceId = spaceId,
-            floorItem = item,
-            templates = templates
-        )) {
-            is FloorItemTakeApply.Result.Success -> TakeOne.Ok(result.world, result.itemName)
-            is FloorItemTakeApply.Result.Failure -> TakeOne.Fail(result.message)
-        }
-    }
 }

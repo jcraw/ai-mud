@@ -118,7 +118,7 @@ Runtime schema: `config/quality/dod_summary.schema.json` (MUD-027); short ops no
 |----|------|-------|-------|
 | C1 | PIT pure modules | soft→hard | start 60% (today); target **80%** core when burn-down allows; keep out of fast |
 | C2 | PBT hot paths | hard | existing Kotest; expand graph/combat/inventory math |
-| C3 | `duplication_kt` | warn→hard | **live R0 (MUD-036):** `tools/quality/check_duplication_kt.py` warn-only on `app`/`client` handlers; `DUP_BLOCK_W`; see `docs/DUPLICATION_KT.md` |
+| C3 | `duplication_kt` | warn→hard | **live R2 (MUD-039):** `tools/quality/check_duplication_kt.py` hard on default/fast/core/full; `DUP_BLOCK_E`; soft `MUD_DUP_SOFT=1` / `--dup-soft`; see `docs/DUPLICATION_KT.md` |
 | C4 | `dead_code_kt` | warn | unused public in pure modules (detekt / toolchain) |
 | C5 | quarantine_count | info/hard | must be 0 on full unless ticket opens debt |
 | C6 | CI `--core` + scheduled `--pitest` | hard | already have core CI; add nightly PIT |

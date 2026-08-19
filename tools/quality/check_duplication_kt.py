@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-check_duplication_kt.py — app/client handler block-clone report (MUD-036).
+check_duplication_kt.py — app/client handler block-clone report (MUD-036/039).
 
 Jam-style sliding-window clone detector on prod handler Kotlin only:
   app/**/handlers/**/*.kt  and  client/**/handlers/**/*.kt
   (src/main; skip build/). Intra-app / intra-client clones are out of v1.
 
-Always exits 0 (report_only). Verify owns warn vs hard (v1 = always warn;
-DUP_BLOCK_E is reserved and not emitted). Does not write dod-summary.json.
+Always exits 0 (report_only). Verify owns warn vs hard (MUD-039: emit DUP_BLOCK_E;
+hard on default/fast/core/full; MUD_DUP_SOFT=1 / --dup-soft opt-out).
+Does not write dod-summary.json.
 """
 
 from __future__ import annotations
@@ -353,14 +354,13 @@ def find_clones(
             continue
         findings.append(
             {
-                "code": "DUP_BLOCK_W",
+                "code": "DUP_BLOCK_E",
                 "path": app_rel,
                 "metric": metric,
                 "limit": min_block,
                 "remediation": (
                     f"clone of {client_rel} ({metric} lines); "
-                    "extract shared apply or thin one side — "
-                    "do not merge in MUD-036"
+                    "extract shared apply or thin one side"
                 ),
             }
         )
@@ -387,7 +387,8 @@ def build_envelope(
         "summary": {
             "files_scanned": files_scanned,
             "pairs": pair_count,
-            "findings_warn": pair_count,
+            "findings_error": pair_count,
+            "findings_warn": 0,
             "window": window,
             "min_block": min_block,
         },
@@ -398,9 +399,9 @@ def build_envelope(
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
-            "App/client handler block-clone report (MUD-036). "
+            "App/client handler block-clone report (MUD-036/039). "
             "Always exits 0. Scans app/**/handlers and client/**/handlers only. "
-            "DUP_BLOCK_W only (DUP_BLOCK_E reserved). Verify owns hard policy."
+            "Emits DUP_BLOCK_E. Verify owns hard policy (MUD_DUP_SOFT / --dup-soft)."
         )
     )
     p.add_argument("--root", default=".", help="Repo root (default: .)")
@@ -459,7 +460,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         s = envelope["summary"]
         sys.stdout.write(
             f"check_duplication_kt: files={s['files_scanned']} "
-            f"pairs={s['pairs']} findings_warn={s['findings_warn']} "
+            f"pairs={s['pairs']} findings_error={s['findings_error']} "
             f"window={s['window']} min_block={s['min_block']}\n"
         )
     else:

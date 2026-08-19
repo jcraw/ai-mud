@@ -1,25 +1,13 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
 import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.reasoning.combat.AttackResult
-import com.jcraw.mud.reasoning.combat.CombatBehavior
+import com.jcraw.mud.reasoning.combat.CombatHandlerPures
 
 /**
- * Miss branch for client combat attack (MUD-034k pure-move).
+ * Miss branch for client combat attack (MUD-039).
  */
 internal object ClientCombatAttackMiss {
 
@@ -29,22 +17,12 @@ internal object ClientCombatAttackMiss {
         spaceId: String,
         attackResult: AttackResult.Miss
     ) {
-        val narrative = if (attackResult.wasDodged) {
-            "${npc.name} dodges your attack!"
-        } else {
-            "You miss ${npc.name}!"
-        }
-        game.emitEvent(GameEvent.Combat(narrative))
-
+        game.emitEvent(
+            GameEvent.Combat(CombatHandlerPures.missNarrative(npc.name, attackResult.wasDodged))
+        )
         ClientCombatSkillProgressHandlers.processSkillProgression(game, attackResult)
-
-        if (game.turnQueue != null) {
-            game.worldState = CombatBehavior.triggerCounterAttack(
-                npcId = npc.id,
-                spaceId = spaceId,
-                worldState = game.worldState,
-                turnQueue = game.turnQueue
-            )
-        }
+        game.worldState = CombatHandlerPures.maybeCounterAttack(
+            game.worldState, npc.id, spaceId, game.turnQueue
+        )
     }
 }

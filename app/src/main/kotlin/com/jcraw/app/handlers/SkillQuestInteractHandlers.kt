@@ -1,13 +1,14 @@
-@file:Suppress("ReturnCount", "MagicNumber", "MaxLineLength", "TooManyFunctions", "LongMethod", "ComplexCondition", "CyclomaticComplexMethod", "NestedBlockDepth", "LongParameterList")
+@file:Suppress("ReturnCount")
 
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.Entity
+import com.jcraw.mud.reasoning.interact.FeatureMatch
+import com.jcraw.mud.reasoning.interact.HarvestSupport
 
 /**
  * Interact orchestrator for [SkillQuestHandlers] facade.
- * Fountain + harvest fragments hold the heavy bodies.
  */
 object SkillQuestInteractHandlers {
 
@@ -18,48 +19,20 @@ object SkillQuestInteractHandlers {
             println("You don't see that here.")
             return
         }
-        if (isFountain(feature)) {
+        if (FeatureMatch.isFountain(feature)) {
             SkillQuestInteractFountain.handleFountainInteraction(game, feature)
             return
         }
-        if (!validateHarvestTarget(feature)) return
+        val harvestError = HarvestSupport.validateHarvestTarget(feature)
+        if (harvestError != null) {
+            println(harvestError)
+            return
+        }
         if (!SkillQuestInteractHarvest.hasRequiredTool(game, feature)) return
         println("\nYou attempt to harvest ${feature.name}...")
         SkillQuestInteractHarvest.performHarvest(game, spaceId, feature)
     }
 
-    private fun isFountain(feature: Entity.Feature): Boolean =
-        feature.properties["interaction_type"] == "fountain" &&
-            feature.properties["heals_hp"] == "true"
-
-    private fun validateHarvestTarget(feature: Entity.Feature): Boolean {
-        if (feature.lootTableId == null) {
-            println("There's nothing to harvest from that.")
-            return false
-        }
-        if (feature.isCompleted) {
-            println("This resource has already been harvested.")
-            return false
-        }
-        return true
-    }
-
-    internal fun findFeature(game: MudGame, spaceId: String, target: String): Entity.Feature? {
-        val normalizedTarget = target.lowercase().replace("_", " ")
-        return game.worldState.getEntitiesInSpace(spaceId)
-            .filterIsInstance<Entity.Feature>()
-            .find { matchesFeature(it, normalizedTarget) }
-    }
-
-    private fun matchesFeature(entity: Entity.Feature, normalizedTarget: String): Boolean {
-        val normalizedName = entity.name.lowercase()
-        val normalizedId = entity.id.lowercase().replace("_", " ")
-        return normalizedName.contains(normalizedTarget) ||
-            normalizedId.contains(normalizedTarget) ||
-            normalizedTarget.contains(normalizedName) ||
-            normalizedTarget.contains(normalizedId) ||
-            normalizedTarget.split(" ").all { word ->
-                normalizedName.contains(word) || normalizedId.contains(word)
-            }
-    }
+    internal fun findFeature(game: MudGame, spaceId: String, target: String): Entity.Feature? =
+        FeatureMatch.find(game.worldState.getEntitiesInSpace(spaceId), target)
 }

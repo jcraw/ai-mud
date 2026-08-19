@@ -1,100 +1,67 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.ItemInstance
-import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.TreasureRoomComponent
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
-import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalOps
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalSupport as PedestalPures
 
 /**
- * Return-to-pedestal for [TreasureRoomHandlers] facade (MUD-034l pure-move).
+ * Return-to-pedestal for [TreasureRoomHandlers] facade (MUD-039 pures).
  */
 internal object TreasureReturnHandlers {
 
     fun handleReturnTreasure(game: MudGame, itemTarget: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val treasureRoomComponent = game.worldState.getTreasureRoom(spaceId)
-        if (treasureRoomComponent == null) {
+        val room = game.worldState.getTreasureRoom(spaceId)
+        if (room == null) {
             println("This isn't a treasure room.")
             return
         }
-        val templates = TreasurePedestalSupport.buildItemTemplatesMap(game, treasureRoomComponent)
-        val itemInstance = findReturnItem(game, itemTarget, templates) ?: return
-        applyReturn(game, spaceId, treasureRoomComponent, itemInstance, templates)
-    }
-
-    private fun findReturnItem(
-        game: MudGame,
-        itemTarget: String,
-        templates: Map<String, ItemTemplate>
-    ): ItemInstance? {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val itemInstance = playerInventory.items.find { instance ->
-            val template = templates[instance.templateId]
-            template?.name?.lowercase()?.contains(itemTarget.lowercase()) == true ||
-                instance.templateId.lowercase().contains(itemTarget.lowercase())
-        }
-        if (itemInstance == null) {
+        val templates = TreasurePedestalSupport.buildItemTemplatesMap(game, room)
+        val item = PedestalPures.findInventoryItem(
+            game.worldState.player.inventoryComponent.items, templates, itemTarget
+        )
+        if (item == null) {
             println("You don't have that item in your inventory.")
-            return null
+            return
         }
-        return itemInstance
+        applyReturn(game, spaceId, room, item, templates)
     }
 
     private fun applyReturn(
         game: MudGame,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
-        itemInstance: ItemInstance,
-        templates: Map<String, ItemTemplate>
+        room: TreasureRoomComponent,
+        item: ItemInstance,
+        templates: Map<String, com.jcraw.mud.core.ItemTemplate>
     ) {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val result = game.treasureRoomHandler.returnItemToPedestal(
-            treasureRoom = treasureRoomComponent,
-            playerInventory = playerInventory,
-            itemInstanceId = itemInstance.id,
-            itemTemplates = templates
+        val applied = TreasurePedestalOps.returnAndApply(
+            game.treasureRoomHandler, game.worldState, spaceId, room, item.id, templates
         )
-        when (result) {
-            is TreasureRoomHandler.TreasureRoomResult.Success ->
-                emitReturnSuccess(game, spaceId, treasureRoomComponent, itemInstance, result)
-            is TreasureRoomHandler.TreasureRoomResult.Failure ->
-                println(result.reason)
+        game.worldState = applied.world
+        when (val result = applied.result) {
+            is TreasureRoomHandler.TreasureRoomResult.Success -> printReturn(room, item, result)
+            is TreasureRoomHandler.TreasureRoomResult.Failure -> println(result.reason)
         }
     }
 
-    private fun emitReturnSuccess(
-        game: MudGame,
-        spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
-        itemInstance: ItemInstance,
+    private fun printReturn(
+        room: TreasureRoomComponent,
+        item: ItemInstance,
         result: TreasureRoomHandler.TreasureRoomResult.Success
     ) {
-        game.worldState = TreasureRoomStateApply.applySuccess(
-            world = game.worldState,
-            spaceId = spaceId,
-            player = game.worldState.player,
-            success = result
+        println(
+            TreasurePedestalOps.returnToPedestalLine(
+                result.itemName,
+                PedestalPures.getPedestalDescription(room, item.templateId)
+            )
         )
         println(
-            "You return the ${result.itemName} to its ${
-                TreasurePedestalSupport.getPedestalDescription(treasureRoomComponent, itemInstance.templateId)
-            }."
+            TreasurePedestalOps.returnBarrierNarrative(
+                PedestalPures.getBarrierTypeForBiome(room.biomeTheme)
+            )
         )
-        val barrierType = TreasurePedestalSupport.getBarrierTypeForBiome(treasureRoomComponent.biomeTheme)
-        println("\nThe $barrierType shimmer and fade, revealing the other treasures once more. You may choose again.")
     }
 }

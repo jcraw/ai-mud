@@ -17,10 +17,11 @@
 # MUD-038: optional --smoke (headless look/take/inv/attack). Not on default/fast/
 #   core/full/pitest/quarantine. Missing script → fail on --smoke only.
 #   See docs/COMMAND_SMOKE.md.
-# MUD-036: duplication_kt warn-only on default/fast/core/full (app/client handlers).
-#   Checker always exit 0; W never sets EXIT_CODE. Missing checker → skip.
-#   Crash / empty JSON → fail. Skip quarantine/pitest/preflight.
-#   See docs/DUPLICATION_KT.md.
+# MUD-039: duplication_kt hard on default/fast/core/full (app/client handlers).
+#   Emits DUP_BLOCK_E. Fail if E>0. Soft opt-out: MUD_DUP_SOFT=1 / --dup-soft.
+#   Checker always exit 0; verify owns policy. Missing python/checker →
+#   fail-closed when hard; skip when soft. Crash / empty JSON → fail.
+#   Skip quarantine/pitest/preflight/smoke. See docs/DUPLICATION_KT.md.
 # fast ≡ default (bare = compile smoke + hard gates; no auto --core suite).
 
 set -euo pipefail
@@ -45,6 +46,8 @@ DRY_RUN=0
 # --token-hard / MUD_TOKEN_HARD remain accepted (redundant hard).
 TOKEN_SOFT_CLI=0
 TOKEN_HARD_CLI=0
+# MUD-039: hard duplication default. Soft opt-out via --dup-soft / MUD_DUP_SOFT.
+DUP_SOFT_CLI=0
 # MUD-033: set by --preflight PATH (required); LANE becomes preflight.
 PREFLIGHT_PATH=""
 MODULES=()
@@ -85,24 +88,24 @@ FINDINGS_JSON_PARTS=()
 usage() {
   cat <<'EOF'
 Usage: ./tools/verify_mud.sh [lane|flag] [module…] [--dry-run] [--token-soft] [--token-hard]
-                             | --preflight <path> | --smoke
+                             [--dup-soft] | --preflight <path> | --smoke
 
 Lanes (pick one; default if omitted):
   default | fast | --fast     fast ≡ default. Compile smoke: :core:compileKotlin
                               With module args: :<m>:compileKotlin (+ :<m>:test if src/test exists)
                               Then hard detekt + Konsist arch + test-lock + no_live_llm_unit
-                              + token (hard-on-touched) + duplication_kt (warn-only).
+                              + token (hard-on-touched) + duplication_kt (hard E=0).
                               Bare run does NOT auto-run --core/--full.
                               PIT never runs (use --pitest).
   core    | --core            :core:test :perception:test :memory:test :reasoning:test
                               (default excludeTags quarantine; honest green)
                               + detekt + Konsist arch + test-lock + no_live_llm_unit
-                              + token (hard-on-touched) + duplication_kt (warn-only)
+                              + token (hard-on-touched) + duplication_kt (hard E=0)
                               PIT never runs (ticket drain stays free of PIT wall-time).
   full    | --full            Stable green set: core/perception/memory/reasoning tests +
                               compile-only action/llm/config. Default excludeTags quarantine.
                               + detekt + Konsist arch + test-lock + no_live_llm_unit
-                              + token (hard-on-touched) + duplication_kt (warn-only)
+                              + token (hard-on-touched) + duplication_kt (hard E=0)
                               PIT: skipped (core PIT >45s); use --pitest nightly — docs/PIT.md
   pitest  | --pitest          PIT mutation on pure modules only:
                               :core:pitest :perception:pitest :memory:pitest
@@ -128,6 +131,8 @@ Flags:
                               never fail verify from token alone (escape hatch).
   --token-hard                Force hard token gate (same as MUD_TOKEN_HARD=1); redundant
                               under MUD-031 default hard-on-touched (still accepted).
+  --dup-soft                  Soft duplication gate (same as MUD_DUP_SOFT=1): report-only;
+                              never fail verify from DUP_BLOCK_E alone (escape hatch).
   -h | --help                 This help
 
 DoD summary (MUD-013 / MUD-027 v2 / MUD-031 / MUD-032):
@@ -136,7 +141,7 @@ DoD summary (MUD-013 / MUD-027 v2 / MUD-031 / MUD-032):
   (token/structure + live-LLM rows when run; see docs/DOD_SUMMARY.md).
   gates.token_budget on default/fast/core/full (skipped quarantine/pitest).
   gates.no_live_llm_unit on default/fast/core/full/pitest (skipped quarantine).
-  gates.duplication_kt on default/fast/core/full (warn-only; skipped quarantine/pitest).
+  gates.duplication_kt on default/fast/core/full (hard E=0; skipped quarantine/pitest).
   gates.command_smoke on --smoke only (skipped other lanes; not in required tuple).
   Post-write light shape validation (hard fail if invalid). Human == verify_mud == kept.
   When --pitest runs: gates.pitest.mutation_score = min of three modules.
@@ -166,10 +171,11 @@ Headless command smoke (MUD-038; docs/COMMAND_SMOKE.md):
   Standalone: ./tools/smoke_commands.sh (MUD_DATA_DIR temp; env -u OPENAI_API_KEY).
   Not on default/fast/core/full/pitest/quarantine.
 
-Duplication (MUD-036 warn-only; docs/DUPLICATION_KT.md):
-  Warn-only on default/fast/core/full: app/**/handlers ↔ client/**/handlers block clones.
-  W never fails verify. Missing python3/checker → skip. Crash/empty JSON → fail.
-  Skip quarantine/pitest/preflight. DUP_BLOCK_E reserved (R1+). No --dup-hard this ticket.
+Duplication (MUD-039 hard; docs/DUPLICATION_KT.md):
+  Hard on default/fast/core/full: app/**/handlers ↔ client/**/handlers block clones.
+  DUP_BLOCK_E fails verify. Soft opt-out: MUD_DUP_SOFT=1 or --dup-soft (report-only).
+  Missing python3/checker → fail-closed when hard; skip when soft. Crash/empty JSON → fail.
+  Skip quarantine/pitest/preflight/smoke. No R1 / no MUD_DUP_HARD.
 
 Exit codes:
   0  all hard steps green (or dry-run)
@@ -190,6 +196,8 @@ Examples:
   ./tools/verify_mud.sh --dry-run --smoke
   MUD_TOKEN_SOFT=1 ./tools/verify_mud.sh --fast
   ./tools/verify_mud.sh --core --token-soft
+  ./tools/verify_mud.sh --core --dup-soft
+  MUD_DUP_SOFT=1 ./tools/verify_mud.sh --fast
   MUD_TOKEN_SCOPE=full ./tools/verify_mud.sh --fast
 
 Requires Java 17 and ./gradlew at repo root.
@@ -925,28 +933,60 @@ skip_token_budget() {
   record_gate "token_budget" "skipped" 0 "${reason}"
 }
 
-# Handler block-clone (MUD-036). Warn-only on default/fast/core/full.
-# Checker always exits 0 — verify never fails on DUP_BLOCK_W. See docs/DUPLICATION_KT.md.
+# Soft opt-out (MUD-039): --dup-soft or MUD_DUP_SOFT=1 → report-only.
+dup_soft_mode() {
+  if [[ "${DUP_SOFT_CLI}" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ "${MUD_DUP_SOFT:-0}" == "1" || "${MUD_DUP_SOFT:-}" == "true" || "${MUD_DUP_SOFT:-}" == "yes" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Handler block-clone (MUD-039). Hard on default/fast/core/full; soft opt-out.
+# Checker always exits 0 — verify owns fail policy. See docs/DUPLICATION_KT.md.
 run_duplication_kt() {
   local cmd_display="python3 tools/quality/check_duplication_kt.py --root . --quiet-stdout --json-out tmp/duplication_kt_verify.json"
   local t0 t1 dur rc
-  local merge_note="" w_count=0 pair_count=0 merged=0 truncated=0
+  local merge_note="" e_count=0 pair_count=0 merged=0 truncated=0
   local line code fpath metric limit remediation
   local note_msg
+  local hard=1
+
+  if dup_soft_mode; then
+    hard=0
+  fi
 
   add_step "${cmd_display}"
   if [[ "${DRY_RUN}" -eq 1 ]]; then
     echo "[dry-run] ${cmd_display}"
-    note "duplication_kt dry-run (would run warn-only)"
+    if [[ "${hard}" -eq 1 ]]; then
+      note "duplication_kt dry-run (would run hard E=0)"
+    else
+      note "duplication_kt dry-run (would run soft report-only)"
+    fi
     return 0
   fi
 
   if ! command -v python3 >/dev/null 2>&1; then
+    if [[ "${hard}" -eq 1 ]]; then
+      EXIT_CODE=1
+      record_gate "duplication_kt" "fail" 0 "python3 missing (hard mode)"
+      note "duplication_kt hard fail: python3 missing"
+      return 1
+    fi
     record_gate "duplication_kt" "skipped" 0 "python3 missing"
     note "duplication_kt skipped: python3 missing"
     return 0
   fi
   if [[ ! -f "${DUP_CHECKER}" ]]; then
+    if [[ "${hard}" -eq 1 ]]; then
+      EXIT_CODE=1
+      record_gate "duplication_kt" "fail" 0 "checker missing (hard mode)"
+      note "duplication_kt hard fail: checker missing at tools/quality/check_duplication_kt.py"
+      return 1
+    fi
     record_gate "duplication_kt" "skipped" 0 "checker missing"
     note "duplication_kt skipped: checker missing at tools/quality/check_duplication_kt.py"
     return 0
@@ -973,7 +1013,7 @@ run_duplication_kt() {
   while IFS=$'\t' read -r code fpath metric limit remediation || [[ -n "${code:-}" ]]; do
     [[ -z "${code:-}" ]] && continue
     if [[ "${code}" == "__META__" ]]; then
-      w_count="${fpath}"
+      e_count="${fpath}"
       pair_count="${metric}"
       merged="${limit}"
       truncated="${remediation}"
@@ -988,7 +1028,9 @@ with open(path, encoding="utf-8") as f:
     data = json.load(f)
 findings = data.get("findings") or []
 summary = data.get("summary") or {}
-w_count = int(summary.get("findings_warn", len(findings)))
+e_count = int(summary.get("findings_error", 0))
+if e_count == 0:
+    e_count = sum(1 for r in findings if str(r.get("code", "")).endswith("_E"))
 pair_count = int(summary.get("pairs", len(findings)))
 rows = findings[:cap]
 truncated = 1 if len(findings) > cap else 0
@@ -1001,7 +1043,7 @@ for r in rows:
     m = "" if metric is None else str(metric)
     lim = "" if limit is None else str(limit)
     print(f"{code}\t{fpath}\t{m}\t{lim}\t{rem}")
-print(f"__META__\t{w_count}\t{pair_count}\t{len(rows)}\t{truncated}")
+print(f"__META__\t{e_count}\t{pair_count}\t{len(rows)}\t{truncated}")
 PY
   )
 
@@ -1010,10 +1052,24 @@ PY
     note "duplication_kt findings truncated at ${DUP_FINDINGS_CAP}"
   fi
 
-  # Warn-only: always pass; W never sets EXIT_CODE.
-  note_msg="warn-only W=${w_count} pairs=${pair_count}${merge_note}"
+  if [[ "${hard}" -eq 1 ]]; then
+    if [[ "${e_count}" -gt 0 ]]; then
+      EXIT_CODE=1
+      note_msg="hard E=${e_count} pairs=${pair_count}${merge_note}"
+      record_gate "duplication_kt" "fail" "${dur}" "${note_msg}"
+      note "duplication_kt HARD fail: ${note_msg}"
+      return 1
+    fi
+    note_msg="hard E=0 pairs=${pair_count}${merge_note}"
+    record_gate "duplication_kt" "pass" "${dur}" "${note_msg}"
+    note "duplication_kt hard pass: ${note_msg}"
+    return 0
+  fi
+
+  # Soft: always pass; merge findings; never set EXIT_CODE from clones alone.
+  note_msg="soft E=${e_count} pairs=${pair_count} report-only${merge_note}"
   record_gate "duplication_kt" "pass" "${dur}" "${note_msg}"
-  note "duplication_kt warn-only W=${w_count} pairs=${pair_count}"
+  note "duplication_kt soft: ${note_msg}"
   return 0
 }
 
@@ -1575,6 +1631,10 @@ while [[ $# -gt 0 ]]; do
       TOKEN_SOFT_CLI=1
       shift
       ;;
+    --dup-soft)
+      DUP_SOFT_CLI=1
+      shift
+      ;;
     --preflight)
       if [[ $# -lt 2 || -z "${2:-}" || "${2:0:1}" == "-" ]]; then
         die_usage "--preflight requires a path argument"
@@ -1774,8 +1834,8 @@ case "${LANE}" in
     ;;
 esac
 
-# Handler duplication (MUD-036) on default/fast/core/full — warn-only.
-# W never sets EXIT_CODE. Skip quarantine + pitest + preflight.
+# Handler duplication (MUD-039) on default/fast/core/full — hard E=0.
+# Soft opt-out: MUD_DUP_SOFT=1 / --dup-soft. Skip quarantine + pitest + preflight.
 # Placement: after token_budget. See docs/DUPLICATION_KT.md.
 case "${LANE}" in
   default|core|full)

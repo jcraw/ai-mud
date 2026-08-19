@@ -1,22 +1,11 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList",
-    "ForbiddenComment"
-)
+@file:Suppress("ForbiddenComment")
 
 package com.jcraw.app.handlers
 
 import com.jcraw.app.MudGame
 import com.jcraw.mud.core.Direction
 import com.jcraw.mud.reasoning.combat.AttackResult
-import com.jcraw.mud.reasoning.combat.FleeResolver
+import com.jcraw.mud.reasoning.combat.CombatHandlerPures
 import com.jcraw.mud.reasoning.combat.FleeResult
 import kotlinx.coroutines.runBlocking
 
@@ -27,21 +16,19 @@ internal object MovementFleeHandlers {
 
     fun handleFlee(game: MudGame, direction: Direction, hostiles: List<String>) = runBlocking {
         println("\n⚠️  Hostile creatures block your path! You attempt to flee...")
-        val attackResolver = game.attackResolver
-        if (attackResolver == null) {
+        val result = CombatHandlerPures.attemptFlee(
+            game.attackResolver,
+            game.worldState.player.id,
+            hostiles,
+            direction,
+            game.worldState,
+            game.skillManager
+        )
+        if (result == null) {
             println("Flee system unavailable. Allowing movement.")
             MovementMoveHandlers.performMove(game, direction)
             return@runBlocking
         }
-        val fleeResolver = FleeResolver(attackResolver)
-        val result = fleeResolver.resolveFlee(
-            fleeingEntityId = game.worldState.player.id,
-            pursuers = hostiles,
-            targetDirection = direction,
-            worldState = game.worldState,
-            skillManager = game.skillManager
-        )
-        processFleeSkillProgression(game, result)
         applyFleeResult(game, direction, result)
     }
 
@@ -73,39 +60,13 @@ internal object MovementFleeHandlers {
                 is AttackResult.Hit -> {
                     val attacker = game.worldState.getEntity(attack.attackerId)
                     println("\nThe ${attacker?.name ?: "enemy"} strikes you for ${attack.damage} damage!")
-                    game.worldState = game.worldState.updatePlayer(
-                        game.worldState.player.copy(
-                            health = game.worldState.player.health - attack.damage
-                        )
-                    )
+                    game.worldState = CombatHandlerPures.applyFreeHitDamage(game.worldState, attack.damage)
                 }
                 is AttackResult.Miss -> {
                     val attacker = game.worldState.getEntity(attack.attackerId)
                     println("\nThe ${attacker?.name ?: "enemy"} swings at you but misses!")
                 }
                 else -> {}
-            }
-        }
-    }
-
-    private fun processFleeSkillProgression(game: MudGame, result: FleeResult) {
-        val skillManager = game.skillManager
-        if (result.escapeSkillUsed) {
-            skillManager.attemptSkillProgress(
-                entityId = result.fleeingEntityId,
-                skillName = "Escape",
-                baseXp = 10L,
-                success = result is FleeResult.Success
-            )
-        }
-        result.pursuitSkillsUsed.forEach { (pursuerId, pursuitLevel) ->
-            if (pursuitLevel > 0) {
-                skillManager.attemptSkillProgress(
-                    entityId = pursuerId,
-                    skillName = "Pursuit",
-                    baseXp = 10L,
-                    success = result is FleeResult.Failure
-                )
             }
         }
     }

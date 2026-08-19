@@ -1,15 +1,3 @@
-@file:Suppress(
-    "ReturnCount",
-    "MagicNumber",
-    "MaxLineLength",
-    "TooManyFunctions",
-    "LongMethod",
-    "ComplexCondition",
-    "CyclomaticComplexMethod",
-    "NestedBlockDepth",
-    "LongParameterList"
-)
-
 package com.jcraw.mud.client.handlers
 
 import com.jcraw.mud.client.EngineGameClient
@@ -17,115 +5,85 @@ import com.jcraw.mud.core.GameEvent
 import com.jcraw.mud.core.ItemTemplate
 import com.jcraw.mud.core.TreasureRoomComponent
 import com.jcraw.mud.reasoning.treasureroom.TreasureRoomHandler
-import com.jcraw.mud.reasoning.treasureroom.TreasureRoomStateApply
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalOps
+import com.jcraw.mud.reasoning.treasureroom.TreasurePedestalSupport as PedestalPures
 
 /**
- * Take-from-pedestal for [ClientTreasureRoomHandlers] facade (MUD-034l pure-move).
+ * Take-from-pedestal for [ClientTreasureRoomHandlers] facade (MUD-039 pures).
  */
 internal object ClientTreasureTakeHandlers {
 
     fun handleTakeTreasure(game: EngineGameClient, itemTarget: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val treasureRoomComponent = game.worldState.getTreasureRoom(spaceId)
-        if (treasureRoomComponent == null) {
-            game.emitEvent(
-                GameEvent.System(
-                    "This isn't a treasure room. Use 'take' for regular items.",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
+        val room = game.worldState.getTreasureRoom(spaceId)
+        if (room == null) {
+            warn(game, "This isn't a treasure room. Use 'take' for regular items.")
             return
         }
-        val templates = ClientTreasurePedestalSupport.buildItemTemplatesMap(game, treasureRoomComponent)
-        val itemTemplateId = resolveTakeTarget(game, itemTarget, templates, treasureRoomComponent) ?: return
-        applyTake(game, spaceId, treasureRoomComponent, itemTemplateId, templates)
+        val templates = ClientTreasurePedestalSupport.buildItemTemplatesMap(game, room)
+        val itemTemplateId = PedestalPures.findItemTemplateByName(itemTarget, templates, room)
+        if (itemTemplateId == null) {
+            warn(game, PedestalPures.availableItemsLine(room, templates))
+            return
+        }
+        applyTake(game, spaceId, room, itemTemplateId, templates)
     }
 
-    private fun resolveTakeTarget(
-        game: EngineGameClient,
-        itemTarget: String,
-        templates: Map<String, ItemTemplate>,
-        treasureRoomComponent: TreasureRoomComponent
-    ): String? {
-        val itemTemplateId = ClientTreasurePedestalSupport.findItemTemplateByName(
-            itemTarget, templates, treasureRoomComponent
-        )
-        if (itemTemplateId == null) {
-            val available = ClientTreasurePedestalSupport
-                .getAvailableItemNames(treasureRoomComponent, templates)
-                .joinToString(", ")
-            game.emitEvent(
-                GameEvent.System(
-                    "That item is not on any pedestal in this room.\nAvailable items: $available",
-                    GameEvent.MessageLevel.WARNING
-                )
-            )
-            return null
-        }
-        return itemTemplateId
+    private fun warn(game: EngineGameClient, message: String) {
+        game.emitEvent(GameEvent.System(message, GameEvent.MessageLevel.WARNING))
     }
 
     private fun applyTake(
         game: EngineGameClient,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
+        room: TreasureRoomComponent,
         itemTemplateId: String,
         templates: Map<String, ItemTemplate>
     ) {
-        val playerInventory = game.worldState.player.inventoryComponent
-        val result = game.treasureRoomHandler.takeItemFromPedestal(
-            treasureRoom = treasureRoomComponent,
-            playerInventory = playerInventory,
-            itemTemplateId = itemTemplateId,
-            itemTemplates = templates
+        val applied = TreasurePedestalOps.takeAndApply(
+            game.treasureRoomHandler, game.worldState, spaceId, room, itemTemplateId, templates
         )
-        when (result) {
+        game.worldState = applied.world
+        when (val result = applied.result) {
             is TreasureRoomHandler.TreasureRoomResult.Success ->
-                emitTakeSuccess(game, spaceId, treasureRoomComponent, itemTemplateId, result)
-            is TreasureRoomHandler.TreasureRoomResult.Failure ->
-                game.emitEvent(GameEvent.System(result.reason, GameEvent.MessageLevel.WARNING))
+                emitTakeSuccess(game, spaceId, room, itemTemplateId, result)
+            is TreasureRoomHandler.TreasureRoomResult.Failure -> warn(game, result.reason)
         }
     }
 
     private fun emitTakeSuccess(
         game: EngineGameClient,
         spaceId: String,
-        treasureRoomComponent: TreasureRoomComponent,
+        room: TreasureRoomComponent,
         itemTemplateId: String,
         result: TreasureRoomHandler.TreasureRoomResult.Success
     ) {
-        game.worldState = TreasureRoomStateApply.applySuccess(
-            world = game.worldState,
-            spaceId = spaceId,
-            player = game.worldState.player,
-            success = result
+        game.emitEvent(
+            GameEvent.Narrative(
+                TreasurePedestalOps.takeFromPedestalLine(
+                    result.itemName,
+                    PedestalPures.getPedestalDescription(room, itemTemplateId)
+                )
+            )
         )
-        val pedestalDesc = ClientTreasurePedestalSupport.getPedestalDescription(
-            treasureRoomComponent, itemTemplateId
-        )
-        game.emitEvent(GameEvent.Narrative("You take the ${result.itemName} from its $pedestalDesc."))
-        emitTakeBarriers(game, treasureRoomComponent, result)
+        emitBarriers(game, room, result)
         ClientTreasurePedestalSupport.emitStatusUpdate(game, spaceId)
     }
 
-    private fun emitTakeBarriers(
+    private fun emitBarriers(
         game: EngineGameClient,
-        treasureRoomComponent: TreasureRoomComponent,
+        room: TreasureRoomComponent,
         result: TreasureRoomHandler.TreasureRoomResult.Success
     ) {
         if (result.treasureRoomComponent.currentlyTakenItem == null) return
-        val barrierType = ClientTreasurePedestalSupport.getBarrierTypeForBiome(
-            treasureRoomComponent.biomeTheme
-        )
         game.emitEvent(
             GameEvent.Narrative(
-                "\nAs you claim the ${result.itemName}, $barrierType descend over the other pedestals, sealing them away."
+                TreasurePedestalOps.takeBarrierNarrative(
+                    result.itemName,
+                    PedestalPures.getBarrierTypeForBiome(room.biomeTheme)
+                )
             )
         )
-        game.emitEvent(
-            GameEvent.Narrative(
-                "You may return to this room at any time to swap your choice for a different treasure."
-            )
-        )
+        game.emitEvent(GameEvent.Narrative(TreasurePedestalOps.takeSwapHint()))
     }
 }

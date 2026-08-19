@@ -1,4 +1,4 @@
-@file:Suppress("ReturnCount", "MagicNumber", "MaxLineLength", "TooManyFunctions", "LongMethod", "ComplexCondition", "CyclomaticComplexMethod", "NestedBlockDepth", "LongParameterList")
+@file:Suppress("ReturnCount")
 
 package com.jcraw.app.handlers
 
@@ -7,16 +7,16 @@ import com.jcraw.mud.core.Entity
 import com.jcraw.mud.core.SkillCheckResult
 import com.jcraw.mud.core.SkillChallenge
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.interact.FeatureMatch
 
 /**
  * Skill-check-on-feature handler (app-only; client Check routes via social).
- * Pure extract from [SkillQuestHandlers].
  */
 object SkillQuestCheckHandlers {
 
     fun handleCheck(game: MudGame, target: String) {
         val spaceId = game.worldState.player.currentRoomId
-        val feature = findFeature(game, spaceId, target)
+        val feature = FeatureMatch.find(game.worldState.getEntitiesInSpace(spaceId), target)
         if (feature == null) {
             println("You don't see that here.")
             return
@@ -68,24 +68,5 @@ object SkillQuestCheckHandlers {
             println("\n❌ Failure!")
             println(challenge.failureDescription)
         }
-    }
-
-    private fun findFeature(game: MudGame, spaceId: String, target: String): Entity.Feature? {
-        val normalizedTarget = target.lowercase().replace("_", " ")
-        return game.worldState.getEntitiesInSpace(spaceId)
-            .filterIsInstance<Entity.Feature>()
-            .find { matchesFeature(it, normalizedTarget) }
-    }
-
-    private fun matchesFeature(entity: Entity.Feature, normalizedTarget: String): Boolean {
-        val normalizedName = entity.name.lowercase()
-        val normalizedId = entity.id.lowercase().replace("_", " ")
-        return normalizedName.contains(normalizedTarget) ||
-            normalizedId.contains(normalizedTarget) ||
-            normalizedTarget.contains(normalizedName) ||
-            normalizedTarget.contains(normalizedId) ||
-            normalizedTarget.split(" ").all { word ->
-                normalizedName.contains(word) || normalizedId.contains(word)
-            }
     }
 }

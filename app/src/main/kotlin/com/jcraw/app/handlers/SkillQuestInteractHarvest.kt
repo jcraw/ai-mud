@@ -1,4 +1,4 @@
-@file:Suppress("ReturnCount", "MagicNumber", "MaxLineLength", "TooManyFunctions", "LongMethod", "ComplexCondition", "CyclomaticComplexMethod", "NestedBlockDepth", "LongParameterList")
+@file:Suppress("ReturnCount", "TooManyFunctions")
 
 package com.jcraw.app.handlers
 
@@ -8,6 +8,7 @@ import com.jcraw.mud.core.ItemInstance
 import com.jcraw.mud.core.SkillCheckResult
 import com.jcraw.mud.core.SkillEvent
 import com.jcraw.mud.reasoning.QuestAction
+import com.jcraw.mud.reasoning.interact.HarvestSupport
 import com.jcraw.mud.reasoning.loot.LootGenerator
 import com.jcraw.mud.reasoning.loot.LootSource
 import com.jcraw.mud.reasoning.loot.LootTableRegistry
@@ -17,38 +18,27 @@ import com.jcraw.mud.reasoning.loot.LootTableRegistry
  */
 object SkillQuestInteractHarvest {
 
-    private sealed class CheckOutcome {
-        data object NoChallenge : CheckOutcome()
-        data object Failed : CheckOutcome()
-        data class Passed(val result: SkillCheckResult) : CheckOutcome()
-    }
-
     fun hasRequiredTool(game: MudGame, feature: Entity.Feature): Boolean {
         val requiredToolTag = feature.properties["required_tool_tag"] ?: return true
-        val hasTool = game.worldState.player.inventoryComponent?.items?.any { instance ->
-            val template = game.itemRepository.findTemplateById(instance.templateId).getOrNull()
-            template?.tags?.contains(requiredToolTag) == true
-        } ?: false
+        val hasTool = HarvestSupport.hasRequiredTool(
+            game.worldState.player.inventoryComponent?.items,
+            requiredToolTag
+        ) { id -> game.itemRepository.findTemplateById(id).getOrNull() }
         if (!hasTool) {
-            println("You need a ${requiredToolTag.replace("_", " ")} to harvest this.")
+            println(HarvestSupport.missingToolMessage(requiredToolTag))
             return false
         }
         return true
     }
 
     fun performHarvest(game: MudGame, spaceId: String, feature: Entity.Feature) {
-        when (val outcome = runHarvestSkillCheck(game, feature)) {
-            is CheckOutcome.Failed -> return
-            is CheckOutcome.NoChallenge -> {
-                grantHarvestLoot(game, feature)
-                markHarvested(game, spaceId, feature)
-            }
-            is CheckOutcome.Passed -> {
-                grantHarvestLoot(game, feature)
-                awardGatheringXp(game, feature, outcome.result)
-                markHarvested(game, spaceId, feature)
-            }
+        val outcome = runHarvestSkillCheck(game, feature)
+        if (outcome is HarvestSupport.CheckOutcome.Failed) return
+        grantHarvestLoot(game, feature)
+        if (outcome is HarvestSupport.CheckOutcome.Passed) {
+            awardGatheringXp(game, feature, outcome.result)
         }
+        markHarvested(game, spaceId, feature)
     }
 
     private fun markHarvested(game: MudGame, spaceId: String, feature: Entity.Feature) {
@@ -57,8 +47,8 @@ object SkillQuestInteractHarvest {
             ?: game.worldState
     }
 
-    private fun runHarvestSkillCheck(game: MudGame, feature: Entity.Feature): CheckOutcome {
-        if (feature.skillChallenge == null) return CheckOutcome.NoChallenge
+    private fun runHarvestSkillCheck(game: MudGame, feature: Entity.Feature): HarvestSupport.CheckOutcome {
+        if (feature.skillChallenge == null) return HarvestSupport.CheckOutcome.NoChallenge
         val challenge = feature.skillChallenge!!
         val result = game.skillCheckResolver.checkPlayer(
             game.worldState.player,
@@ -69,10 +59,10 @@ object SkillQuestInteractHarvest {
         if (!result.success) {
             println("❌ You failed to harvest the resource properly.")
             awardFailedHarvestXp(game, challenge.statType.name)
-            return CheckOutcome.Failed
+            return HarvestSupport.CheckOutcome.Failed
         }
         println("✅ Success!")
-        return CheckOutcome.Passed(result)
+        return HarvestSupport.CheckOutcome.Passed(result)
     }
 
     private fun printRoll(statName: String, result: SkillCheckResult) {
@@ -91,7 +81,7 @@ object SkillQuestInteractHarvest {
             game.skillManager.attemptSkillProgress(
                 entityId = game.worldState.player.id,
                 skillName = skillName,
-                baseXp = 25L,
+                baseXp = HarvestSupport.failXp(),
                 success = false
             ).getOrNull() ?: emptyList(),
             showMilestone = false
@@ -175,7 +165,7 @@ object SkillQuestInteractHarvest {
             game.skillManager.attemptSkillProgress(
                 entityId = game.worldState.player.id,
                 skillName = skillName,
-                baseXp = 50L,
+                baseXp = HarvestSupport.successXp(),
                 success = skillCheckResult.success
             ).getOrNull() ?: emptyList(),
             showMilestone = true
@@ -190,7 +180,7 @@ object SkillQuestInteractHarvest {
         xpEvents.forEach { event ->
             when (event) {
                 is SkillEvent.XpGained -> {
-                    println("+${event.xpAmount} XP to $skillName (${event.currentXp} total, level ${event.currentLevel})")
+                    println(HarvestSupport.xpGainedLine(skillName, event.xpAmount, event.currentXp, event.currentLevel))
                 }
                 is SkillEvent.LevelUp -> {
                     println("🎉 $skillName leveled up! ${event.oldLevel} → ${event.newLevel}")
