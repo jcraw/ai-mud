@@ -8,12 +8,12 @@ Statuses: `open` → `scheduled` → `in_progress` → `done` (or `blocked` / `w
 
 Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` · GitHub: `jcraw/ai-mud`
 
-## Posture (Jason 2026-08-11)
+## Posture (Jason 2026-08-19)
 
-- **Harness-first modernization** — quality gates, unit/contract tests, AGENTS/board/verify/CI — so later product work is easy
-- **Not playtest-ready** — do **not** block tickets on Jason playtest/opinion (except explicit design spikes)
-- Spare agent capacity OK; autonomous drains; slow drip OK; no rush
-- Product play / friends multiplayer = later phase, not this board’s gate
+- **Wave P — product-ready / zero debt** is the active program (after harness A–G + agent gates Q)
+- End-state (code): **no static debt**, **dup warnings = 0 + hard**, **PIT hard 80%**, **product-ready automated bar**
+- Spare capacity OK; serial one live builder per tree; substantial = plan→stamp→fresh impl
+- Friends multiplayer still later. **Playtest not near-term** (Jason 2026-08-19): finish code up-to-date → **integration work** → playtest later. MUD-042 is agent product-ready closeout, not a Jason playtest appointment.
 
 ## Drain order (spare capacity)
 
@@ -24,14 +24,14 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
 5. **Wave E — later:** MUD-016…018 · done
 6. **Wave F — product + quarantine drip:** MUD-019 → 020 → 021 · done
 7. **Wave G — finish modernization:** MUD-022 → 023 → 024 → 025 · done
-8. **Wave Q — agent-native gates** (Jason 2026-08-11 · design `docs/AGENT_QUALITY_GATES_DESIGN.md`):
-   - **Q0:** MUD-026 design lock
-   - **Q1 serial:** MUD-027 → 028 → 029 → 030 (dod v2 · token report · touched · verify pilot)
-   - **Q2 serial:** MUD-031 hard-on-touched → 032 no-live-LLM · 033 preflight (033∥ok after 030)
-   - **Q3:** MUD-034 god-file split umbrella → children **034a–n** (done)
-   - **Q4:** _(MUD-035 done — PIT schedule 60→70→80, live stay R0)_ · _(036 done)_ · _(037 done)_ · _(038 done — optional `--smoke`)_ · _(039 done — handler twins zero + hard `DUP_BLOCK_E`)_
+8. **Wave Q — agent-native gates** · done (MUD-026…039)
+9. **Wave P — zero debt + product-ready code bar** (Jason 2026-08-19):
+   - **P1:** MUD-039 zero handler dup + hard gate · **done** (landed primary `1ff6cde`)
+   - **P2:** MUD-041 static debt zero (detekt baseline + token overrides)
+   - **P3:** MUD-040 PIT strength → hard 80 default
+   - **P4:** MUD-042 product-ready closeout (after 039–041; automated bar only — playtest after later integration)
+   - **Order:** **041 → 040 → 042** (structure first; PIT can follow; 042 last)
    - **Post-done:** allowlisted `git push origin master` after each (no force)
-   - **Policy:** token-primary ceilings; hard-on-touched before new features; PIT 80% after splits; E-tier not core-blocking yet
 
 ## How agents use this
 
@@ -45,46 +45,19 @@ Prefix: **MUD-NNN**. Repo: `/run/media/j/M2MegaStore/Code/claude-code/ai-mud` ·
 
 ## Open (backlog)
 
-### Wave Q — agent-native quality gates (active)
-Policy: `docs/AGENT_QUALITY_GATES_DESIGN.md` (accepted 2026-08-11).
+### Wave P — zero debt + product-ready code bar (active)
+Jason 2026-08-19. Coarse tickets. Playtest is **later**, after integration — not a near-term human gate.
 
-#### Q0 — design lock
-- _(MUD-026 done — design accepted + pointers)_
+| ID | Title | Pri | Notes |
+|----|-------|-----|-------|
+| **MUD-041** | Static debt zero (detekt baseline + token overrides) | high | ~1478 baseline IDs + token overrides → 0 |
+| **MUD-040** | PIT pure-module strength → hard 80% default | high | min ~9.8% → ≥82 then R2b |
+| **MUD-042** | Product-ready bar + closeout (playtest later) | high | after 039–041; agent automated bar only |
 
-#### Q1 — feedback shape (serial)
-- _(MUD-027 done — dod-summary v2 + findings[] pipe)_
-- _(MUD-028 done — token/structure report-only checker)_
-- _(MUD-029 done — touched-path `--files` / `--git-diff`)_
-- _(MUD-030 done — verify wire + soft token pilot / `MUD_TOKEN_HARD` / `--token-hard`)_
+Suggested order: **041 → 040 → 042**. **MUD-039 done** (primary `1ff6cde`).
 
-#### Q2 — hard ratchet (serial after Q1)
-- _(MUD-031 done — hard-on-touched default)_
-- _(MUD-032 done — no live LLM in unit tests)_
-- _(MUD-033 done — plan/brief token preflight)_
-
-#### Q3 — split gods (umbrella done; children done)
-- _(MUD-034 done — ranked list + 14 children 034a–n; tickets-only)_
-- _(MUD-034a done — client facade pure-move extracts; residual override lowered)_
-- _(MUD-034b done — GraphGenerator pure-move layout/MST/edges/typing; override removed)_
-- _(MUD-034c done — IntentRecognizer pure-move Direction/Say/Trade/LLM/Fallback; host 10293→533; override removed; Intent residual override retargeted MUD-034c)_
-- _(MUD-034d done — app runtime pure-move MU/Npc/Room/Quest/Death + GameServer Item/Nav/Social/Quest; MultiUserGame override removed; residual hosts retargeted MUD-034d)_
-- _(MUD-034e done — skill/quest handlers parity; both host overrides removed)_
-- _(MUD-034f done — testbot god split; residual FN overrides retargeted MUD-034f)_
-- _(MUD-034g done — world gen cluster pure-move; residual overrides retargeted MUD-034g)_
-- _(MUD-034h done — item handlers parity; both host overrides removed)_
-- _(MUD-034i done — movement handlers parity; both host overrides removed)_
-- _(MUD-034j done — skill data/mgr split; all 3 host overrides removed)_
-- _(MUD-034k done — combat surface pure-move; all 6 host overrides removed)_
-- _(MUD-034l done — social/trade/treasure pure-move; all 5 host overrides removed)_
-- _(MUD-034m done — memory/core pure-move; all 7 host overrides removed)_
-- _(MUD-034n done — misc reasoning pure-move; all 7 host overrides removed)_
-
-#### Q4 — strength / product-adjacent
-- _(MUD-035 done — PIT schedule 60→70→80; live stay R0 min 9.8%)_
-- _(MUD-036 done — duplication_kt warn-only on app/client handlers; `DUP_BLOCK_W`; R0; no handler merge)_
-- _(MUD-037 done — handler parity contracts: EquipItemApply / CombatHitApply / EmoteApply + use/equip/hit/emote contracts)_
-- _(MUD-038 done — fixture + `tools/smoke_commands.sh` + optional `--smoke`; not on `--core`)_
-- _(MUD-039 done — zero handler twins + hard `duplication_kt` `DUP_BLOCK_E`; soft `--dup-soft`)_
+### Wave Q — agent-native quality gates
+_(complete — MUD-026…039)_
 
 ### Waves A–G
 _(complete — harness modernization closed MUD-025)_
